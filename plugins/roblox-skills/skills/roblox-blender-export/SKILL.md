@@ -1,7 +1,7 @@
 ---
 name: roblox-blender-export
 description: "Use when making Roblox meshes in Blender (bats, props, kit pieces, voxel animals, icons) and getting them into Studio: scale, pivot, axis, FBX export call, color-as-texture, triangle budgets, collision, upload."
-when_to_use: "Also when an imported mesh is the wrong size, faces the wrong way, renders white/untextured, is inside-out, too heavy, or collides badly; before scripting a Blender asset pipeline or Open Cloud upload."
+when_to_use: "Also when an imported mesh is the wrong size, faces the wrong way, renders white/untextured, is inside-out, too heavy, or collides badly; before scripting a Blender asset pipeline or Open Cloud upload; when driving a live Blender through MCP or sharing it between sessions."
 last_reviewed: 2026-10-26
 sources:
   - https://github.com/brain-xiang/grok-studio (skills/blender-assets, reference/roblox_export.py; MIT)
@@ -104,3 +104,21 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 ## 7. Licensing
 
 Record source, author and license per imported model in `assets/LICENSES.md`. Use only CC0, or CC-BY with credit. Never import an unclear license.
+
+## 8. Live Blender through MCP (shared between sessions)
+
+MCP for Blender (`uvx mcp-for-blender`, addon "MCP for Blender") drives the user's open Blender. Every Claude session with the server in its config talks to the same Blender on `localhost:9876`. The addon accepts several clients, but runs their commands one at a time in one shared scene.
+
+- Start with `get_addon_status`. "Could not connect" means Blender is closed or the addon is off: ask the user to enable it (Preferences > Add-ons > MCP for Blender, Save Preferences) and press **Connect to MCP server** in the viewport sidebar (`N` > MCP for Blender tab).
+- Library toggles (Poly Haven, Sketchfab, Poly Pizza) are scene properties: `bpy.context.scene.blendermcp_use_polyhaven = True`. Poly Haven needs no key. Sketchfab and Poly Pizza need a key that the user types into the addon preferences, never into chat.
+- Work only inside your own collection, named after the project (for example `mannequin-heist_assets`). Never delete, select or export another session's objects or the user's own objects. Export with `use_selection=True` on your collection only.
+- Before starting, list the scene's collections. If another project's collection is there and changing, another session is using this Blender: tell the user and ask before you go on.
+- For real parallel work, run one Blender per session:
+  1. The user opens a second Blender (`open -n -a Blender` on macOS), sets the port in its MCP tab (for example 9877) and presses Connect.
+  2. Point that project's session at it with a project-scoped `.mcp.json`, which overrides the user-scoped server of the same name:
+
+     ```json
+     { "mcpServers": { "blender": { "command": "uvx", "args": ["mcp-for-blender"], "env": { "BLENDER_PORT": "9877" } } } }
+     ```
+
+  3. Restart that Claude session (MCP servers start with the session) and approve the project server once.
