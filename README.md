@@ -6,12 +6,12 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 |---|---|
 | `roblox-pitfalls` | Field notes: Open Cloud publish 409, Studio vs live asset loading, Creator Store 403, testing through Studio MCP with bot scenarios, teleport/DataStore/light limits |
 | `roblox-blender-export` | Blender meshes into Studio: scale, pivot, axis, FBX export call, palette textures, triangle budgets, upload |
-| `roblox-store-art-pack` | World palette and composition, Creator Store picks and quarantine, game icon and thumbnails |
-| `roblox-ui-genre-studs` | Simulator/tycoon stud-style UI: outlines, lips, gradients, HUD zones, motion |
+| `roblox-store-art-pack` | Any genre: Creator Store picks and quarantine, map composition check, game icon and thumbnails. Bright world palette for simulator/tycoon games |
+| `roblox-ui-genre-studs` | Simulator/tycoon games only: stud-style UI with outlines, lips, gradients, HUD zones, motion |
 
 ## Install
 
-Recommended: install roblox-brain first, then this plugin.
+Install all of roblox-brain (29 skills) first, then this plugin. Skills only load their full text when a task needs them, so keeping every skill installed costs little and covers every genre.
 
 ```bash
 npx skills add TabooHarmony/roblox-brain

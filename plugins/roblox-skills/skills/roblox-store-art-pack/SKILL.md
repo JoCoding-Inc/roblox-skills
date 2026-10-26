@@ -1,7 +1,7 @@
 ---
 name: roblox-store-art-pack
-description: "Use when making a Roblox game's world palette, map composition, Creator Store asset picks, game icon, or thumbnails so it looks like a current top genre game and passes moderation."
-when_to_use: "Also when a scene looks flat, pastel, empty or greybox; when inserting Toolbox/Creator Store models; before publishing or running ads (icon/thumbnail CTR); when building an icon family for UI."
+description: "Use for any genre when picking and quarantining Creator Store models, checking map composition, or making the game icon and thumbnails. Its world palette (section 1) is for bright daylight simulator/tycoon games only."
+when_to_use: "Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI, or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; use roblox-lighting instead."
 last_reviewed: 2026-10-26
 sources:
   - https://github.com/blauwtje/roblox-kit (map-building/reference/daylight-look.md, ui-images; MIT)
@@ -17,7 +17,10 @@ sources:
 
 Pair with `roblox-building` (geometry), `roblox-lighting`, `roblox-blender-export` (custom meshes), `roblox-ui-genre-studs` (UI) and `roblox-security` (inserted scripts).
 
-## 1. Daylight genre world
+## 1. Daylight genre world (simulator/tycoon only)
+
+Skip this section for horror, realistic or night games.
+
 
 - **Lighting:** ClockTime 14, saturated cyan-blue sky `#6FC3F0` with soft white clouds, no fog, a high-key sun and soft shadows.
 - **Palette:**
@@ -77,13 +80,7 @@ Never invent ids.
 4. Check the thumbnail.
 5. Pick for coherence of the SET: reject an individually good image whose style clashes.
 
-**Probe before relying on an id:**
-
-```lua
-AssetService:CreateEditableImageAsync(Content.fromAssetId(id))
-```
-
-"no permission" means it renders as nothing in this place.
+Probe every image id before relying on it (`roblox-pitfalls` section 4).
 
 **Model inserts (quarantine first):**
 - Insert into a quarantine folder.

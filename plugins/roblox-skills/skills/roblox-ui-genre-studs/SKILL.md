@@ -1,7 +1,7 @@
 ---
 name: roblox-ui-genre-studs
-description: "Use when a Roblox simulator/tycoon HUD, shop, panel or world label must look like the top genre games (Steal a Brainrot, Steal An Egg, +1 Strength, Pet Simulator): chunky stud style, black outlines, lips, FredokaOne, quiet HUD zones."
-when_to_use: "Also when the user says the UI looks generic, AI-made, not Roblox-like, too big, too dark, or off-genre; before restyling HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures."
+description: "Use only for simulator/tycoon-style games (Steal a Brainrot, Steal An Egg, +1 Strength, Pet Simulator) whose HUD, shop, panels or world labels must match that chunky stud look: black outlines, lips, FredokaOne, quiet HUD zones. Not for horror, realistic or story games."
+when_to_use: "Also when a simulator/tycoon UI looks generic, AI-made, too big, too dark or off-genre; before restyling its HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures. For other genres use roblox-gui."
 last_reviewed: 2026-10-26
 sources:
   - https://github.com/S4US/Roqer (apps/desktop/agent/skills/roblox-ui-design, MODERN STUDS theme; AGPL-3.0-or-later; facts re-authored, no text copied)
@@ -155,15 +155,8 @@ Each of these is a defect:
 
 ## 8. Textures and icons
 
-- Probe an image id before relying on it:
-
-  ```lua
-  AssetService:CreateEditableImageAsync(Content.fromAssetId(id))
-  ```
-
-  "no permission to load asset" means it renders as nothing in this place.
+- Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Public stud tiles: `rbxassetid://6927295847` (4x4 chunky, TileSize 50-70 px, ImageTransparency 0.7), `12055407192` (2x2), `10509831729`. Roqer's 92521981645530 and 91084849147872 belong to another group. Safest: make our own stud and sunburst tiles and upload them under the game's group.
-- A Decal id renders nothing in ImageLabel.Image. Use the Image id (`textureId` / `imageId`).
 - Icons:
   - one family: same canvas, outline weight, light direction, flat colors, no text inside;
   - `ScaleType.Fit` with the aspect locked;

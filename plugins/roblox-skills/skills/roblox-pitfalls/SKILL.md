@@ -23,6 +23,7 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 | The id in a Creator Hub URL publishes to the wrong thing | `/experiences/<id>` shows the **universe** id, not the place id | Resolve the root place from `cloud/v2/universes/<id>` first |
 
 - Print one line such as "published version N" from the publish script, so the agent can quote it.
+- Publish every playtest build to a private test place, and tell the tester 2-3 things to check plus the known issues.
 - An agent never pastes API keys in chat. Keep them in a chmod 600 env file and read them inside the command only.
 
 ## 2. Loading Creator Store models
@@ -52,9 +53,3 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 - **SpotLight / PointLight `Range` caps at 60 studs.** A "longer" flashlight past that needs a second light or a fake glow, not a bigger number.
 - **Non-Latin text on SurfaceGui signs:** some fonts (seen with GothamBold) render Hangul broken in 3D. Use English sign text, or test a font that has the script before relying on it. Screen GUIs were fine.
 - **Image ids:** a Decal id renders nothing in `ImageLabel.Image`; use the image (texture) id. Probe it with `AssetService:CreateEditableImageAsync(Content.fromAssetId(id))`. "No permission" means it will be blank in your place.
-
-## 5. Working with the user (agent etiquette)
-
-- Copy proven genre systems as they are (DOORS-style lobby, simulator rebirth and pets). Do not invent extra mechanics. Users find unrequested twists confusing.
-- Reference images and videos are for look and layout only. Do not add mechanics they happen to show without asking.
-- Every playtest build: publish to a private test place, then give the user 2-3 things to check and the known issues.
