@@ -3,14 +3,14 @@
   "owner": { "name": "JoCoding-Inc" },
   "metadata": {
     "description": "Roblox game-dev skills for Claude Code from JoCoding: Blender export, store art and thumbnails, genre stud UI, and field-tested pitfalls.",
-    "version": "1.0.0"
+    "version": "1.0.1"
   },
   "plugins": [
     {
       "name": "roblox-skills",
       "source": "./plugins/roblox-skills",
       "description": "Blender-to-Roblox export, world palette/store assets/icons, genre stud-style UI, and Roblox pitfalls from shipping games with an AI agent.",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": { "name": "JoCoding" },
       "repository": "https://github.com/JoCoding-Inc/roblox-skills",
       "license": "MIT",
