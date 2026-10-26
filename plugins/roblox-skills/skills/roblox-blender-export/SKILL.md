@@ -22,7 +22,7 @@ The sources disagree on how glTF and FBX fronts land in Roblox. Before any bulk 
 2. Check `LookVector` and which face the nose is on in Studio.
 3. Record the result at the top of the pipeline script.
 
-Verified for FBX with the call below: Blender (x, y, z) arrives in Roblox as (-x, z, y), and the Blender front (-Y) faces Roblox Front (-Z).
+Reported (grok-studio, not yet confirmed by us) for FBX with the call below: Blender (x, y, z) arrives in Roblox as (-x, z, y), and the Blender front (-Y) faces Roblox Front (-Z). Treat it as a hypothesis until step 1-3 confirm it on your path.
 
 ## 1. Scale, pivot, structure
 
