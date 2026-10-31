@@ -1,7 +1,7 @@
 {
   "name": "roblox-skills",
   "description": "Blender-to-Roblox export, world palette/store assets/icons, genre stud-style UI, and Roblox pitfalls from shipping games with an AI agent.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "author": { "name": "JoCoding" },
   "repository": "https://github.com/JoCoding-Inc/roblox-skills",
   "license": "MIT",
