@@ -1,7 +1,7 @@
 ---
 name: roblox-pitfalls
 description: "Use when publishing a place through Open Cloud, loading Creator Store models at runtime, testing in Studio through MCP, generating meshes with Roblox Cube (Studio MCP generate_mesh), or when something works in Lune tests but not in the engine. Field notes of failures hit while shipping Roblox games with an AI agent."
-when_to_use: "Also on a 409 'Server is busy' publish error, models that load live but not in Studio, Creator Store downloads returning 403, empty Output, characters that never get set up, broken non-Latin text on signs, teleports that cannot be tested, a SpotLight that stops reaching, a Cube mesh that comes out the wrong size or as a blob, generate_mesh 'Too Many Requests', MCP screenshots that time out, or a texture that stays grey on a MeshPart."
+when_to_use: "Also on a 409 'Server is busy' publish error, models that load live but not in Studio, Creator Store downloads returning 403, empty Output, characters that never get set up, broken non-Latin text on signs, teleports that cannot be tested, a SpotLight that stops reaching, a Cube mesh that comes out the wrong size or as a blob, generate_mesh 'Too Many Requests', MCP screenshots that time out, or a texture that stays grey on a MeshPart, a cutscene camera that snaps back in MCP screenshots, a tooltip drawn under another frame, characters that fall over, or players standing on top of enemies."
 last_reviewed: 2026-10-31
 sources:
   - original (field notes from three test games, 2026-10)
@@ -48,6 +48,10 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 - A scenario that fails on the base commit too is pre-existing. Prove that in a throwaway worktree before you blame your change.
 - **Screenshots** (`screen_capture`) time out when the Studio window sits on another macOS Space, and Studio throttles hard (15 fps and below) when it is not the frontmost app. Bring only your dev-place window forward before shots and FPS checks; FPS read from a background Studio is not a measurement.
 - Some properties are out of reach of `execute_luau` (RobloxScript capability), for example reading `Lighting.Technology` or authoring `MaterialVariant` maps in our runs. Put those in the Rojo project (`*.model.json` under `MaterialService`) so `rojo build` ships them, and set them by hand in the dev place.
+- `execute_luau` resets `Camera.CameraType` from Scriptable to Custom when the call returns (Output: "The execute_luau changed camera type"). A cutscene then shows the default camera in every screenshot. Re-arm it inside the call with `task.delay(0.2, function() camera.CameraType = Enum.CameraType.Scriptable end)` and capture right after.
+- A `require` from `execute_luau` gets a fresh copy of a ModuleScript, so module state (sessions, caches) is empty there. Drive the running game through its own remotes or debug actions instead of calling module functions.
+- `user_mouse_input` moves do not fire `MouseEnter`, so hover tooltips never open. Toggle the tooltip's `Visible` in a probe to check its placement.
+- Lune mock tests that run the whole client are slow, about 3-4 s of real time per simulated second; a long `Sched.advance(60)` looks hung, and parallel runs make it worse. Print a timestamp per section before calling it a hang. macOS has no `timeout` command.
 - **Close what you opened.** Each Studio window holds about 1 GB. When a task ends, close the windows and play sessions the agent opened, by PID, never by pattern, and never another project's window.
 
 ## 4. Engine limits that bite
@@ -60,6 +64,9 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 - **Image ids:** a Decal id renders nothing in `ImageLabel.Image`; use the image (texture) id. Probe it with `AssetService:CreateEditableImageAsync(Content.fromAssetId(id))`. "No permission" means it will be blank in your place.
 - **Mesh colour textures: upload at 1024.** A 2048 colour map (3.5 MB, approved) showed on an ImageLabel but stayed grey as `MeshPart.TextureID` in the client; the same art at 1024 rendered. 2048 roughness/metal maps were fine. `ContentProvider:PreloadAsync` reports Failure even for working ids, so test a texture on a MeshPart in a Play client instead.
 - **Anchored roots ignore `Humanoid:MoveTo`.** An NPC posed by anchoring its root (sitting, cutscene) silently stays put when an AI later tells it to walk. Release the pose (unanchor, stop the clip) in one helper that every move path calls.
+- **GUI draw order with `ZIndexBehavior.Sibling`:** a child's ZIndex only sorts among its siblings. A tooltip at ZIndex 60 inside a button still draws under a menu frame that is a later sibling of that button. Raise the button's own ZIndex (or move the tooltip to a top-level layer).
+- **Big characters tip over.** Scaled or custom humanoids sometimes enter `FallingDown`/`Ragdoll` and lie on the floor. Call `Humanoid:SetStateEnabled` false for both on the client that owns the character (each client owns its own).
+- **Players climb onto NPCs.** Walking into a collidable enemy model lets the character step up onto it. Put enemy parts in their own collision group and `PhysicsService:CollisionGroupSetCollidable(enemies, characters, false)`; hit detection by distance or query still works.
 - **Terrain heights snap.** `FillCylinder`/`FillBall` plus an Air carve leave the surface at `4*floor(y/4) + 2`, and Air fills clear every cell they touch. For an exact floor height, write the cell layer with `WriteVoxels` occupancy, then check it with a raycast through MCP. Lune voxel mocks usually miss this.
 
 ## 5. Generating meshes with Roblox Cube (Studio MCP)
