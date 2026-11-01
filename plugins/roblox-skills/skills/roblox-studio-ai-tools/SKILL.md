@@ -20,7 +20,7 @@ Facts here come from the official creator-docs repository (docs state as of 2026
 
 ## 1. Connect Claude Code to Studio
 
-The Studio MCP server is **built into Roblox Studio** (stdio, local process). The older Rust server (`Roblox/studio-rust-mcp-server`, tools `run_code`, `insert_model`, `run_script_in_play_mode`, `get_studio_mode`) is archived; migrate off it and remove its `Roblox_Studio` entry first so the names do not clash.
+The Studio MCP server is **built into Roblox Studio** (stdio, local process). The older Rust server (`Roblox/studio-rust-mcp-server`, tools `run_code`, `insert_model`, `run_script_in_play_mode`, `get_studio_mode`) is superseded (a third-party summary says the repo is archived; the official docs only call the built-in server the way to connect, so treat the archive claim as unverified). Remove its `Roblox_Studio` entry before adding the built-in one so the names do not clash.
 
 1. Update Studio to the latest version.
 2. Studio: **Assistant** > **...** > **Manage MCP Servers** > turn on **Enable Studio as MCP server**.
@@ -59,7 +59,8 @@ When the docs and a tool disagree, ask `http_get` for the page, or the Studio `s
 Use Assistant for things that live best inside Studio; use Claude Code for repo-wide code work. Both can run at once on different tasks.
 
 - **Planning Mode:** pick **Plan** in the input dropdown or type `/plan`. It writes an editable Markdown plan, stored in the cloud per experience and creator, private to you. Execution starts only when you click **Build**; edits to the plan sync back to Assistant.
-- **Slash commands:** `/generate_mesh <text or image>` (not both), `/generate_procedural_model <text or image>`. A selected Part is used as a bounding box. Optional max triangle count (default 10,000).
+- **Slash commands:** `/plan`, `/generate_mesh <text or image>` (not both), `/generate_procedural_model <text or image>` (Assistant limit: 50 per rolling 24 hours), `/generate_material`, `/generate_texture`, `/segment_mesh` (select the MeshPart itself; up to 5 part names per run), `/insert_asset <id>`. A selected Part is used as a bounding box. Optional max triangle count (default 10,000).
+- **Prompting Assistant:** use exact instance names; it biases to edit-time, so ask for a script when you want runtime behaviour; name the object first and leave out background, camera, lighting and quality words; for procedural models state which properties must be editable and how it scales; reference images should be .png at a 3/4 angle and not low-poly. Official loop: Plan > Build and Playtest > Refine and Polish, playtesting after every round.
 - **Screen capture subagent** and chat history exist; plans and chats are not visible to collaborators.
 - **Skills:** a skill is one Markdown file with frontmatter `name` (lowercase, no `rbx-` prefix), `description`, `enabled`, loaded automatically when a request matches the description or by typing `/` in the composer. Skills belong to the Roblox account, so they apply to every place. Built-in Roblox skills: `rbx-create-skill`, `rbx-debug` (breakpoints, call stacks), `rbx-device-simulator-lua` (device presets and UI screenshots), `rbx-docs-search`, `rbx-perf-profiling` (MicroProfiler analysis), `rbx-scene-analysis` (rendering cost, memory, leaks, asset inventory), `rbx-unit-test` (Jest-Lua/TestEZ). Duplicate one to customise it; the original is then disabled automatically.
 - **Bring your own key:** **Assistant > ... > Manage API Keys**, choose Anthropic, OpenAI or Google Gemini, paste the key, choose the model. The key is typed in Studio, never into chat.
@@ -71,20 +72,47 @@ Use Assistant for things that live best inside Studio; use Claude Code for repo-
 |---|---|---|
 | `generate_mesh` | One static textured mesh | Prompt rules and failure modes in `roblox-pitfalls` section 5. Reference image allowed instead of text. Segmentation: none for static props; named parts (max 8) for pieces that must move, with function names such as `door`, `lid`, `lever` |
 | `generate_material` | Restyle parts | Returns the base material plus a variant name to apply; lightweight form of the Material Generator |
-| `generate_procedural_model` | Primitive-part objects with parameters | Lands in a `GeneratedFolder`; behaves like normal parts; works with undo, Team Create, replication. **50 per rolling 24 hours** |
-| Texture Generator / Material Generator (Studio tools) | Textures for meshes, tileable materials | Prefer these for surface looks on custom meshes |
+| `generate_procedural_model` | Primitive-part objects with parameters | Lands in a `GeneratedFolder`; behaves like normal parts; works with undo, Team Create, replication. The docs state **50 per rolling 24 hours** for Assistant; assume the MCP tool shares it. Generator is a ModuleScript returning `Attributes` and `OnGenerate(params, container)`; scaling uses `ScaleTo`, resizing regenerates; not supported in Actors and cannot become packages |
+| Texture Generator (Model tab > Texture, or `/generate_texture`) | Texture a selected mesh from text or an image | Preview in about 10 s (3 images). **Fast** = 1K diffuse in under 30 s; **Quality** = 4K PBR via `SurfaceAppearance` in a couple of minutes. Do not edit the asset while it runs; do not describe reflectivity or transparency in the prompt |
+| Material Generator (Window > 3D > Material Generator) | Tileable materials | 4 tiles per Generate; Studs Per Tile, Organic toggle, base material; Save & Apply Variant creates a `MaterialVariant`. Tip: ask for grayscale to tint with `Color` later |
+| `GenerationService` (in-experience API) | Generate models at runtime | `GenerateModelAsync(inputs, schema)` returns a Model; inputs `TextPrompt` or `Image`, `Size`, `MaxTriangles`, `GenerateTextures`; schema `Car5`, `Body1` or `{Groups={...}}`; wrap in `pcall`; needs moderation-safe prompts. `GenerateMeshAsync` is deprecated. `SegmentMeshAsync` is Studio/plugin only |
 
 Generative AI rules (official): Roblox AI services (`GenerationService`, `TextGenerator`) moderate inputs and outputs and aim for All Ages content. If a game lets players have extended conversation with a chatbot-like AI, or the AI remembers earlier sessions, answer **Yes** to the Extended AI question; the game then needs a Restricted label (18+). Third-party model output is the creator's responsibility and chat text must still go through `TextChatService`. Details: `roblox-design-and-launch` section 4.
 
 ## 5. Studio from the command line
 
-Studio accepts documented flags (others are internal): `--task EditPlace --placeId <id> --universeId <id>` opens the latest published place; `--task EditPlaceRevision ... --placeVersion <n>` opens an older version; `--task EditFile` opens a local file. Launched this way Studio streams verbose logs to stdout. Use it to open the right dev place before MCP work.
+Studio accepts documented flags (others are internal): `--task EditPlace --placeId <id> --universeId <id>` opens the latest published place; `--task EditPlaceRevision ... --placeVersion <n>` an older version; `--task EditFile` a local file; `--task RunScript --runScriptFile <file.luau> [--outputFile <f>] [--quitAfterExecution]` runs a script at command-bar permission (a default Baseplate opens if no place is given), which is a local alternative to Open Cloud Luau Execution; `--task TryAsset --assetId <id>`; `--openScriptPath` / `--openScriptFromId` with line/character flags; `--api`, `--fullApi`, `--apiV2 <path>` dump the API. Launched this way Studio streams verbose logs to stdout. Windows exe: `%localappdata%\Roblox\Versions\<version>\RobloxStudioBeta.exe`.
 
-## 6. Run Luau headlessly (Open Cloud Luau Execution)
+## 6. Script Sync (code between Studio and your editor)
 
-For CI, mass edits and automated checks without Studio. `POST` a task under the place (optionally a place version), poll its state, read logs. Auth: API key in `x-api-key` with `universe.place.luau-execution-session:write` (and `:read` to poll). The docs list a rate limit of 45 calls per minute per key owner or IP; the docs warn that a missing scope can make a call look successful without applying changes, so read the result back. Wrappers such as `rbxcloud luau execute` exist. Typical CI: `rojo build -o game.rbxl` > publish to a test place > Luau Execution test run > fail the job on FAIL lines.
+Built into Studio (beta). Enable: **File > Beta Features > Script Sync**, Save, restart Studio. Then in Explorer right-click a service or folder > **Script Sync > Sync to** and pick the project folder; select the top-level folder and subfolders named like services (`ServerScriptService`, `ReplicatedStorage`, `StarterPlayerScripts`) match automatically. Stop with **Script Sync > Stop Sync**.
 
-## 7. Choosing Studio MCP vs Assistant vs Open Cloud
+- File names: `name.luau` ModuleScript; `name.server.luau` server Script; `name.client.luau` client Script; `name.local.luau` LocalScript; `name.legacy.luau` legacy Script; `name.plugin.luau` plugin Script; a directory is a Folder; `init.*.luau` inside a directory makes that directory a script with children. Extension (`.lua` or `.luau`) is a Studio setting.
+- Syncs only Script, LocalScript, ModuleScript and Folder (up to 10,000 scripts per synced root, 128 roots). Attributes and tags on scripts are not synced; `StarterGui` and `StarterPack` content, parts and everything else must go through Studio MCP. Names must be unique and file-system safe.
+- Conflicts show a dialog (Keep Studio / Keep Disk). Works with Team Create; two people must not sync the same script.
+- Verify from the agent: `game:GetService("InstanceFileSyncService"):GetStatus(instance)` returns `Enum.InstanceFileSyncStatus` (NotSynced, Errored, SyncedAsRoot, SyncedAsDescendant, AncestorErrored).
+- Official starter flow (`ai/coding-harness`): project folder with the three service folders, save the place as `.rbxlx` next to it (git-ignored), enable Script Sync, enable MCP, verify with a test script, commit.
+- **Script Sync vs Rojo:** Script Sync = code only, no extra tools, works on existing places and Team Create. Rojo = the whole project file-first (instances, models, `rojo build`, Wally packages, CI). Do not sync the same tree with both.
+
+## 7. Run Luau headlessly (Open Cloud Luau Execution)
+
+For CI and automated checks without Studio (stable API, official reference is the OpenAPI spec). Endpoints under `/cloud/v2/universes/{u}/`: `POST places/{p}/luau-execution-session-tasks` (latest version) or `.../versions/{v}/luau-execution-session-tasks` (pinned version); `GET` the task for `state` (QUEUED, PROCESSING, COMPLETE, FAILED, CANCELLED; create does not wait, so poll); `GET .../logs` (FLAT or STRUCTURED).
+
+- Auth: API key in `x-api-key`. Create needs `universe.place.luau-execution-session:write`; get task and logs accept `:read` or `:write`.
+- Body: `script` (up to 4 MB), `timeout` (default and max 5 minutes), optional binary input (presigned upload, up to 100 MiB) and binary output (up to 256 MiB, fetch within 15 minutes).
+- Limits: return value is JSON, up to 4 MB (Instances come back as null); only the last 450 KB of logs are kept; task info lives 24 h; at most 10 unfinished tasks per place (429 after that). Error codes: SCRIPT_ERROR, DEADLINE_EXCEEDED, OUTPUT_SIZE_LIMIT_EXCEEDED.
+- Rate limits per key owner: create task **5 per minute**, binary input 5 per minute, get task 200 per minute, list logs 45 per minute. Batch work into few tasks.
+- **Changes to the DataModel inside a task are local and are never saved.** The task has no physics and scripts do not auto-run. APIs that write cloud data (DataStores) do persist, so never run destructive DataStore code against a live universe without asking. To save place content, publish a built `.rbxl`, or use the Instance API (scripts only).
+- Typical CI: `rojo build -o game.rbxl` > publish to a test place (`versionType=Saved` or `Published`) > Luau Execution test run > fail the job on FAIL lines. Wrappers such as `rbxcloud luau execute` exist.
+
+## 8. Simulators and test modes (agents drive these through MCP)
+
+- Test modes: Test (F5), Test Here, Run (F8, no avatar), stop with Shift+F5; solo Test can toggle Client/Server view; **Server & Clients** starts up to 8 clients (F7). Studio's default playtest has **zero network latency**, so also test with the Network Simulator or `NetworkSettings.InboundNetworkMinDelayMs` / `OutboundNetworkMinDelayMs`, `...JitterMs`, `...LossPercent` (docs advise 50-150 ms each way).
+- **Device Simulator and Network Simulator are beta:** File > Beta Features > New Device Simulator, restart. Device presets: Phone, Desktop, Console, Headset, each in Flagship, Mid-range and Entry-level groups. Network presets (latency/jitter/loss): Ideal Fiber 8 ms; Wired Broadband 25/3/0; Home Wi-Fi 30/12/0.2; 4G 45/20/0.4; 3G 150/70/0.5. Controller Emulator covers Xbox, PS4, PS5, generic gamepad, handheld, TV remote and Quest.
+- Plugin-side test API: `StudioTestService:ExecuteMultiplayerTestAsync(numPlayers 1-8, args)`, `ExecutePlayModeAsync`, `ExecuteRunModeAsync`; one session at a time. Teleports cannot be tested in Studio.
+- Place file limit: 100 MB. Save versions with notes (Ctrl+Alt+S); keep Drafts mode off unless the team wants it.
+
+## 9. Choosing Studio MCP vs Assistant vs Open Cloud
 
 | Task | Use |
 |---|---|

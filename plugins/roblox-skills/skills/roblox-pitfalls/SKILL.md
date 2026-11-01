@@ -20,10 +20,12 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Open Cloud place publish returns 409 "Server is busy" | The place is open in Studio, which holds a collaborative edit session on it | Close that Studio window, wait a few minutes, and retry. Keep a separate **dev place** for Studio work and never open the live place in Studio |
-| Publish returns "Invalid Content stream" | You uploaded an XML `.rbxlx` | Upload binary `.rbxl` (`rojo build -o x.rbxl`, or convert with Lune `@lune/roblox`) |
+| Open Cloud place publish returns 409 "Server is busy" | Field observation (not in the official docs): the place was open in Studio, which holds a collaborative edit session on it. The docs define 409 only as a conflict such as a place that is not part of the universe | First check that the place id belongs to the universe id. Otherwise close that Studio window, wait a few minutes, and retry. Keep a separate **dev place** for Studio work and never open the live place in Studio |
+| Publish returns "Invalid Content stream" | Seen when we sent an XML `.rbxlx`. The docs say `.rbxlx` (`Content-Type: application/xml`) is supported, so also check the Content-Type and that the file is not truncated | Upload binary `.rbxl` with `Content-Type: application/octet-stream` (`rojo build -o x.rbxl`, or convert with Lune `@lune/roblox`) |
 | The id in a Creator Hub URL publishes to the wrong thing | `/experiences/<id>` shows the **universe** id, not the place id | Resolve the root place from `cloud/v2/universes/<id>` first |
 
+- Publish API facts: `POST /universes/v1/{universeId}/places/{placeId}/versions?versionType=Saved|Published` (Saved stores a version without releasing it; use it for staging). Scope `universe-places:write`. Body limit 10 MiB, 30 requests per minute. The API does **not** update EditableImage, EditableMesh, PartOperation, SurfaceAppearance or BaseWrap instances: publish places that rely on them from Studio.
+- API keys: restrict by experience and set minimal scopes. IP allow-lists break keys used from Roblox servers; add an expiry only if you have a rotation process; a key unused for 60 days expires on its own. Keep keys in a secrets store or env file.
 - Print one line such as "published version N" from the publish script, so the agent can quote it.
 - Publish every playtest build to a private test place, and tell the tester 2-3 things to check plus the known issues.
 - An agent never pastes API keys in chat. Keep them in a chmod 600 env file and read them inside the command only.
@@ -34,8 +36,8 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 - In Studio, `LoadAssetAsync` fails. Pre-insert the models into a Studio-only cache folder in the dev place (insert with Studio MCP `insert_asset`), and let runtime code prefer the cache when it exists.
 - Always keep a code-built primitive in the prop's place. Make it invisible only after the model is in, so a failed load leaves a usable box (collision and view blocking stay correct).
 - Sanitize every model: delete scripts, cap the part count, set decor to `CanCollide`, `CanTouch` and `CanQuery` false, and fit it to the primitive's box.
-- Downloading with the Open Cloud asset-delivery API (`legacy-asset:manage` scope): many **recent** Creator Store assets return 403 "User is not authorized" until the account "Gets" them into its inventory. Older ones download fine. Probe ids in a batch and filter.
-- Search without auth: `apis.roblox.com/toolbox-service/v1/marketplace/10?keyword=...&num=30` (10 = Models), with details from `/toolbox-service/v1/items/details?assetIds=`.
+- Downloading with the Open Cloud asset-delivery API (field notes; the scope name `legacy-asset:manage` is not in the official scope list, so check the current docs): many **recent** Creator Store assets return 403 "User is not authorized" until the account "Gets" them into its inventory. Older ones download fine. Probe ids in a batch and filter.
+- Search: the documented endpoint is Open Cloud `toolbox-service/v2/assets:search` (beta, needs an API key with creator-store scope). The unauthenticated `toolbox-service/v1/marketplace/10?keyword=...&num=30` (10 = Models) and `/toolbox-service/v1/items/details?assetIds=` worked in our runs but are undocumented and may change. Studio MCP `search_asset` is the supported way inside Studio.
 
 ## 3. Testing in Studio through MCP
 
@@ -74,7 +76,7 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 
 Related generators: `generate_procedural_model` builds parameterised objects from primitive parts (50 per rolling 24 h; poll with `wait_job_finished`), better than a mesh for shelves, fences, stairs or anything that must scale; `generate_material` returns a `MaterialVariant` for restyling parts. Roblox's own generators aim at All Ages content, so weapon and horror prompts may be softened or fail.
 
-Studio MCP `generate_mesh` (Roblox Cube, `GenerationService`) makes a textured mesh from text, published to your inventory with an asset id.
+Studio MCP `generate_mesh` (Roblox Cube, `GenerationService`) makes a textured mesh from text. In our runs the result was published to the generating account's inventory with an asset id; the official docs describe the in-experience API (`GenerateModelAsync` returns a Model) and do not document that inventory step, so verify it on your build.
 
 | What | Rule |
 |---|---|
@@ -90,5 +92,5 @@ Studio MCP `generate_mesh` (Roblox Cube, `GenerationService`) makes a textured m
 
 - Good for static props, furniture, vehicles and simple weapons (pistol, bat, pipe, forklift, lantern). It missed a crowbar twice, so check every weapon against a reference.
 - Not for creatures: the result is one static mesh with no rig, and `auto_setup_avatar` only rigs R15 humanoids. Quadrupeds, spiders and other monsters need a Blender rig (`roblox-blender-export`).
-- `generate_avatar` returns a rigged R15 with a realistic human look, not the blocky Roblox style. The MCP call can time out on the client while the model still lands in `workspace` minutes later, so check the tree before you retry.
+- `generate_avatar` and `auto_setup_avatar` appeared in our MCP tool list but are not in the current official tool table (`studio/mcp.md`): list the server's tools before relying on them. `generate_avatar` returned a rigged R15 with a realistic human look, not the blocky Roblox style. The MCP call can time out on the client while the model still lands in `workspace` minutes later, so check the tree before you retry.
 - Cube assets live in the generating account's inventory. Before publishing, check that the live place can load every one of them (a group-owned place may not).

@@ -48,7 +48,8 @@ Two valid setups. Pick one and record it in the brief:
 | Setup | Use when | Notes |
 |---|---|---|
 | **Rojo project** (code in git) | Anything beyond a throwaway prototype | `rokit` installs Rojo, Lune, selene, StyLua; Wally for packages; `rojo build -o game.rbxl`; `rojo serve` for live sync. Studio holds only the place data |
-| **Studio-only** (Studio MCP edits) | A quick prototype, or a place made mostly of built content | `multi_edit` and `script_read` edit scripts in the open place. Export the scripts into git regularly |
+| **Script Sync + Studio MCP** (official Roblox path, beta) | Existing places, Team Create, a Studio-first project that still wants git | Script Sync keeps scripts as `.luau` files in git; Studio MCP handles everything Script Sync cannot (StarterGui, StarterPack, parts, properties). Details in `roblox-studio-ai-tools` section 6 |
+| **Studio-only** (Studio MCP edits) | A throwaway prototype | `multi_edit` and `script_read` edit scripts in the open place. Export the scripts into git regularly or turn on Script Sync |
 
 Suggested Rojo layout:
 
@@ -100,7 +101,7 @@ When two agents or windows are involved, always pass the right `studio_id` and l
 
 ## 6. Test and publish (phases 6-7)
 
-- Test layers: pure logic in Lune, behaviour in Studio bot scenarios, devices and network in Studio simulators, then a **private test place** published through Open Cloud with 2-3 things for the tester to check. Teleports, real DataStores and third-party asset loading only prove out there.
+- Test layers: pure logic in Lune, behaviour in Studio bot scenarios, devices and network in Studio simulators (both beta; Studio's default playtest has zero latency), then a **private test place** published through Open Cloud with 2-3 things for the tester to check. Teleports, real DataStores and third-party asset loading only prove out there.
 - Performance: MicroProfiler and the Developer Console memory tab on a throttled device profile; Assistant skills `rbx-perf-profiling` and `rbx-scene-analysis` help interpret traces and find leaks. Keep Studio-only caches out of the live path.
 - Publish: Open Cloud place publishing (`.rbxl` binary), print the published version number, keep the previous version number for rollback. See `roblox-pitfalls` section 1 for the 409 busy error.
 - Before the first public publish: content maturity questionnaire, icon, thumbnails, description, genre, age-check requirements. Follow `roblox-design-and-launch` sections 4-6.

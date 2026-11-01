@@ -50,7 +50,7 @@ Design rules: never block the core loop behind a purchase; do not give Premium o
 
 - Creator Dashboard analytics: engagement, retention (D1/D7 and beyond), monetization, acquisition, performance, crashes, demographics; custom events, funnel events, economy events, custom dashboards and alerts.
 - Instrument before launch: onboarding funnel steps, first purchase, session length, quit points, economy sources and sinks.
-- **Experiments** (A/B tests) and **Configs** (remote values) ship balance and UI changes safely. Open Cloud exposes both for automation.
+- **Experiments** (A/B tests) and **Configs** (remote values) ship balance and UI changes safely. Open Cloud exposes both for automation (configs API is beta, experiments API experimental, so expect changes; configs publish is limited to 10 per minute).
 - `RecommendationService` lets you build in-game recommendation carousels (register items, log one impression per item per session, log quality actions, fetch).
 - Live ops plan: a content cadence, events (Experience Events), and a weekly review of retention, funnel and error reports.
 
@@ -77,13 +77,13 @@ Design rules: never block the core loop behind a purchase; do not give Premium o
 4. Localization: add source text, auto-translate or manual translations; check long strings in the UI.
 5. Accessibility, console and VR guidelines if those platforms are targeted; device and network simulator checks.
 6. Assets owned by the publishing account/group and verified loadable in a live client.
-7. Publish through Open Cloud; record the version number; keep the rollback version.
+7. Publish through Open Cloud (`versionType=Published`; `Saved` stages a version without releasing it); record the version number; keep the rollback version. The API skips EditableImage, EditableMesh, PartOperation, SurfaceAppearance and BaseWrap instances, so publish those places from Studio.
 8. Day-1 watch: crashes, error reports, funnel drop-off, DataStore errors.
 
 ## 7. Account and rights hygiene
 
 - Use a group-owned experience for teams; assets uploaded to the wrong owner render blank.
-- Turn on 2-step verification; use API keys with the minimum scopes, an IP allow-list and an expiry date; keep keys in env files.
+- Turn on 2-step verification; use API keys restricted to the one experience with the minimum scopes; keep keys in env files. IP allow-lists break keys used from Roblox servers, expiry dates need a rotation process, and keys unused for 60 days expire. Asset scopes follow the creator (user or group), so a user key cannot manage group assets without the group role.
 - Create the game and its dev place separately; never edit the live place in Studio.
 
 ## 8. Re-check these live pages before relying on numbers
