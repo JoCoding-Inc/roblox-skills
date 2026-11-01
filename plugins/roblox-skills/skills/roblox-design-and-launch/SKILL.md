@@ -84,6 +84,8 @@ Design rules: never block the core loop behind a purchase; do not give Premium o
 
 ## 6. Publish checklist
 
+Who does what (agent vs user), API key scopes and missing-permission handling: `roblox-release-automation`. Benchmark gates: `roblox-launch-benchmarks`.
+
 1. Dev place tested; a private test place built from the exact publish build; tester told what to check and the known issues.
 2. Content maturity done; genre chosen; description honest (include controls, update notes; do not stuff keywords).
 3. **Icon** 512x512 (previews scale down to about 150 px; check it small). **Thumbnails** 16:9, 1920x1080, under 3 MB; up to 10 images/videos; uploaded video has a monthly quota (3 uploads). Craft rules in `roblox-store-art-pack` section 5.
