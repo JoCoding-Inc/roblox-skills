@@ -14,7 +14,7 @@ sources:
   - https://create.roblox.com/docs/projects/teleport
 ---
 
-# Modern engine practices (docs state 2026-10-29, Studio 0.745)
+# Modern engine practices (docs state 2026-10-29, Studio 0.745; weekly update 2026-11-01)
 
 Complements roblox-brain (`roblox-luau`, `roblox-gui`, `roblox-performance`, `roblox-security` style skills). Where this file and an older tutorial disagree, this file follows the current docs.
 
@@ -29,7 +29,9 @@ Complements roblox-brain (`roblox-luau`, `roblox-gui`, `roblox-performance`, `ro
 - **Batching:** start `GetProductInfoAsync`, `UserOwnsGamePassAsync`, `GetItemDetailsAsync` calls concurrently with `task.spawn` and they batch.
 - **Collision groups:** `PhysicsService` is deprecated and forwards to Workspace. Use `workspace:RegisterCollisionGroup(name)`, `workspace:CollisionGroupSetCollidable(a, b, false)` and `BasePart.CollisionGroup`.
 - **Physics:** adaptive timestepping runs at 60/120/240 Hz; use Fixed 240 Hz for racing or tanks. `CollisionFidelity` Precise is the most expensive; use Box or Hull. Raycast max length 15,000 studs.
-- **Experimental/beta (do not ship without a fallback):** Server Authority (`Workspace.AuthorityMode=Server`, needs NextGenerationReplication, Input Action System, Deferred signals, fixed simulation, streaming), script capabilities (`Sandboxed`), Input Action Manager, `InputActionLabel`, persistent leaderboards, video upload.
+- **Experimental/beta (do not ship without a fallback):** Server Authority (`Workspace.AuthorityMode=Server`, needs NextGenerationReplication, Input Action System, Deferred signals, fixed simulation, streaming), script capabilities (`Sandboxed`), `InputActionLabel`, persistent leaderboards, video upload.
+- **Collision summaries (live, Studio-tested 2026-11-01):** `part:BindToCollisionSummaries(function(summaries) ... end)` returns an `RBXScriptConnection`; once per frame after the physics step it passes every contact of that part (`Time`, `Part0`, `Part1`, `Point`, `Normal`, `RelativeVelocity`, `Area`). Use it for impact sparks, sounds and hit location instead of `Touched` plus velocity guesses. Impact speed = `s.RelativeVelocity:Dot(s.Normal)` (positive on a hit); a landing part also reports follow-up rebound contacts in the next frames, so filter by a speed threshold. Do not call it inside a `Touched` handler.
+- **Luau betas (Studio Beta Features, do not ship):** `if local x = expr then` and `if const` (also as expressions, narrows types), and State Machines with Luau Expressions for animation graphs.
 - `Player.UserId` is still the global id; `Player.User` exists but scoped ids have not rolled out.
 
 ## 2. UI
@@ -68,8 +70,27 @@ Complements roblox-brain (`roblox-luau`, `roblox-gui`, `roblox-performance`, `ro
 
 ## 5. Chat, voice, platform
 
-- Platform-integrated chat (`TextChatService.PlatformIntegratedChat`, Studio-only toggle) becomes **required for all games in May 2027**. When on, `TextChatMessage.Text`/`Translation` return empty, and `PrefixText`, `OnIncomingMessage` and `Player.Chatted` are unsupported. Move to `TextChannelWindow` and `TextChatCommand` now.
+- Platform-integrated chat (`TextChatService.PlatformIntegratedChat`, Studio-only toggle) becomes **required for all games in May 2027**. When on, `TextChatMessage.Text`/`Translation` return empty, and `PrefixText`, `OnIncomingMessage` and `Player.Chatted` are unsupported. Move to `TextChannelWindow` and `TextChatCommand` now. Games with the default chat and no customization need no action.
+- **Free text is enforced now (DevForum 2026-10-20, phase 0):** any player-to-player free text outside `TextChatService` (signs, bulletin boards, pet names, license plates, trading notes, announcement systems, admin-tool messaging, comment systems) must be removed, moved to a `TextChannel`, or rate limited to 1 update per minute. Violations get notices and can lead to suspension; developers report games taken down for weeks, so audit this before every release.
+- **Chat roadmap (official, 2026-10-22):** `TextChannelWindow` (also in a `SurfaceGui`) and `ChatWindowConfiguration.TextChannelDisplayMode` are live; `TextSource.CanSend=false` makes a channel read-only; `DisplaySystemMessage` is client-side, so call it per player from the server (rich text works). Display-name colors and gradients: November 2026. Role badges replacing prefixes plus keyword commands anywhere in a message: February 2027. Quick Action Menu: April 2027. Creator blocked-word list: May 2027. Bubble chat styling stays (`BubbleChatConfiguration`, `OnBubbleAdded`). Multiple channels in one window are not supported yet (use one window per channel or the default window).
+- **Avatars:** `AvatarUnificationMode` is deprecated on 2026-12-01 (setting no longer supported). SLIM avatars use `Workspace.EnableSLIMAvatars`.
 - Voice chat: experiences up to 100 players, ID-verified 13+ users in supported countries. Cross-server chat about 200 users per channel.
 - Matchmaking: up to 5 server attributes and 5 player attributes per game.
 - Audio import: under 20 MB, under 7 minutes, 48 kHz or less; free imports per 30 days 2,000 (ID verified) or 100 (unverified).
 - Data/Memory/HTTP limits: see `roblox-studio-ai-tools` and the Open Cloud numbers in `roblox-pitfalls` section 1; DataStore value 4 MB, keys 50 characters, 25 MB/min read and 4 MB/min write per key.
+
+## 6. APIs and betas seen in the October 2026 recaps
+
+Source: DevForum weekly recaps of Oct 5-23 (read in full); the Oct 26-30 items come from the recap listing only and were not re-read, so verify before relying on them.
+
+| Item | State | Note |
+|---|---|---|
+| `BasePart:BindToCollisionSummaries` | Live | Tested, see section 1 |
+| `AssetService:PromptCreatePlatformContentAsync(Object)` | Live | Renamed from `PromptCreateAssetAsync(Instance)` (the old name is gone in Studio 0.745); publishes an `EditableImage` to the player's inventory |
+| `AssetService:CreateAssetAsync` with `AudioTextToSpeech` / `Enum.AssetType.Audio` | Studio Beta | Text-to-speech assets from Luau; `AudioTextToSpeech.AutoLocalize=true` translates the speech |
+| Custom Terrain Materials | Full launch (Oct 2026) | Publishable with performance improvements |
+| Input Action Manager | Full release (Oct 26-30 listing) | Unverified detail |
+| Orthographic camera | Studio Beta (Oct 26-30 listing) | For 2D, isometric and top-down games; `Camera.ProjectionMode` was not present in Studio 0.745 without the beta |
+| `UIShadow` upgrades, Package Overrides | Studio Beta | `UIShadow` class exists in 0.745 |
+| Device Simulator toolbar and Network Simulator | Full release | Use for mobile and bad-network checks |
+| Studio deep links on server-log stack traces | Live | Click an error in server logs to open the script line |

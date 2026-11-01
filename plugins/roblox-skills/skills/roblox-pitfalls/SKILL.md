@@ -94,3 +94,10 @@ Studio MCP `generate_mesh` (Roblox Cube, `GenerationService`) makes a textured m
 - Not for creatures: the result is one static mesh with no rig, and `auto_setup_avatar` only rigs R15 humanoids. Quadrupeds, spiders and other monsters need a Blender rig (`roblox-blender-export`).
 - `generate_avatar` and `auto_setup_avatar` appeared in our MCP tool list but are not in the current official tool table (`studio/mcp.md`): list the server's tools before relying on them. `generate_avatar` returned a rigged R15 with a realistic human look, not the blocky Roblox style. The MCP call can time out on the client while the model still lands in `workspace` minutes later, so check the tree before you retry.
 - Cube assets live in the generating account's inventory. Before publishing, check that the live place can load every one of them (a group-owned place may not).
+
+## Studio-tested API notes (2026-11-01, Studio 0.745, scratch place via Studio MCP)
+
+- `TextChatService.PlatformIntegratedChat` cannot be read from `execute_luau` (property read errors): set it in the Properties panel and playtest by hand.
+- `BasePart:BindToCollisionSummaries` works from a Server `execute_luau` call during play: a part dropped from 30 studs reported the landing at relative speed about 108 with Normal (0,1,0) toward the part above the baseplate, then rebound contacts a few frames later. Use the dot product of `RelativeVelocity` and `Normal` for impact strength.
+- `AssetService:PromptCreateAssetAsync` no longer exists; use `PromptCreatePlatformContentAsync`. Old tutorials and cached code that call it fail with a nil method.
+- A beta API can exist as a class but not as a property: `UIShadow` and `AudioTextToSpeech` instantiate, `Camera.ProjectionMode` (orthographic beta) does not until the Studio beta is on. Probe with `pcall(function() return obj.Prop end)` before scripting against a beta.
