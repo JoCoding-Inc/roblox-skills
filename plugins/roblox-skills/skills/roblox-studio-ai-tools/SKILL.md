@@ -121,3 +121,9 @@ For CI and automated checks without Studio (stable API, official reference is th
 | Generate a mesh/material/procedural model from inside Studio with human review | Assistant (or the MCP generate tools) |
 | Plan with approval gate inside Studio | Assistant Planning Mode |
 | Publish, upload assets, run tests with no Studio window | Open Cloud |
+
+## Recent additions (DevForum recaps, Oct 2026)
+
+- `/generate_texture` has a Quality mode (Studio Beta, Oct 12-18): slower, better textures; use it for hero assets, the default mode for bulk props.
+- Prompt-to-avatar character generation and live-server inspection during Team Test are Studio Betas (Oct 26-30 listing, not re-read).
+- Server-log stack traces deep-link into Studio (Oct 19-23).
