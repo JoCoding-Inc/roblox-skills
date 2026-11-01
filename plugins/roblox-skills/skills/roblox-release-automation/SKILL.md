@@ -20,7 +20,7 @@ Facts come from the official OpenAPI specs and publishing docs, not memory. Scop
 | Release step | Who | How |
 |---|---|---|
 | Create the game (universe) and first place | **User** | Studio File > Publish to Roblox, or Creator Hub. The OpenAPI has no create-universe endpoint |
-| Account, group and 2-step verification, age check or ID verification | **User** | Roblox account settings; needed for any release |
+| Age check (facial age estimation) or ID verification, 2-step verification | **User only** | Needs the user's camera or ID document. No endpoint exists in the OpenAPI; the agent must not try to drive it |
 | Create the API key (choose experience, scopes, IP rules, expiry) | **User** | Creator Hub > Credentials. The agent never creates keys and never sees the key in chat |
 | Build the place file (`rojo build -o game.rbxl`) and run tests | Agent | Local tools; Luau Execution API for engine tests |
 | Publish a place version | Agent | `POST /universes/v1/{universeId}/places/{placeId}/versions?versionType=Saved\|Published`, binary `.rbxl`, scope `universe-places:write` |
@@ -33,15 +33,15 @@ Facts come from the official OpenAPI specs and publishing docs, not memory. Scop
 | Remote config and A/B experiments | Agent | Configs and experiments APIs, scope `universe:write` (read `universe:read`); configs publish is limited |
 | Messaging to live servers (for example a shutdown notice) | Agent | `POST /cloud/v2/universes/{id}:publishMessage`, scope `universe-messaging-service:publish` |
 | Upload assets (images, meshes, audio) | Agent | Assets API, scopes `asset:read`, `asset:write`; the owner must match the experience owner |
-| Maturity & Compliance Questionnaire | **User** | Creator Hub or Studio publish flow. One question for 16+ without restricted content; the full questionnaire for restricted content or Kids/Select. The agent can prepare honest answers from the design, the user submits |
-| Game icon and thumbnails | **User** | Creator Hub > Configurations. Specs: icon 512x512, thumbnails 16:9 1920x1080 under 3 MB, up to 10 (`roblox-store-art-pack` section 5). The agent makes the files and checks them |
-| Make the game public, choose audience (16+, all ages, Kids/Select), Recommended For You opt-out | **User** | Release dialog; at most 5 first-time releases per day |
+| Maturity & Compliance Questionnaire | **Agent-assisted, user submits** | No API: the OpenAPI has no questionnaire endpoint (only a cookie-based, read-only activation-eligibility check). The agent drafts answers from the design brief (answer for the most mature content a player can meet) and can fill the form in the user's own logged-in Chrome (`claude-in-chrome`) up to the **Questionnaire Preview** page. The user reviews the label and clicks Submit, because the answers are the creator's attestation to Roblox. Resubmit after any update that changes an answer |
+| Game icon and thumbnails | Agent via experimental API, else browser or user | `POST /legacy-game-internationalization/v1/game-icon/games/{id}/language-codes/{code}` and `.../game-thumbnails/games/{id}/language-codes/{code}/image` (plus `/images/order`, `/alt-text`) accept an API key or OAuth scope `legacy-universe:manage` per the spec, stability EXPERIMENTAL, **not tested here**. Try it first on a throwaway universe; if it fails, upload in Creator Hub > Configurations (the agent can drive the file picker in Chrome). Specs: icon 512x512, thumbnails 16:9 1920x1080 under 3 MB, up to 10 (`roblox-store-art-pack` section 5) |
+| Make the game public, choose audience (16+, all ages, Kids/Select), Recommended For You opt-out | **User decides**; call can be automated | `POST /legacy-develop/v1/universes/{id}/activate` (private to public) accepts an API key or `legacy-universe:manage`, EXPERIMENTAL, **not tested here**. Release requires the age check and a maturity rating, and the eligibility check is cookie-only, so the agent cannot pre-check it. Never call activate without the user's explicit yes for that moment; at most 5 first-time releases per day. Audience choice and the Recommended For You opt-out are made in the Release dialog |
 | Kids/Select extras: facial age estimation or ID, 2-step verification, Plus/Premium for 2 months or 1,000 Robux refundable fee, 50,000 Robux optional expedited review | **User** | Money and identity decisions are never automated |
 | Early testers (up to 10 friends) | **User** | Studio File > Invite early testers |
 | Watch day-1 metrics and errors | Agent reads, user decides | Analytics query API scope `universe.analytics:read`; Creator Hub dashboards |
 | Rollback | Agent | Re-publish the previous `.rbxl` (keep it), or revert in Creator Hub version history; note the version number before each release |
 
-**Not safe to rely on:** endpoints named `legacy-*` (game icon, thumbnails, universe activate/deactivate, localization of icons). The Open Cloud index says legacy APIs use cookie-based authentication and may change without notice. Never use a `.ROBLOSECURITY` cookie; treat these steps as manual. Whether an API key can be granted those scopes was not verified.
+**Two kinds of legacy endpoints (checked in the spec's `security` field):** paths starting `/legacy-...` (icon, thumbnails, activate, localization of icons and names, badges) list `roblox-api-key` and OAuth `legacy-*:manage` scopes, stability EXPERIMENTAL; paths starting plain `/v1/...` (activation-eligibility, group policies) list `roblox-legacy-cookie` only. The Open Cloud index warns legacy APIs can change without notice. Use the first kind with an API key after a test on a throwaway universe; never use a `.ROBLOSECURITY` cookie for the second kind, treat those steps as manual. Whether Creator Hub lets you add the `legacy-universe:manage` scope to an API key was not verified: if it is not offered, fall back to the browser or manual path.
 
 ## 2. API key for a release pipeline
 
@@ -57,6 +57,7 @@ Create one key per experience, owner = the account or group that owns it, minima
 | Engine tests | `universe.place.luau-execution-session:write` (and `:read` for results) |
 | Notify live servers | `universe-messaging-service:publish` |
 | Read analytics | `universe.analytics:read` |
+| Icon, thumbnails, activate (experimental, untested) | `legacy-universe:manage` |
 
 Rules: restrict the key to the one experience; leave IP allow-lists empty unless the runner has a fixed IP (a list breaks keys used from Roblox servers); set an expiry only with a rotation owner; a key unused for 60 days expires; keep it in a `chmod 600` env file and read it inside the command. Rate limits apply per key owner across all keys.
 

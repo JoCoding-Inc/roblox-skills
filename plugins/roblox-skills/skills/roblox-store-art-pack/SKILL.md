@@ -116,4 +116,4 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Path 2: Studio `screen_capture` during a playtest with an explicit camera and the HUD hidden (`ScreenGui.Enabled = false`).
 - Post-process: crop to the focus point, Lanczos resize, optional outlined title, enforce 3 MB.
 
-**Upload:** manual, in Creator Dashboard (Configurations > Places > Icon / Thumbnails). Open Cloud asset upload does not set the game icon. Never use a .ROBLOSECURITY cookie.
+**Upload:** in Creator Dashboard (Configurations > Places > Icon / Thumbnails), or the experimental `legacy-game-internationalization` game-icon and game-thumbnails endpoints with an API key (see `roblox-release-automation`, not yet tested). The Open Cloud Assets API does not set the game icon. Never use a .ROBLOSECURITY cookie.
