@@ -27,11 +27,13 @@ Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are
 
 - Geometry: at most **20,000 triangles per mesh**; watertight (no holes or backfaces); quads where possible, no n-gons; no zero-thickness meshes. Avatar items have their own, stricter budgets.
 - Rigs: bones/joints frozen (scale 1,1,1, rotation 0,0,0), root at 0,0,0, **max 4 bone influences per vertex**, no influence on the root, keep symmetry. Only **one animation track** per FBX export, so export each animation separately.
-- Textures: PNG, JPG, TGA or BMP, up to 4096x4096 (the engine streams low resolution first). One material per mesh. Suggested size by object width: 5 studs 256, 10 studs 512, 20 studs 1024. PBR via `SurfaceAppearance` (colour, normal, metalness, roughness maps) overrides `TextureID`.
+- Textures: PNG, JPG, TGA or BMP, up to 4096x4096 (the engine streams low resolution first). One material per mesh. Suggested size by object width: 5 studs 256, 10 studs 512, 20 studs 1024. PBR via `SurfaceAppearance` (colour, normal in OpenGL tangent space, metalness, roughness and emissive-mask maps; an emissive mask on an avatar item adds a 500 Robux upload fee; `SurfaceAppearance` properties cannot be changed by script at runtime) overrides `TextureID`.
 - Cages: `<Name>_InnerCage` and `<Name>_OuterCage` meshes for layered clothing; never delete cage vertices or alter their UVs. Characters need an outer cage.
 - Blender setup: Scene > Units > Unit System **None**, rotation Degrees. Blender is Z-up, Studio is Y-up.
 - Formats: FBX is the recommended path (keeps rig and skin weights). The Studio Importer also accepts `.gltf` and `.obj`. glTF export from Studio is in beta (meshes, textures, rigs, vertex colours, cages; no animation).
 - **Roblox Blender plugin** (open source, built on Open Cloud) sends objects straight from Blender to a Studio session after linking your account; try it before hand-rolling export and upload scripts. Fall back to the scripted FBX path below for headless or batch work.
+
+The Blender guide says to export with Forward Z, Up Y for FBX and import with World Forward Front, World Up Top, Scale Unit Studs; our call below uses `-Z`/`Y` as a hypothesis, so run the orientation test below once and trust the result. 1 stud is 28 cm.
 
 ## 0. Orientation test first
 
@@ -84,7 +86,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   1. **Palette PNG (default):** a small sRGB PNG with one swatch per color, and UVs scaled inside each swatch with a margin of 2 texels or more. Leave `MeshPart.Color` white.
   2. **Packed image texture** of 1024 px or less, for grain, logos or decals, UV-unwrapped.
   3. **Vertex colors:** reported kept for GLB uploads; untested for FBX.
-- Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096, but our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
+- Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
 - Tint variants (rarity, tiers): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap).
 
@@ -165,3 +167,18 @@ These make dense, untidy meshes with baked textures. Use them for reference or h
 | Studio 3D Importer (FBX) | Manual import with preview and settings |
 | Open Cloud Assets API (`POST /assets/v1/assets`) | Scripted batch uploads, kits |
 | Studio MCP `upload_image`, `insert_asset` | Images and inserting uploaded assets |
+
+## 11. Avatars, accessories and characters (official limits)
+
+Use Studio **Avatar Setup** (auto setup) before hand-rigging a character. It rigs, skins, adds face rig, cages, partitions into 15 parts and attachments. Presets: Platform Avatar (strict, Marketplace) and Development Avatar (loose, NPCs and starter characters). Input rules: humanoid in A or T pose, front facing -Z, watertight, distinct neck, two half-sphere eyes plus upper teeth, lower teeth and tongue with no shared vertices, at most 10,742 triangles, textures included, no accessories. Turn **Upload To Roblox** off in the importer first; imported models enter the moderation queue.
+
+| Asset | Key limits |
+|---|---|
+| Avatar body (R15) | 15 meshes named `<Part>_Geo`; DynamicHead 4,000 tris, torso 1,750, each arm and leg 1,248, total 10,742; texture up to 2048; 15 joints (advanced R15 up to 37 more); attachments end in `_Att`; parts opaque and filling at least 50 percent of their bounding box |
+| Rigid accessory | one mesh, at most 4,000 tris, watertight, at least 1 attachment, texture up to 2048, size capped by type and body scale |
+| Layered accessory | one mesh, at most 4,000 tris, clothing up to 8x8x8 studs, inner and outer cage, bound to R15, 4 influences max |
+| Dynamic head | outer cage with eye and mouth landmarks; 17 minimum FACS poses (eye closes, JawDrop, Pucker, lip corners, chin raiser, cheek raisers, brow raisers, lip depressors); must pass blink L/R, mouth open, happy, sad |
+| Emote / animation | emotes under 10 s from a CurveAnimation; animation editor runs at 30 fps with priorities Core < Idle < Movement < Action < Action2 < Action3 < Action4 |
+| Classic clothing | 512x512 T-shirt; shirt and pants templates; 80 Robux upload fee |
+
+Marketplace publishing needs ID verification or a linked parental account plus Roblox Plus or Premium; upload fee 80 Robux per submission (updates too), plus a refundable publishing advance by type (for example hats 1,500, hair 1,000, clothing 600, body 2,500). In-game NPC and starter characters can use the loose Development preset.
