@@ -29,7 +29,7 @@ Numbers below were measured on **2026-11-01** from 76 games: the top 40 of Top P
 
 Pass price points that repeat most (all 543 passes): 99 (46), 299 (43), 199 (37), 149 (32), 399 (27), 499 (20), 249 (16), 799 (14), 349 (11), 79 (10). Young games lean cheaper: 99, 149 and 199 are the top three (40, 31, 31 of 316 passes); older games lean 299-500 and reach 1,600 at p90. Pass names mention "pack" 79 times, "VIP" 42, "bundle" 41, "2x" 33, "x2" 20, "speed" 20, "luck" 15, "auto" 12: multipliers, auto features, luck and bundles dominate.
 
-Other facts from the sample: 69 of 76 are group-owned; 61 of 76 carry an emoji or bracket tag in the title (events, update numbers); no game had `minimumAge` above 0 in the chart payload; all are updated within the last day or two (live ops cadence is the norm in the top charts).
+Other facts from the sample: 69 of 76 are group-owned; 61 of 76 carry an emoji or bracket tag in the title (events, update numbers); no game had `minimumAge` above 0 in the chart payload; the median game was updated the same day and the 90th percentile within 1 day (live ops cadence is the norm in the top charts).
 
 ## Pre-launch checklist (with benchmark gates)
 
