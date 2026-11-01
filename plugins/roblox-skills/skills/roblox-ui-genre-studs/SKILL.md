@@ -76,7 +76,7 @@ Pair with `roblox-gui` (layout, insets, input, lifecycle). This skill owns the g
 
 ## 3. Text
 
-- Font: `Font.fromEnum(Enum.Font.FredokaOne)`, with `GothamBlack` as the alternative. Never mix the two on one screen. At most 2 fonts in the whole game.
+- Font: `Font.fromEnum(Enum.Font.FredokaOne)`, with another current display font as the alternative (`GothamBlack` is removed and renders as Montserrat). Never mix the two on one screen. At most 2 fonts in the whole game.
 - UIStroke on text:
 
   | Text | Stroke |
@@ -103,7 +103,7 @@ Pair with `roblox-gui` (layout, insets, input, lifecycle). This skill owns the g
 ## 4. HUD zones (1080p measurements, all in Scale)
 
 - Treat the screen as a 3x3 grid. The centre 50% x 50% stays empty. Zones inset 2% or more.
-- Nothing inside the top-left 350x70 px (Roblox core UI). Push top-corner groups below `GuiService.TopbarInset` at runtime.
+- Nothing inside the top-left 350x70 px (Roblox core UI). With the default `ScreenInsets = CoreUISafeInsets` the top bar is already cleared; push top-corner groups below `GuiService.TopbarInset` only when `ScreenInsets` is `None` or `DeviceSafeInsets`. The 350x70 px figure is our measurement, not an official number.
 - **Left:** menu tiles in 1-2 columns, vertically centred.
   - Tile `UDim2.new(0.065,0,0.115,0)` plus `UIAspectRatioConstraint` 0.97 (about 124 px at 1080p).
   - Icon at 0.8 of the face, with the label over the icon foot.

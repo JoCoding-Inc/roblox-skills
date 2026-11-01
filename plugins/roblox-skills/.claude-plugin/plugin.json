@@ -1,9 +1,9 @@
 {
   "name": "roblox-skills",
-  "description": "Blender-to-Roblox export, world palette/store assets/icons, genre stud-style UI, and Roblox pitfalls from shipping games with an AI agent.",
-  "version": "1.1.0",
+  "description": "Roblox game dev with an AI agent from intake to live ops: project intake, workflow and tool routing, Studio MCP/Assistant, design and launch policy, Blender export, store art, stud UI and field-tested pitfalls.",
+  "version": "1.2.0",
   "author": { "name": "JoCoding" },
   "repository": "https://github.com/JoCoding-Inc/roblox-skills",
   "license": "MIT",
-  "keywords": ["roblox", "luau", "blender", "ui", "game-dev"]
+  "keywords": ["roblox", "luau", "blender", "ui", "game-dev", "studio-mcp", "workflow"]
 }

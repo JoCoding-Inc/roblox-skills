@@ -4,6 +4,11 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 
 | Skill | Use it for |
 |---|---|
+| `roblox-project-intake` | Run first: probes the machine (Studio MCP, Blender, Rojo, Open Cloud), interviews the user about the game, audience and art sources, writes `docs/brief.md` |
+| `roblox-engine-2026` | Current engine rules: task scheduler, deferred events, Parallel Luau, types, flex layouts and UI styling, Input Action System, streaming, memory budgets, remote security checklist, platform chat change |
+| `roblox-dev-workflow` | Idea to live ops in 9 phases, project layout, and which tool makes each asset (Cube, procedural models, Blender, Creator Store) |
+| `roblox-studio-ai-tools` | Built-in Studio MCP server (setup, full tool map), Assistant (Planning Mode, skills, BYOK), generation commands, headless Luau |
+| `roblox-design-and-launch` | Core loops, prototyping, onboarding, monetization and DevEx, content maturity and age rules, AI rules, icon/thumbnail and publish checklist |
 | `roblox-pitfalls` | Field notes: Open Cloud publish 409, Studio vs live asset loading, Creator Store 403, testing through Studio MCP with bot scenarios, Roblox Cube mesh generation, teleport/DataStore/light/texture/terrain limits |
 | `roblox-blender-export` | Blender meshes into Studio: scale, pivot, axis, FBX export call, palette textures, triangle budgets, upload |
 | `roblox-store-art-pack` | Any genre: Creator Store picks and quarantine, map composition check, game icon and thumbnails. Bright world palette for simulator/tycoon games |
@@ -39,9 +44,9 @@ Skills load on their own when the task matches their description. To update, run
 
 ## Works best with
 
-- Roblox Studio MCP: enable "Studio as MCP server" in Studio, then register it in Claude Code. On macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`. Check with `claude mcp list` (Connected)
-- Rojo, Lune, selene, StyLua, luau-lsp
-- Blender MCP for custom meshes
+- Roblox Studio MCP (built into Studio): Assistant > ... > Manage MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). The old Rust server is archived
+- Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
+- Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs; read the safety notes in `roblox-blender-export` section 9
 
 ## License
 

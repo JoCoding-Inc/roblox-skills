@@ -2,13 +2,19 @@
 name: roblox-blender-export
 description: "Use when making Roblox meshes in Blender (bats, props, kit pieces, voxel animals, icons) and getting them into Studio: scale, pivot, axis, FBX export call, color-as-texture, triangle budgets, collision, upload."
 when_to_use: "Also when an imported mesh is the wrong size, faces the wrong way, renders white/untextured, is inside-out, too heavy, or collides badly; before scripting a Blender asset pipeline or Open Cloud upload; when driving a live Blender through MCP or sharing it between sessions."
-last_reviewed: 2026-10-26
+last_reviewed: 2026-11-01
 sources:
   - https://github.com/brain-xiang/grok-studio (skills/blender-assets, reference/roblox_export.py; MIT)
   - https://github.com/Crazyshermy/-Roblox (.claude/skills/roblox-blender-modelling; no license, facts re-authored)
   - https://github.com/S4US/Roqer (references/blender.md, modeling.md; AGPL/MIT mix, facts only)
   - https://github.com/scenario-labs/skills (scenario-roblox-assets gui-paths; MIT)
   - https://create.roblox.com/docs/art/modeling/specifications
+  - https://create.roblox.com/docs/art/modeling/export-requirements
+  - https://create.roblox.com/docs/art/modeling/texture-specifications
+  - https://create.roblox.com/docs/art/modeling/roblox-blender-plugin
+  - https://create.roblox.com/docs/art/modeling/gltf-export
+  - https://create.roblox.com/docs/art/blender
+  - https://github.com/ahujasid/blender-mcp (renamed MCP for Blender)
 ---
 
 # Blender to Roblox
@@ -16,6 +22,18 @@ sources:
 Pair with `roblox-building` (placement, collisions, map) and `roblox-cloud` (Open Cloud). Run Blender headless: `blender -b --python script.py -- args`. Keep every asset as a rerunnable script, not hand edits.
 
 Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are often faster and better looking from Cube (Studio MCP `generate_mesh`, see `roblox-pitfalls` section 5). Anything that must animate (monsters, quadrupeds, spiders) still comes from Blender: Cube returns one static mesh with no rig.
+
+## Official rules at a glance (creator-docs, 2026-10-29)
+
+- Geometry: at most **20,000 triangles per mesh**; watertight (no holes or backfaces); quads where possible, no n-gons; no zero-thickness meshes. Avatar items have their own, stricter budgets.
+- Rigs: bones/joints frozen (scale 1,1,1, rotation 0,0,0), root at 0,0,0, **max 4 bone influences per vertex**, no influence on the root, keep symmetry. Only **one animation track** per FBX export, so export each animation separately.
+- Textures: PNG, JPG, TGA or BMP, up to 4096x4096 (the engine streams low resolution first). One material per mesh. Suggested size by object width: 5 studs 256, 10 studs 512, 20 studs 1024. PBR via `SurfaceAppearance` (colour, normal in OpenGL tangent space, metalness, roughness and emissive-mask maps; an emissive mask on an avatar item adds a 500 Robux upload fee; `SurfaceAppearance` properties cannot be changed by script at runtime) overrides `TextureID`.
+- Cages: `<Name>_InnerCage` and `<Name>_OuterCage` meshes for layered clothing; never delete cage vertices or alter their UVs. Characters need an outer cage.
+- Blender setup: Scene > Units > Unit System **None**, rotation Degrees. Blender is Z-up, Studio is Y-up.
+- Formats: FBX is the recommended path (keeps rig and skin weights). The Studio Importer also accepts `.gltf` and `.obj`. glTF export from Studio is in beta (meshes, textures, rigs, vertex colours, cages; no animation).
+- **Roblox Blender plugin** (open source, built on Open Cloud) sends objects straight from Blender to a Studio session after linking your account; try it before hand-rolling export and upload scripts. Fall back to the scripted FBX path below for headless or batch work.
+
+The Blender guide says to export with Forward Z, Up Y for FBX and import with World Forward Front, World Up Top, Scale Unit Studs; our call below uses `-Z`/`Y` as a hypothesis, so run the orientation test below once and trust the result. 1 stud is 28 cm.
 
 ## 0. Orientation test first
 
@@ -58,6 +76,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   bake_anim=False, path_mode='COPY', embed_textures=True)
 ```
 
+- Official Blender FBX checklist: Path Mode **Copy** + **Embed Textures**; Apply Scalings **FBX Unit Scale** (see the Blender FBX scaling guide if size is wrong); Armature > **Add Leaf Bones** off; **Bake Animation** off unless exporting keyframes (walk cycle, facial data). The call above already encodes these.
 - Apply modifiers on export, or the bevels never reach Roblox. For glTF, set `export_apply=True`.
 - Keep normals outward. Run a scripted check: inside-out faces are invisible in renders and only show in Studio.
 
@@ -67,7 +86,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   1. **Palette PNG (default):** a small sRGB PNG with one swatch per color, and UVs scaled inside each swatch with a margin of 2 texels or more. Leave `MeshPart.Color` white.
   2. **Packed image texture** of 1024 px or less, for grain, logos or decals, UV-unwrapped.
   3. **Vertex colors:** reported kept for GLB uploads; untested for FBX.
-- Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20.
+- Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
 - Tint variants (rarity, tiers): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap).
 
@@ -91,7 +110,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 - After import, set `CollisionFidelity` explicitly every time, because the importer is inconsistent: Box or Hull for props.
 - Decor gets `CanCollide`, `CanTouch` and `CanQuery` false. A gameplay collider is an invisible primitive with the old dimensions.
 - Open Cloud `POST https://apis.roblox.com/assets/v1/assets`:
-  - Send multipart `request` JSON (`assetType` Model or Image, `displayName`, `creationContext.creator`) plus `fileContent`, then poll the operation.
+  - Send multipart `request` JSON (`assetType` Model or Image, `displayName`, `creationContext.creator`) plus `fileContent`, then poll the operation (`GET /assets/v1/operations/{id}` until `done`; 300 per minute). One asset per call, files up to 20 MB, 120 creates per minute. Scopes `asset:read` and `asset:write`. Models accept fbx, gltf, glb, rbxm, rbxmx and become a package; images accept png, jpeg, bmp, tga under 8000x8000 px; audio mp3/ogg/wav/flac up to 7 minutes (100 uploads per month if ID-verified, 10 if not). `creationContext.expectedPrice` makes the call fail instead of charging more than you expect.
   - The result arrives as a package: unanchored, random yaw, no preview. An update adds a version, but placed copies do not update.
   - Load at runtime with `InsertService:LoadAsset(id)` (the asset must belong to the place owner or the group), or insert in Edit with Studio MCP `insert_asset`.
 - Upload under the group that owns the game. Assets owned by another account can render as nothing.
@@ -124,3 +143,42 @@ MCP for Blender (`uvx mcp-for-blender`, addon "MCP for Blender") drives the user
      ```
 
   3. Restart that Claude session (MCP servers start with the session) and approve the project server once.
+
+## 9. Blender MCP: tools, AI 3D services and safety
+
+Check the installed version's tool list first (`claude mcp list`, then ask the server); the names below are from the project's current README and may be consolidated or renamed again. The community server was renamed to **MCP for Blender** (PyPI `mcp-for-blender`, old name `blender-mcp`): update old configs.
+
+- Install: `uvx mcp-for-blender install-addon`, enable the add-on in Blender, N panel > Start MCP Server; register with `claude mcp add blender uvx mcp-for-blender`. Needs Blender 3.0+ and `uv`.
+- Tools: `execute_blender_code` (arbitrary Python), `get_scene_info`, `look` (viewport/camera/render capture), `search_assets` + `import_asset` (Poly Haven CC0, Sketchfab, Poly Pizza), `generate_3d` (Tripo, Hunyuan3D, Hyper3D Rodin, Meshy), `get_addon_status`, `disable_telemetry`.
+- There is also an official Blender Lab MCP server (needs Blender 5.1+ and its own add-on). Both default to port 9876: install one, or change a port.
+- Ask the user before enabling any paid 3D generation key; keys go into add-on preferences, never into chat.
+- Safety: `execute_blender_code` runs arbitrary code and the socket has no auth. Save the .blend first, keep the port on localhost, set `BLENDER_MCP_SAFE_MODE=1` if available, `DISABLE_TELEMETRY=true` for privacy, pin versions, and review the project before upgrading.
+- Large requests and Poly Haven downloads can block Blender's main thread: split work, use 1k-2k textures.
+
+### AI-generated 3D (Hyper3D, Hunyuan3D, Meshy, Tripo) for Roblox
+
+These make dense, untidy meshes with baked textures. Use them for reference or hero props, then in Blender: decimate or retopo to budget (under 20,000 and usually under 3,000 for props), fix normals and scale, rebake the colour to one 1024 map or a palette, remove interior faces, check licence and moderation risk, then export with section 2. Never upload raw output. For characters, rig and skin by hand (4 influences max) or via Studio Avatar Auto Setup.
+
+## 10. Upload paths summary
+
+| Path | When |
+|---|---|
+| Roblox Blender plugin | Interactive work, one asset at a time |
+| Studio 3D Importer (FBX) | Manual import with preview and settings |
+| Open Cloud Assets API (`POST /assets/v1/assets`) | Scripted batch uploads, kits |
+| Studio MCP `upload_image`, `insert_asset` | Images and inserting uploaded assets |
+
+## 11. Avatars, accessories and characters (official limits)
+
+Use Studio **Avatar Setup** (auto setup) before hand-rigging a character. It rigs, skins, adds face rig, cages, partitions into 15 parts and attachments. Presets: Platform Avatar (strict, Marketplace) and Development Avatar (loose, NPCs and starter characters). Input rules: humanoid in A or T pose, front facing -Z, watertight, distinct neck, two half-sphere eyes plus upper teeth, lower teeth and tongue with no shared vertices, at most 10,742 triangles, textures included, no accessories. Turn **Upload To Roblox** off in the importer first; imported models enter the moderation queue.
+
+| Asset | Key limits |
+|---|---|
+| Avatar body (R15) | 15 meshes named `<Part>_Geo`; DynamicHead 4,000 tris, torso 1,750, each arm and leg 1,248, total 10,742; texture up to 2048; 15 joints (advanced R15 up to 37 more); attachments end in `_Att`; parts opaque and filling at least 50 percent of their bounding box |
+| Rigid accessory | one mesh, at most 4,000 tris, watertight, at least 1 attachment, texture up to 2048, size capped by type and body scale |
+| Layered accessory | one mesh, at most 4,000 tris, clothing up to 8x8x8 studs, inner and outer cage, bound to R15, 4 influences max |
+| Dynamic head | outer cage with eye and mouth landmarks; 17 minimum FACS poses (eye closes, JawDrop, Pucker, lip corners, chin raiser, cheek raisers, brow raisers, lip depressors); must pass blink L/R, mouth open, happy, sad |
+| Emote / animation | emotes under 10 s from a CurveAnimation; animation editor runs at 30 fps with priorities Core < Idle < Movement < Action < Action2 < Action3 < Action4 |
+| Classic clothing | 512x512 T-shirt; shirt and pants templates; 80 Robux upload fee |
+
+Marketplace publishing needs ID verification or a linked parental account plus Roblox Plus or Premium; upload fee 80 Robux per submission (updates too), plus a refundable publishing advance by type (for example hats 1,500, hair 1,000, clothing 600, body 2,500). In-game NPC and starter characters can use the loose Development preset.
