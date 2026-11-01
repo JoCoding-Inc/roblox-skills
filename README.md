@@ -10,6 +10,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-studio-ai-tools` | Built-in Studio MCP server (setup, full tool map), Assistant (Planning Mode, skills, BYOK), generation commands, headless Luau |
 | `roblox-design-and-launch` | Core loops, prototyping, onboarding, monetization and DevEx, content maturity and age rules, AI rules, icon/thumbnail and publish checklist |
 | `roblox-launch-benchmarks` | Pre-launch checklist with values measured from live top-chart games: thumbnails, description length, players per server, game pass count and prices, like ratio. Refresh script in `scripts/benchmark` |
+| `roblox-release-automation` | What an agent can automate in a release (Open Cloud publish, server restart, passes, products, config) vs what the user must do (create game, maturity questionnaire, icon, thumbnails, public release), API key scopes per step, and what to ask when a permission is missing |
 | `roblox-pitfalls` | Field notes: Open Cloud publish 409, Studio vs live asset loading, Creator Store 403, testing through Studio MCP with bot scenarios, Roblox Cube mesh generation, teleport/DataStore/light/texture/terrain limits |
 | `roblox-blender-export` | Blender meshes into Studio: scale, pivot, axis, FBX export call, palette textures, triangle budgets, upload |
 | `roblox-store-art-pack` | Any genre: Creator Store picks and quarantine, map composition check, game icon and thumbnails. Bright world palette for simulator/tycoon games |
