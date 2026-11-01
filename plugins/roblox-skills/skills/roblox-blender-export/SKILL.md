@@ -42,7 +42,9 @@ The sources disagree on how glTF and FBX fronts land in Roblox. Before any bulk 
 2. Check `LookVector` and which face the nose is on in Studio.
 3. Record the result at the top of the pipeline script.
 
-Reported (grok-studio, not yet confirmed by us) for FBX with the call below: Blender (x, y, z) arrives in Roblox as (-x, z, y), and the Blender front (-Y) faces Roblox Front (-Z). Treat it as a hypothesis until step 1-3 confirm it on your path.
+Confirmed 2026-11-02 for FBX with the call below, headless Blender export then the Studio 3D Importer (Scale Unit Studs, Forward Front, Up Top): Blender (x, y, z) arrives in Roblox as (-x, z, y). The Blender front (-Y) faces Roblox Front (-Z), Blender +X lands on Roblox -X, and Blender Z is Roblox up. The mapping is a proper rotation (determinant +1), so nothing is mirrored. The test mesh was a 4-stud cube with a nose on Blender -Y and a post on Blender +X; the imported size was 5, 4, 5 (X, Y, Z) with `PivotOffset` at the Blender origin. Re-run steps 1-3 if you change the export path (glTF, Open Cloud, other axis settings).
+
+Measuring it without eyeballing: read the vertices from the imported MeshPart (`AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices` and `GetPosition`). Do not use raycasts for this: they hit the collision shape, and with the default `CollisionFidelity` that is a box or hull, not the visible mesh. In Studio MCP `execute_luau`, `datamodel_type` is `Edit` (capital E) and the result must be `return`ed, since `print` output is not shown.
 
 ## 1. Scale, pivot, structure
 
