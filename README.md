@@ -5,6 +5,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | Skill | Use it for |
 |---|---|
 | `roblox-project-intake` | Run first: probes the machine (Studio MCP, Blender, Rojo, Open Cloud), interviews the user about the game, audience and art sources, writes `docs/brief.md` |
+| `roblox-engine-2026` | Current engine rules: task scheduler, deferred events, Parallel Luau, types, flex layouts and UI styling, Input Action System, streaming, memory budgets, remote security checklist, platform chat change |
 | `roblox-dev-workflow` | Idea to live ops in 9 phases, project layout, and which tool makes each asset (Cube, procedural models, Blender, Creator Store) |
 | `roblox-studio-ai-tools` | Built-in Studio MCP server (setup, full tool map), Assistant (Planning Mode, skills, BYOK), generation commands, headless Luau |
 | `roblox-design-and-launch` | Core loops, prototyping, onboarding, monetization and DevEx, content maturity and age rules, AI rules, icon/thumbnail and publish checklist |

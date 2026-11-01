@@ -15,7 +15,7 @@ sources:
 
 # Roblox development workflow (idea to live ops)
 
-Pair with `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`. Pair with roblox-brain skills for engine API detail (`roblox-building`, `roblox-gui`, `roblox-data`, `roblox-cloud`, `roblox-lighting`).
+Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`. Pair with roblox-brain skills for engine API detail (`roblox-building`, `roblox-gui`, `roblox-data`, `roblox-cloud`, `roblox-lighting`).
 
 ## 1. The phases
 
@@ -60,7 +60,7 @@ src/shared  -> ReplicatedStorage        Packages/ (Wally, gitignored)
 assets/ (Blender sources, exports, LICENSES.md)    tests/    docs/brief.md
 ```
 
-`CLAUDE.md` must list: the exact build/lint/test commands, `--!strict` and type conventions, the client/server rule (server owns state; validate every remote argument's type and range), "never hand-edit `.rbxl` or `Packages/`", asset import steps, which Studio window is the dev place, and that Open Cloud keys come from env vars only.
+`CLAUDE.md` must list: the exact build/lint/test commands, `--!strict` and type conventions, the client/server rule (server owns state; validate every remote argument by context, type, value and rate: full checklist in `roblox-engine-2026` section 4), "never hand-edit `.rbxl` or `Packages/`", asset import steps, which Studio window is the dev place, and that Open Cloud keys come from env vars only.
 
 ## 4. Which tool makes this? (phase 4)
 
@@ -102,7 +102,7 @@ When two agents or windows are involved, always pass the right `studio_id` and l
 ## 6. Test and publish (phases 6-7)
 
 - Test layers: pure logic in Lune, behaviour in Studio bot scenarios, devices and network in Studio simulators (both beta; Studio's default playtest has zero latency), then a **private test place** published through Open Cloud with 2-3 things for the tester to check. Teleports, real DataStores and third-party asset loading only prove out there.
-- Performance: MicroProfiler and the Developer Console memory tab on a throttled device profile; Assistant skills `rbx-perf-profiling` and `rbx-scene-analysis` help interpret traces and find leaks. Keep Studio-only caches out of the live path.
+- Performance: MicroProfiler and the Developer Console memory tab on a throttled device profile, then on a real low-end Android phone for 10-15 minutes (the emulator is inaccurate for memory); Assistant skills `rbx-perf-profiling` and `rbx-scene-analysis` help interpret traces and find leaks. Keep Studio-only caches out of the live path.
 - Publish: Open Cloud place publishing (`.rbxl` binary), print the published version number, keep the previous version number for rollback. See `roblox-pitfalls` section 1 for the 409 busy error.
 - Before the first public publish: content maturity questionnaire, icon, thumbnails, description, genre, age-check requirements. Follow `roblox-design-and-launch` sections 4-6.
 
