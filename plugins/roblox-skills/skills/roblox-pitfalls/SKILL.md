@@ -2,7 +2,7 @@
 name: roblox-pitfalls
 description: "Use when publishing a place through Open Cloud, loading Creator Store models at runtime, testing in Studio through MCP, generating meshes with Roblox Cube (Studio MCP generate_mesh), or when something works in Lune tests but not in the engine. Field notes of failures hit while shipping Roblox games with an AI agent."
 when_to_use: "Also on a 409 'Server is busy' publish error, models that load live but not in Studio, Creator Store downloads returning 403, empty Output, characters that never get set up, broken non-Latin text on signs, teleports that cannot be tested, a SpotLight that stops reaching, a Cube mesh that comes out the wrong size or as a blob, generate_mesh 'Too Many Requests', MCP screenshots that time out, or a texture that stays grey on a MeshPart, a cutscene camera that snaps back in MCP screenshots, a tooltip drawn under another frame, characters that fall over, or players standing on top of enemies."
-last_reviewed: 2026-10-31
+last_reviewed: 2026-11-01
 sources:
   - original (field notes from three test games, 2026-10)
   - https://create.roblox.com/docs/parts/model-generation
@@ -14,7 +14,7 @@ sources:
 
 # Roblox pitfalls (field notes)
 
-Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mcp`, `roblox-cloud`, `roblox-tooling` and `roblox-data` from roblox-brain.
+Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mcp`, `roblox-cloud`, `roblox-tooling` and `roblox-data` from roblox-brain, and with `roblox-studio-ai-tools` here for the current built-in Studio MCP tool list.
 
 ## 1. Publishing
 
@@ -40,7 +40,8 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 ## 3. Testing in Studio through MCP
 
 - Studio's Output can show no server logs at all, not even `warn()`. Read logs through MCP `get_console_output`, or run one-line `execute_luau` probes that return facts (positions, attributes, states) instead of printing.
-- Several Studio windows may be open. List them first and target only your dev place. Never act on another project's window.
+- Several Studio windows may be open. Call `list_roblox_studios` first and pass your dev place's `studio_id` on every call (the built-in server requires it). Never act on another project's window.
+- Old tool names from the archived Rust server (`run_code`, `insert_model`, `run_script_in_play_mode`, `get_studio_mode`) do not exist in the built-in server. Use `execute_luau`, `search_asset` + `insert_asset`, `start_stop_play`, `get_studio_state`. For scenario testing the built-in `subagent` tool has a `playtest` type.
 - Lune unit tests with mocks miss engine ordering bugs. Example: `CharacterAdded` can fire **before** the character is parented to `workspace`, so code that needs `char.Parent` silently skips. Back pure-logic tests with in-engine **bot scenarios**:
   - server-side bots run a scripted case (walk into the guard's view, freeze, carry an object together);
   - the scenario returns PASS or FAIL lines that the agent reads through MCP.
@@ -70,6 +71,8 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mc
 - **Terrain heights snap.** `FillCylinder`/`FillBall` plus an Air carve leave the surface at `4*floor(y/4) + 2`, and Air fills clear every cell they touch. For an exact floor height, write the cell layer with `WriteVoxels` occupancy, then check it with a raycast through MCP. Lune voxel mocks usually miss this.
 
 ## 5. Generating meshes with Roblox Cube (Studio MCP)
+
+Related generators: `generate_procedural_model` builds parameterised objects from primitive parts (50 per rolling 24 h; poll with `wait_job_finished`), better than a mesh for shelves, fences, stairs or anything that must scale; `generate_material` returns a `MaterialVariant` for restyling parts. Roblox's own generators aim at All Ages content, so weapon and horror prompts may be softened or fail.
 
 Studio MCP `generate_mesh` (Roblox Cube, `GenerationService`) makes a textured mesh from text, published to your inventory with an asset id.
 
