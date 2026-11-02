@@ -44,12 +44,13 @@ Mark each PASS with evidence (screenshot, dashboard, readback). Hard gates block
 6. Tested on a low-end phone and at the device simulator sizes (`roblox-engine-2026` section 3).
 
 **Soft gates (benchmark)**
-7. Thumbnails: 3 or more at launch; plan 8 or more by month three.
+7. Thumbnails: 3 or more at launch, 2-5 of them active for Home thumbnail personalization (Roblox reports +8.5% average qualified play-through rate); plan 8 or more by month three. Icon and thumbnail craft: `roblox-store-art-pack` section 5.
 8. Description: 250-900 characters, controls and how-to-play first.
 9. Max players: inside 7-30; justify values outside it.
 10. Passes: 4-8 live at launch with prices from the ladder (99, 149, 199, 299, 399, 499, 799); no price above 800 before there is player demand.
 11. Like ratio after the first 1,000 votes: target 0.85 or higher; below 0.76 investigate onboarding and monetization pressure first.
-12. Update cadence: a published update or event within each week once live; tag the title or thumbnail with the update.
+12. Loading: custom loading screen only if `ReplicatedFirst` stays lean and the screen closes as soon as the game loads (`roblox-store-art-pack` section 7); no forced wait.
+13. Update cadence: a published update or event within each week once live; tag the title or thumbnail with the update.
 
 ## How to refresh
 
