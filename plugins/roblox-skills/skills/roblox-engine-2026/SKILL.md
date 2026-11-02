@@ -2,7 +2,7 @@
 name: roblox-engine-2026
 description: "Use when writing or reviewing Roblox game code and UI in 2026: task scheduler, deferred events, Parallel Luau, native codegen, strict types, StreamingEnabled settings, flex layouts and UI styling, Input Action System, mobile/console rules, performance budgets, remote security, platform-integrated chat."
 when_to_use: "Also when code uses wait/spawn/delay or PhysicsService collision groups, when a UI breaks on phone or console, when memory or crash rates are high, when adding remotes, ProximityPrompts or purchases, or when an old tutorial's pattern might be outdated."
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-02
 sources:
   - https://create.roblox.com/docs/scripting (scheduler, events/deferred, multithreading, locations, security, transparent-batching)
   - https://create.roblox.com/docs/luau (type-checking, native-code-gen)
@@ -14,7 +14,7 @@ sources:
   - https://create.roblox.com/docs/projects/teleport
 ---
 
-# Modern engine practices (docs state 2026-10-29, Studio 0.745; weekly update 2026-11-01)
+# Modern engine practices (docs state 2026-10-29, Studio 0.745; weekly update 2026-11-02)
 
 Complements roblox-brain (`roblox-luau`, `roblox-gui`, `roblox-performance`, `roblox-security` style skills). Where this file and an older tutorial disagree, this file follows the current docs.
 
@@ -65,8 +65,8 @@ Complements roblox-brain (`roblox-luau`, `roblox-gui`, `roblox-performance`, `ro
 6. Purchases: grant in `ProcessReceipt`; never trust `PromptProductPurchaseFinished`.
 7. Unanchored parts are exploitable through network ownership; anchor them or set the owner.
 8. Remotes cannot pass functions; metatables are stripped; `UnreliableRemoteEvent` drops payloads over 1,000 bytes.
-9. Teleports: use server `TeleportAsync` (client `Teleport` is deprecated), set Access Control for Places to "Secure within universe only", treat teleport data as client-visible.
-10. `Player.DeviceTrustLevel` (Pending/Unknown/None/Standard/Full) is a server-side signal and always Pending in Studio.
+9. Teleports: use server `TeleportAsync` (client `Teleport` is deprecated), set Access Control for Places to "Secure within universe only", treat teleport data as client-visible. For private servers set `TeleportOptions.ReservedServerId` or `TeleportOptions.VipServerId` (a GUID, `game.PrivateServerId` of the target); set at most one, since two raise a Luau error. The old access-code fields still work but print deprecation messages. Handle `TeleportInitFailed`: players can close or leave VIP servers.
+10. `Player.DeviceTrustLevel` (Pending/Unknown/None/Standard/Full) is a server-side signal and always Pending in Studio. Device Trust API (announced 2026-10-27, Android and the upcoming Web client; iOS, console and Windows planned for 2027): set `IntegrityService.EvaluatePlayerDeviceTrust` on the server to approve or reject a join (return a decision table, with a kick message), or read the cached level later. Never trust the value on the client; have the server tell the client which features are on. It does not replace server-side validation.
 
 ## 5. Chat, voice, platform
 
@@ -81,7 +81,7 @@ Complements roblox-brain (`roblox-luau`, `roblox-gui`, `roblox-performance`, `ro
 
 ## 6. APIs and betas seen in the October 2026 recaps
 
-Source: DevForum weekly recaps of Oct 5-23 (read in full); the Oct 26-30 items come from the recap listing only and were not re-read, so verify before relying on them.
+Source: DevForum weekly recaps of Oct 5-30 and the individual announcement posts of Oct 26-30 (read 2026-11-02). "Studio 0.745 check" means tested through Studio MCP on that build; items without it are from the posts only.
 
 | Item | State | Note |
 |---|---|---|
@@ -89,8 +89,19 @@ Source: DevForum weekly recaps of Oct 5-23 (read in full); the Oct 26-30 items c
 | `AssetService:PromptCreatePlatformContentAsync(Object)` | Live | Renamed from `PromptCreateAssetAsync(Instance)` (the old name is gone in Studio 0.745); publishes an `EditableImage` to the player's inventory |
 | `AssetService:CreateAssetAsync` with `AudioTextToSpeech` / `Enum.AssetType.Audio` | Studio Beta | Text-to-speech assets from Luau; `AudioTextToSpeech.AutoLocalize=true` translates the speech |
 | Custom Terrain Materials | Full launch (Oct 2026) | Publishable with performance improvements |
-| Input Action Manager | Full release (Oct 26-30 listing) | Unverified detail |
-| Orthographic camera | Studio Beta (Oct 26-30 listing) | For 2D, isometric and top-down games; `Camera.ProjectionMode` was not present in Studio 0.745 without the beta |
+| Input Action Manager | Full release (2026-10-29) | Window > Input > Input Action Manager: visual editor to build and audit cross-platform control mappings |
+| Orthographic camera | Studio Beta (2026-10-30) | File > Beta Features, then `Camera.ProjectionType = Enum.ProjectionType.Orthographic` for 2D, isometric and top-down games. Studio 0.745 check: the property exists, but setting Orthographic did not stick without the beta enabled |
 | `UIShadow` upgrades, Package Overrides | Studio Beta | `UIShadow` class exists in 0.745 |
 | Device Simulator toolbar and Network Simulator | Full release | Use for mobile and bad-network checks |
 | Studio deep links on server-log stack traces | Live | Click an error in server logs to open the script line |
+| Shapecast upgrade | Live (2026-10-28) | New implementation of every Blockcast, Spherecast and Shapecast: exact mesh collision geometry, tighter results, up to 4.1x faster (Roblox benchmark), no script change. New `RaycastParams.Margin` (inflates the shape; a raycast with a margin acts like a spherecast) and `RaycastParams.SizeGradient` (ends at 1 + gradient times the size; the margin is not scaled), plus `WorldRoot:Shapecast(part, direction, params, cframeOverride, sizeOverride)`. Visualize under Visualization Modes > Physics simulation > Shapecasts. Studio 0.745 check: both params can be set; cast behavior not tested |
+| `TeleportOptions.ReservedServerId` / `VipServerId` | Live (2026-10-28) | See section 4 item 9. Studio 0.745 check: both properties exist and take a GUID; teleports cannot be tested in Studio |
+| `PartType.Capsule` | Added in 0.745 | Release-notes thread replies say it does not work yet; the enum member exists |
+| Web Play (test on the web) | Early Access (2026-10-29) | Creator Hub > Play in Browser tests a game in Chrome on macOS, Windows and Android |
+| Server Inspection (Team Test) | Studio Beta (2026-10-30) | File > Beta Features > Server Inspection: read-only live server view with instance tree, properties, 3D world and server-script breakpoints |
+| Scene Generation | Studio Beta (2026-10-30) | `/generate_scene` in Assistant or Generate > Scene: editable models, textures and terrain from images and prompts |
+| Prompt-to-Avatar | Studio Beta (2026-10-29) | Build Avatar (Beta) via Avatar Setup, Assistant and Studio MCP |
+| `AnimatedImage` and `AnimationPlayer` | Early Access (2026-10-27) | Aseprite (.ase) import and flipbook tracks for 2D. Studio 0.745 check: `AnimatedImage` cannot be created and `AnimationPlayer` needs RobloxScript capability without access. Per a news report, places using it cannot be published yet |
+| Share links for avatar items | Live (2026-10-30) | Creator Dashboard: links with click, purchase and conversion analytics |
+| Dutch locale | Live (2026-10-30) | Official locale; experiences are auto-translated |
+| Thumbnail errors | Changed 2026-10-26 | Unapproved or broken thumbnails return HTTP 200 instead of 503 (from the Sep 21-25 recap; matters for scripts that poll thumbnails) |
