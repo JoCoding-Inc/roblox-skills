@@ -94,6 +94,7 @@ Repeat per feature, small steps:
 2. Static checks: `selene`, `stylua --check`, `luau-lsp analyze`, Lune tests for pure logic.
 3. In Studio through MCP: `get_studio_state`, then `execute_luau` probes in Edit mode; `start_stop_play`; read `get_console_output`.
 4. Run a bot scenario for the behaviour (the `playtest` subagent, or your own scripted scenario returning PASS/FAIL lines). See `roblox-pitfalls` section 3.
+4b. For every economy or save feature add a failure path, not only the happy path: try to buy without enough currency, then buy normally, then reset or rejoin, and check the balance, the granted upgrade and persistence against the intended rules. A clean console does not catch a wrong charge or a missing save.
 5. `screen_capture` after bringing the dev window to the front; check layout at phone size with the Device Simulator (Assistant skill `rbx-device-simulator-lua`).
 6. Commit. One feature per commit.
 
@@ -104,6 +105,7 @@ When two agents or windows are involved, always pass the right `studio_id` and l
 - Test layers: pure logic in Lune, behaviour in Studio bot scenarios, devices and network in Studio simulators (both beta; Studio's default playtest has zero latency), then a **private test place** published through Open Cloud with 2-3 things for the tester to check. Teleports, real DataStores and third-party asset loading only prove out there.
 - Performance: MicroProfiler and the Developer Console memory tab on a throttled device profile, then on a real low-end Android phone for 10-15 minutes (the emulator is inaccurate for memory); Assistant skills `rbx-perf-profiling` and `rbx-scene-analysis` help interpret traces and find leaks. Keep Studio-only caches out of the live path.
 - Publish: Open Cloud place publishing (`.rbxl` binary), print the published version number, keep the previous version number for rollback. See `roblox-pitfalls` section 1 for the 409 busy error.
+- First publish screens (from a secondhand article, verify in Studio): Data Sharing on the first screen may be on by default and use the game's data to train Roblox's generative models, so decide on purpose; leave "Continue" alone unless you mean to start a public release; and turn on Studio Access to API Services only on a test place, because Studio then uses the same data as real players.
 - Before the first public publish: content maturity questionnaire, icon, thumbnails, description, genre, age-check requirements. Follow `roblox-design-and-launch` sections 4-6.
 
 ## 7. Live ops (phase 8)

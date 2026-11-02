@@ -149,6 +149,20 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 - Rights: only your own mark. Other games' logos and characters are rejected (see Truthfulness above). Check the name is not already a top game's name.
 - Test: render the logo at 150, 96 and 64 px on both a light and a dark background before uploading.
 
+**Tone and manner (make the logo look like the game):**
+- Write a 5-line brand brief first and reuse it in every prompt and review: genre and audience, mood in 3 adjectives, 2-3 dominant colors (hex), shape language (round and chunky, sharp and angular, hand-drawn), and the one object or action that sells the game (a bat hitting a ball, an egg hatching).
+- Match the logo to the world the player sees. Bright simulators and tycoons take rounded, chunky, glossy letters with a thick dark outline and a white sticker-style edge; horror takes a cracked or dripping condensed face in 1-2 muted colors with red or sickly green accents; anime fighters take sharp italic type with speed lines and a brush texture; cozy roleplay takes soft rounded script on pastels. Do not use a cute bubble face on a horror game or a gritty face on a toddler-friendly one: a mismatch tells players the wrong genre before they play.
+- Echo the same palette, outline weight and lighting in the icon, thumbnails, loading screen and UI frames so the brand reads as one set (see `roblox-ui-genre-studs` for the simulator HUD look).
+- Sports and themed games can build the pitch into the mark: a user-supplied reference baseball game ("+1 BAT") uses a sticker-style logo (white outer edge) with a smiling avatar swinging a bat, a flaming bat, flying bricks and a yellow "+1" beside bold blue-white "BAT" letters, over a blurred in-game field. The pattern to copy is the structure (avatar action + themed props + outlined numeral/word), not the art or name.
+
+**Making the logo with image-generation AI:**
+- Workflow: brief, then 4-8 candidates, pick one, refine, then clean up and typeset. Use the image tools you already have (for example the `gwanggo-generate` and `higgsfield-generate` skills; models such as GPT Image 2, Nano Banana and Seedream), or Roblox Studio's own generators for in-world assets.
+- Prompt pattern: `game logo, text "+1 BAT", chunky 3D bubble letters, thick dark-blue outline, white sticker border, glossy highlights, [subject: avatar swinging a flaming bat], flat solid background, centered, no extra text`. Name the exact words in quotes, ask for one logo on a plain background, and add `no watermark`.
+- Image models often misspell or distort text. Proofread every letter at full size. If the words are wrong, generate the art without text and typeset the name yourself (Figma, or a bold game font plus outline and bevel), or fix it by editing the image and re-checking.
+- Ask for a transparent or single-color background so the logo can be cut out (generate on pure green or white and remove it, or use a background-removal step). Export a PNG with alpha, 1024 px or more on the long side, and keep the source and the prompt in `assets/` with the model name and date.
+- Rights and safety: you answer for what you publish "regardless of whether you use generative AI" (Roblox's rule as quoted in a secondhand article; check the current Creator Terms). Never prompt with other games' names, logos or characters; reject results that resemble an existing logo; the upload still goes through moderation.
+- Review: run the 150, 96 and 64 px test, check it on a light and a dark background, and ask a person who has not seen the game what genre it is.
+
 ## 7. Loading screen and teleport screen
 
 **Mechanics (docs, create.roblox.com/docs/players/loading-screens):**
@@ -166,5 +180,6 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 **Design (community advice from DevForum threads, opinions not measurements; no public data on loading screens and retention was found):**
 - Show the logo, one short tip and a progress indicator tied to real loading. A uniform tween that stalls near the end reads as fake.
 - Match the game's art style and the thumbnail the player clicked (inference: the first frame should confirm they entered the game they chose). Plain "Loading..." text with a spinner is the commonly criticised default.
+- A theme-matched progress bar beats a plain spinner: the user-supplied "+1 BAT" loading screen shows a large sticker-style logo over a blurred copy of the game's own field, a green bar with a baseball as the knob that rolls to 100%, and a one-line flavor text ("Play ball!") instead of "Loading". Keep the logo clear of the top-left corner, where Roblox's menu and chat buttons sit over the screen.
 - Add a timeout that closes the screen if loading hangs, and keep the screen under a few seconds on a typical phone. Do not put ads or claims on it.
 - Test on a throttled network and a low-end phone (Device and Network Simulator) for the worst-case time, and check the screen on phone, tablet and console safe areas.
