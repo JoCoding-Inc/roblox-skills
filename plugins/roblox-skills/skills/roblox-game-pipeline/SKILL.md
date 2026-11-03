@@ -26,7 +26,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 8. **Close Studio when done.** Each Studio window holds about 0.3-1 GB (measured 2026-11-03), and many open windows slow or crash the machine.
    - Before opening a place, list the open windows (`list_roblox_studios`) and their memory (`ps -axo pid,rss,command | grep -i "[R]obloxStudio"`; Windows `tasklist /fi "imagename eq RobloxStudioBeta.exe"`). With 3 or more open, tell the user and ask which to close. Never close another project's window yourself.
    - One window per project: reuse it instead of opening the same place twice. Note the PID of each window you open (process list before and after) in `docs/ledger.md`.
-   - When a task, a gate or the session ends, or the window is no longer needed: stop play (`start_stop_play`), make sure the work is saved (code on disk through Rojo or Script Sync; parts and settings saved with Ctrl+S or published; no MCP tool saves the place, so ask the user to press Ctrl+S when Studio-only edits exist), close it by PID (`kill <pid>`; Windows `taskkill /pid <pid>`), never by name, and confirm with `list_roblox_studios`.
+   - When a task, a gate or the session ends, or the window is no longer needed: stop play (`start_stop_play`), make sure the work is saved (code on disk through Rojo or Script Sync; parts and settings saved with Ctrl+S or published; no MCP tool saves the place, so ask the user to press Ctrl+S when Studio-only edits exist), close it by PID (`kill <pid>`; Windows `taskkill /pid <pid>`), never by name, and confirm with `list_roblox_studios`. A window with unsaved changes shows a save dialog and ignores `kill`: for a scratch place the agent opened, check the PID's command line names that file, then `kill -9`; for the user's place, ask the user to save and close it.
 9. **Ask for keys and permissions at the moment of need**, with what, why, the exact clicks and how to confirm (`roblox-project-intake` step 1d). Never ask for key values in chat.
 10. **Let a person judge the feel.** When the result is judged in the hands (core action, movement, combat, difficulty, scares, audio, phone controls), stop and ask the user to play it (section 7a) instead of judging from screenshots and building on a guess.
 
@@ -40,7 +40,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 | 3 Look | Style board result, palette, art sources (section 3) | Style lane picked |
 | 4 Moments and small decisions | Cinematics (`roblox-cinematics`), intro, loading screen, logo, music, tutorial, etc. (section 4) | Decision cards answered or defaulted |
 | 5 Working mode | Control level and agent mode (section 5) | Both chosen |
-| 6 Plan | `docs/plan.md`: small tasks, each with files, done-definition and check | User reads the task list |
+| 6 Plan | `docs/plan.md`: small tasks, each with files, done-definition and check; art source per asset class chosen with the user (section 6a) | User reads the task list |
 | 6b First proof | User picks: core-fun prototype, concept images, concept trailer, or straight to the build (section 6b) | Prototype verdict written, or concept assets reviewed |
 | 7 Build | Greybox first, then loop, then art, then polish (`roblox-dev-workflow`); the user plays at feel checkpoints (section 7a) | per working mode; checkpoint notes in `docs/playtests.md` |
 | 8 Verify | Full playtest on phone-size and PC, cinematic exits, failure paths (`roblox-dev-workflow` 4b); a final user session on PC and a real phone | Evidence list |
@@ -142,6 +142,22 @@ Mode: solo (live Studio)
 ```
 
 Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the core loop, then the progression engine, then onboarding, then art, then moments, then polish, then economy and monetization, then store art. Tag tasks `solo` or `delegate` so the working mode is already applied. Add a `Needs user:` line to every task that needs a permission, key or hand step (`roblox-project-intake` step 1d, for example Studio access to data stores before the first save test), so the agent asks right before that task, not at the start. Add a `Playtest: user` line to every task whose result is judged by feel (section 7a). Put the riskiest or least understood task first when it can change the design (spike it).
+
+## 6a. Art source per asset class (before writing art tasks)
+
+List the asset classes (for example machines and furniture, building kit, characters and creatures, pets and pickups, icons) and, for each, the tools this session can really use (probe again: Studio MCP, gwanggo `get_credits`, Blender `get_addon_status`):
+
+| Tool | Cost | Good at | Not for |
+|---|---|---|---|
+| Roblox Cube (Studio MCP `generate_mesh`) | No credits; rate limited (1-2 jobs at a time) | Static props, furniture, machines, vehicles; a reference image keeps the look | Rigs; exact modular sizes |
+| gwanggo `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
+| `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) | Organic shapes |
+| Blender (scripted) | Free, slowest | Rigs and animation, modular kit pieces with exact sizes (walls, floors, trims), voxel animals | Many detailed props fast |
+| Creator Store | Free | Fillers, audio | Hero assets (quarantine first) |
+
+- When a class covers many assets and the user has not seen the options, run a **bake-off**: make the same object (one machine, one pet) with each available tool, screenshot them side by side in Studio (or a sheet with `scripts/style_board.py`), and let the user pick. Quote gwanggo credits first. Never mark one option (D) and skip the others unseen.
+- Judge from the samples, not from memory: "AI output has inconsistent style" is not true of a style-locked gwanggo project or Cube with a reference image; the raw-mesh warning in `roblox-blender-export` section 9 is about the Blender MCP generators.
+- Record the result in the brief as `Art source: <class> -> <tool> (<reason>)` lines and tag the art tasks with it.
 
 ## 6b. First proof (after the plan, before the full build)
 

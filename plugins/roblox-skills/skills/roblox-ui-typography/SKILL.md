@@ -23,7 +23,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 
 - **No uploads.** Roblox does not import font files (docs, 2026-11-02). Choose from:
   - built-in families: `Font.fromName("FredokaOne")` or `Font.new("rbxasset://fonts/families/Roboto.json", Enum.FontWeight.Bold)`;
-  - Creator Store fonts (91, all published by Roblox, read 2026-11-03): `Font.fromId(id)` or `Font.new("rbxassetid://<id>")`. In the Studio font picker, click Install first.
+  - Creator Store fonts (91, all published by Roblox, read 2026-11-03): `Font.fromId(id)` or `Font.new("rbxassetid://<id>")`. Set from a script, they load without the picker's Install step (tested 2026-11-03 in a fresh place: Nanum Gothic, Londrina Solid, Goldman).
 - `Enum.Font` is legacy; set `FontFace` with the `Font` datatype. Removed fonts map silently: Gotham family to Montserrat, Arial and ArialBold to Arimo.
 - Check which weights and italics a family really has with `TextService:GetFamilyInfoAsync(familyId)` before relying on Bold or Heavy.
 - Lettering that no font gives you (a logo, a title with effects) is an image. Use it only for fixed brand words: images do not localize (`roblox-store-art-pack` section 6).
@@ -40,7 +40,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 | Simulator, tycoon, obby | FredokaOne, LuckiestGuy, DenkOne, Londrina Solid* | Nunito, BuilderSans |
 | Horror | SpecialElite, Jolly Lodger*; Creepster, Nosifer*, Eater* for titles only | SourceSansPro |
 | Anime, battlegrounds, fighting | Bangers, Teko*, Antonio*, Oswald | RobotoCondensed, Barlow* |
-| RNG, idle, number-heavy | Goldman*, Rubik*, DenkOne; Bungee Inline* for titles | BuilderSans |
+| RNG, idle, number-heavy | Rubik* (equal-width digits), Goldman*, DenkOne; Bungee Inline* for titles | Nunito (equal-width digits) |
 | Sci-fi | Michroma, Jura, Sarpanch, Audiowide*, Rajdhani* | TitilliumWeb, Roboto |
 | Fantasy, RPG | Fondamento, GrenzeGotisch, RomanAntique | Merriweather |
 | Cozy, story | PatrickHand, Kalam | Nunito |
@@ -73,13 +73,13 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 ## 6. Numbers and damage numbers
 
 - One number formatter for the whole game (K, M, B; truncate, never round up into the next suffix).
-- Counters that jitter while counting: try `OpenTypeFeatures = "tnum"` (tabular digits) and read `OpenTypeFeaturesError`; not tested yet. If it errors, use a mono font for the counter only (RobotoMono, BuilderMono).
+- Counters that jitter while counting: `OpenTypeFeatures = "tnum"` does not help (tested 2026-11-03: "Unsupported feature: tnum" on BuilderSans, FredokaOne, Montserrat, Roboto). Use a font whose digits are already equal width for counters and timers. Measured equal: Roboto, RobotoCondensed, RobotoMono, BuilderMono, Nunito, SourceSansPro, Teko, Rubik. Proportional (they jitter): BuilderSans, FredokaOne, LuckiestGuy, DenkOne, Montserrat, Oswald, Bangers, Goldman, Arimo. With a proportional display font, right-align the counter in a fixed-width box.
 - Damage numbers: pooled BillboardGui labels with `MaxDistance`, stroke or shadow, rise and fade over about 0.6 s. A crit changes color and jumps to one larger size; never scale text continuously.
 
 ## 7. Other languages
 
-- Pick fonts that cover the target languages: Korean Nanum Gothic (12187361718); Japanese M PLUS Rounded 1c (12188570269), IBM Plex Sans JP (12187364147); Chinese Noto Serif SC (12187376739), Noto Serif TC (12187368093); Arabic Cairo (12187377099), Tajawal (12187377588); Thai Kanit (12187373592), Prompt (12187607287). Coverage is from the font names, not tested.
-- Characters missing from the chosen font fall back to a default font, so a Latin display face shows Hangul in a different style (community reports; the docs do not describe fallback). A Hangul sign on a SurfaceGui has rendered broken (`roblox-pitfalls`). Test one sentence per language on a ScreenGui, a SurfaceGui and a BillboardGui before shipping.
+- Pick fonts that cover the target languages: Korean Nanum Gothic (12187361718; Regular, Bold, ExtraBold); Japanese M PLUS Rounded 1c (12188570269), IBM Plex Sans JP (12187364147); Chinese Noto Serif SC (12187376739), Noto Serif TC (12187368093); Arabic Cairo (12187377099), Tajawal (12187377588); Thai Kanit (12187373592), Prompt (12187607287). Only Nanum Gothic was tested; the rest is from the font names.
+- Tested 2026-11-03 in a Studio play session: Hangul rendered on a ScreenGui, a SurfaceGui and a BillboardGui in Montserrat (the old GothamBold), FredokaOne, LuckiestGuy, BuilderSans and Nanum Gothic. Fonts without Hangul fall back to a default Korean face in a regular weight, so bold Latin sits next to thin Hangul. For Korean-first text, use Nanum Gothic Bold or ExtraBold (or keep display words in Latin). Test one sentence per shipped language on screen, sign and billboard.
 - Leave 30-40 percent spare width for translations (judgment). Turn `AutoLocalize` off on player names, codes and numbers. Arabic needs right-to-left layout (`StarterGui.RtlTextSupport`, on by default).
 
 ## 8. Checklist

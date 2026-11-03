@@ -110,7 +110,7 @@ Do not ask for these up front. Put each one as a `Needs user:` line on the plan 
 **Round B: look and assets (ask when art is in scope)**
 
 7. Art style: chunky cartoon / low-poly / stylised realistic / blocky Roblox / user's own references (ask for 2-3 images or links). Show the lane cards (`roblox-game-pipeline` section 3); if none fits and the user has no images, offer gwanggo examples (pipeline section 10a).
-8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), Creator Store (fillers, audio), or user-supplied files.
+8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), gwanggo 3D (many props in one locked style, credits), Creator Store (fillers, audio), or user-supplied files. If the user is unsure, write "Art source: decide by bake-off" and settle it in `roblox-game-pipeline` section 6a; never leave it out of the brief.
 9. Is the user willing to approve anything that spends money or Robux (ads, paid uploads, Hyper3D/Meshy credits)? (D: no spend without asking.)
 
 **Round A2: look, moments and working mode (ask after Round A; the full flow is `roblox-game-pipeline` stages 3-5)**

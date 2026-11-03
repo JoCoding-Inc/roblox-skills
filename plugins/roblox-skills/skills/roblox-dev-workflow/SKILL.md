@@ -88,6 +88,8 @@ assets/ (Blender sources, exports, LICENSES.md)    tests/    docs/brief.md
 
 ## 4. Which tool makes this? (phase 4)
 
+Several rows often fit the same asset. When the choice decides many assets (all machines, all pets), do not pick silently: compare one sample per available tool with the user (`roblox-game-pipeline` section 6a). Cube and procedural models cost no credits.
+
 | Need | First choice | Why / limits |
 |---|---|---|
 | Quick restyle of existing parts | Studio MCP `generate_material` (or Assistant "restyle") | Returns a `MaterialVariant`; apply to parts |
@@ -97,7 +99,7 @@ assets/ (Blender sources, exports, LICENSES.md)    tests/    docs/brief.md
 | Inventory, shop and currency icons; seamless textures | gwanggo MCP `generate_game_asset` kind `icon` or `texture` in the project style | Upload as image; textures go into a `MaterialVariant` |
 | Mesh that needs separate moving pieces | `generate_mesh` with segmentation (max 8 named parts), or Blender | Name parts by function (door, lid, lever) |
 | Anything animated or rigged (creatures, monsters, custom characters) | Blender (`roblox-blender-export`) | Cube output is a static mesh with no rig |
-| Exact kit pieces, palette textures, voxel animals, icons | Blender | Scripted, rerunnable, one shared palette |
+| Modular kit pieces with exact sizes (walls, floors, trims, rails), palette textures, voxel animals, icons | Blender | Scripted, rerunnable, one shared palette. Distinct props (machines, furniture) are the Cube or gwanggo rows |
 | Real-world reference for sculpting or retopo | Blender MCP asset import (CC0 sources: Poly Haven, Poly Pizza) or AI 3D services, then clean up | Check license; retopo to budget; see `roblox-blender-export` section 9 |
 | Fillers, audio, plugins | Creator Store via `search_asset` then `insert_asset` | Quarantine and audit first (`roblox-store-art-pack` section 3) |
 | UI images, icons | Blender renders, image generation, or Cube textures | Upload as image; use the image id, not the decal id |

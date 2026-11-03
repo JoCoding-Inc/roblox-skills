@@ -159,7 +159,7 @@ Check the installed version's tool list first (`claude mcp list`, then ask the s
 
 ### AI-generated 3D (Hyper3D, Hunyuan3D, Meshy, Tripo) for Roblox
 
-These make dense, untidy meshes with baked textures. Use them for reference or hero props, then in Blender: decimate or retopo to budget (under 20,000 and usually under 3,000 for props), fix normals and scale, rebake the colour to one 1024 map or a palette, remove interior faces, check licence and moderation risk, then export with section 2. Never upload raw output. For characters, rig and skin by hand (4 influences max) or via Studio Avatar Auto Setup.
+This is about the raw output of the generators inside Blender MCP (`generate_3d`). For Roblox props, first compare Roblox Cube (`generate_mesh`) and gwanggo kind `3d`, which already target Roblox limits and, for gwanggo, the project's locked style (`roblox-game-pipeline` section 6a). The Blender MCP generators make dense, untidy meshes with baked textures. Use them for reference or hero props, then in Blender: decimate or retopo to budget (under 20,000 and usually under 3,000 for props), fix normals and scale, rebake the colour to one 1024 map or a palette, remove interior faces, check licence and moderation risk, then export with section 2. Never upload raw output. For characters, rig and skin by hand (4 influences max) or via Studio Avatar Auto Setup.
 
 ## 10. Upload paths summary
 
