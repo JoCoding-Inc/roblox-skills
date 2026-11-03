@@ -17,6 +17,7 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 
 ## 0. Look before you build
 
+- Show the reference screens in section 9 first. If the user wants a style they do not show (or the game is not a simulator/tycoon), generate the same screen in 2-4 styles and let the user pick before building (`roblox-game-pipeline` section 10a).
 - Pull reference frames of 2-3 current top games in the same genre. YouTube storyboards work when clip downloads return 403: `yt-dlp -f sb0 -o sb.mhtml URL`, then extract the JPEGs from the mhtml with Python `email`.
 - Store thumbnails come from `thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=...` and are marketing art, not HUD.
 - Every UI task ends with our screenshot and a reference frame side by side at the same viewport, desktop and phone.

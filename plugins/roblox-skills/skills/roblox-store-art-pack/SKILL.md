@@ -146,6 +146,7 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 
 ## 6. Logo
 
+- Choosing a logo style: draft the same name in 3-4 treatments (sticker, chrome, chunky 3D letters, hand-drawn) as images and let the user pick (`roblox-game-pipeline` section 10a). AI image text is often misspelled: check every letter, and set final text in an editor when it is wrong.
 - Where it appears: the icon (about a third of chart icons carry readable title text, usually 1-3 words), the first thumbnail, the loading screen and the main menu. Make one logo file set and reuse it so the name looks the same in all four.
 - Build rules (from the icon docs and the chart sample): square 512x512 icon that still reads at about 150x150; thick outline or bevel plus a drop shadow; 1-3 words; high contrast against the art behind it; keep it inside the icon's safe middle so rounded corners and badges do not clip it; avoid thin strokes and small taglines (they vanish at 150 px).
 - Thumbnails: put the logo top or middle, not the bottom edge (metadata overlays the bottom). A logo overlay on a video thumbnail is allowed by the docs.
@@ -168,6 +169,8 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 - Review: run the 150, 96 and 64 px test, check it on a light and a dark background, and ask a person who has not seen the game what genre it is.
 
 ## 7. Loading screen and teleport screen
+
+Choosing the look: show the example in `roblox-game-pipeline/assets/examples/`; if it is not what the user wants, generate 3-4 candidates in the game's style (`roblox-game-pipeline` section 10a) and let the user pick.
 
 **Mechanics (docs, create.roblox.com/docs/players/loading-screens):**
 - Put the loading `ScreenGui` in `ReplicatedFirst` (it replicates before anything else) and show it from a `LocalScript` there. Set `IgnoreGuiInset = true`, parent it to `PlayerGui`, then call `ReplicatedFirst:RemoveDefaultLoadingScreen()`. Wait on `game:IsLoaded()` / `game.Loaded`, then fade out and `Destroy()` the gui. Design it in `StarterGui` first, then move it.

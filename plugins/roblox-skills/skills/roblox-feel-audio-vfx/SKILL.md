@@ -51,6 +51,7 @@ For each frequent action write what the player sees, hears and feels: action, re
 
 ## 4. Lighting and atmosphere (docs)
 
+- Choosing a mood or an effect style: show the same spot in each option as an image (and a short clip only for motion) before building it (`roblox-game-pipeline` section 10a, gwanggo or greybox screenshots).
 - `Lighting.LightingStyle`: `Realistic` is the most advanced look, `Soft` is the flat retro look; pick with the style board lane (`roblox-game-pipeline` stage 3).
 - Set colors on `Ambient`/`OutdoorAmbient`, intensity on `Brightness`/`ExposureCompensation`, time on `ClockTime`; `GlobalShadows` toggles shadows; `PrioritizeLightingQuality` decides whether quality or view distance scales down first on weak devices.
 - `Atmosphere` adds haze and depth (density, offset, color); post effects (bloom, color correction, depth of field) in small amounts. Judge colors in Studio, not in renders.
@@ -68,3 +69,4 @@ For each frequent action write what the player sees, hears and feels: action, re
 | Test on a low-end phone profile: FPS stable during the busiest effect moment | yes |
 | Mute and volume settings exist; music loops without gaps | yes |
 | Mood readable in the first screenshot (matches the style lane) | yes |
+| The user played the busiest feel moment and the mix for 5+ minutes; notes in `docs/playtests.md` (`roblox-game-pipeline` section 7a) | yes |
