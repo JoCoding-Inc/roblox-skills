@@ -93,6 +93,7 @@ Several rows often fit the same asset. When the choice decides many assets (all 
 | Need | First choice | Why / limits |
 |---|---|---|
 | Quick restyle of existing parts | Studio MCP `generate_material` (or Assistant "restyle") | Returns a `MaterialVariant`; apply to parts |
+| Blocky or chunky prop, machine, furniture, building, map structure | Parts built by script (`execute_luau` in Edit mode, or Rojo model files) | No credits, instant, collisions are simple, the user can edit it in Studio. Group as a Model with a PrimaryPart, keep part counts low on repeated props and clone one model. Weak for organic shapes |
 | Static prop, furniture, vehicle, simple weapon | Studio MCP `generate_mesh` (Roblox Cube) | Textured mesh from text or one reference image. Default 10k tris; see `roblox-pitfalls` section 5 |
 | Parametric or scalable object (shelves, fences, ferris wheel, stack of books) | Studio MCP `generate_procedural_model` | Built from primitive parts; adjustable parameters; low runtime cost. Limit 50 per rolling 24 h. Poll with `wait_job_finished` |
 | Static props, pets and pickups in one locked style | gwanggo MCP `generate_game_asset` kind `image`, then kind `3d` from that image (textured GLB, Roblox limits; `roblox-game-pipeline` section 10) | Static, no rig; import with the 3D Importer; costs gwanggo credits, `dry_run` and ask first |

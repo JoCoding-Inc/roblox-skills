@@ -130,6 +130,20 @@ Record source, author and license per imported model in `assets/LICENSES.md`. Us
 
 ## 8. Live Blender through MCP (shared between sessions)
 
+Headless script or live window?
+
+| | Headless (`blender -b --python script.py -- args`) | Live window + MCP |
+|---|---|---|
+| How it runs | New process per run; exits when the script ends | Commands go to the user's open Blender; the scene stays between calls |
+| Seeing the result | Render a PNG and read it | `look` captures the viewport at once |
+| Parallel work | Each run is separate, so several subagents can work at once | Every session shares one scene; own collection only, or a second Blender on another port |
+| Reproducible | The script is the asset: rerun gives the same result | Edits pile up in the chat; save them back into a script |
+| Extras | Full `bpy` (model, export, render) | Plus Poly Haven, Sketchfab and Poly Pizza import, `generate_3d`, `look` |
+| Memory | Only while running | The window stays open |
+| User | Nothing to do | Keeps Blender open and presses Connect |
+
+Produce and export assets headless (subagents especially). Use the live window to explore with the user, import library assets or try `generate_3d`, then move the result into a script. The MCP add-on is started from the window's sidebar; running it under `blender -b` is untested.
+
 MCP for Blender (`uvx mcp-for-blender`, addon "MCP for Blender") drives the user's open Blender. Every Claude session with the server in its config talks to the same Blender on `localhost:9876`. The addon accepts several clients, but runs their commands one at a time in one shared scene.
 
 - Start with `get_addon_status`. "Could not connect" means Blender is closed or the addon is off: ask the user to enable it (Preferences > Add-ons > MCP for Blender, Save Preferences) and press **Connect to MCP server** in the viewport sidebar (`N` > MCP for Blender tab).

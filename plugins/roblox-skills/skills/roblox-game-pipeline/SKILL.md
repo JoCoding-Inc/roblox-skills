@@ -18,7 +18,11 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 
 1. **Ask in small steps.** One topic per message, at most 4 questions in a round, each with a recommended default marked (D). Open question first ("tell me about the moment a player loves your game"), menus only when the user is stuck.
 2. **Offer the skip.** The first message says: "Say 'just decide' and I will pick defaults and write them down." Then record every default in `docs/brief.md` as assumed, so it can be corrected.
-3. **Show, do not describe**, whenever the choice is visual (style board, section 3) or about layout or motion. Show the plugin's own examples first; when none matches what the user wants, or the choice has no example, generate one example per option with gwanggo and let the user pick (section 10a). Without gwanggo, use the fallback listed there.
+3. **Show, tell, then offer**, whenever the choice is visual (look, UI style, characters, logo, loading screen, lighting) or about layout or motion:
+   1. Show only the bundled examples that fit the idea's genre, audience and tone (at most 3-4). Skip cards that clash with the pitch, such as horror for a kids' gym tycoon, unless the user asks for them.
+   2. Give 2-4 options in words, written for this game ("chunky cartoon gym: lime dumbbells, sunburst sky, thick black outlines").
+   3. Ask: "Do you want example images of your own game in these options? I can make them with gwanggo, about N credits." Bundled images are generic, so recommend this for the look and the UI style. With gwanggo connected, make them on a yes (section 10a). Without it, offer the setup once (`roblox-project-intake` step 1c), else use the fallback in section 10a.
+   4. Record the pick.
 4. **Write decisions down** in `docs/brief.md` (what and why) and `docs/ledger.md` (rulings during work, format `Ruling: <what> - <why> - <cost if wrong>`). A decision not written will be lost when the session is compacted.
 5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention.
 6. **Look up, do not recall.** At the start call `list_skills` on the Studio MCP and load the matching `rbx-*` skill; read the live API page (`http_get`, see `roblox-dev-workflow` section 0) before using anything new, beta or renamed.
@@ -64,7 +68,7 @@ Then the platform checks: run the checks in `roblox-design-and-launch` section 1
 
 Ask for taste with pictures, not adjectives.
 
-0. **Show the lane cards first.** `assets/lanes/` holds seven original concept images, one per lane (see `assets/lanes/README.md`). Build a labeled sheet with `python3 -I <skill dir>/scripts/style_board.py out.png` (add `--only a b c` to show a subset that fits the genre), send it to the user, and propose 3-4 lanes with a one-line reason each. The user can also pick two and ask for a mix.
+0. **Show the lane cards that fit, and tell.** `assets/lanes/` holds seven original concept images, one per lane (see `assets/lanes/README.md`, column "Fits"). Pick the 3-4 lanes that fit the genre, audience and tone, build a sheet of only those with `python3 -I <skill dir>/scripts/style_board.py out.png --only a b c`, and send it. Mention in one line that other lanes exist. Next to the sheet, describe each lane in one line set in this game ("cozy pastel gym: mint mats, peach walls, soft morning light"). The user can also pick two and ask for a mix.
 1. The **style lanes**:
 
    | Lane | Look |
@@ -78,7 +82,7 @@ Ask for taste with pictures, not adjectives.
    | Neon or sci-fi | dark base, glow accents |
 
 2. After the user leans toward a lane, add real references from live games of the same genre for that lane (not for all seven): run `roblox-launch-benchmarks` `scripts/collect.py` then `scripts/art_fetch.py` (thumbnails land in `thumbs/`), or search the genre on the charts. Make one labeled contact sheet (Pillow) with the lane names.
-3. Show it to the user: send the PNG (`SendUserFile`) or publish a private Artifact page. Ask: "Which lane is closest? Which one is the opposite of what you want?" If no lane fits, the user wants a mix, or describes a look the cards do not show, generate 3-4 example images of that look with gwanggo (section 10a) and ask again. Examples of finished screens: `assets/examples/` (loading screen) and `roblox-ui-genre-studs/references/` (stud-style HUD, shop, quests, rewards).
+3. Show it to the user: send the PNG (`SendUserFile`) or publish a private Artifact page. Ask: "Which lane is closest? Which one is the opposite of what you want?" Then offer: "Want to see your game itself in the 2-3 closest looks? I can make one image each with gwanggo, about N credits." Recommend it, and always when no lane fits, the user wants a mix, or describes a look the cards do not show. Each image shows the game's own scene (its setting and core action, for example a member lifting in a small gym), only the look changes (section 10a). Examples of finished screens: `assets/examples/` (loading screen) and `roblox-ui-genre-studs/references/` (stud-style HUD, shop, quests, rewards).
 4. Record in the brief: chosen lane, 3 palette colors, line weight, the font pair (picked from a specimen screenshot, `roblox-ui-typography` section 2), 2-3 reference file paths in `assets/refs/` (private notes, never shipped or uploaded), and the "avoid" lane.
 5. Rules: live-game references are other creators' work: they steer direction and are never copied, traced or uploaded. The lane cards and the example images in this plugin are ours or the owner's own. Logo and icon follow `roblox-store-art-pack` section 6.
 
@@ -149,6 +153,7 @@ List the asset classes (for example machines and furniture, building kit, charac
 
 | Tool | Cost | Good at | Not for |
 |---|---|---|---|
+| Parts built by script (agent writes `execute_luau` or Rojo model files) | No credits; instant; edit in Studio | Blocky and chunky props, machines, furniture, buildings, map structure; classic and chunky-cartoon lanes | Organic or detailed shapes; many parts per repeated prop (keep counts low, reuse one model) |
 | Roblox Cube (Studio MCP `generate_mesh`) | No credits; rate limited (1-2 jobs at a time) | Static props, furniture, machines, vehicles; a reference image keeps the look | Rigs; exact modular sizes |
 | gwanggo `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
 | `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) | Organic shapes |
@@ -280,7 +285,7 @@ AI text in images can be misspelled: check every letter, or leave titles off and
 
 ### 10a. Example images for any design choice
 
-Use this whenever the user must choose how something looks or moves and the plugin's examples (lane cards, `assets/examples/`, `roblox-ui-genre-studs/references/`) do not show what they want, or no example exists.
+Use this for every choice of how something looks or moves, after the bundled examples that fit (lane cards, `assets/ui-styles/`, `assets/examples/`, `roblox-ui-genre-studs/references/`) and the word options (rule 3). The bundled images are generic; examples of the user's own game decide faster. Ask before making them, and recommend it.
 
 | Choice | Example to generate |
 |---|---|
@@ -294,7 +299,7 @@ Use this whenever the user must choose how something looks or moves and the plug
 | Camera, cinematic style, motion (only if the user wants motion) | A 4-5 s clip per option; otherwise storyboard stills |
 
 How:
-1. One image per option, same scene, same camera and framing; only the choice changes, so the comparison is fair. Label each option A, B, C.
+1. One image per option, same scene, same camera and framing; only the choice changes, so the comparison is fair. The scene comes from this game (its setting, core action, characters from the brief), not a generic one. Label each option A, B, C.
 2. Before the style lock use `generate_image`; after it use `generate_game_asset` kind `image` so examples match the locked style. Explore with a cheap model (1-3 credits per image in `list_models`); use high quality only for the final pick.
 3. Quote the total first (count x cost) and wait for yes. Clips cost much more than stills: offer them only for motion choices.
 4. Show them on one labeled sheet: save the files as `A-<name>.png` and so on in a scratch folder and run `python3 -I <skill dir>/scripts/style_board.py sheet.png --dir <folder>`, then send the sheet.
