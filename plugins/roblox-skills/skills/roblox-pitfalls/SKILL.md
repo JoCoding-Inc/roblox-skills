@@ -43,7 +43,10 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-ai
 
 - Studio's Output can show no server logs at all, not even `warn()`. Read logs through MCP `get_console_output`, or run one-line `execute_luau` probes that return facts (positions, attributes, states) instead of printing.
 - Several Studio windows may be open. Call `list_roblox_studios` first and pass your dev place's `studio_id` on every call (the built-in server requires it). Never act on another project's window.
-- Old tool names from the archived Rust server (`run_code`, `insert_model`, `run_script_in_play_mode`, `get_studio_mode`) do not exist in the built-in server. Use `execute_luau`, `search_asset` + `insert_asset`, `start_stop_play`, `get_studio_state`. For scenario testing the built-in `subagent` tool has a `playtest` type.
+- Old tool names from the archived Rust server (`run_code`, `insert_model`, `run_script_in_play_mode`, `get_studio_mode`) do not exist in the built-in server. Use `execute_luau`, `search_asset` + `insert_asset`, `start_stop_play`, `get_studio_state`. For scenario testing the docs list a `subagent` type `playtest`, but the Studio build of 2026-11-02 exposed only `explore`, `screen_capture` and `unit_test`: `playtest` needs the Playtest Agent beta (File > Beta Features). Without it, drive the playtest with `start_stop_play` and the input tools.
+- **Wrong window.** Every Studio window shares one MCP connection, and calls queue through it. A call without the right `studio_id`, or after the user switched windows, lands in another place (community reports, C). Re-check `list_roblox_studios` when a result names an unexpected place.
+- `multi_edit` matches the old text exactly, whitespace and tabs included; a failed match means re-read with `script_read` and copy the text, not retype it. `script_grep` and `script_search` can return stale results right after an edit (community reports, C): confirm with `script_read`.
+- Duplicate tools: the official Roblox Studio plugin and a manual `Roblox_Studio` entry both connect, so every tool appears twice. Keep one (`roblox-studio-ai-tools` section 1).
 - Lune unit tests with mocks miss engine ordering bugs. Example: `CharacterAdded` can fire **before** the character is parented to `workspace`, so code that needs `char.Parent` silently skips. Back pure-logic tests with in-engine **bot scenarios**:
   - server-side bots run a scripted case (walk into the guard's view, freeze, carry an object together);
   - the scenario returns PASS or FAIL lines that the agent reads through MCP.
@@ -55,7 +58,7 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-ai
 - A `require` from `execute_luau` gets a fresh copy of a ModuleScript, so module state (sessions, caches) is empty there. Drive the running game through its own remotes or debug actions instead of calling module functions.
 - `user_mouse_input` moves do not fire `MouseEnter`, so hover tooltips never open. Toggle the tooltip's `Visible` in a probe to check its placement.
 - Lune mock tests that run the whole client are slow, about 3-4 s of real time per simulated second; a long `Sched.advance(60)` looks hung, and parallel runs make it worse. Print a timestamp per section before calling it a hang. macOS has no `timeout` command.
-- **Close what you opened.** Each Studio window holds about 1 GB. When a task ends, close the windows and play sessions the agent opened, by PID, never by pattern, and never another project's window.
+- **Close what you opened.** Each Studio window holds about 0.3-1 GB (measured 2026-11-03), and five or more open windows have slowed or crashed the machine. When a task ends, stop play, save (Rojo or Script Sync files; Ctrl+S for Studio-only edits, which no MCP tool can do), then close the windows the agent opened by PID, never by pattern, and never another project's window. Full rule: `roblox-game-pipeline` section 0, rule 8.
 
 ## 4. Engine limits that bite
 

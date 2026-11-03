@@ -25,6 +25,8 @@ Roblox has no official cutscene guide in the creator docs we checked (2026-11-03
 | Style: letterbox bars + slow pans, handheld shake, or a fast-cut montage | Slow pan + bars |
 | Voice, music or text captions | Music + short text lines |
 
+If the developer cannot picture a style, show it: storyboard stills per style, or a 4-5 s clip per style when they want to see the motion (`roblox-game-pipeline` section 10a; clips cost more, quote first).
+
 If the genre is a simulator or tycoon and the developer is unsure, recommend a 5-8 s "unlock moment" instead of an intro: players there come to play, not watch (see `roblox-design-and-launch` section 1a on short sessions).
 
 ## 2. Budgets (judgment)

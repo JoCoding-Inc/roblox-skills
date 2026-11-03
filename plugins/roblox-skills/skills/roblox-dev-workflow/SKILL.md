@@ -10,16 +10,30 @@ sources:
   - https://create.roblox.com/docs/production/game-design/core-loops
   - https://create.roblox.com/docs/art/modeling/specifications
   - https://create.roblox.com/docs/cloud/guides/usage-place-publishing
+  - https://create.roblox.com/docs/llms.txt ("For Code Agents"), /docs/reference/engine/deprecated.md
+  - https://create.roblox.com/docs/projects/collaboration (age check for Team Create)
+  - https://create.roblox.com/docs/production/analytics/event-types (AnalyticsService limits)
+  - https://arxiv.org/abs/2610.02563 (OpenGameEval, Roblox, 2026-10-01)
+  - https://github.com/Roblox/jest-roblox (CHANGELOG 3.20.1), rojo-rbx/rojo and UpliftGames/wally releases (gh api, 2026-11-03)
   - original (field notes)
 ---
 
 # Roblox development workflow (idea to live ops)
 
-Run `roblox-game-pipeline` for the staged flow (questions, working mode, plan). Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-data-saves`, `roblox-bots-npcs`, `roblox-feel-audio-vfx`, `roblox-cinematics`, `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`.
+Run `roblox-game-pipeline` for the staged flow (questions, working mode, plan). Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-market-research` (trends, keywords, competitors), `roblox-data-saves`, `roblox-combat-tools`, `roblox-match-flow` (rounds, teams, teleports), `roblox-bots-npcs`, `roblox-feel-audio-vfx`, `roblox-cinematics`, `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`.
 
 ## 0. Look up before you use (every session)
 
 The model's own API knowledge is older than Studio. At session start call the Studio MCP `list_skills` (Roblox ships `rbx-*` skills for docs search, device and network simulation, profiling, unit tests, debugging, analytics, Configs) and load the matching one before the task. Before writing code with an API that is new, beta, renamed, or listed in `roblox-engine-2026` section 6, read its page with `http_get` (`https://create.roblox.com/docs/reference/engine/classes/<Class>.md`, `query` for the member). If the page does not have it, probe in Studio with `pcall` before relying on it, and say it is unverified. These skills hold workflow, judgment, policy, market data and pitfalls; they do not replace the reference.
+
+Doc map (official, no login; "never guess a URL", a wrong path returns an HTML 404):
+
+| Need | URL |
+|---|---|
+| Start page for agents, every doc path | `https://create.roblox.com/docs/llms.txt` (section "For Code Agents") |
+| Find the page for a question | `https://create.roblox.com/docs/api/search?q=<percent-encoded question>` (JSON; each `url` is fetchable Markdown) |
+| Engine API index / Open Cloud index | `/docs/reference/engine/llms.txt`, `/docs/cloud/llms.txt` |
+| Was this API removed or replaced? | `/docs/reference/engine/deprecated.md` (600 entries; never suggest a listed member) |
 
 ## 1. The phases
 
@@ -53,9 +67,13 @@ Two valid setups. Pick one and record it in the brief:
 
 | Setup | Use when | Notes |
 |---|---|---|
-| **Rojo project** (code in git) | Anything beyond a throwaway prototype | `rokit` installs Rojo, Lune, selene, StyLua; Wally for packages; `rojo build -o game.rbxl`; `rojo serve` for live sync. Studio holds only the place data |
-| **Script Sync + Studio MCP** (official Roblox path, beta) | Existing places, Team Create, a Studio-first project that still wants git | Script Sync keeps scripts as `.luau` files in git; Studio MCP handles everything Script Sync cannot (StarterGui, StarterPack, parts, properties). Details in `roblox-studio-ai-tools` section 6 |
+| **Rojo project** (code in git) | Anything beyond a throwaway prototype | `rokit` installs Rojo, Lune, selene, StyLua; Wally for packages; `rojo build -o game.rbxl`; `rojo serve` for live sync (never bind it to the network). Pin Rojo 7.7.1 (2026-10-02) and Wally 0.3.2 (0.4.0 is alpha and changes the lockfile). Converting an existing place: `rojo syncback` (one-shot place to files, Rojo 7.7.0+), not live two-way sync. Studio holds only the place data |
+| **Script Sync + Studio MCP** (official Roblox path, full release 2026-06-17) | Existing places, Team Create, a Studio-first project that still wants git | Script Sync keeps scripts as `.luau` files in git; Studio MCP handles everything Script Sync cannot (StarterGui, StarterPack, parts, properties). Details in `roblox-studio-ai-tools` section 6 |
 | **Studio-only** (Studio MCP edits) | A throwaway prototype | `multi_edit` and `script_read` edit scripts in the open place. Export the scripts into git regularly or turn on Script Sync |
+
+Do not scaffold these (archived or unsupported; model memory still suggests them): Knit (archived, last push 2024-07-31; use plain ModuleScripts), Roact (archived 2023-12; use React Luau or built-in UI), Aftman (archived 2025-07; use Rokit), TestEZ (archived 2024-03; use Jest Roblox), `run-in-roblox` (no push since 2024-03), ProfileService and DataStore2 (use ProfileStore, `roblox-data-saves`).
+
+Team Create with other people: the owner (user, or group owner) and each collaborator must complete an age check (ID or facial estimation); collaboration is limited to compatible age groups unless trusted friends or parental permission apply. Solo Team Create needs no check (docs, projects/collaboration).
 
 Suggested Rojo layout:
 
@@ -75,6 +93,8 @@ assets/ (Blender sources, exports, LICENSES.md)    tests/    docs/brief.md
 | Quick restyle of existing parts | Studio MCP `generate_material` (or Assistant "restyle") | Returns a `MaterialVariant`; apply to parts |
 | Static prop, furniture, vehicle, simple weapon | Studio MCP `generate_mesh` (Roblox Cube) | Textured mesh from text or one reference image. Default 10k tris; see `roblox-pitfalls` section 5 |
 | Parametric or scalable object (shelves, fences, ferris wheel, stack of books) | Studio MCP `generate_procedural_model` | Built from primitive parts; adjustable parameters; low runtime cost. Limit 50 per rolling 24 h. Poll with `wait_job_finished` |
+| Static props, pets and pickups in one locked style | gwanggo MCP `generate_game_asset` kind `image`, then kind `3d` from that image (textured GLB, Roblox limits; `roblox-game-pipeline` section 10) | Static, no rig; import with the 3D Importer; costs gwanggo credits, `dry_run` and ask first |
+| Inventory, shop and currency icons; seamless textures | gwanggo MCP `generate_game_asset` kind `icon` or `texture` in the project style | Upload as image; textures go into a `MaterialVariant` |
 | Mesh that needs separate moving pieces | `generate_mesh` with segmentation (max 8 named parts), or Blender | Name parts by function (door, lid, lever) |
 | Anything animated or rigged (creatures, monsters, custom characters) | Blender (`roblox-blender-export`) | Cube output is a static mesh with no rig |
 | Exact kit pieces, palette textures, voxel animals, icons | Blender | Scripted, rerunnable, one shared palette |
@@ -96,7 +116,7 @@ Rules for all generated assets:
 
 Repeat per feature, small steps:
 
-1. Write the change (Rojo file, or `multi_edit` in Studio).
+1. Write the change (Rojo file, or `multi_edit` in Studio). Before any Studio edit, `inspect_instance` / `script_read` every object the change touches: in Roblox's OpenGameEval benchmark (V, 2026-10) runs that inspected every touched object first passed 13.4 points more often on scene tasks and 9.8 on script tasks, and the best model still solved only about 52% of tasks on one try, so one green run is not proof.
 2. Static checks: `selene`, `stylua --check`, `luau-lsp analyze`, Lune tests for pure logic.
 3. In Studio through MCP: `get_studio_state`, then `execute_luau` probes in Edit mode; `start_stop_play`; read `get_console_output`.
 4. Run a bot scenario for the behaviour (the `playtest` subagent, or your own scripted scenario returning PASS/FAIL lines). See `roblox-pitfalls` section 3.
@@ -108,7 +128,8 @@ When two agents or windows are involved, always pass the right `studio_id` and l
 
 ## 6. Test and publish (phases 6-7)
 
-- Test layers: pure logic in Lune, behaviour in Studio bot scenarios, devices and network in Studio simulators (both beta; Studio's default playtest has zero latency), then a **private test place** published through Open Cloud with 2-3 things for the tester to check. Teleports, real DataStores and third-party asset loading only prove out there.
+- Test layers: pure logic in Lune; engine-level unit tests with Jest Roblox 3.20.1 (Wally `roblox/jest`, pin exact versions) run in CI through Open Cloud Luau Execution with `Roblox/rocale-cli` v0.1.3 (official) or `jest-roblox-cli` v0.4.11 (community); behaviour in Studio bot scenarios; devices and network in the Device Simulator and Network Simulator (status conflicting: a 2026-10-16 DevForum update reported full release, the docs page still says beta; look in the Test tab first, else enable File > Beta Features > New Device Simulator and restart. Studio's default playtest has zero latency); then a **private test place** published through Open Cloud with 2-3 things for the tester to check. Teleports, real DataStores and third-party asset loading only prove out there.
+- Feel: speeds, combat, difficulty, scares, audio and phone controls are judged by a person playing, not by screenshots; plan user play sessions with `roblox-game-pipeline` section 7a.
 - Performance: MicroProfiler and the Developer Console memory tab on a throttled device profile, then on a real low-end Android phone for 10-15 minutes (the emulator is inaccurate for memory); Assistant skills `rbx-perf-profiling` and `rbx-scene-analysis` help interpret traces and find leaks. Keep Studio-only caches out of the live path.
 - Publish: Open Cloud place publishing (`.rbxl` binary), print the published version number, keep the previous version number for rollback. See `roblox-pitfalls` section 1 for the 409 busy error.
 - First publish screens (from a secondhand article, verify in Studio): Data Sharing on the first screen may be on by default and use the game's data to train Roblox's generative models, so decide on purpose; leave "Continue" alone unless you mean to start a public release; and turn on Studio Access to API Services only on a test place, because Studio then uses the same data as real players.
@@ -117,7 +138,8 @@ When two agents or windows are involved, always pass the right `studio_id` and l
 ## 7. Live ops (phase 8)
 
 - Read analytics weekly: retention (D1/D7), session length, funnel events, crashes, performance. Add custom events and funnels in the prototype so the first launch has data.
-- Use experiments and configs (Open Cloud / Creator Hub) for feature flags and A/B tests rather than shipping blind balance changes.
+- Events from the server with `AnalyticsService:LogEconomyEvent`, `LogFunnelStepEvent`, `LogOnboardingFunnelStepEvent`, `LogProgressionEvent`, `LogCustomEvent`; the `Fire*` methods are deprecated. Log after the action succeeded. Limits (docs): 120 + 20 x CCU requests per minute, 3 custom fields, 5 currency types, 10 funnels of steps 1-100; past 100 SKUs or 20 transaction types values group as "Other". Studio skill `rbx-instrument-analytics` helps plan events.
+- Use experiments and configs (Open Cloud / Creator Hub) for feature flags and A/B tests rather than shipping blind balance changes. Read values on the server with `ConfigService:GetConfigForPlayerAsync(player)` (applies the player's experiments) or `GetConfigAsync()` (no player, experiments not applied); both return a `ConfigSnapshot`. Studio skill `rbx-configs-experimentation`.
 - Content updates and events on a fixed cadence; announce through thumbnails and experience events.
 - Review `roblox-design-and-launch` section 5 before changing prices or adding offers.
 
@@ -127,3 +149,4 @@ When two agents or windows are involved, always pass the right `studio_id` and l
 - Close the Studio windows, play sessions and Blender instances the agent opened, by PID.
 - Never print or commit API keys. Ask before any step that spends Robux, credits or sends content to a third party service.
 - Treat all third-party assets, MCP servers and community tools as untrusted code; review before running.
+- Before installing any tool, plugin or MCP server, check the owner and release history: GitHub search for Roblox tools returns spam clones (near-identical "Best ... 2026" repos, similar star counts, pushed the same minute) that copy a real project. Install from the original owner's releases only.

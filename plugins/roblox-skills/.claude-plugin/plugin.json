@@ -1,9 +1,21 @@
 {
   "name": "roblox-skills",
-  "description": "Roblox game dev with an AI agent from intake to live ops: project intake, workflow and tool routing, Studio MCP/Assistant, design and launch policy, Blender export, store art, stud UI and field-tested pitfalls.",
-  "version": "1.2.0",
-  "author": { "name": "JoCoding" },
+  "description": "Roblox game dev with an AI agent from idea to live ops: tool check and project intake, live market and keyword research, staged pipeline, engine rules, combat, rounds and teleports, saves, NPCs, feel, Studio MCP/Assistant, design and launch policy, release automation, Blender export, store art, stud UI and field-tested pitfalls.",
+  "version": "1.3.0",
+  "author": {
+    "name": "JoCoding"
+  },
   "repository": "https://github.com/JoCoding-Inc/roblox-skills",
   "license": "MIT",
-  "keywords": ["roblox", "luau", "blender", "ui", "game-dev", "studio-mcp", "workflow"]
+  "keywords": [
+    "roblox",
+    "luau",
+    "blender",
+    "ui",
+    "game-dev",
+    "studio-mcp",
+    "workflow",
+    "market-research",
+    "trends"
+  ]
 }

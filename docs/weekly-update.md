@@ -16,5 +16,7 @@ Goal: keep `plugins/roblox-skills/skills/` right about what the live docs and St
 
 ## Monthly
 
-- Re-run `scripts/benchmark` (see its README) and compare with `roblox-launch-benchmarks`; update the table if a value moved by more than a quarter. Also re-check the platform play-pattern numbers in `roblox-design-and-launch` section 1a.
+- Re-run the `roblox-launch-benchmarks` scripts (see `scripts/README.md` there) and compare with `roblox-launch-benchmarks`; update the table if a value moved by more than a quarter. Also re-check the platform play-pattern numbers in `roblox-design-and-launch` section 1a.
 - Check the Studio MCP tool list (`list_skills`, tool names) against `roblox-studio-ai-tools`.
+- Refresh the snapshot in `roblox-market-research` section 7 (`market.py charts`, `history` for the top 5) and move its expiry date; re-check that each site in the section 3 catalog still loads and still allows automated reads.
+- Re-read the setup pages in `roblox-project-intake` step 1c (Studio MCP, official Roblox Studio plugin README, rokit README) and fix changed menu paths or commands.

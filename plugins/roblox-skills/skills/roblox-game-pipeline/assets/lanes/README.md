@@ -12,7 +12,7 @@ Seven original concept images the agent shows the user in stage 3 of `roblox-gam
 | Dark horror | `dark-horror.jpg` | Low light, fog, desaturated, one warm light | gray-green, black, one warm yellow | Horror, survival, escape | Minimal thin bars |
 | Neon sci-fi | `neon-scifi.jpg` | Dark base, glowing cyan and magenta edges, bloom | navy, cyan, magenta | Racing, arena, sci-fi shooters | Holographic thin frames, gauges |
 
-How to use: `python3 -I scripts/style_board.py out.png` builds one labeled contact sheet of all cards (or `--only chunky-cartoon cozy-pastel`); send it to the user, ask "closest / opposite", and record the pick in the brief. Mix lanes if the user wants ("cozy but with thick outlines"). Add live-chart references of the same genre on top (stage 3, step 2).
+How to use: `python3 -I <skill dir>/scripts/style_board.py out.png` builds one labeled contact sheet of all cards (or `--only chunky-cartoon cozy-pastel`); send it to the user, ask "closest / opposite", and record the pick in the brief. Mix lanes if the user wants ("cozy but with thick outlines"). Add live-chart references of the same genre on top (stage 3, step 2).
 
 More real examples live in `../examples/` (a loading screen) and in `roblox-ui-genre-studs/references/` (a stud-style HUD and shop). Those are the owner's own screens, included with permission.
 
