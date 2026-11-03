@@ -204,7 +204,9 @@ gwanggo Game Studio (gwanggo.ai/game, agent setup at gwanggo.ai/game/connect) ke
 
 Rules:
 - Offer generation at the moment it helps, in one line with what it adds and the cost; never a batch up front. Every paid call runs with `dry_run: true` first (or `list_models` costs), and the user says yes to the exact credits.
-- Write the gwanggo project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock.
+- Write the gwanggo project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
+- Order matters (checked 2026-11-03): `generate_concepts` fails until `plan_game` has saved a brief; `generate_gameplay_video` fails until `select_concept`; assets made before a palette and a selected concept come back with "not color-locked" and "not style-locked" warnings. So: brief with `art_direction.palette` (or `update_game_project` style palette) -> concepts -> select -> assets and video.
+- Cost scale from `list_models` and `dry_run` on 2026-11-03 (quote the live number, not these): image 1-8 credits, icon 3, 3D 4-47 (tripo-h31 text 8, image 12), video 1-25 credits per second (a 5 s 720p clip is often 10-45).
 - Consistent 3D: `generate_game_asset` kind `image` first, poll until done, then kind `3d` with `image_url` set to that result (image-to-3D). Prefer the Roblox-friendly models (tripo-h31, rodin-25-fast, meshy-v71, trellis-2-image); Hunyuan 3D Pro is always 40K+ faces, over the 20,000-triangle mesh limit. 3D results are static meshes with no rig.
 - Import: `get_project_assets` gives the GLB URL; download it, import with Studio's 3D Importer, set collision and anchoring as in `roblox-blender-export` section 5, and log it in `assets/LICENSES.md` (source gwanggo, model, date).
 
@@ -221,4 +223,4 @@ Rules:
 
 AI text in images can be misspelled: check every letter, or leave titles off and typeset them. Video thumbnails and ads must be real gameplay.
 
-If gwanggo is not connected when a moment comes, say what it would add, offer the setup in `roblox-project-intake` step 1c once, and use the fallback if the user declines. If it is connected but `create_game_project` is missing, the session holds an old tool list: reconnect it in `/mcp` or restart Claude Code.
+If gwanggo is not connected when a moment comes, say what it would add, offer the setup in `roblox-project-intake` step 1c once, and use the fallback if the user declines. If it is connected but `create_game_project` is missing, the session holds an old tool list: reconnect it in `/mcp` or restart Claude Code. If `list_models` rejects `type: "3d"`, its schema is stale: call it with no filter, which also returns the 3D models.
