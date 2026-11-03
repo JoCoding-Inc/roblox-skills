@@ -1,7 +1,7 @@
 ---
 name: roblox-dev-workflow
 description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud)."
-when_to_use: "Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, or how to organise a multi-session build. Run roblox-project-intake first if docs/brief.md does not exist."
+when_to_use: "Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, how to organise a multi-session build, or how to brief and run parallel agents (worktree lanes, an agent that stalls). Run roblox-project-intake first if docs/brief.md does not exist."
 last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/studio/mcp
@@ -15,6 +15,7 @@ sources:
   - https://create.roblox.com/docs/production/analytics/event-types (AnalyticsService limits)
   - https://arxiv.org/abs/2610.02563 (OpenGameEval, Roblox, 2026-10-01)
   - https://github.com/Roblox/jest-roblox (CHANGELOG 3.20.1), rojo-rbx/rojo and UpliftGames/wally releases (gh api, 2026-11-03)
+  - https://code.claude.com/docs/en/sub-agents and /docs/en/worktrees (the isolation worktree option, worktree.baseRef setting, background permission prompts; read via Context7, 2026-11-03)
   - original (field notes)
 ---
 
@@ -119,15 +120,21 @@ Rules for all generated assets:
 
 Repeat per feature, small steps:
 
-1. Write the change (Rojo file, or `multi_edit` in Studio). Before any Studio edit, `inspect_instance` / `script_read` every object the change touches: in Roblox's OpenGameEval benchmark (V, 2026-10) runs that inspected every touched object first passed 13.4 points more often on scene tasks and 9.8 on script tasks, and the best model still solved only about 52% of tasks on one try, so one green run is not proof.
-2. Static checks: `selene`, `stylua --check`, `luau-lsp analyze`, Lune tests for pure logic.
-3. In Studio through MCP: `get_studio_state`, then `execute_luau` probes in Edit mode; `start_stop_play`; read `get_console_output`.
-4. Run a bot scenario for the behaviour (the `playtest` subagent, or your own scripted scenario returning PASS/FAIL lines). See `roblox-pitfalls` section 3.
+1. Write the change (Rojo file, or `multi_edit` in Studio). Before any Studio edit, `inspect_instance` / `script_read` every object the change touches: in Roblox's OpenGameEval benchmark (V, 2026-10) runs that inspected every touched object first passed 13.4 points more often on scene tasks and 9.8 on script tasks, and the best model still solved only about 52% of tasks on one try, so one green run is not proof. After a scripted bulk edit (sed, a Python replace, a generator), check `git diff --stat`.
+2. Static checks: `selene`, `stylua --check`, `luau-lsp analyze`, Lune tests for pure logic. Read the whole output and the exit code; a pipe into `tail` returns tail's exit code, not the check's.
+3. In Studio through MCP: `get_studio_state`, then `execute_luau` probes in Edit mode; `start_stop_play`; read `get_console_output`. Lint does not catch runtime-only errors in UI code (for example a renamed theme key): Play after UI changes and read the console.
+4. Run a bot scenario for the behaviour (the `playtest` subagent, or your own scripted scenario returning PASS/FAIL lines). See `roblox-pitfalls` section 3. For a layout or loop task a passing scenario does not replace walking the player path with real input (`roblox-game-pipeline` section 7).
 4b. For every economy or save feature add a failure path, not only the happy path: try to buy without enough currency, then buy normally, then reset or rejoin, and check the balance, the granted upgrade and persistence against the intended rules. A clean console does not catch a wrong charge or a missing save.
 5. `screen_capture` after bringing the dev window to the front; check layout at phone size with the Device Simulator (Assistant skill `rbx-device-simulator-lua`).
 6. Commit. One feature per commit.
 
-When two agents or windows are involved, always pass the right `studio_id` and list instances with `list_roblox_studios` first.
+When two agents or windows are involved, always pass the right `studio_id` and list instances with `list_roblox_studios` first. Within one project only one agent at a time drives the shared Studio place or Blender scene; the others do file-only work or headless Blender, or work in their own Blender instance (`roblox-game-pipeline` section 5, `roblox-blender-export` section 8).
+
+Parallel work lanes (several agents building at once; whether to delegate at all: `roblox-game-pipeline` section 5):
+
+- Claude Code's Agent tool option `isolation: "worktree"` covers only the session's own repo (branched from the remote default branch unless `worktree.baseRef` is `"head"`); lane agents could not use git in a target repo outside the session directory (field observation). Create the worktrees by hand, `git worktree add -b feat/<lane> ../<repo>-<lane> <base>`, start each agent without `isolation`, and give it the absolute path, the files it may edit and the files it must not touch.
+- One owner lane per shared module (HUD module, asset-id manifest, the ScreenGui `DisplayOrder` table); the other lanes do not edit it. Regenerate generated manifests with their generator after a merge; never hand-merge them.
+- After every merge run lint and tests and grep for symbols the merge dropped.
 
 ## 6. Test and publish (phases 6-7)
 
@@ -150,6 +157,8 @@ When two agents or windows are involved, always pass the right `studio_id` and l
 
 - Dev place only; never open the live place in Studio.
 - Close the Studio windows, play sessions and Blender instances the agent opened, by PID.
+- Every subagent brief says: no commands that need approval (`rm` and other deletes), no watch mode or foreground servers (`rojo serve`, `python3 -I -m http.server`), one command per Bash call and each under 10 min (never edit, delete, rebuild and upload chained in one call), and report `BLOCKED` instead of waiting. A permission prompt waits for the user, so an unattended agent sits on it (field observation).
+- Agents commit after each logical step, not only at the end. Keep the ledger (`docs/ledger.md`, `roblox-game-pipeline` section 0 rule 4), briefs and agent reports in the repo (git-ignored is fine), not in a temp or scratch directory that can be wiped.
 - Never print or commit API keys. Ask before any step that spends Robux, credits or sends content to a third party service.
 - Treat all third-party assets, MCP servers and community tools as untrusted code; review before running.
 - Before installing any tool, plugin or MCP server, check the owner and release history: GitHub search for Roblox tools returns spam clones (near-identical "Best ... 2026" repos, similar star counts, pushed the same minute) that copy a real project. Install from the original owner's releases only.

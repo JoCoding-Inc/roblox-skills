@@ -25,7 +25,7 @@ sources:
   - https://about.roblox.com/newsroom/2026/07/moments-new-homepage-unlocks-gaming-for-all
   - https://devforum.roblox.com/t/ads-manager-rdc-recap-earnings-roas-reporting-incrementality/4909790
   - https://rolearn.dev/trend-reports/roleplay-vs-simulator-genre-comparison-2026/ (vendor, directional)
-  - https://create.roblox.com/docs/production/game-design (core-loops, prototyping, onboarding, ui-ux-design, monetization-foundations)
+  - https://create.roblox.com/docs/production/game-design (core-loops, prototyping, onboarding, ui-ux-design, monetization-foundations, balance-virtual-economies)
   - https://create.roblox.com/docs/production/monetization (developer-exchange, 18-plus-devex-rate, subscriptions, immersive-ads, roblox-plus)
   - https://create.roblox.com/docs/creator-rewards
   - https://create.roblox.com/docs/production/promotion/content-maturity
@@ -34,6 +34,7 @@ sources:
   - https://create.roblox.com/docs/production/publishing/thumbnails
   - https://create.roblox.com/docs/generative-AI
   - https://create.roblox.com/docs/production/analytics
+  - original field notes (2026-10 to 2026-11)
 ---
 
 # Design, policy and launch
@@ -46,7 +47,11 @@ Read from the official creator-docs repository (state 2026-10-29). Numbers and p
 - **Prototype** with paper first (systems, UI flows, economy), then a greybox in Studio (feel, camera, controls). Paper gives speed and finds design flaws early, but cannot test feel and can give false positives; a greybox does.
 - **Onboarding (first-time user experience):** teach the essentials, reach fun quickly, leave players wanting more. Measure the player funnel step by step and fix the biggest drop-off with an experiment.
 - **UI/UX:** prioritise information (what is the player doing right now?), keep visual language consistent, follow platform conventions. Design for phone first, then scale up. Test layouts with Experiments, toggle platform or seasonal UI with Configs.
-- **Economy:** every currency needs sources, sinks and a pacing target. Simulate the economy in a spreadsheet or Lune script before shipping prices. Avoid power that only paying players can reach if the game is for younger audiences.
+- **Economy:** every currency needs sources, sinks and a pacing target. Every stat or currency the player sees also needs a written answer to "what raises it" and "what is it for"; with no answer, cut it or give it a use. After removing a feature, grep for the currencies or stats it left with no use. Simulate the economy in a spreadsheet or Lune script before shipping prices (rules below). Avoid power that only paying players can reach if the game is for younger audiences.
+- **Economy sim rules** (field observations):
+  - In a tiered economy (price grows per tier, each tier adds a gain), retune price growth and per-tier gain together in the sim: cutting only the price lets progress run away. Live price tests (section 5) still change one thing at a time.
+  - Run one bot policy per way to play: the intended path plus every shortcut (for example repeating one action, standing idle, camping in one spot), and assert that each shortcut earns less than the intended path. The intended-path bot must buy every item on the path; a sim that skips an item hides gate failures. Add a policy whenever you add a shortcut.
+  - Run the sim to the end state before adding content: a stall near the end shows only there.
 - **Genre craft:** for chunky simulator/tycoon looks use `roblox-ui-genre-studs`; for other genres use the UI rules in `roblox-engine-2026`. Weapons and damage: `roblox-combat-tools`; rounds, lobbies and teams: `roblox-match-flow`. Judge the idea against the live market (trends, keywords, competitors) with `roblox-market-research`.
 - **Quests, daily rewards, season pass:** start from Roblox's official feature packages (missions, season passes, bundles, engagement rewards; docs `resources/feature-packages`) before hand-rolling one. Badges mark milestones; their award counts later show how far players get.
 
@@ -132,7 +137,7 @@ Design rules: never block the core loop behind a purchase; do not give Premium o
 
 ## 5. Pricing and balance changes
 
-- Change one thing at a time and measure with an experiment, not a feeling.
+- Change one thing at a time and measure with an experiment, not a feeling (offline economy sims change price growth and per-tier gain together: section 1, 'Economy sim rules').
 - Regional pricing is on by default for Robux subscriptions; plan prices accordingly.
 - **Managed Pricing** (regional prices and price tests): new games and items are enrolled by default. Price tests need about 60,000 transactions per 30 days, so most new games cannot use them. It cannot fix prices hard-coded in UI (section 2, Plus row).
 - Never raise prices on existing owners of a pass without a clear value add.

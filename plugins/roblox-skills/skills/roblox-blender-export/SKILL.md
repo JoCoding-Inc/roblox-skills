@@ -1,7 +1,7 @@
 ---
 name: roblox-blender-export
-description: "Use when making Roblox meshes in Blender (bats, props, kit pieces, voxel animals, icons) and getting them into Studio: scale, pivot, axis, FBX export call, color-as-texture, triangle budgets, collision, upload."
-when_to_use: "Also when an imported mesh is the wrong size, faces the wrong way, renders white/untextured, is inside-out, too heavy, or collides badly; before scripting a Blender asset pipeline or Open Cloud upload; when driving a live Blender through MCP or sharing it between sessions."
+description: "Use when making Roblox meshes in Blender (weapons, props, kit pieces, voxel animals, icons) and getting them into Studio: scale, pivot, axis, FBX export call, color-as-texture, triangle budgets, collision, upload."
+when_to_use: "Also when an imported mesh is the wrong size, faces the wrong way, renders white/untextured, is inside-out, too heavy, or collides badly; before scripting a Blender asset pipeline or Open Cloud upload; when driving a live Blender through MCP or sharing it between sessions; when tiers or variants in a batch look alike."
 last_reviewed: 2026-11-03
 sources:
   - https://github.com/brain-xiang/grok-studio (skills/blender-assets, reference/roblox_export.py; MIT)
@@ -15,13 +15,14 @@ sources:
   - https://create.roblox.com/docs/art/modeling/gltf-export
   - https://create.roblox.com/docs/art/blender
   - https://github.com/ahujasid/blender-mcp (renamed MCP for Blender)
+  - original field notes (2026-10 to 2026-11)
 ---
 
 # Blender to Roblox
 
 Pair with `roblox-store-art-pack` (map composition) and `roblox-release-automation` (Open Cloud). Run Blender headless: `blender -b --python script.py -- args`. Keep every asset as a rerunnable script, not hand edits.
 
-Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are often faster and better looking from Cube (Studio MCP `generate_mesh`, see `roblox-pitfalls` section 5). Anything that must animate (monsters, quadrupeds, spiders) still comes from Blender: Cube returns one static mesh with no rig. A stylized humanoid body can start in Cube and be cut into R15 parts (section 12). Go cheap first: Cube, then Blender edits, and a paid AI 3D service only after asking. Before building any pipeline, put the user's reference image next to your first result and judge silhouette and proportions before detail: a hand-built body of ellipsoids read as stacked sausages beside the reference and was rejected (Gym Tycoon, 2026-11-03).
+Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are often faster and better looking from Cube (Studio MCP `generate_mesh`, see `roblox-pitfalls` section 5). Anything that must animate (monsters, quadrupeds, spiders) still comes from Blender: Cube returns one static mesh with no rig. A stylized humanoid body can start in Cube and be cut into R15 parts (section 12). Go cheap first: Cube, then Blender edits, and a paid AI 3D service only after asking. Before building any pipeline, put the user's reference image next to your first result and judge silhouette and proportions before detail.
 
 ## Official rules at a glance (creator-docs, 2026-10-29)
 
@@ -69,6 +70,7 @@ Measuring it without eyeballing: read the vertices from the imported MeshPart (`
   | Hero | up to about 10,000 |
 
 - Kit trick: model every kit piece in ONE script with one shared palette material, export ONE file, and upload ONCE (assetType Model). Each object becomes its own MeshPart named after the object.
+- Sets with tiers or variants: the one driver script also validates a per-tier size contract (size range per axis, tris, no floating parts; a violation fails the run) and writes per-asset meta that game code reads, for example a `meta.json` with the grip or contact height (Blender Z is Roblox Y, section 0).
 
 ## 2. Export call
 
@@ -92,8 +94,8 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   3. **Vertex colors:** a Blender round trip keeps them with FBX `colors_type='SRGB'`; the section 2 call (`'NONE'`) drops them. For GLB use `export_vertex_color='ACTIVE', export_all_vertex_colors=False`; the default `'MATERIAL'` writes a white `COLOR_0` and puts the real colors in `COLOR_1`. The Roblox side is untested.
 - Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
-- A bake through an Emission shader writes linear values. Convert sRGB colors with `c ** 2.2` before baking, or skin comes out grey or white in Roblox (fixed that way in Gym Tycoon).
-- Tint variants (rarity, tiers): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap).
+- A bake through an Emission shader writes linear values. Convert sRGB colors with `c ** 2.2` before baking, or colors come out grey or white in Roblox (field observation).
+- Tint variants (rarity, colorways): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap). Distinct tiers need distinct silhouettes, not tints (section 6).
 
 ## 4. Genre look (chunky cartoon)
 
@@ -124,10 +126,11 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 
 ## 6. Renders for previews and icons
 
-- Contact sheet of every asset (EEVEE, key plus rim light, flat background) for review at phone size before uploading.
+- Contact sheet of every asset (EEVEE, key plus rim light, flat background) for review at phone size before uploading. Make one per batch and label each cell with its asset id.
 - Icon decals: Workbench or EEVEE, `film_transparent=True`, RGBA PNG, square, 512 px.
 - Headless `-b` renders on Apple Silicon (tested Blender 5.2.2, M4 Pro). Engine ids on 5.x: `BLENDER_EEVEE`, `BLENDER_WORKBENCH`, `CYCLES` (`BLENDER_EEVEE_NEXT` raises `TypeError`). Measured: 512 px icon 0.85 s on EEVEE, 0.14 s on Workbench; a 1536x512 three-object sheet 0.3 s on EEVEE, 7.5 s on Cycles (CPU).
 - Review checklist: distinct silhouettes per tier, readable at 128 px, palette consistent across the family, nothing default grey.
+- Critic pass on every batch: a reviewer other than the builder reads the labeled sheet and lists near-identical silhouettes by asset id. Reject them and redo one of each pair with a different form, not a recolor (field observation).
 
 ## 7. Licensing
 
@@ -212,15 +215,15 @@ Marketplace publishing needs ID verification or a linked parental account plus R
 
 ## 12. Cube body into Blender and R15 parts
 
-Field notes from Gym Tycoon (2026-11-03): a headless Cube body cut into 14 R15 parts in Blender. Try Avatar Setup (section 11) first; cut by hand when it does not fit.
+Field notes (2026-11): a headless Cube body cut into R15 parts in Blender. Try Avatar Setup (section 11) first; cut by hand when it does not fit.
 
 1. Get the mesh out of Studio:
-   - Geometry: `AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices`, `GetPosition`, `GetFaces`, `GetFaceVertices`, `GetFaceUVs` and `GetUV`. Send it as JSON with `HttpService:PostAsync` to a receiver bound to 127.0.0.1.
+   - Geometry: `AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices`, `GetPosition`, `GetFaces`, `GetFaceVertices`, `GetFaceUVs` and `GetUV`. Send it as JSON with `HttpService:PostAsync` to a receiver bound to 127.0.0.1. Run the receiver in the background and stop it by PID.
    - One POST over 1024 KB fails ("Post data too large. Limit: 1024 KB"; the docs state no limit), so send chunks.
    - Texture: `AssetService:CreateEditableImageAsync` on the colour map, `ReadPixelsBuffer`, hex in 400 KB chunks, decode with Pillow as RGBA with the origin at the top left.
-   - Cube meshes are not welded (7,823 vertices became 5,834 after a merge): run `remove_doubles` before any cut.
+   - Cube meshes are not welded: run `remove_doubles` before any cut.
 2. Cut:
-   - A vertical plane at the armpit separates arms from torso. Bound the arm selection in height too, or it takes the shorts hem and the feet. A slanted shoulder plane left thin flaps on both parts.
+   - A vertical plane at the armpit separates arms from torso. Bound the arm selection in height too, or it also takes the clothing hem and the feet. A slanted shoulder plane left thin flaps on both parts.
    - Horizontal planes at waist, hips, elbows, wrists, knees and ankles, each part overlapping the next by 0.04 units.
    - Keep only the largest connected piece per part.
    - Cap every open boundary with `bmesh.ops.holes_fill` and put the cap faces' UVs on a skin-coloured texel, or the joints show see-through holes as soon as they rotate.

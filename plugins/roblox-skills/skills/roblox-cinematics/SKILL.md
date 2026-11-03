@@ -116,7 +116,7 @@ Keep 3-6 shots per cinematic. Name every mark. Include what the player's charact
 
 ## 6. Testing through Studio MCP
 
-- `execute_luau` returning resets a Scriptable camera to Custom, so screenshots show the default camera. Re-arm the camera inside the same call or play the cinematic from a real LocalScript in a play session (`roblox-pitfalls`).
+- `execute_luau` returning resets a Scriptable camera to Custom, so screenshots show the default camera. Re-arm the camera inside the same call or play the cinematic from a real LocalScript in a play session (`roblox-pitfalls` section 3, 'Screenshots in Play', gives a binding that survives between calls).
 - Record evidence per shot: one screenshot at the middle of each shot, plus one after the cutscene ends (camera and controls restored).
 - Test the three exits: complete, skip, player dies or leaves mid-cutscene.
 

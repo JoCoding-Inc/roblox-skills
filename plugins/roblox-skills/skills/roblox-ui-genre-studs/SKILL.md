@@ -1,14 +1,15 @@
 ---
 name: roblox-ui-genre-studs
 description: "Use only for simulator/tycoon-style games (Steal a Brainrot, Steal An Egg, +1 Strength, Pet Simulator) whose HUD, shop, panels or world labels must match that chunky stud look: black outlines, lips, FredokaOne, quiet HUD zones. Not for horror, realistic or story games."
-when_to_use: "Also when a simulator/tycoon UI looks generic, AI-made, too big, too dark or off-genre; before restyling its HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures. For other genres use the UI rules in `roblox-engine-2026`."
-last_reviewed: 2026-10-26
+when_to_use: "Also when a simulator/tycoon UI looks generic, AI-made, too big, too dark or off-genre; when a panel overlaps the HUD; before calling such a UI done; before restyling its HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures; when world labels clutter the view. For other genres use the UI rules in `roblox-engine-2026`."
+last_reviewed: 2026-11-03
 sources:
   - https://github.com/S4US/Roqer (apps/desktop/agent/skills/roblox-ui-design, MODERN STUDS theme; AGPL-3.0-or-later; facts re-authored, no text copied)
   - https://github.com/hujhfrgrwg/HatchOrSnatch (.claude/skills/roblox-ui-maker LESSONS/STYLE/ROBLOX_FACTS; no license, facts only)
   - https://github.com/blauwtje/roblox-kit (skills/game-ui; MIT)
   - https://github.com/scenario-labs/skills (scenario-roblox-ui screen-budget; MIT)
   - original (reference-frame comparison of Steal An Egg, Steal a Brainrot, +1 Strength, 2026-10-26)
+  - original field notes (2026-10 to 2026-11)
 ---
 
 # Roblox genre UI: stud style
@@ -21,7 +22,7 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 - Show the reference screens in section 9 first. If the user wants a style they do not show (or the game is not a simulator/tycoon), generate the same screen in 2-4 styles and let the user pick before building (`roblox-game-pipeline` section 10a).
 - Pull reference frames of 2-3 current top games in the same genre. YouTube storyboards work when clip downloads return 403: `yt-dlp -f sb0 -o sb.mhtml URL`, then extract the JPEGs from the mhtml with Python `email`.
 - Store thumbnails come from `thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=...` and are marketing art, not HUD.
-- Every UI task ends with our screenshot and a reference frame side by side at the same viewport, desktop and phone.
+- Every UI task ends with the review routine in section 10.
 
 ## 1. Identity
 
@@ -141,6 +142,8 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 - A green "Collect" pad in front of each pedestal, with its amount in stroked text.
 - Floating income: large green "+$1.5M" with a black stroke that rises and fades. It is the main juice.
 - Owner sign over the base: "<DisplayName>'s Base".
+- Set `BillboardGui.MaxDistance` on every world label (`roblox-ui-typography` section 5), high enough that a label is already small when it vanishes (docs: avoids pop-out). Add a declutter pass near the camera: shrink close labels, hide one that would cover a nearer one (field observation).
+- Guide arrows (trail to the next goal): raycast down per arrow (`roblox-combat-tools` section 4) and sit each just above the floor; interpolating between player and target makes the arrows climb toward a tall trigger. Clamp each arrow's width by its camera distance so a near arrow does not fill the screen (field observation).
 
 ## 7. Anti-slop list
 
@@ -179,3 +182,7 @@ Six screenshots in `references/` show the look at work: a simulator HUD with a l
 | `house-ui-quests.jpg` | Quest list: icon, progress bar, reward chip, green claim button |
 | `house-ui-playtime.jpg` | Playtime rewards: 4x3 grid of timed rewards with countdowns |
 | `house-egg-panel-robux.jpg` | World-space egg station label with hatch buttons and a paid hatch option |
+
+## 10. Review routine (after every UI change)
+
+Run the UI review in `roblox-engine-2026` section 2 ("UI review before done"), then put our screenshot beside a reference frame at the same viewport, desktop and phone. World labels (section 6) do not appear in `screen_capture`: check them by properties (`Enabled`, `Adornee`, `Size`, `MaxDistance`, text) and by eye in a play session (`roblox-pitfalls` section 3, 'Screenshots in Play').

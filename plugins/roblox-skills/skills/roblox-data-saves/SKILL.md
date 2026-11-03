@@ -1,7 +1,7 @@
 ---
 name: roblox-data-saves
 description: "Use when planning, writing or reviewing Roblox player saves: what to store, DataStore layout, session locking, ProfileStore, retries, periodic and shutdown saves, schema versions, migrations, trading, leaderboards, badges, test cases, storage limits and deletion rules."
-when_to_use: "Also when a design adds currency, inventory, progression, trading, a leaderboard, badges or settings; when data is lost, rolled back or duplicated; before a release that changes the save shape; when choosing between DataStore, MemoryStore and a module such as ProfileStore."
+when_to_use: "Also when a design adds currency, inventory, progression, trading, a leaderboard, badges or settings; when data is lost, rolled back or duplicated; before a release that changes the save shape, reorders items, zones or tiers that saves refer to, or recomputes a stored value; when choosing between DataStore, MemoryStore and a module such as ProfileStore."
 last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/cloud-services/data-stores/best-practices
@@ -65,10 +65,11 @@ Wally `lm-loleris/profilestore` 1.0.3 (no GitHub releases; last commit 2025-07-3
 
 ## 4. Schema changes and migrations
 
-- Each release that changes the save shape bumps `version` and adds a migration function `migrate(data)` that upgrades older records on load, one step at a time.
-- Missing fields get defaults on load (`reconcile`), never on save.
+- Each release that renames, retypes, reorders or recomputes existing saved data bumps `version` and adds a migration step in `migrate(data)` that upgrades older records on load, one step at a time. Guard each step with the version it fixes (`if data.version < N then ... data.version = N end`). A step that recomputes a derived field (for example a level from total XP) without that guard rewrites every live save on any version bump.
+- Missing fields get defaults on load (`reconcile`), never on save. A purely additive field with a constant default needs no version bump and no step: add it to the template.
+- Table keys inside a saved record are stable ids, never array positions. A table key that is a list index or tier number breaks when entries are reordered or inserted: append only, or key by stable string id and migrate old records once. Content tables use the same ids (`roblox-engine-2026` section 1).
 - Test a migration against a saved sample of the old shape before release; keep the old data in versions (do not create a new key per revision; only the latest version counts toward storage).
-- Never rename a key pattern in the same release as a migration.
+- Never rename a DataStore key pattern in the same release as a migration.
 
 ## 5. Purchases and saves
 
@@ -101,9 +102,9 @@ Keep the save as the source of truth: a leaderboard or badge is a view of saved 
 | Kill the server mid-session (shutdown) | Last save point kept, no corruption |
 | Join twice quickly from two clients or servers | One session owns the data, no duplication |
 | Simulate DataStore failure (wrap calls to error) | Player is told, nothing overwritten |
-| Old-version record | Migrates, no field lost |
+| Old-version record | Migrates, no field lost; a current-version record passes through `migrate` unchanged |
 | Purchase then leave before the periodic save | Purchase still present after rejoin |
-| Studio: enable Studio Access to API Services on test places only | Use a test place, never the live data |
+| Studio: enable Studio Access to API Services on test places only | Use a test place, never the live data; never point a scratch place at the live game with `DataModel:SetPlaceId` / `DataModel:SetUniverseId` (`roblox-pitfalls` section 4) |
 | ProfileStore game: run the cases above against `store.Mock` in Studio, then once on a test place | Same results; no live keys touched by Mock |
 | Trade: one side leaves or the server shuts down mid-trade | Both sides whole or both sides done, never one |
 

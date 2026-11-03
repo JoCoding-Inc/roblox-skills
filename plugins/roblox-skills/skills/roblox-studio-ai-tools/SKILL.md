@@ -1,11 +1,12 @@
 ---
 name: roblox-studio-ai-tools
 description: "Use when connecting Claude Code to Roblox Studio (official Roblox Studio plugin or the built-in Studio MCP server), choosing among its tools or built-in rbx-* skills, using Studio Assistant (Planning Mode, /generate_mesh, /generate_procedural_model, skills, bring-your-own-key), generating materials/meshes/procedural models, or running Luau headlessly through Open Cloud."
-when_to_use: "Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, writing Assistant skills, or CI that needs to run Luau against a place."
+when_to_use: "Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, MCP key or mouse input that misses its target, writing Assistant skills, or CI that needs to run Luau against a place."
 last_reviewed: 2026-11-03
 sources:
   - https://github.com/Roblox/roblox-studio-agent-plugin (README, read 2026-11-03)
   - Studio MCP list_skills output (Studio build of 2026-11-03)
+  - Studio MCP tool schemas for user_keyboard_input, user_mouse_input, screen_capture and start_stop_play (read 2026-11-03)
   - https://create.roblox.com/docs/studio/mcp (GitHub source Roblox/creator-docs, read 2026-11-01)
   - https://create.roblox.com/docs/scripting/sync
   - https://create.roblox.com/docs/studio/device-simulator (read 2026-11-03)
@@ -16,6 +17,7 @@ sources:
   - https://create.roblox.com/docs/generative-AI
   - https://create.roblox.com/docs/cloud/reference/features/luau-execution
   - https://github.com/Roblox/studio-rust-mcp-server (archived)
+  - original field notes (2026-10 to 2026-11)
 ---
 
 # Studio MCP, Assistant and AI generation
@@ -44,7 +46,7 @@ Security: any connected client can read and modify the open places. Connect only
 
 ## 2. Tool map (built-in server)
 
-Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance id, place id) and pass the id of your dev place, especially with several windows or agents.
+Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance id, place id) and pass the id of your dev place, especially with several windows or agents. Window rules: `roblox-game-pipeline` section 0, rule 8.
 
 | Group | Tools | Notes |
 |---|---|---|
@@ -52,17 +54,19 @@ Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance
 | Generate | `generate_mesh`, `generate_material`, `generate_procedural_model`, `generate_texture`, `segment_mesh`, `generate_scene`, `wait_job_finished` | See section 4. `segment_mesh` splits a MeshPart into named parts (up to 5 per run). `wait_job_finished` takes `jobId` (and `timeout`, default 600 s) |
 | Avatars | `generate_avatar`, `auto_setup_avatar` | Prompt-to-avatar is a Studio beta (section "Recent additions"); check the tool's own description before use |
 | Skills | `list_skills`, `skill`, `create_skill`, `edit_skill` | Call `list_skills` at the start of a task and load the matching `rbx-*` skill with `skill` |
-| Assets | `search_asset`, `insert_asset`, `upload_image`, `store_image` | `search_asset` covers Creator Store and your inventory (user, group, universe) with type, price, tag filters. `store_image` turns a local file into a URI for reference images |
+| Assets | `search_asset`, `insert_asset`, `upload_image`, `store_image` | `search_asset` covers Creator Store and your inventory (user, group, universe) with type, price, tag filters. `store_image` turns a local file into a URI for reference images. If every asset fails with "User is not authorized" or "Authentication required", Studio lost its login (`roblox-pitfalls` section 3) |
 | Explore | `search_game_tree`, `inspect_instance`, `subagent` | `subagent` types: `explore` (investigate game state) and `playtest` (run gameplay scenarios and verify outcomes; the Playtest Agent is a beta under File > Beta Features and has a daily cap, and can report false passes). The `subagent` tool in the Studio build of 2026-11-02 listed only `explore`, `screen_capture` and `unit_test`, so `playtest` needs the beta on. A secondhand report says it could not jump in one run; recheck any climb it fails |
-| Run | `execute_luau` | `datamodel_type` Edit, Client or Server |
-| Playtest | `get_studio_state`, `start_stop_play`, `get_console_output`, `screen_capture` | `start_stop_play` takes `is_start` (bool). `screen_capture` needs a `capture_id`; `camera_position` and `look_at_position` are 3-number arrays, given together |
-| Input | `character_navigation`, `user_keyboard_input`, `user_mouse_input` | Sequences of actions; can target UI instances |
+| Run | `execute_luau` | `datamodel_type` Edit, Client or Server (Client and Server exist only during Play). It runs with plugin capability (field observation), so a write that works here can fail in a real script (`roblox-pitfalls` section 3) |
+| Playtest | `get_studio_state`, `start_stop_play`, `get_console_output`, `screen_capture` | `start_stop_play` takes `is_start` (bool). `screen_capture` needs a `capture_id`; `camera_position` and `look_at_position` are 3-number arrays, given together. The tool calls itself an edit-time capture, and in Play the game's camera script overrides them (field observation; `roblox-pitfalls` section 3). `get_studio_state` reports the play state and the datamodel types available now |
+| Input | `character_navigation`, `user_keyboard_input`, `user_mouse_input` | Sequences of actions; can target UI instances. Keyboard, mouse and navigation take `datamodel_type` `Client` only, so Play must be running. Keyboard example: `{action: 'keyPress', key_code: 'E'}` (`key_code`, not `key`). Mouse example: `{action: 'moveTo', instance_path: 'LocalPlayer.PlayerGui.Frame'}` then `{action: 'mouseButtonClick', mouse_button: 'left'}`; `instance_path` wins over `x` and `y`, and later steps reuse the last position. Other actions: the tool schema. Misses and wrong clicks: `roblox-pitfalls` section 3 |
 | Docs | `http_get`, `skill` | `http_get` reads allowed Roblox docs URLs (Engine API, Creator docs, Cloud API). Use it before guessing an API |
 | Sessions | `list_roblox_studios` | |
 
-Use them in this order for a change: `get_studio_state` > `search_game_tree` / `inspect_instance` > `script_read` > `multi_edit` > `execute_luau` probe > `start_stop_play` > `get_console_output` > `screen_capture`. Pitfalls with these tools (camera type reset, fresh module copies, hover not firing, window must be frontmost) are in `roblox-pitfalls` section 3.
+Use them in this order for a change: `get_studio_state` > `search_game_tree` / `inspect_instance` > `script_read` > `multi_edit` > `execute_luau` probe > `start_stop_play` > `get_console_output` > `screen_capture`; for a change that Play must see, follow the Edit and Play order below. Pitfalls with these tools (camera type reset, fresh module copies, hover not firing, window must be frontmost) are in `roblox-pitfalls` section 3.
 
-When the docs and a tool disagree, ask `http_get` for the page, or the Studio `skill` tool for the topic, instead of relying on memory.
+Edit and Play do not overlap. Order: stop Play > apply in the Edit context (`multi_edit`, `execute_luau` with `datamodel_type` Edit) > `start_stop_play` with `is_start` true > check `get_studio_state` > read back in Client and Server. Send these one call at a time: overlapping calls fail with "Edit datamodel is not available in Play mode" or "Start play hasn't finished yet" (field observation). Make a bulk apply return the number of entries it wrote and check that number before you start Play.
+
+When the docs and a tool disagree, ask `http_get` for the page, or the Studio `skill` tool for the topic, instead of relying on memory. Keep an unconfirmed engine claim marked unverified until a docs page or a probe confirms it (`roblox-dev-workflow` section 0).
 
 ## 3. Assistant in Studio (what it adds)
 
@@ -93,7 +97,7 @@ Generative AI rules (official): Roblox AI services (`GenerationService`, `TextGe
 
 Studio accepts documented flags (others are internal): `--task EditPlace --placeId <id> --universeId <id>` opens the latest published place; `--task EditPlaceRevision ... --placeVersion <n>` an older version; `--task EditFile` a local file; `--task RunScript --runScriptFile <file.luau> [--outputFile <f>] [--quitAfterExecution]` runs a script at command-bar permission (a default Baseplate opens if no place is given), which is a local alternative to Open Cloud Luau Execution; `--task TryAsset --assetId <id>`; `--openScriptPath` / `--openScriptFromId` with line/character flags; `--api`, `--fullApi`, `--apiV2 <path>` dump the API. Launched this way Studio streams verbose logs to stdout. Windows exe: `%localappdata%\Roblox\Versions\<version>\RobloxStudioBeta.exe`.
 
-Opening a local place on macOS: `open -a RobloxStudio file.rbxl` (also with `-g -n`) showed the start page instead of the file in two projects (2026-11-03). Run the binary in the background instead: `/Applications/RobloxStudio.app/Contents/MacOS/RobloxStudio -localPlaceFile <absolute path> -task EditFile`. Its new window takes focus; to keep the user's app in front, a small helper can watch `NSWorkspace.didActivateApplicationNotification` and re-activate the previous app when that pid comes forward (Gym Tycoon built one in Swift). Screenshots and FPS checks still need the window in front (`roblox-pitfalls` section 3).
+Opening a local place on macOS: `open -a RobloxStudio file.rbxl` (also with `-g -n`) showed the start page instead of the file (field observation, 2026-11-03). Run the binary in the background instead: `/Applications/RobloxStudio.app/Contents/MacOS/RobloxStudio -localPlaceFile <absolute path> -task EditFile`. Its new window takes focus; to keep the user's app in front, a small Swift helper can watch `NSWorkspace.didActivateApplicationNotification` and re-activate the previous app when that pid comes forward. Screenshots and FPS checks still need the window in front (`roblox-pitfalls` section 3).
 
 ## 6. Script Sync (code between Studio and your editor)
 
