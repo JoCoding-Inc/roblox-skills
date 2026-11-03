@@ -16,5 +16,7 @@ The skills here are written for this repository. Each `SKILL.md` lists its sourc
 | [Roblox/roblox-studio-agent-plugin](https://github.com/Roblox/roblox-studio-agent-plugin) (README, read 2026-11-03) | MIT | Official Studio plugin setup steps, re-authored |
 | [Rolimon's](https://www.rolimons.com) game pages | site terms | `roblox-market-research/scripts/market.py history` reads public CCU history at run time (2 s crawl delay per robots.txt); no data is stored in this repository |
 | Roblox shareholder letters (Q2, Q3 2026) | public filings | Platform facts quoted with source and grade |
+| Roblox Creator Store fonts category (toolbox API, read 2026-11-03) | Roblox terms | Font names and asset ids in `roblox-ui-typography` |
+| Game-feel talks (Jonasson and Purho "Juice it or lose it", Nijman "The art of screenshake"), Sakurai's hitstop column (fan translation), W3C WCAG 2.3.1 | public talks, W3C | Principles re-authored in `roblox-fun-effects`; no text copied |
 
 Images: `roblox-game-pipeline/assets/lanes/` are AI-generated concept images made for this repository (gwanggo, `gpt-image-2.5`, 2026-11-03). `roblox-game-pipeline/assets/examples/` and `roblox-ui-genre-studs/references/` are screenshots of the repository owner's own games, included with the owner's permission.

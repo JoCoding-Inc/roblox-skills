@@ -36,6 +36,7 @@ If the genre is a simulator or tycoon and the developer is unsure, recommend a 5
 | First-join intro | 10-20 s | Show the title and the core promise; control returns fast |
 | Boss reveal | 4-8 s | The fight starts right after, no second wait |
 | Unlock, level-up, rebirth | 3-6 s | Skippable, never blocks the shop or the next action |
+| Roll or hatch reveal | 0.3-8 s by rarity tier | Short for common results, a "skip below tier N" setting; beats in `roblox-fun-effects` section 4 |
 | Story or ending | up to 60 s | Chapters, skip per chapter |
 
 Keep the first minute interactive: a long intro before the first action costs the early retention that the platform data points to (median session about 7 min).
