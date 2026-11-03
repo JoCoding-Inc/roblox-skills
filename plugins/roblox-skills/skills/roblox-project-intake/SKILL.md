@@ -48,6 +48,14 @@ If the Studio MCP is missing, point the user to `roblox-studio-ai-tools` section
 8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), Creator Store (fillers, audio), or user-supplied files.
 9. Is the user willing to approve anything that spends money or Robux (ads, paid uploads, Hyper3D/Meshy credits)? (D: no spend without asking.)
 
+**Round A2: look, moments and working mode (ask after Round A; the full flow is `roblox-superpowers` stages 3-5)**
+
+A1. Style: show a labeled contact sheet of reference games (one per style lane) and ask which is closest and which is the opposite. (D: chunky cartoon for simulator/tycoon.)
+A2. Cinematics: none, intro, boss or unlock moment, ending? (D: none until the core loop is fun; see `roblox-cinematics`.)
+A3. Small decisions as decision cards with defaults: loading screen, music, tutorial style, hit feedback, friend bonus, localization (`roblox-superpowers` section 4).
+A4. Control level: auto, stage gates, or task by task? (D: stage gates for a new game.)
+A5. Agent mode: solo, subagents, or hybrid? (D: hybrid, Studio edits solo.)
+
 **Round C: accounts and publishing (ask before the first publish)**
 
 10. Who owns the game: personal account or group? (Assets must be owned by the account/group that owns the place, or they can render blank.)
@@ -73,6 +81,7 @@ Create `docs/brief.md` (and a short `CLAUDE.md` pointing to it) with:
 Pitch: one sentence
 Core loop: minute-to-minute / most-repeated action / progression engine
 Genre + camera + platforms + audience (content maturity target)
+Style lane + references (assets/refs/), cinematics decision, working mode (control level + agent mode)
 Play mode: solo-viable? min players to start, max players and why, target session length, friend hooks, advice accepted/rejected (design-and-launch 1a)
 Art direction: style, palette, references, source per asset class (Cube / Blender / Store)
 Environment: OS, toolchain versions, MCP servers connected, dev place id, test place id
