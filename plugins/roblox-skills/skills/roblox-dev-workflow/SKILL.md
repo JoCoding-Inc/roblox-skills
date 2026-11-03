@@ -15,7 +15,7 @@ sources:
 
 # Roblox development workflow (idea to live ops)
 
-Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`. Pair with roblox-brain skills for engine API detail (`roblox-building`, `roblox-gui`, `roblox-data`, `roblox-cloud`, `roblox-lighting`).
+Run `roblox-game-pipeline` for the staged flow (questions, working mode, plan). Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`. Pair with roblox-brain skills for engine API detail (`roblox-building`, `roblox-gui`, `roblox-data`, `roblox-cloud`, `roblox-lighting`).
 
 ## 1. The phases
 
