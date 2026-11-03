@@ -1,10 +1,9 @@
 ---
 name: roblox-cinematics
 description: "Use when deciding whether and how a Roblox game gets cinematics: intro, boss reveal, tutorial beats, level-up or unlock moments, ending. Covers the planning questions, a shot list, the three production methods, skip and safety rules, budgets and testing."
-when_to_use: "Also in the planning interview (roblox-game-pipeline stage 4) before any camera code, when a user asks for a cutscene, intro or trailer-style moment, when a cutscene feels too long or blocks play, or when a cutscene breaks on phone, in a server with several players, or in an MCP screenshot. Pair with roblox-camera (code), roblox-animation-vfx, roblox-audio and roblox-pitfalls."
+when_to_use: "Also in the planning interview (roblox-game-pipeline stage 4) before any camera code, when a user asks for a cutscene, intro or trailer-style moment, when a cutscene feels too long or blocks play, or when a cutscene breaks on phone, in a server with several players, or in an MCP screenshot. Pair with roblox-pitfalls and roblox-store-art-pack (loading budget)."
 last_reviewed: 2026-11-03
 sources:
-  - roblox-camera references/full.md (Cutscenes section, code)
   - roblox-pitfalls (execute_luau resets Scriptable camera; anchored NPC poses)
   - DevForum community threads on Scriptable camera cutscenes (opinion, not Roblox docs)
   - original (planning notes; the budgets below are design judgment, not measured)
@@ -43,9 +42,50 @@ Keep the first minute interactive: a long intro before the first action costs th
 
 | Method | Use when | Notes |
 |---|---|---|
-| Script: `Camera.CameraType = Scriptable`, tween `CFrame` and `FieldOfView` between shot points (Parts as camera marks) | Most cases; easy to skip, restore and localize | Code recipe in `roblox-camera`. Put marks in a folder `Workspace.CineMarks` named `Shot01_A`, `Shot01_B` |
+| Script: `Camera.CameraType = Scriptable`, tween `CFrame` and `FieldOfView` between shot points (Parts as camera marks) | Most cases; easy to skip, restore and localize | Recipe in section 3a. Put marks in a folder `Workspace.CineMarks` named `Shot01_A`, `Shot01_B` |
 | Animation Editor on a camera rig, played through an Animator | Complex timing with actors and camera together | More setup; plugins exist (community) but check they are maintained |
 | Pre-rendered image sequence or video frame | Trailer-like title cards | Heavy; not recommended for a first game |
+
+### 3a. Script recipe (client; syntax checked with luau-analyze, not run in a live playtest, so adapt and test)
+
+```luau
+local TweenService = game:GetService("TweenService")
+local camera = workspace.CurrentCamera
+local running = 0 -- newest cinematic wins
+
+-- shots: { {marks = {CFrame, CFrame}, time = number, fov = number?} }
+local function play(shots, skipSignal: RBXScriptSignal)
+	running += 1
+	local me = running
+	local saved = {type = camera.CameraType, subject = camera.CameraSubject, fov = camera.FieldOfView}
+	local skipped = false
+	local skipConn = skipSignal:Connect(function() skipped = true end)
+	camera.CameraType = Enum.CameraType.Scriptable
+	local ok, err = pcall(function()
+		for _, shot in shots do
+			camera.CFrame = shot.marks[1]
+			local goal = {CFrame = shot.marks[2]}
+			if shot.fov then goal.FieldOfView = shot.fov end
+			local tween = TweenService:Create(camera, TweenInfo.new(shot.time, Enum.EasingStyle.Sine), goal)
+			tween:Play()
+			local done = false
+			tween.Completed:Once(function() done = true end)
+			while not done and not skipped and running == me do task.wait() end
+			tween:Cancel()
+			if skipped or running ~= me then break end
+		end
+	end)
+	skipConn:Disconnect()
+	if running == me then -- restore in every exit: complete, skip, error
+		camera.CameraType = saved.type
+		camera.CameraSubject = saved.subject
+		camera.FieldOfView = saved.fov
+	end
+	if not ok then warn(err) end
+end
+```
+
+Lock and unlock movement around the call in the same pattern (save, lock, restore in every exit). Do not restore hard-coded defaults.
 
 ## 4. Shot list (write it before code)
 
@@ -69,7 +109,7 @@ Keep 3-6 shots per cinematic. Name every mark. Include what the player's charact
 8. **Mobile:** test on a phone-size emulator; letterbox bars must not cover the Roblox top-left buttons or the Skip button.
 9. **Performance:** no new heavy effects only for the cutscene; check frame time on a low-end phone profile.
 10. **Accessibility:** short text lines, readable size, no flashing, shake can be turned off.
-11. **Localization:** captions go through the localization table (`roblox-localization`).
+11. **Localization:** captions go through the localization table.
 
 ## 6. Testing through Studio MCP
 

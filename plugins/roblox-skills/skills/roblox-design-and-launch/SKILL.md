@@ -29,7 +29,7 @@ Read from the official creator-docs repository (state 2026-10-29). Numbers and p
 - **Onboarding (first-time user experience):** teach the essentials, reach fun quickly, leave players wanting more. Measure the player funnel step by step and fix the biggest drop-off with an experiment.
 - **UI/UX:** prioritise information (what is the player doing right now?), keep visual language consistent, follow platform conventions. Design for phone first, then scale up. Test layouts with Experiments, toggle platform or seasonal UI with Configs.
 - **Economy:** every currency needs sources, sinks and a pacing target. Simulate the economy in a spreadsheet or Lune script before shipping prices. Avoid power that only paying players can reach if the game is for younger audiences.
-- **Genre craft:** for chunky simulator/tycoon looks use `roblox-ui-genre-studs`; for other genres use roblox-brain `roblox-gui`.
+- **Genre craft:** for chunky simulator/tycoon looks use `roblox-ui-genre-studs`; for other genres use the UI rules in `roblox-engine-2026`.
 
 ## 1a. Platform play patterns (advise from these in planning)
 
@@ -49,7 +49,7 @@ Use this when a plan is being shaped. Compare the plan with the table, then give
 | About 3.8% of players spend anything in a year; median payer spends $0.81 a year, top 10% $8.88 | V | Monetization must be useful to the 96% who never pay; free play stays complete |
 
 **Solo-viable checklist (check at planning time):**
-1. Can one player finish the core loop alone, in an empty server? If not, name the fallback: bots or NPC allies (`roblox-npc-ai`), a smaller mode, or a short wait with a bot fill.
+1. Can one player finish the core loop alone, in an empty server? If not, name the fallback: bots or NPC allies, a smaller mode, or a short wait with a bot fill.
 2. Is the minimum players to start 1 for the main mode? If a match needs more, set a timeout that starts with bots.
 3. Does progress come from solo actions, with group actions as a multiplier (bonus XP, shared base, co-op boss, trading)?
 4. Is there a reason to bring a friend: friend bonus, invite prompt, shared plot, leaderboard among friends, free private server for the group (`private-servers`; under-13 players may be blocked from them by parental settings)?

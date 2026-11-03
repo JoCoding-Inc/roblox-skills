@@ -39,7 +39,7 @@ Mark each PASS with evidence (screenshot, dashboard, readback). Hard gates block
 1. Maturity questionnaire done; label matches the content (`roblox-design-and-launch` section 4).
 2. At least one custom thumbnail, or the game gets no Home recommendations.
 3. No free-text between players outside `TextChatService` (or rate limited to 1 per minute) (`roblox-engine-2026` section 5).
-4. Purchases grant through `ProcessReceipt`; DataStore load/save/rejoin tested; a rollback version noted (`roblox-publish-checklist`, `roblox-monetization`).
+4. Purchases grant through `ProcessReceipt`; DataStore load/save/rejoin tested; a rollback version noted (`roblox-release-automation` section 4a, `roblox-design-and-launch` section 2).
 5. Every asset loads in a live client, not only in Studio (`roblox-pitfalls`).
 6. Tested on a low-end phone and at the device simulator sizes (`roblox-engine-2026` section 3).
 

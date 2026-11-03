@@ -16,7 +16,7 @@ sources:
 
 # Modern engine practices (docs state 2026-10-29, Studio 0.745; weekly update 2026-11-02)
 
-Complements roblox-brain (`roblox-luau`, `roblox-gui`, `roblox-performance`, `roblox-security` style skills). Where this file and an older tutorial disagree, this file follows the current docs.
+Where this file and an older tutorial disagree, this file follows the current docs.
 
 ## 1. Code
 

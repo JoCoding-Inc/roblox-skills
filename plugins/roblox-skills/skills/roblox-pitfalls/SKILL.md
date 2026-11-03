@@ -14,7 +14,7 @@ sources:
 
 # Roblox pitfalls (field notes)
 
-Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-mcp`, `roblox-cloud`, `roblox-tooling` and `roblox-data` from roblox-brain, and with `roblox-studio-ai-tools` here for the current built-in Studio MCP tool list.
+Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-ai-tools` for the current built-in Studio MCP tool list and `roblox-release-automation` for Open Cloud publishing.
 
 ## 1. Publishing
 
