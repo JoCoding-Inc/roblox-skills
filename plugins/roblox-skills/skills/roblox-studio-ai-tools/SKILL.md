@@ -1,10 +1,14 @@
 ---
 name: roblox-studio-ai-tools
-description: "Use when connecting Claude Code to Roblox Studio (built-in Studio MCP server), choosing among its tools, using Studio Assistant (Planning Mode, /generate_mesh, /generate_procedural_model, skills, bring-your-own-key), generating materials/meshes/procedural models, or running Luau headlessly through Open Cloud."
+description: "Use when connecting Claude Code to Roblox Studio (official Roblox Studio plugin or the built-in Studio MCP server), choosing among its tools or built-in rbx-* skills, using Studio Assistant (Planning Mode, /generate_mesh, /generate_procedural_model, skills, bring-your-own-key), generating materials/meshes/procedural models, or running Luau headlessly through Open Cloud."
 when_to_use: "Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, writing Assistant skills, or CI that needs to run Luau against a place."
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-03
 sources:
+  - https://github.com/Roblox/roblox-studio-agent-plugin (README, read 2026-11-03)
+  - Studio MCP list_skills output (Studio build of 2026-11-03)
   - https://create.roblox.com/docs/studio/mcp (GitHub source Roblox/creator-docs, read 2026-11-01)
+  - https://create.roblox.com/docs/scripting/sync
+  - https://create.roblox.com/docs/studio/device-simulator (read 2026-11-03)
   - https://create.roblox.com/docs/assistant/guide
   - https://create.roblox.com/docs/assistant/mcp
   - https://create.roblox.com/docs/assistant/skills
@@ -20,10 +24,14 @@ Facts here come from the official creator-docs repository (docs state as of 2026
 
 ## 1. Connect Claude Code to Studio
 
-The Studio MCP server is **built into Roblox Studio** (stdio, local process). The older Rust server (`Roblox/studio-rust-mcp-server`, tools `run_code`, `insert_model`, `run_script_in_play_mode`, `get_studio_mode`) is superseded (a third-party summary says the repo is archived; the official docs only call the built-in server the way to connect, so treat the archive claim as unverified). Remove its `Roblox_Studio` entry before adding the built-in one so the names do not clash.
+The Studio MCP server is **built into Roblox Studio** (stdio, local process). The older Rust server (`Roblox/studio-rust-mcp-server`, tools `run_code`, `insert_model`, `run_script_in_play_mode`, `get_studio_mode`) is archived on GitHub (checked 2026-11-03). Remove its `Roblox_Studio` entry before adding the built-in one so the names do not clash.
+
+**Easiest path: the official plugin** (`Roblox/roblox-studio-agent-plugin`, README read 2026-11-03). In Claude Code run `/plugin`, search **Roblox Studio**, install, then ask "Get me set up with Roblox Studio": it checks what is missing, installs and opens Studio if needed, and says where the one switch is. "continue Roblox setup" resumes in a new chat. Verify with `/mcp`: it lists `plugin:roblox-studio:macos` and `plugin:roblox-studio:windows`; only the one for your OS connects, so the other failing is expected. Do not also keep a manual `Roblox_Studio` entry, or every tool appears twice.
+
+Manual path:
 
 1. Update Studio to the latest version.
-2. Studio: **Assistant** > **...** > **Manage MCP Servers** > turn on **Enable Studio as MCP server**.
+2. Studio: **Assistant** > **...** > **Settings** > **MCP Servers** (**Manage MCP Servers** in older versions) > turn on **Enable Studio as MCP server**.
 3. Connect the client, either:
    - Quick connect: **Assistant Settings** > **MCP Servers** > **Quick connect**, toggle Claude Code (also lists Claude Desktop, Cursor, Codex CLI, Gemini CLI, Antigravity, VS Code). Install the client first and restart Studio if it is missing.
    - CLI command (macOS): `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`
@@ -41,7 +49,9 @@ Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance
 | Group | Tools | Notes |
 |---|---|---|
 | Scripts | `script_read`, `multi_edit`, `script_search`, `script_grep` | Dot-notation paths; `multi_edit` creates a script if the path is new and needs `datamodel_type` Edit. `script_search` returns 10 fuzzy matches, `script_grep` 50 |
-| Generate | `generate_mesh`, `generate_material`, `generate_procedural_model`, `wait_job_finished` | See section 4 |
+| Generate | `generate_mesh`, `generate_material`, `generate_procedural_model`, `generate_texture`, `segment_mesh`, `generate_scene`, `wait_job_finished` | See section 4. `segment_mesh` splits a MeshPart into named parts (up to 5 per run) |
+| Avatars | `generate_avatar`, `auto_setup_avatar` | Prompt-to-avatar is a Studio beta (section "Recent additions"); check the tool's own description before use |
+| Skills | `list_skills`, `skill`, `create_skill`, `edit_skill` | Call `list_skills` at the start of a task and load the matching `rbx-*` skill with `skill` |
 | Assets | `search_asset`, `insert_asset`, `upload_image`, `store_image` | `search_asset` covers Creator Store and your inventory (user, group, universe) with type, price, tag filters. `store_image` turns a local file into a URI for reference images |
 | Explore | `search_game_tree`, `inspect_instance`, `subagent` | `subagent` types: `explore` (investigate game state) and `playtest` (run gameplay scenarios and verify outcomes; the Playtest Agent is a beta under File > Beta Features and has a daily cap, and can report false passes). The `subagent` tool in the Studio build of 2026-11-02 listed only `explore`, `screen_capture` and `unit_test`, so `playtest` needs the beta on. A secondhand report says it could not jump in one run; recheck any climb it fails |
 | Run | `execute_luau` | `datamodel_type` Edit, Client or Server |
@@ -62,7 +72,7 @@ Use Assistant for things that live best inside Studio; use Claude Code for repo-
 - **Slash commands:** `/plan`, `/generate_mesh <text or image>` (not both), `/generate_procedural_model <text or image>` (Assistant limit: 50 per rolling 24 hours), `/generate_material`, `/generate_texture`, `/segment_mesh` (select the MeshPart itself; up to 5 part names per run), `/insert_asset <id>`. A selected Part is used as a bounding box. Optional max triangle count (default 10,000).
 - **Prompting Assistant:** use exact instance names; it biases to edit-time, so ask for a script when you want runtime behaviour; name the object first and leave out background, camera, lighting and quality words; for procedural models state which properties must be editable and how it scales; reference images should be .png at a 3/4 angle and not low-poly. Official loop: Plan > Build and Playtest > Refine and Polish, playtesting after every round.
 - **Screen capture subagent** and chat history exist; plans and chats are not visible to collaborators.
-- **Skills:** a skill is one Markdown file with frontmatter `name` (lowercase, no `rbx-` prefix), `description`, `enabled`, loaded automatically when a request matches the description or by typing `/` in the composer. Skills belong to the Roblox account, so they apply to every place. Built-in Roblox skills: `rbx-create-skill`, `rbx-debug` (breakpoints, call stacks), `rbx-device-simulator-lua` (device presets and UI screenshots), `rbx-docs-search`, `rbx-perf-profiling` (MicroProfiler analysis), `rbx-scene-analysis` (rendering cost, memory, leaks, asset inventory), `rbx-unit-test` (Jest-Lua/TestEZ). Duplicate one to customise it; the original is then disabled automatically.
+- **Skills:** a skill is one Markdown file with frontmatter `name` (lowercase, no `rbx-` prefix), `description`, `enabled`, loaded automatically when a request matches the description or by typing `/` in the composer. Skills belong to the Roblox account, so they apply to every place. Built-in Roblox skills (10 in `list_skills`, Studio build of 2026-11-03): `rbx-configs-experimentation` (ConfigService live values and A/B experiments), `rbx-create-skill`, `rbx-debug` (breakpoints, call stacks), `rbx-device-simulator-lua` (device presets and UI screenshots), `rbx-docs-search`, `rbx-instrument-analytics` (AnalyticsService economy, funnel and custom events), `rbx-network-simulator` (latency, jitter, loss presets via `settings().Network`), `rbx-perf-profiling` (MicroProfiler analysis), `rbx-scene-analysis` (rendering cost, memory, leaks, asset inventory), `rbx-unit-test` (module unit tests). Duplicate one to customise it; the original is then disabled automatically.
 - **Bring your own key:** **Assistant > ... > Manage API Keys**, choose Anthropic, OpenAI or Google Gemini, paste the key, choose the model. The key is typed in Studio, never into chat.
 - **External MCP servers** can also be connected into Assistant (Manage MCP Servers).
 
@@ -85,7 +95,7 @@ Studio accepts documented flags (others are internal): `--task EditPlace --place
 
 ## 6. Script Sync (code between Studio and your editor)
 
-Built into Studio (beta). Enable: **File > Beta Features > Script Sync**, Save, restart Studio. Then in Explorer right-click a service or folder > **Script Sync > Sync to** and pick the project folder; select the top-level folder and subfolders named like services (`ServerScriptService`, `ReplicatedStorage`, `StarterPlayerScripts`) match automatically. Stop with **Script Sync > Stop Sync**.
+Built into Studio, full release 2026-06-17 (docs: create.roblox.com/docs/scripting/sync). Older Studio builds needed **File > Beta Features > Script Sync**. In Explorer right-click a service or folder > **Script Sync > Sync to** and pick the project folder; select the top-level folder and subfolders named like services (`ServerScriptService`, `ReplicatedStorage`, `StarterPlayerScripts`) match automatically. Stop with **Script Sync > Stop Sync**.
 
 - File names: `name.luau` ModuleScript; `name.server.luau` server Script; `name.client.luau` client Script; `name.local.luau` LocalScript; `name.legacy.luau` legacy Script; `name.plugin.luau` plugin Script; a directory is a Folder; `init.*.luau` inside a directory makes that directory a script with children. Extension (`.lua` or `.luau`) is a Studio setting.
 - Syncs only Script, LocalScript, ModuleScript and Folder (up to 10,000 scripts per synced root, 128 roots). Attributes and tags on scripts are not synced; `StarterGui` and `StarterPack` content, parts and everything else must go through Studio MCP. Names must be unique and file-system safe.
@@ -103,12 +113,12 @@ For CI and automated checks without Studio (stable API, official reference is th
 - Limits: return value is JSON, up to 4 MB (Instances come back as null); only the last 450 KB of logs are kept; task info lives 24 h; at most 10 unfinished tasks per place (429 after that). Error codes: SCRIPT_ERROR, DEADLINE_EXCEEDED, OUTPUT_SIZE_LIMIT_EXCEEDED.
 - Rate limits per key owner: create task **5 per minute**, binary input 5 per minute, get task 200 per minute, list logs 45 per minute. Batch work into few tasks.
 - **Changes to the DataModel inside a task are local and are never saved.** The task has no physics and scripts do not auto-run. APIs that write cloud data (DataStores) do persist, so never run destructive DataStore code against a live universe without asking. To save place content, publish a built `.rbxl`, or use the Instance API (scripts only).
-- Typical CI: `rojo build -o game.rbxl` > publish to a test place (`versionType=Saved` or `Published`) > Luau Execution test run > fail the job on FAIL lines. Wrappers such as `rbxcloud luau execute` exist.
+- Typical CI: `rojo build -o game.rbxl` > publish to a test place (`versionType=Saved` or `Published`) > Luau Execution test run > fail the job on FAIL lines. Wrappers such as `rbxcloud luau execute` exist, but rbxcloud's last release is v0.17.0 (2025-03-23); check it against the current OpenAPI spec or call the endpoints directly.
 
 ## 8. Simulators and test modes (agents drive these through MCP)
 
 - Test modes: Test (F5), Test Here, Run (F8, no avatar), stop with Shift+F5; solo Test can toggle Client/Server view; **Server & Clients** starts up to 8 clients (F7). Studio's default playtest has **zero network latency**, so also test with the Network Simulator or `NetworkSettings.InboundNetworkMinDelayMs` / `OutboundNetworkMinDelayMs`, `...JitterMs`, `...LossPercent` (docs advise 50-150 ms each way).
-- **Device Simulator and Network Simulator are beta:** File > Beta Features > New Device Simulator, restart. Device presets: Phone, Desktop, Console, Headset, each in Flagship, Mid-range and Entry-level groups. Network presets (latency/jitter/loss): Ideal Fiber 8 ms; Wired Broadband 25/3/0; Home Wi-Fi 30/12/0.2; 4G 45/20/0.4; 3G 150/70/0.5. Controller Emulator covers Xbox, PS4, PS5, generic gamepad, handheld, TV remote and Quest.
+- **Device Simulator and Network Simulator:** the docs page (read 2026-11-03) still says beta (File > Beta Features > New Device Simulator, restart); a 2026-10-16 update reported full release. Look in the Test tab first. The `rbx-network-simulator` skill applies network presets through `settings().Network` with or without the beta. Device presets: Phone, Desktop, Console, Headset, each in Flagship, Mid-range and Entry-level groups. Network presets (latency/jitter/loss): Ideal Fiber 8 ms; Wired Broadband 25/3/0; Home Wi-Fi 30/12/0.2; 4G 45/20/0.4; 3G 150/70/0.5. Controller Emulator covers Xbox, PS4, PS5, generic gamepad, handheld, TV remote and Quest.
 - Plugin-side test API: `StudioTestService:ExecuteMultiplayerTestAsync(numPlayers 1-8, args)`, `ExecutePlayModeAsync`, `ExecuteRunModeAsync`; one session at a time. Teleports cannot be tested in Studio.
 - Place file limit: 100 MB. Save versions with notes (Ctrl+Alt+S); keep Drafts mode off unless the team wants it.
 

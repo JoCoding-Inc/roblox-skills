@@ -10,6 +10,8 @@ sources:
   - https://github.com/AshExplained/roblox-skills (roblox-creator-store-security-audit; MIT)
   - https://create.roblox.com/docs/production/publishing/experience-icons
   - https://create.roblox.com/docs/production/publishing/thumbnails
+  - https://create.roblox.com/docs/production/promotion/ads-manager
+  - https://devforum.roblox.com/t/youtube-videos-will-be-removed-from-game-detail-pages/4879633
   - https://create.roblox.com/docs/players/loading-screens
   - https://create.roblox.com/docs/performance-optimization/improve (load times)
   - https://create.roblox.com/docs/projects/teleport (custom teleport screens)
@@ -112,9 +114,9 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Show an action moment from the core loop, with the character at a rule-of-thirds point and a clear foreground, midground and background.
 - Colors saturated but true to the game; an optional short title at top centre.
 - Keep essential text and subjects away from the bottom edge: player count and other metadata can cover it (docs).
-- Make 2-3 variants for A/B. Genre thumbnails use big stroked text, a "YOU!" arrow, an exaggerated scale moment and a bright sky.
+- Make 2-3 variants for A/B. No public benchmark for thumbnail A/B results exists (searched 2026-11-03; tracker articles give no method), so measure your own: run the variants as Ads Manager campaign creatives (up to 10 thumbnails per campaign, shown evenly; docs `production/promotion/ads-manager`) and keep the winners active. Genre thumbnails use big stroked text, a "YOU!" arrow, an exaggerated scale moment and a bright sky.
 - **Thumbnail personalization (docs):** it starts only when 2 or more thumbnails are active on the Home Page tab; activate 2-5. Roblox reports +8.5% average qualified play-through rate in its tests (up to +50% for some games). Keep several active instead of crowning one winner, test new thumbnails with each major update, then leave them alone until the next one.
-- **Video thumbnails (docs):** 3 uploads a month, reviewed; real gameplay only, no voice-over or lyrics, no "50% off" or "Free UGC" claims; your own logo overlay and in-game UI text are allowed; not shown on Xbox, PlayStation or VR.
+- **Video thumbnails (docs):** 3 uploads a month, reviewed; real gameplay only, no voice-over or lyrics, no "50% off" or "Free UGC" claims; your own logo overlay and in-game UI text are allowed; not shown on Xbox, PlayStation or VR. YouTube video links were removed from game pages on 2026-09-30 (DevForum announcement); upload the video file instead.
 
 **What chart games do (n=76 from the Oct-Nov 2026 charts, first thumbnail and icon of each, measured by script plus hand-tallied from contact sheets, so counts are approximate, survivorship bias applies, and Halloween skews the mix):**
 
@@ -129,7 +131,7 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 | Number or reward hook ("1.2x", "+1", "$/s", "1 in 9,342,584", "YOU!" arrow) | a few | about one in ten |
 | First-person hands or POV | rare | about one in ten |
 
-Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, centred; a title only when the name is part of the pitch. About 10 of the 76 used the platform's red "The Hollow" event frame (Halloween 2026): it is an event template, not a pattern to copy. A few top games ship an in-engine screenshot with no art pass, so polish helps but is not required. Re-run with `scripts/benchmark` data and a fresh contact sheet each quarter.
+Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, centred; a title only when the name is part of the pitch. About 10 of the 76 used the platform's red "The Hollow" event frame (Halloween 2026): it is an event template, not a pattern to copy. The event ended 2026-11-02; do not tally event frames or tags again until after about 2026-11-20. A few top games ship an in-engine screenshot with no art pass, so polish helps but is not required. Re-run with `roblox-launch-benchmarks` scripts data and a fresh contact sheet each quarter.
 
 **Truthfulness:** no misleading UI or gameplay, no other games' characters or brand logos, no "FREE ROBUX" or fake "UPDATE" bait.
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Build a labeled contact sheet of the style lane cards.
 
-Usage: python3 -I scripts/style_board.py OUT.png [--only name ...] [--dir DIR]
-Needs Pillow. Default dir: the lane cards in roblox-game-pipeline/assets/lanes.
+Usage: python3 -I <skill dir>/scripts/style_board.py OUT.png [--only name ...] [--dir DIR]
+Needs Pillow. Default dir: ../assets/lanes next to this script (the lane cards).
 """
 import sys, pathlib
 from PIL import Image, ImageDraw, ImageFont
@@ -11,7 +11,7 @@ args = sys.argv[1:]
 if not args:
     sys.exit(__doc__)
 out = args.pop(0)
-only, d = [], pathlib.Path("plugins/roblox-skills/skills/roblox-game-pipeline/assets/lanes")
+only, d = [], pathlib.Path(__file__).resolve().parent.parent / "assets" / "lanes"
 while args:
     a = args.pop(0)
     if a == "--only":

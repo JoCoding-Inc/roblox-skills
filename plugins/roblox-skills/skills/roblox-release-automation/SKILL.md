@@ -2,11 +2,16 @@
 name: roblox-release-automation
 description: "Use when shipping a Roblox game or update: splits the release into what an agent can automate through Open Cloud (place publish, server restart, passes, products, place name and description, platform toggles) and what the user must do by hand (create the game, maturity questionnaire, age check, icon and thumbnails, public release), lists the API key scopes each step needs, and what to ask the user when a permission is missing."
 when_to_use: "Also before writing a publish script or CI job, when a publish or API call returns 401/403/404/409/429, when asked to 'just release it', when setting up an API key, or when deciding what to hand back to the user. Pair with roblox-launch-benchmarks and roblox-pitfalls."
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-03
 sources:
   - https://github.com/Roblox/creator-docs (commit c8f5276, 2026-10-29): content/en-us/reference/cloud/openapi.json, universes-api/v1.json, game-passes-http-service/v1.json, developer-products-api/v1.json
   - https://create.roblox.com/docs/cloud/guides/usage-place-publishing
-  - https://create.roblox.com/docs/production/publishing/publish-games-and-places
+  - https://create.roblox.com/docs/production/publishing/publish-games-and-places (read 2026-11-02)
+  - https://create.roblox.com/docs/production/monetization/immersive-ads (questionnaire resubmission and ads eligibility)
+  - https://devforum.roblox.com/t/new-transaction-refunded-webhook-notifies-when-a-purchase-is-cancelled/4890339
+  - https://devforum.roblox.com/t/update-on-account-bans-alt-detection-and-appeals/4972565
+  - https://devforum.roblox.com/t/unifying-data-stores-open-cloud-and-game-apis-and-increasing-storage-limits/4739240
+  - https://devforum.roblox.com/t/4889837 (Luau Execution limits, community report)
   - https://create.roblox.com/docs/cloud (legacy APIs are cookie-based)
   - original (field notes in roblox-pitfalls)
 ---
@@ -33,10 +38,11 @@ Facts come from the official OpenAPI specs and publishing docs, not memory. Scop
 | Remote config and A/B experiments | Agent | Configs and experiments APIs, scope `universe:write` (read `universe:read`); configs publish is limited |
 | Messaging to live servers (for example a shutdown notice) | Agent | `POST /cloud/v2/universes/{id}:publishMessage`, scope `universe-messaging-service:publish` |
 | Upload assets (images, meshes, audio) | Agent | Assets API, scopes `asset:read`, `asset:write`; the owner must match the experience owner |
-| Maturity & Compliance Questionnaire | **Agent-assisted, user submits** | No API: the OpenAPI has no questionnaire endpoint (only a cookie-based, read-only activation-eligibility check). The agent drafts answers from the design brief (answer for the most mature content a player can meet) and can fill the form in the user's own logged-in Chrome (`claude-in-chrome`) up to the **Questionnaire Preview** page. The user reviews the label and clicks Submit, because the answers are the creator's attestation to Roblox. Resubmit after any update that changes an answer |
+| Maturity & Compliance Questionnaire | **Agent-assisted, user submits** | No API: the OpenAPI has no questionnaire endpoint (only a cookie-based, read-only activation-eligibility check). The agent drafts answers from the design brief (answer for the most mature content a player can meet) and can fill the form in the user's own logged-in Chrome (`claude-in-chrome`) up to the **Questionnaire Preview** page. The user reviews the label and clicks Submit, because the answers are the creator's attestation to Roblox. Resubmit after an update that changes an answer, and only then: while a resubmission is under review the game temporarily loses immersive and rewarded-video ads eligibility |
 | Game icon and thumbnails | Agent via experimental API, else browser or user | `POST /legacy-game-internationalization/v1/game-icon/games/{id}/language-codes/{code}` and `.../game-thumbnails/games/{id}/language-codes/{code}/image` (plus `/images/order`, `/alt-text`) accept an API key or OAuth scope `legacy-universe:manage` per the spec, stability EXPERIMENTAL, **not tested here**. Try it first on a throwaway universe; if it fails, upload in Creator Hub > Configurations (the agent can drive the file picker in Chrome). Specs: icon 512x512, thumbnails 16:9 1920x1080 under 3 MB, up to 10 (`roblox-store-art-pack` section 5) |
-| Make the game public, choose audience (16+, all ages, Kids/Select), Recommended For You opt-out | **User decides**; call can be automated | `POST /legacy-develop/v1/universes/{id}/activate` (private to public) accepts an API key or `legacy-universe:manage`, EXPERIMENTAL, **not tested here**. Release requires the age check and a maturity rating, and the eligibility check is cookie-only, so the agent cannot pre-check it. Never call activate without the user's explicit yes for that moment; at most 5 first-time releases per day. Audience choice and the Recommended For You opt-out are made in the Release dialog |
-| Kids/Select extras: facial age estimation or ID, 2-step verification, Plus/Premium for 2 months or 1,000 Robux refundable fee, 50,000 Robux optional expedited review | **User** | Money and identity decisions are never automated |
+| Make the game public, choose audience (16+, all ages, Kids/Select), Recommended For You opt-out | **User decides**; call can be automated | `POST /legacy-develop/v1/universes/{id}/activate` (private to public) accepts an API key or `legacy-universe:manage`, EXPERIMENTAL, **not tested here**. Release requires the age check and a maturity rating, and the eligibility check is cookie-only, so the agent cannot pre-check it. Never call activate without the user's explicit yes for that moment; at most 5 first-time releases per day. Publish flow (docs, 2026-11-02): Studio File > Publish asks one question (No = Content May Vary, 16+; Yes = full questionnaire). Audience: Creator Hub > Publish settings > **Manage Audience**, tabs Playtest and Public ("Playtest" replaced Private and Limited). Recommended For You opt-out: Audience > Advanced Settings |
+| Kids/Select extras: facial age estimation or ID, 2-step verification, Plus/Premium for 2 months or 1,000 Robux refundable fee, 50,000 Robux optional expedited review, evaluation of 250 unique plays by highly engaged age-checked users in 60 days (docs; a DevForum post says 100 from Nov 2026) | **User** | Money and identity decisions are never automated |
+| Transaction Refunded webhook (refund or chargeback of products, passes, private servers, paid access) | **User adds it**, agent writes the handler | Creator Hub Account Settings > Webhooks, up to 5 webhooks; verify the `roblox-signature` header. Roblox revokes passes but not developer products, so the handler revokes granted goods; the payload amount is the original price; events sent while the endpoint is down are lost |
 | Early testers (up to 10 friends) | **User** | Studio File > Invite early testers |
 | Watch day-1 metrics and errors | Agent reads, user decides | Analytics query API scope `universe.analytics:read`; Creator Hub dashboards |
 | Rollback | Agent | Re-publish the previous `.rbxl` (keep it), or revert in Creator Hub version history; note the version number before each release |
@@ -59,7 +65,9 @@ Create one key per experience, owner = the account or group that owns it, minima
 | Read analytics | `universe.analytics:read` |
 | Icon, thumbnails, activate (experimental, untested) | `legacy-universe:manage` |
 
-Rules: restrict the key to the one experience; leave IP allow-lists empty unless the runner has a fixed IP (a list breaks keys used from Roblox servers); set an expiry only with a rotation owner; a key unused for 60 days expires; keep it in a `chmod 600` env file and read it inside the command. Rate limits apply per key owner across all keys.
+Rules: restrict the key to the one experience; leave IP allow-lists empty unless the runner has a fixed IP (a list breaks keys used from Roblox servers); set an expiry only with a rotation owner; a key unused for 60 days expires; keep it in a `chmod 600` env file and read it inside the command. Rate limits apply per key owner across all keys. Data store calls from Open Cloud share one per-experience request budget with the live game servers (unified, live 2026-07-29), so rate-limit operational data store scripts or they can starve live traffic.
+
+**Luau Execution in CI:** creating a task is limited to 5 per minute per key owner (`roblox-studio-ai-tools` section 7). Bundle all engine tests into one task per CI run and serialize runs (one concurrency group); parallel worktrees or jobs on the same key owner collide. A community report (C, 2026-09-23) saw a lockout of about 30 minutes after about 30 creates in 30 minutes, and a first task on a fresh Saved version hanging about 11 minutes before INTERNAL_ERROR; retry once, then report.
 
 ## 3. When a permission is missing
 
@@ -73,6 +81,7 @@ Rules: restrict the key to the one experience; leave IP allow-lists empty unless
 | Publish succeeds but players see the old build | Servers still run the old version | Run `:restartServers` or wait for natural turnover; verify the serving version |
 | Asset renders blank in the live game | Asset owned by another account or group | Re-upload under the experience owner |
 | Cannot go public | Missing age check, questionnaire, or (Kids/Select) 2-step verification | The user completes it; the agent cannot |
+| Game restricted or flagged after release | A moderation violation on the game | Open Game > Safety > Issues & appeals (collaborators with edit rights can see and appeal); Select games get 72 h to fix lower-severity violations |
 
 Before blocking, state exactly what is missing, which scope or account step fixes it, and keep working on the parts that do not depend on it.
 

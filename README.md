@@ -4,17 +4,20 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 
 | Skill | Use it for |
 |---|---|
-| `roblox-game-pipeline` | Run first: staged game-development workflow (probe, vision, platform-fit advice, style board with seven reference lane cards, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
+| `roblox-game-pipeline` | Run first: staged game-development workflow (tool check, vision, live-market and platform-fit advice, style board with seven reference lane cards, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
+| `roblox-market-research` | Judge an idea against the live market: trending and rising charts, keyword competition, competitor teardown, hit decay curves, and a catalog of sites and public APIs for Roblox charts and keywords. `scripts/market.py` needs only Python 3 |
+| `roblox-combat-tools` | Weapons and Tools, hit detection, server validation, lag compensation and Server Authority caveats |
+| `roblox-match-flow` | Rounds, lobbies, matchmaking and teleports, reserved servers, leaderboards, AFK and shutdown handling |
 | `roblox-cinematics` | Whether and how to add intros, boss reveals and unlock moments: questions, budgets, shot list, skip and restore rules, testing through Studio MCP |
 | `roblox-data-saves` | Player saves: what to store, DataStore layout, session lock, retries, schema versions and migrations, test cases, limits, deletion rules |
 | `roblox-bots-npcs` | NPCs, enemies, allies and bot fill so a solo player never waits in an empty server: pathfinding, state machines, server cost, tests |
 | `roblox-feel-audio-vfx` | Game feel: feedback map, audio objects and mix, particle and effect budgets, lighting and atmosphere, mobile checklist |
-| `roblox-project-intake` | Run first: probes the machine (Studio MCP, Blender, Rojo, Open Cloud), interviews the user about the game, audience and art sources, writes `docs/brief.md` |
-| `roblox-engine-2026` | Current engine rules: task scheduler, deferred events, Parallel Luau, types, flex layouts and UI styling, Input Action System, streaming, memory budgets, remote security checklist, platform chat change |
+| `roblox-project-intake` | Run first: tool check (Studio, Studio MCP and git required; Script Sync or Rojo, Blender MCP, Open Cloud key optional) with step-by-step setup from the live docs, interview about the game, audience and art sources, writes `docs/brief.md` and a project `CLAUDE.md` |
+| `roblox-engine-2026` | Current engine rules: task scheduler, deferred events, Parallel Luau, types, flex layouts and UI styling, Input Action System, streaming, memory budgets, remote security and server-side exploit detection, Server Authority, platform chat change, status board of betas and rollouts |
 | `roblox-dev-workflow` | Idea to live ops in 9 phases, project layout, and which tool makes each asset (Cube, procedural models, Blender, Creator Store) |
 | `roblox-studio-ai-tools` | Built-in Studio MCP server (setup, full tool map), Assistant (Planning Mode, skills, BYOK), generation commands, headless Luau |
 | `roblox-design-and-launch` | Core loops, prototyping, onboarding, monetization and DevEx, content maturity and age rules, AI rules, icon/thumbnail and publish checklist |
-| `roblox-launch-benchmarks` | Pre-launch checklist with values measured from live top-chart games: thumbnails, description length, players per server, game pass count and prices, like ratio. Refresh script in `scripts/benchmark` |
+| `roblox-launch-benchmarks` | Pre-launch checklist with values measured from live top-chart games: thumbnails, description length, players per server, game pass count and prices, like ratio. Refresh scripts in the skill's `scripts/` |
 | `roblox-release-automation` | What an agent can automate in a release (Open Cloud publish, server restart, passes, products, config) vs what the user must do (create game, maturity questionnaire, icon, thumbnails, public release), API key scopes per step, and what to ask when a permission is missing |
 | `roblox-pitfalls` | Field notes: Open Cloud publish 409, Studio vs live asset loading, Creator Store 403, testing through Studio MCP with bot scenarios, Roblox Cube mesh generation, teleport/DataStore/light/texture/terrain limits |
 | `roblox-blender-export` | Blender meshes into Studio: scale, pivot, axis, FBX export call, palette textures, triangle budgets, upload |
@@ -42,15 +45,22 @@ claude plugin list                          # roblox-skills@roblox-skills enable
 
 Skills load on their own when the task matches their description. To update, run `/plugin marketplace update roblox-skills`.
 
+## Starting a game
+
+- Mention Roblox in the first message: "I'm making a Roblox game, what do you think of a gym tycoon?" loads `roblox-game-pipeline` and `roblox-market-research`. Without the word Roblox, a generic brainstorming skill may answer instead.
+- `/roblox-game-pipeline` always works.
+- After the first session, intake writes a project `CLAUDE.md` whose first line marks the folder as a Roblox project, so "I'm making a game" alone is enough there.
+- The first step is a tool check: the agent shows which tools are connected, says what each one unlocks, sets up the required ones with you, and lets you skip optional ones.
+
 ## Works best with
 
-- Roblox Studio MCP (built into Studio): Assistant > ... > Manage MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). The old Rust server is archived
+- Roblox Studio MCP: easiest is the official plugin (`/plugin`, search **Roblox Studio**, then ask "Get me set up with Roblox Studio"). Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). The old Rust server is archived
 - Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
 - Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs; read the safety notes in `roblox-blender-export` section 9
 
 ## Keeping it current
 
-The skills do not copy API signatures; the agent looks them up live through the Studio MCP (`list_skills`, `http_get`). The skills hold workflow, judgment, policy, market data, beta status and pitfalls. `python3 -I scripts/check_apis.py` checks that every API name used in the skills still exists in the live reference. The update routine is in `docs/weekly-update.md`.
+The skills do not copy API signatures; the agent looks them up live through the Studio MCP (`list_skills`, `http_get`). The skills hold workflow, judgment, policy, market data, beta status and pitfalls. Market numbers come live from `roblox-market-research/scripts/market.py`; the snapshot in that skill expires about 2026-12-15. `python3 -I scripts/check_apis.py` checks that every API name used in the skills still exists in the live reference. The update routine is in `docs/weekly-update.md`.
 
 ## License
 

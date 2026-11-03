@@ -1,10 +1,11 @@
 ---
 name: roblox-bots-npcs
-description: "Use when a Roblox game needs NPCs, enemies, allies or bots: pathfinding, state machines, spawns, bot fill so a solo player never plays an empty server, server cost and testing."
+description: "Use when a Roblox game needs NPCs, enemies, allies or bots: pathfinding, state machines, spawns, talking NPCs and ProximityPrompt interactions, bot fill so a solo player never plays an empty server, server cost and testing."
 when_to_use: "Also when the planning advice says a mode must be solo-viable, when a match needs more players than are present, when NPCs get stuck, walk through walls, lag the server or ignore MoveTo, and before putting more than a handful of agents in a server."
 last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/characters/pathfinding (navigation mesh, agent parameters, modifiers, visualization)
+  - https://create.roblox.com/docs/ui/proximity-prompts and /resources/npc-kit
   - roblox-pitfalls (anchored NPC poses ignore MoveTo)
   - roblox-design-and-launch section 1a (solo-viable checklist)
   - original (design judgment; budgets not measured)
@@ -33,6 +34,15 @@ Ask: how many agents per server at once, what must they do, can they be simpler 
 ## 3. State machine, not a pile of ifs
 
 Keep states few: Idle, Patrol or Follow, Chase, Attack, Return, Dead. One update loop per agent group (not one `while true` per agent), a state-change function that cleans up the previous state, and a single place that releases poses. Anchored roots ignore `MoveTo` (`roblox-pitfalls`): release the pose in one helper that every move path calls.
+
+NPC animations play from the server (`roblox-feel-audio-vfx` section 3a). Code that reads or writes NPC joints as `Motor6D` breaks under the Avatar Joint Upgrade (`roblox-engine-2026` section 3).
+
+## 3a. Talking NPCs, shops, interactions
+
+- Interaction: a `ProximityPrompt` on the NPC (`ActionText` "Talk", `ObjectText` the name, `HoldDuration` 0 for talk, longer for risky actions; `MaxActivationDistance`, `RequiresLineOfSight`). Handle `Triggered` (or `ProximityPromptService.PromptTriggered`) on the server; phones can always tap the prompt.
+- Dialog: drive lines from a data table (id, text, choices, next id) and show them in your own UI; captions go through localization. Server checks anything a choice grants (shop purchase, quest start), with the same rules as remotes (`roblox-engine-2026` section 4).
+- Prefab option: the official NPC Kit (`/docs/resources/npc-kit`) has ready NPCs; audit it like any inserted model.
+- Combat NPCs reuse the hit and damage rules of `roblox-combat-tools`; round-based enemies spawn from `roblox-match-flow`.
 
 ## 4. Server cost (judgment, measure on your map)
 
