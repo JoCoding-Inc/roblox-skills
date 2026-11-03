@@ -1,7 +1,7 @@
 ---
 name: roblox-game-pipeline
-description: "Use FIRST for any new Roblox game, game idea or big feature to run the staged production workflow: tool check, vision, live-market and platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, build loop with evidence, verify, release. For Roblox games this replaces generic brainstorming."
-when_to_use: "Also when the user says 'make a game', 'I'm making a Roblox game', 'what do you think of this idea', 'is X a good game idea', 'what should I make', 'what is trending', 'plan this game', 'let's start a project', asks how autonomous the agent should be, or whether to use subagents; when small decisions (cinematic, style, intro, music, loading screen) keep coming up late; when work stalls because nobody chose a working mode. Replaces ad-hoc starts: run roblox-project-intake inside stage 0-1 and roblox-market-research in stages 1-2, then continue here."
+description: "Use FIRST for any new Roblox game, game idea or big feature to run the staged production workflow: tool check, vision, live-market and platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, first proof (core-fun prototype, concept images or concept trailer with gwanggo), build loop with evidence, verify, release. For Roblox games this replaces generic brainstorming."
+when_to_use: "Also when the user says 'make a game', 'I'm making a Roblox game', 'what do you think of this idea', 'is X a good game idea', 'what should I make', 'what is trending', 'plan this game', 'let's start a project', asks how autonomous the agent should be, or whether to use subagents; asks for a prototype, a playable test of the core loop, concept art or a trailer before building; when small decisions (cinematic, style, intro, music, loading screen) keep coming up late; when work stalls because nobody chose a working mode. Replaces ad-hoc starts: run roblox-project-intake inside stage 0-1 and roblox-market-research in stages 1-2, then continue here."
 last_reviewed: 2026-11-03
 sources:
   - superpowers plugin 7.0.0 skills: brainstorming, writing-plans, executing-plans, subagent-driven-development, verification-before-completion, finishing-a-development-branch (read 2026-11-03; rules adapted, not copied)
@@ -18,7 +18,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 
 1. **Ask in small steps.** One topic per message, at most 4 questions in a round, each with a recommended default marked (D). Open question first ("tell me about the moment a player loves your game"), menus only when the user is stuck.
 2. **Offer the skip.** The first message says: "Say 'just decide' and I will pick defaults and write them down." Then record every default in `docs/brief.md` as assumed, so it can be corrected.
-3. **Show, do not describe**, whenever the choice is visual (style board, section 3) or about layout.
+3. **Show, do not describe**, whenever the choice is visual (style board, section 3) or about layout. For generated images and video, offer gwanggo at the moments in section 10; without it, use the fallback listed there.
 4. **Write decisions down** in `docs/brief.md` (what and why) and `docs/ledger.md` (rulings during work, format `Ruling: <what> - <why> - <cost if wrong>`). A decision not written will be lost when the session is compacted.
 5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention.
 6. **Look up, do not recall.** At the start call `list_skills` on the Studio MCP and load the matching `rbx-*` skill; read the live API page (`http_get`, see `roblox-dev-workflow` section 0) before using anything new, beta or renamed.
@@ -35,11 +35,12 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 | 4 Moments and small decisions | Cinematics (`roblox-cinematics`), intro, loading screen, logo, music, tutorial, etc. (section 4) | Decision cards answered or defaulted |
 | 5 Working mode | Control level and agent mode (section 5) | Both chosen |
 | 6 Plan | `docs/plan.md`: small tasks, each with files, done-definition and check | User reads the task list |
+| 6b First proof | User picks: core-fun prototype, concept images, concept trailer, or straight to the build (section 6b) | Prototype verdict written, or concept assets reviewed |
 | 7 Build | Greybox first, then loop, then art, then polish (`roblox-dev-workflow`) | per working mode |
 | 8 Verify | Full playtest on phone-size and PC, cinematic exits, failure paths (`roblox-dev-workflow` 4b) | Evidence list |
 | 9 Release | `roblox-release-automation` (gates in 4a); user does the hand steps | User approves publish |
 
-Do not start stage 7 before 3, 4 and 5 are answered or defaulted and every Required tool from stage 0 passes. Changing an answer later is allowed: update the brief and say what rework it causes.
+Do not start stage 7 before 3, 4, 5 and 6b are answered or defaulted and every Required tool from stage 0 passes. Changing an answer later is allowed: update the brief and say what rework it causes.
 
 Stage 0 runs before the first question, also when the user opens with an idea. Show its table in the same message as the first answer, so the user can set tools up while planning goes on.
 
@@ -135,6 +136,39 @@ Mode: solo (live Studio)
 
 Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the core loop, then the progression engine, then onboarding, then art, then moments, then polish, then economy and monetization, then store art. Tag tasks `solo` or `delegate` so the working mode is already applied. Put the riskiest or least understood task first when it can change the design (spike it).
 
+## 6b. First proof (after the plan, before the full build)
+
+When the plan is approved, ask once, several picks allowed: "Before the full build, what do you want to see first?"
+
+| Option | You get | Needs | Cost |
+|---|---|---|---|
+| A. Core-fun prototype (D) | A playable greybox of the most-repeated action, its feedback, the first reward and one upgrade | Studio MCP | 1-3 plan tasks, no credits |
+| B. Concept images | 3-6 stills: key art, one gameplay screen, the clip-worthy moment, the hero character or creature | gwanggo MCP | Credits per image, quoted first |
+| C. Concept trailer | 15-30 s video made from B's stills: 3-5 shots, captions, title card | gwanggo MCP | More credits than B, quoted first |
+| D. Straight to the full build | Stage 7 as planned | - | - |
+
+Pick A first when the core action is the risk; B or C first when the pitch or the look is the open question (the user wants to show friends or a team). B then C, and A plus B, are common.
+
+**A. Core-fun prototype**
+- Build it in the real project as the first greybox tasks, not in a throwaway place, so stage 7 continues from it. Tag those tasks `Prototype` in the plan.
+- In: the minute-to-minute action, one sound and one number pop as feedback, the first reward, one upgrade, the twist if it is mechanical. Placeholder parts and default UI.
+- Out: saves, shop, monetization, art pass, cinematics, loading screen, settings.
+- Test: the agent playtests through Studio MCP (screenshots, console), then the user plays it in Studio or on a phone through a private test place (`roblox-release-automation`). If multiplayer is the point, use Server & Clients with 2 clients.
+- Verdict from three questions: does the action feel good within 30 s? Does the player want the next upgrade? Does the twist show in the first 2 minutes? Write keep / change / drop to `docs/ledger.md` and update the plan before stage 7.
+
+**B. Concept images (gwanggo)**
+- Check the connection (`list_models`, `get_credits`), quote model, count and credits (`plan_generation` when the server has it), and wait for the user's yes.
+- Prompt from the brief: style lane, 3 palette colors, camera, the scene, "3D Roblox game screenshot, blocky avatar proportions". Pass the chosen lane card or style board as the reference image. Never name other live games or their characters in a prompt.
+- Save to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). These steer direction; they are not shipped art.
+
+**C. Concept trailer (gwanggo)**
+- Shot list first (format in `roblox-cinematics` section 4): hook = the clip-worthy moment, then the core action, the progression payoff, the twist or friends, title card; 3-6 s per shot.
+- Each shot is image-to-video from a B still; describe motion and camera, not the still. 16:9 for a pitch or YouTube, 9:16 for Shorts or TikTok tests (the `gwanggo-social-video` skill plans these if installed).
+- Join the clips with `ffmpeg -f concat -safe 0 -i shots.txt -c copy trailer.mp4` when ffmpeg exists (re-encode if the clips differ); otherwise hand over the clips in order.
+- Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness).
+
+**Without gwanggo:** offer setup once (`roblox-project-intake` step 1c), then fall back: a written storyboard (one line per shot, format above), greybox screenshots with Studio MCP `screen_capture`, Blender renders (`look`), or another image or video tool the user has connected. Say which fallback was used.
+
 ## 7. Build loop (stage 7)
 
 Per task: read the task and brief, do it, run its check, read the output, commit, write the ledger line, tick the task. Use `roblox-dev-workflow` for tools and `roblox-pitfalls` when MCP or publishing misbehaves. Saves: `roblox-data-saves`. Enemies, allies, bot fill: `roblox-bots-npcs`. Weapons, hit detection, Server Authority: `roblox-combat-tools`. Rounds, lobbies, teleports, leaderboards: `roblox-match-flow`. Sound, effects, lighting: `roblox-feel-audio-vfx`. Camera moments: `roblox-cinematics`. On a failure, find the cause before changing code (`superpowers:systematic-debugging`). Spikes (throwaway builds to feel something out) are allowed and labeled as spikes; their lessons go back to the brief.
@@ -148,3 +182,16 @@ Per task: read the task and brief, do it, run its check, read the output, commit
 ## 9. When the user changes their mind
 
 Update the brief, list the tasks affected, and say the rework cost in one line before continuing. Do not silently keep building on an old decision.
+
+## 10. Images and video along the way (gwanggo)
+
+Offer generation at the moment it helps, in one line with the credit cost, never all up front. Every spend needs the user's yes. Log each result in `assets/concept/README.md` (or the store-art folder): prompt, model, credits, date.
+
+| Moment | Generate with gwanggo | Fallback without it |
+|---|---|---|
+| Stage 3 look | Mood images for a mix of lanes (lane card as reference) | Lane cards, live-game contact sheet |
+| Stage 6b first proof | Concept images, concept trailer | Written storyboard, greybox screenshots |
+| Brand (stage 4 cards, built in stage 7) | Logo candidates, loading-screen art (`roblox-store-art-pack` sections 6-7) | Text logo built in Studio, Blender render |
+| Stage 9 launch | Icon and thumbnail drafts built from real screenshots, Ads Manager creative variants, short social clips of real gameplay | Studio screenshots and Blender renders, edited by hand |
+
+If gwanggo is not connected when a moment comes, say what it would add, offer the setup in `roblox-project-intake` step 1c once, and use the fallback if the user declines.
