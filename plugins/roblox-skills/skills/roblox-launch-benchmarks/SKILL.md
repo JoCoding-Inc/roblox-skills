@@ -49,7 +49,7 @@ Mark each PASS with evidence (screenshot, dashboard, readback). Hard gates block
 9. Max players: inside 7-30; justify values outside it.
 10. Passes: 4-8 live at launch with prices from the ladder (99, 149, 199, 299, 399, 499, 799); no price above 800 before there is player demand.
 11. Like ratio after the first 1,000 votes: target 0.85 or higher; below 0.76 investigate onboarding and monetization pressure first.
-12. Loading: custom loading screen only if `ReplicatedFirst` stays lean and the screen closes as soon as the game loads (`roblox-store-art-pack` section 7); no forced wait.
+12. Loading: custom loading screen only if `ReplicatedFirst` stays lean and the screen closes as soon as the game loads (`roblox-store-art-pack` section 7); no forced wait; only first-screen assets are preloaded (tier 0), the rest loads in the background or on demand, with a measured join time.
 13. Update cadence: a published update or event within each week once live; tag the title or thumbnail with the update.
 
 ## How to refresh
