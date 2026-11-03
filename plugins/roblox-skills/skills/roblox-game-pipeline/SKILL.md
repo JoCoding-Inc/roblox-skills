@@ -125,7 +125,7 @@ Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the
 
 ## 7. Build loop (stage 7)
 
-Per task: read the task and brief, do it, run its check, read the output, commit, write the ledger line, tick the task. Use `roblox-dev-workflow` for tools and `roblox-pitfalls` when MCP or publishing misbehaves. On a failure, find the cause before changing code (`superpowers:systematic-debugging`). Spikes (throwaway builds to feel something out) are allowed and labeled as spikes; their lessons go back to the brief.
+Per task: read the task and brief, do it, run its check, read the output, commit, write the ledger line, tick the task. Use `roblox-dev-workflow` for tools and `roblox-pitfalls` when MCP or publishing misbehaves. Saves: `roblox-data-saves`. Enemies, allies, bot fill: `roblox-bots-npcs`. Sound, effects, lighting: `roblox-feel-audio-vfx`. Camera moments: `roblox-cinematics`. On a failure, find the cause before changing code (`superpowers:systematic-debugging`). Spikes (throwaway builds to feel something out) are allowed and labeled as spikes; their lessons go back to the brief.
 
 ## 8. Verify and release (stages 8-9)
 

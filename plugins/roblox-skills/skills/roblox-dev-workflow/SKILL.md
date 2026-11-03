@@ -15,7 +15,7 @@ sources:
 
 # Roblox development workflow (idea to live ops)
 
-Run `roblox-game-pipeline` for the staged flow (questions, working mode, plan). Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`.
+Run `roblox-game-pipeline` for the staged flow (questions, working mode, plan). Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-data-saves`, `roblox-bots-npcs`, `roblox-feel-audio-vfx`, `roblox-cinematics`, `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`.
 
 ## 1. The phases
 
