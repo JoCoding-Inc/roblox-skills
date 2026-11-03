@@ -5,7 +5,7 @@ Seven original concept images the agent shows the user in stage 3 of `roblox-gam
 | Card | File | Look | Palette to start from | Fits | UI feel |
 |---|---|---|---|---|---|
 | Chunky cartoon | `chunky-cartoon.jpg` | Thick outlines, candy colors, rounded oversized shapes, sunburst sky, stud floor | saturated green, sky blue, yellow, hot pink, black outlines | Simulators, tycoons, pet and collect games | Glossy outlined buttons with highlight lips (`roblox-ui-genre-studs`) |
-| Classic blocky | `classic-blocky.jpg` | Plain primary-color parts on a green baseplate, flat sky | red, blue, yellow, green | Obbies, classic builds, nostalgia | Plain translucent gray bars, square icons |
+| Classic blocky | `classic-blocky.jpg` | Plain primary-color parts on a green baseplate, flat sky | red, blue, yellow, green | Obbies, classic builds, nostalgia | Dark flat compact bars, small square icons (`../ui-styles/dark-flat.jpg`); parts with studs on every face (`../part-looks/`) |
 | Low-poly stylized | `low-poly.jpg` | Flat-shaded facets, few colors per object, warm sunset | teal, orange, olive, warm gray | Adventure, exploration, RPG | Thin rounded panels, pictogram icons |
 | Anime cel | `anime-cel.jpg` | Ink outlines, flat fills, hard shadows, dramatic sky | electric blue, magenta, white, deep navy | Action RPG, fighting, gacha-like | Angled sleek HUD, skill icons |
 | Cozy pastel | `cozy-pastel.jpg` | Soft light, rounded props, muted colors | peach, mint, lavender, cream | Farming, decorating, social, roleplay | Cream rounded cards, pastel buttons |

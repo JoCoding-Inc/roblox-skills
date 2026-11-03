@@ -83,8 +83,9 @@ Ask for taste with pictures, not adjectives.
 
 2. After the user leans toward a lane, add real references from live games of the same genre for that lane (not for all seven): run `roblox-launch-benchmarks` `scripts/collect.py` then `scripts/art_fetch.py` (thumbnails land in `thumbs/`), or search the genre on the charts. Make one labeled contact sheet (Pillow) with the lane names.
 3. Show it to the user: send the PNG (`SendUserFile`) or publish a private Artifact page. Ask: "Which lane is closest? Which one is the opposite of what you want?" Then offer: "Want to see your game itself in the 2-3 closest looks? I can make one image each with gwanggo, about N credits." Recommend it, and always when no lane fits, the user wants a mix, or describes a look the cards do not show. Each image shows the game's own scene (its setting and core action, for example a member lifting in a small gym), only the look changes (section 10a). Examples of finished screens: `assets/examples/` (loading screen) and `roblox-ui-genre-studs/references/` (stud-style HUD, shop, quests, rewards).
-4. Record in the brief: chosen lane, 3 palette colors, line weight, the font pair (picked from a specimen screenshot, `roblox-ui-typography` section 2), 2-3 reference file paths in `assets/refs/` (private notes, never shipped or uploaded), and the "avoid" lane.
-5. Rules: live-game references are other creators' work: they steer direction and are never copied, traced or uploaded. The lane cards and the example images in this plugin are ours or the owner's own. Logo and icon follow `roblox-store-art-pack` section 6.
+4. **UI style**, right after the lane: `assets/ui-styles/` holds eight example screens, one per common Roblox UI style, all showing the same HUD and shop (see its README, column "Fits", with the share of the live chart each covered). Show only the 3-4 that fit the genre and lane (`style_board.py ui.png --dir <skill dir>/assets/ui-styles --only ...`), describe each in one line set in this game, then offer images of the user's own HUD and shop in the 2-3 closest styles (rule 3, section 10a; the README has the prompt). The pick decides the UI skill: stud chunky goes to `roblox-ui-genre-studs`, the others to the UI rules in `roblox-engine-2026` with the README's build notes.
+5. Record in the brief: chosen lane, UI style, 3 palette colors, line weight, the font pair (picked from a specimen screenshot, `roblox-ui-typography` section 2), 2-3 reference file paths in `assets/refs/` (private notes, never shipped or uploaded), and the "avoid" lane.
+6. Rules: live-game references are other creators' work: they steer direction and are never copied, traced or uploaded. The lane cards and the example images in this plugin are ours or the owner's own. Logo and icon follow `roblox-store-art-pack` section 6.
 
 ## 4. Moments and small decisions (stage 4)
 
@@ -153,7 +154,7 @@ List the asset classes (for example machines and furniture, building kit, charac
 
 | Tool | Cost | Good at | Not for |
 |---|---|---|---|
-| Parts built by script (agent writes `execute_luau` or Rojo model files) | No credits; instant; edit in Studio | Blocky and chunky props, machines, furniture, buildings, map structure; classic and chunky-cartoon lanes | Organic or detailed shapes; many parts per repeated prop (keep counts low, reuse one model) |
+| Parts built by script (agent writes `execute_luau` or Rojo model files) | No credits; instant; edit in Studio | Blocky props, machines, furniture, buildings, map structure; the classic blocky lane fully, chunky cartoon only for shapes (no thick outlines) | Organic or detailed shapes; many parts per repeated prop (keep counts low, reuse one model) |
 | Roblox Cube (Studio MCP `generate_mesh`) | No credits; rate limited (1-2 jobs at a time) | Static props, furniture, machines, vehicles; a reference image keeps the look | Rigs; exact modular sizes |
 | gwanggo `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
 | `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) | Organic shapes |
@@ -162,6 +163,7 @@ List the asset classes (for example machines and furniture, building kit, charac
 
 - When a class covers many assets and the user has not seen the options, run a **bake-off**: make the same object (one machine, one pet) with each available tool, screenshot them side by side in Studio (or a sheet with `scripts/style_board.py`), and let the user pick. Quote gwanggo credits first. Never mark one option (D) and skip the others unseen.
 - Judge from the samples, not from memory: "AI output has inconsistent style" is not true of a style-locked gwanggo project or Cube with a reference image; the raw-mesh warning in `roblox-blender-export` section 9 is about the Blender MCP generators.
+- When parts are in the mix, settle the part look before building: send `assets/part-looks/stud-surfaces.jpg` (studs on every face, new-part default, smooth, faint stud texture; real Studio renders) and `materials.jpg`, describe each option in one line set in this game, and record `Part look:` in the brief. The README there has the property settings and a helper.
 - Record the result in the brief as `Art source: <class> -> <tool> (<reason>)` lines and tag the art tasks with it.
 
 ## 6b. First proof (after the plan, before the full build)
@@ -200,7 +202,7 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 
 ## 7. Build loop (stage 7)
 
-Per task: read the task and brief, do it, run its check, read the output, commit, write the ledger line, tick the task. Use `roblox-dev-workflow` for tools and `roblox-pitfalls` when MCP or publishing misbehaves. Saves: `roblox-data-saves`. Enemies, allies, bot fill: `roblox-bots-npcs`. Weapons, hit detection, Server Authority: `roblox-combat-tools`. Rounds, lobbies, teleports, leaderboards: `roblox-match-flow`. Sound, effects, lighting: `roblox-feel-audio-vfx`. Reveals, auras, rarity and celebrations: `roblox-fun-effects`. Fonts and text: `roblox-ui-typography`. Camera moments: `roblox-cinematics`. On a failure, find the cause before changing code (`superpowers:systematic-debugging`). Spikes (throwaway builds to feel something out) are allowed and labeled as spikes; their lessons go back to the brief.
+Per task: read the task and brief, do it, run its check, read the output, commit, write the ledger line, tick the task. Use `roblox-dev-workflow` for tools and `roblox-pitfalls` when MCP or publishing misbehaves. Saves: `roblox-data-saves`. Enemies, allies, bot fill: `roblox-bots-npcs`. Weapons, hit detection, Server Authority: `roblox-combat-tools`. Rounds, lobbies, teleports, leaderboards: `roblox-match-flow`. Sound, effects, lighting: `roblox-feel-audio-vfx`. Reveals, auras, rarity and celebrations: `roblox-fun-effects`. Character motions (exercise loops, sitting, interactions): `roblox-character-motion`. Fonts and text: `roblox-ui-typography`. Camera moments: `roblox-cinematics`. On a failure, find the cause before changing code (`superpowers:systematic-debugging`). Spikes (throwaway builds to feel something out) are allowed and labeled as spikes; their lessons go back to the brief.
 
 ## 7a. Feel checkpoints: the user plays
 
@@ -214,6 +216,7 @@ The agent checks what a machine can measure: errors, console, layout, screenshot
 | Difficulty and pacing (first 10 minutes, jumps, upgrade costs) | Frustration and boredom are personal; the agent knows every answer | Where did you get stuck or bored? |
 | Onboarding (first 2 minutes) | A first-time player does not know what the agent knows; best tested by someone who has never seen the game | Did you know what to do without reading? |
 | Scares, tension, cinematics | Timing works on people, not on logs | Surprised or scared? Too long? |
+| Character motions (exercise loops, interactions, emotes) | Contacts are measured first (`roblox-character-motion` section 7); weight and timing are felt | Looks like the real move? Too fast or slow for the reward? |
 | Rolls, reveals, rare drops, celebrations | Excitement and "too long" are felt; tier timings are judgment (`roblox-fun-effects`) | Did you want to show someone? Skip anything? |
 | Audio mix and music | Loudness and annoyance on real speakers over 5+ minutes | Anything too loud or tiring? |
 | Phone controls | Thumb reach and button size on a real phone, not the emulator | Anything hard to tap or under your thumb? |
@@ -285,7 +288,7 @@ AI text in images can be misspelled: check every letter, or leave titles off and
 
 ### 10a. Example images for any design choice
 
-Use this for every choice of how something looks or moves, after the bundled examples that fit (lane cards, `assets/ui-styles/`, `assets/examples/`, `roblox-ui-genre-studs/references/`) and the word options (rule 3). The bundled images are generic; examples of the user's own game decide faster. Ask before making them, and recommend it.
+Use this for every choice of how something looks or moves, after the bundled examples that fit (lane cards, `assets/ui-styles/`, `assets/part-looks/`, `assets/examples/`, `roblox-ui-genre-studs/references/`) and the word options (rule 3). The bundled images are generic; examples of the user's own game decide faster. Ask before making them, and recommend it.
 
 | Choice | Example to generate |
 |---|---|

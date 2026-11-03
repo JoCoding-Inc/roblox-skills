@@ -2,7 +2,7 @@
 name: roblox-blender-export
 description: "Use when making Roblox meshes in Blender (bats, props, kit pieces, voxel animals, icons) and getting them into Studio: scale, pivot, axis, FBX export call, color-as-texture, triangle budgets, collision, upload."
 when_to_use: "Also when an imported mesh is the wrong size, faces the wrong way, renders white/untextured, is inside-out, too heavy, or collides badly; before scripting a Blender asset pipeline or Open Cloud upload; when driving a live Blender through MCP or sharing it between sessions."
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-03
 sources:
   - https://github.com/brain-xiang/grok-studio (skills/blender-assets, reference/roblox_export.py; MIT)
   - https://github.com/Crazyshermy/-Roblox (.claude/skills/roblox-blender-modelling; no license, facts re-authored)
@@ -26,7 +26,7 @@ Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are
 ## Official rules at a glance (creator-docs, 2026-10-29)
 
 - Geometry: at most **20,000 triangles per mesh**; watertight (no holes or backfaces); quads where possible, no n-gons; no zero-thickness meshes. Avatar items have their own, stricter budgets.
-- Rigs: bones/joints frozen (scale 1,1,1, rotation 0,0,0), root at 0,0,0, **max 4 bone influences per vertex**, no influence on the root, keep symmetry. Only **one animation track** per FBX export, so export each animation separately.
+- Rigs: bones/joints frozen (scale 1,1,1, rotation 0,0,0), root at 0,0,0, **max 4 bone influences per vertex**, no influence on the root, keep symmetry. The Animation Clip Editor importer reads FBX and glTF with several clips per file (full release 2026-03-31); older guides say one animation track per FBX. Character animation choices: `roblox-character-motion`.
 - Textures: PNG, JPG, TGA or BMP, up to 4096x4096 (the engine streams low resolution first). One material per mesh. Suggested size by object width: 5 studs 256, 10 studs 512, 20 studs 1024. PBR via `SurfaceAppearance` (colour, normal in OpenGL tangent space, metalness, roughness and emissive-mask maps; an emissive mask on an avatar item adds a 500 Robux upload fee; `SurfaceAppearance` properties cannot be changed by script at runtime) overrides `TextureID`.
 - Cages: `<Name>_InnerCage` and `<Name>_OuterCage` meshes for layered clothing; never delete cage vertices or alter their UVs. Characters need an outer cage.
 - Blender setup: Scene > Units > Unit System **None**, rotation Degrees. Blender is Z-up, Studio is Y-up.
@@ -56,6 +56,8 @@ Measuring it without eyeballing: read the vertices from the imported MeshPart (`
   bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
   ```
 
+  With `location=True` a piece built away from the origin keeps its geometry there and its origin moves to world (0, 0, 0) (Blender 5.2.2 round trip). Build each piece at the origin; lay pieces out only for the contact sheet.
+
 - One object = one MeshPart. Join the pieces that share a material and never move apart.
 - Hard limit: 20,000 tris per mesh. Budgets:
 
@@ -78,8 +80,8 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   bake_anim=False, path_mode='COPY', embed_textures=True)
 ```
 
-- Official Blender FBX checklist: Path Mode **Copy** + **Embed Textures**; Apply Scalings **FBX Unit Scale** (see the Blender FBX scaling guide if size is wrong); Armature > **Add Leaf Bones** off; **Bake Animation** off unless exporting keyframes (walk cycle, facial data). The call above already encodes these.
-- Apply modifiers on export, or the bevels never reach Roblox. For glTF, set `export_apply=True`.
+- Official Blender FBX checklist: Path Mode **Copy** + **Embed Textures**; Apply Scalings **FBX Unit Scale** (see the Blender FBX scaling guide if size is wrong); Armature > **Add Leaf Bones** off; **Bake Animation** off unless exporting keyframes (walk cycle, facial data). The call above already encodes these and runs without errors on Blender 5.2.2 (tested 2026-11-03, 0.07 s for a 3-piece kit). Keep `colors_type`, `use_triangles`, `bake_space_transform`, `add_leaf_bones`, `bake_anim` and `embed_textures` explicit: their defaults differ.
+- Apply modifiers on export, or the bevels never reach Roblox (measured: 268 tris with `use_mesh_modifiers=True`, 60 without). For glTF, set `export_apply=True`.
 - Keep normals outward. Run a scripted check: inside-out faces are invisible in renders and only show in Studio.
 
 ## 3. Color
@@ -87,7 +89,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 - A plain Principled Base Color arrives wrong (white or mis-converted). Use one of these instead:
   1. **Palette PNG (default):** a small sRGB PNG with one swatch per color, and UVs scaled inside each swatch with a margin of 2 texels or more. Leave `MeshPart.Color` white.
   2. **Packed image texture** of 1024 px or less, for grain, logos or decals, UV-unwrapped.
-  3. **Vertex colors:** reported kept for GLB uploads; untested for FBX.
+  3. **Vertex colors:** a Blender round trip keeps them with FBX `colors_type='SRGB'`; the section 2 call (`'NONE'`) drops them. For GLB use `export_vertex_color='ACTIVE', export_all_vertex_colors=False`; the default `'MATERIAL'` writes a white `COLOR_0` and puts the real colors in `COLOR_1`. The Roblox side is untested.
 - Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
 - Tint variants (rarity, tiers): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap).
@@ -122,6 +124,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 
 - Contact sheet of every asset (EEVEE, key plus rim light, flat background) for review at phone size before uploading.
 - Icon decals: Workbench or EEVEE, `film_transparent=True`, RGBA PNG, square, 512 px.
+- Headless `-b` renders on Apple Silicon (tested Blender 5.2.2, M4 Pro). Engine ids on 5.x: `BLENDER_EEVEE`, `BLENDER_WORKBENCH`, `CYCLES` (`BLENDER_EEVEE_NEXT` raises `TypeError`). Measured: 512 px icon 0.85 s on EEVEE, 0.14 s on Workbench; a 1536x512 three-object sheet 0.3 s on EEVEE, 7.5 s on Cycles (CPU).
 - Review checklist: distinct silhouettes per tier, readable at 128 px, palette consistent across the family, nothing default grey.
 
 ## 7. Licensing
@@ -139,10 +142,10 @@ Headless script or live window?
 | Parallel work | Each run is separate, so several subagents can work at once | Every session shares one scene; own collection only, or a second Blender on another port |
 | Reproducible | The script is the asset: rerun gives the same result | Edits pile up in the chat; save them back into a script |
 | Extras | Full `bpy` (model, export, render) | Plus Poly Haven, Sketchfab and Poly Pizza import, `generate_3d`, `look` |
-| Memory | Only while running | The window stays open |
+| Speed and memory | 0.6 s start and about 230 MB for an empty run; 0.35-0.45 GB while rendering EEVEE or Workbench, up to 1 GB on Cycles (measured, Blender 5.2.2) | The window stays open (one measured at 830 MB after 2 days) |
 | User | Nothing to do | Keeps Blender open and presses Connect |
 
-Produce and export assets headless (subagents especially). Use the live window to explore with the user, import library assets or try `generate_3d`, then move the result into a script. The MCP add-on is started from the window's sidebar; running it under `blender -b` is untested.
+Produce and export assets headless (subagents especially). Use the live window to explore with the user, import library assets or try `generate_3d`, then move the result into a script. The MCP add-on cannot run under `blender -b` (tested 2026-11-03, add-on v1.8 on Blender 5.2.2): it refuses to start in background mode, and `bpy.app.timers`, which drain its command queue, never fire there, so commands time out. MCP tools therefore always need a window.
 
 MCP for Blender (`uvx mcp-for-blender`, addon "MCP for Blender") drives the user's open Blender. Every Claude session with the server in its config talks to the same Blender on `localhost:9876`. The addon accepts several clients, but runs their commands one at a time in one shared scene.
 
