@@ -73,7 +73,7 @@ Ask these as **decision cards**: one line, a default, one more question only if 
 |---|---|
 | Moments | Cinematic at all? [none until the loop is fun; if yes, `roblox-cinematics` section 1] ; first-join intro [short, skippable] ; boss or unlock moment [4-6 s, skippable] ; ending [none yet] |
 | Feel | Camera [third person, shoulder only if shooter] ; hit feedback and screen shake [on, with a setting] ; haptics on phone [off] ; music [one looping track + SFX set] ; SFX style [matches lane] |
-| Onboarding | Tutorial [learn by doing in the first 2 minutes] ; loading screen [custom, themed, skippable] ; first reward time [under 2 min] |
+| Onboarding | Tutorial [learn by doing in the first 2 minutes] ; loading screen [custom, themed, skippable] ; first reward time [under 2 min] ; first screen assets [only what the first screen shows load before play; the rest loads in the background or on demand, `roblox-store-art-pack` section 7] |
 | Brand | Game name and logo [after core loop is fun] ; icon and thumbnails [late, `roblox-store-art-pack`] ; trailer [no] |
 | Social | Friend bonus [on] ; private servers [free] ; leaderboard [yes if score-based] ; chat [platform default] |
 | Systems | Daily reward [after the loop works] ; shop and passes [after the loop works, `roblox-design-and-launch` section 2] ; localization [English first, strings in a table] ; accessibility options [text size, shake toggle] |
@@ -121,7 +121,7 @@ Check: playtest screenshot per shot + console clean
 Mode: solo (live Studio)
 ```
 
-Order: greybox of the core loop, then the progression engine, then onboarding, then art, then moments, then polish, then economy and monetization, then store art. Tag tasks `solo` or `delegate` so the working mode is already applied. Put the riskiest or least understood task first when it can change the design (spike it).
+Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the core loop, then the progression engine, then onboarding, then art, then moments, then polish, then economy and monetization, then store art. Tag tasks `solo` or `delegate` so the working mode is already applied. Put the riskiest or least understood task first when it can change the design (spike it).
 
 ## 7. Build loop (stage 7)
 

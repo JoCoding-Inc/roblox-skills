@@ -2,7 +2,7 @@
 name: roblox-store-art-pack
 description: "Use for any genre when picking and quarantining Creator Store models, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only."
 when_to_use: "Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
-last_reviewed: 2026-11-02
+last_reviewed: 2026-11-03
 sources:
   - https://github.com/blauwtje/roblox-kit (map-building/reference/daylight-look.md, ui-images; MIT)
   - https://github.com/brain-xiang/grok-studio (skills/thumbnail-and-icon; MIT)
@@ -171,11 +171,28 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 - Teleports between places: call `TeleportService:SetTeleportGui(screenGui)` on the client with a `ScreenGui` stored in `ReplicatedStorage`. Scripts inside that gui do not run, so it must be static or animated by the sending client beforehand.
 - Studio 0.745 check (2026-11-02): `RemoveDefaultLoadingScreen`, `IsFinishedReplicating`, `FinishedReplicating`, `SetTeleportGui`, `PreloadAsync` and `ScreenGui.ScreenInsets` exist. The loading flow itself was not run (`game:IsLoaded()` is not meaningful in Edit mode); verify in a Team Test or a published server.
 
-**Load time is the real design problem (docs, performance-optimization/improve):**
-- Keep `ReplicatedFirst` to what the loading screen needs: a few UI elements, not big textures or 3D models.
-- Preload only the loading screen's images, key menu images and the spawn area with `ContentProvider:PreloadAsync()`. Do not preload all of `Workspace`, and do not wait on `ContentProvider.RequestQueueSize` (it fluctuates and adds time).
-- Keep `ReplicatedStorage` small and enable instance streaming; both cut the time the screen is visible.
-- If you must load many assets, add a **Skip Loading** button once the essentials are ready.
+**Load only what the first screen needs (docs: performance-optimization/improve, "Load times"; the tiers are our synthesis):**
+
+The join waits for `ReplicatedFirst`, then everything in `ReplicatedStorage` and the initial `Workspace`, then anything your scripts preload, then the avatar. The loading screen ends only when all of that is done, so every extra asset lengthens it. Rule: **the loading screen waits for the first screen, nothing more.** Everything else loads after the player can already play.
+
+| Tier | What | When |
+|---|---|---|
+| 0, blocks the loading screen | The loading screen's own images; the HUD and main-menu images visible on the first screen; the spawn area and the first thing the player does | Before `RemoveDefaultLoadingScreen` ends. Preload with `ContentProvider:PreloadAsync()` only these |
+| 1, background | Next zone, other menu tabs, common sound effects, music for the next minute | After the player can move. Start `PreloadAsync` in a separate `task.spawn`, do not wait on it |
+| 2, on demand | Shop pages, later worlds, boss assets, rare effects, long audio, cinematics | Load when the player opens or approaches it (stream the area, move the model from `ServerStorage` to the client when needed, load the audio per area) |
+
+Docs-backed rules:
+- Do not preload all of `Workspace` (it removes texture pop-in but adds a lot of load time) and do not wait on `ContentProvider.RequestQueueSize` (unreliable and slow).
+- Keep `ReplicatedFirst` to the loading screen's basics, not big textures or 3D models.
+- Keep `ReplicatedStorage` to what clients need at join, such as shared ModuleScripts. Move large models and audio to `ServerStorage` and send them to the client only when needed.
+- Enable instance streaming: only the area near the spawn replicates at join. Test scripts that read `Workspace` at join, since instances may not exist yet.
+- Avoid heavy startup `LocalScript` work (large data structures loaded synchronously).
+- Check for free-model scripts that spawn thousands of instances; they inflate join size.
+- If many assets are unavoidable, show a **Skip Loading** button once the essentials are ready.
+
+Planning use: while planning, list the first-screen assets (stage 4 decision card "first screen") and give each other asset a tier. Put the tiers in `docs/plan.md` as a loading budget, for example "Tier 0: 12 assets, under 3 MB".
+
+Measure instead of guessing (docs): time it with a stopwatch from Play to a visible world, or log `os.clock()` from a `ReplicatedFirst` script to `game.Loaded` (it excludes connection and avatar time), count `#workspace:GetDescendants()`, and turn on **Print Join Size Breakdown** (Studio Settings > Network) to see the 20 largest instances. Re-measure after each content update; a sudden jump usually means something new landed in `ReplicatedStorage`. Test on a throttled network and a low-end phone profile.
 
 **Design (community advice from DevForum threads, opinions not measurements; no public data on loading screens and retention was found):**
 - Show the logo, one short tip and a progress indicator tied to real loading. A uniform tween that stalls near the end reads as fake.
