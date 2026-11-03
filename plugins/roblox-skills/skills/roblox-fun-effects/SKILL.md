@@ -10,7 +10,8 @@ sources:
   - https://create.roblox.com/docs/en-us/reference/engine/classes/CaptureService.md, SocialService.md, MessagingService.md, ParticleEmitter.md, enums/HapticEffectType.md
   - https://create.roblox.com/docs/en-us/effects/particle-emitters.md (flipbooks switch off on low memory)
   - https://create.roblox.com/docs/en-us/resources/modules/emote-bar.md (mega emotes)
-  - community patterns read 2026-11-03 (RNG aura games, mutation games, DevForum feedback threads t/2880624, t/3424276); talks: "Juice it or lose it" (Jonasson, Purho), "The art of screenshake" (Nijman); Sakurai hitstop column (fan translation)
+  - community patterns read 2026-11-03 (RNG aura games, mutation games, DevForum feedback threads t/2880624 and t/3424276)
+  - talks Juice it or lose it (Jonasson and Purho) and The art of screenshake (Nijman); Sakurai hitstop column (fan translation)
   - https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html
   - original (tiers, timings and budgets are judgment, not measured)
 ---
