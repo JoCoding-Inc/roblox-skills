@@ -2,7 +2,7 @@
 name: roblox-pitfalls
 description: "Use when publishing a place through Open Cloud, loading Creator Store models at runtime, testing in Studio through MCP, generating meshes with Roblox Cube (Studio MCP generate_mesh), or when something works in Lune tests but not in the engine. Field notes of failures hit while shipping Roblox games with an AI agent."
 when_to_use: "Also on a 409 'Server is busy' publish error, models that load live but not in Studio, Creator Store downloads returning 403, empty Output, characters that never get set up, broken non-Latin text on signs, teleports that cannot be tested, a SpotLight that stops reaching, a Cube mesh that comes out the wrong size or as a blob, generate_mesh 'Too Many Requests', MCP screenshots that time out, or a texture that stays grey on a MeshPart, a cutscene camera that snaps back in MCP screenshots, a tooltip drawn under another frame, characters that fall over, or players standing on top of enemies."
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-03
 sources:
   - original (field notes from three test games, 2026-10)
   - https://create.roblox.com/docs/parts/model-generation
@@ -100,4 +100,4 @@ Studio MCP `generate_mesh` (Roblox Cube, `GenerationService`) makes a textured m
 - `TextChatService.PlatformIntegratedChat` cannot be read from `execute_luau` (property read errors): set it in the Properties panel and playtest by hand.
 - `BasePart:BindToCollisionSummaries` works from a Server `execute_luau` call during play: a part dropped from 30 studs reported the landing at relative speed about 108 with Normal (0,1,0) toward the part above the baseplate, then rebound contacts a few frames later. Use the dot product of `RelativeVelocity` and `Normal` for impact strength.
 - `AssetService:PromptCreateAssetAsync` no longer exists; use `PromptCreatePlatformContentAsync`. Old tutorials and cached code that call it fail with a nil method.
-- A beta API can exist as a class but not as a property: `UIShadow` and `AudioTextToSpeech` instantiate, `Camera.ProjectionMode` (orthographic beta) does not until the Studio beta is on. Probe with `pcall(function() return obj.Prop end)` before scripting against a beta.
+- A beta API can exist as a class but not as a property: `UIShadow` and `AudioTextToSpeech` instantiate, `Camera.ProjectionType` (orthographic beta) does not until the Studio beta is on. Probe with `pcall(function() return obj.Prop end)` before scripting against a beta.

@@ -21,7 +21,8 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 3. **Show, do not describe**, whenever the choice is visual (style board, section 3) or about layout.
 4. **Write decisions down** in `docs/brief.md` (what and why) and `docs/ledger.md` (rulings during work, format `Ruling: <what> - <why> - <cost if wrong>`). A decision not written will be lost when the session is compacted.
 5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention.
-6. **The user owns taste and money.** The agent decides reversible technical details. The user decides look, tone, spending, publishing.
+6. **Look up, do not recall.** At the start call `list_skills` on the Studio MCP and load the matching `rbx-*` skill; read the live API page (`http_get`, see `roblox-dev-workflow` section 0) before using anything new, beta or renamed.
+7. **The user owns taste and money.** The agent decides reversible technical details. The user decides look, tone, spending, publishing.
 
 ## 1. Stages and gates
 

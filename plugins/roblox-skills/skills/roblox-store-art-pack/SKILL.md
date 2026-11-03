@@ -39,7 +39,7 @@ Skip this section for horror, realistic or night games.
   | Interior ambient | warm even `#E8D2A8` |
 
 - The Brainrot / Egg look:
-  - Studs on floors (`Enum.Material.Studs` or a stud texture), saturated bright green ground, red carpet paths.
+  - Studs on floors (a stud texture, or `Enum.SurfaceType.Studs` on parts that use surface types; there is no stud Material), saturated bright green ground, red carpet paths.
   - Dark grey base frames, brown brick perimeter walls, wooden fences.
   - Avoid pastel SmoothPlastic.
 - Saturated color goes on what the player uses (machines, pads, shops); the surroundings are calmer.
