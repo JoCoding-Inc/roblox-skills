@@ -4,7 +4,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 
 | Skill | Use it for |
 |---|---|
-| `roblox-game-pipeline` | Run first: staged game-development workflow (tool check, vision, live-market and platform-fit advice, style board with seven reference lane cards, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
+| `roblox-game-pipeline` | Run first: staged game-development workflow (tool check, vision, live-market and platform-fit advice, style board with seven reference lane cards, four basic UI style cards and a Studio UI mockup script, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
 | `roblox-market-research` | Judge an idea against the live market: trending and rising charts, keyword competition, competitor teardown, hit decay curves, and a catalog of sites and public APIs for Roblox charts and keywords. `scripts/market.py` needs only Python 3 |
 | `roblox-combat-tools` | Weapons and Tools, hit detection, server validation, lag compensation and Server Authority caveats |
 | `roblox-match-flow` | Rounds, lobbies, matchmaking and teleports, reserved servers, leaderboards, AFK and shutdown handling |
@@ -60,7 +60,7 @@ Skills load on their own when the task matches their description. To update, run
 
 - Roblox Studio MCP: easiest is the official plugin (`/plugin`, search **Roblox Studio**, then ask "Get me set up with Roblox Studio"). Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). The old Rust server is archived
 - Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
-- Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs; read the safety notes in `roblox-blender-export` section 9
+- Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs. In Blender, turn the add-on on first: Edit > Preferences > Add-ons > MCP for Blender (tick it), then press Connect to MCP server in the viewport `N` panel. Read the safety notes in `roblox-blender-export` section 9
 - [gwanggo](https://gwanggo.ai) Game Studio MCP: a game project with a locked art style, concept images and a concept trailer, props and pets as textured GLB, icons, textures, logo and loading art; plus the web Thumbnail & Icon Kit. Every credit spend is quoted (`dry_run`) and asked first. Setup: https://gwanggo.ai/game/connect and https://gwanggo.ai/dashboard/mcp (Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, then approve the sign-in page). Without it the agent uses written storyboards, Studio screenshots, Roblox Cube and Blender
 
 ## Keeping it current

@@ -149,7 +149,13 @@ Produce and export assets headless (subagents especially). Use the live window t
 
 MCP for Blender (`uvx mcp-for-blender`, addon "MCP for Blender") drives the user's open Blender. Every Claude session with the server in its config talks to the same Blender on `localhost:9876`. The addon accepts several clients, but runs their commands one at a time in one shared scene.
 
-- Start with `get_addon_status`. "Could not connect" means Blender is closed or the addon is off: ask the user to enable it (Preferences > Add-ons > MCP for Blender, Save Preferences) and press **Connect to MCP server** in the viewport sidebar (`N` > MCP for Blender tab).
+Setup (the user does steps 2-3 in Blender; every MCP tool fails until the add-on is on and connected):
+1. `uvx mcp-for-blender install-addon` installs the add-on files.
+2. In Blender: **Edit > Preferences > Add-ons**, search "MCP for Blender", tick its checkbox to turn it on, then Save Preferences so it stays on after a restart.
+3. In the 3D viewport press `N`, open the **MCP for Blender** tab and press **Connect to MCP server**. Repeat this step every time Blender starts.
+4. `claude mcp add blender uvx mcp-for-blender`, then restart Claude Code.
+
+- Start with `get_addon_status`. "Could not connect" means Blender is closed, the add-on is off, or Connect was not pressed: walk the user through setup steps 2-3 (name the exact menu path) and call again.
 - Library toggles (Poly Haven, Sketchfab, Poly Pizza) are scene properties: `bpy.context.scene.blendermcp_use_polyhaven = True`. Poly Haven needs no key. Sketchfab and Poly Pizza need a key that the user types into the addon preferences, never into chat.
 - Work only inside your own collection, named after the project (for example `mannequin-heist_assets`). Never delete, select or export another session's objects or the user's own objects. Export with `use_selection=True` on your collection only.
 - Before starting, list the scene's collections. If another project's collection is there and changing, another session is using this Blender: tell the user and ask before you go on.
@@ -167,7 +173,7 @@ MCP for Blender (`uvx mcp-for-blender`, addon "MCP for Blender") drives the user
 
 Check the installed version's tool list first (`claude mcp list`, then ask the server); the names below are from the project's current README and may be consolidated or renamed again. The community server was renamed to **MCP for Blender** (PyPI `mcp-for-blender`, old name `blender-mcp`): update old configs.
 
-- Install: `uvx mcp-for-blender install-addon`, enable the add-on in Blender, N panel > Start MCP Server; register with `claude mcp add blender uvx mcp-for-blender`. Needs Blender 3.0+ and `uv`.
+- Install: setup steps 1-4 in section 8 (the add-on must be turned on under Edit > Preferences > Add-ons). Needs Blender 3.0+ and `uv`.
 - Tools: `execute_blender_code` (arbitrary Python), `get_scene_info`, `look` (viewport/camera/render capture), `search_assets` + `import_asset` (Poly Haven CC0, Sketchfab, Poly Pizza), `generate_3d` (Tripo, Hunyuan3D, Hyper3D Rodin, Meshy), `get_addon_status`, `disable_telemetry`.
 - There is also an official Blender Lab MCP server (needs Blender 5.1+ and its own add-on). Both default to port 9876: install one, or change a port.
 - Ask the user before enabling any paid 3D generation key; keys go into add-on preferences, never into chat.
