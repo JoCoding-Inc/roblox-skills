@@ -21,7 +21,7 @@ sources:
 
 Pair with `roblox-store-art-pack` (map composition) and `roblox-release-automation` (Open Cloud). Run Blender headless: `blender -b --python script.py -- args`. Keep every asset as a rerunnable script, not hand edits.
 
-Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are often faster and better looking from Cube (Studio MCP `generate_mesh`, see `roblox-pitfalls` section 5). Anything that must animate (monsters, quadrupeds, spiders) still comes from Blender: Cube returns one static mesh with no rig.
+Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are often faster and better looking from Cube (Studio MCP `generate_mesh`, see `roblox-pitfalls` section 5). Anything that must animate (monsters, quadrupeds, spiders) still comes from Blender: Cube returns one static mesh with no rig. A stylized humanoid body can start in Cube and be cut into R15 parts (section 12). Go cheap first: Cube, then Blender edits, and a paid AI 3D service only after asking. Before building any pipeline, put the user's reference image next to your first result and judge silhouette and proportions before detail: a hand-built body of ellipsoids read as stacked sausages beside the reference and was rejected (Gym Tycoon, 2026-11-03).
 
 ## Official rules at a glance (creator-docs, 2026-10-29)
 
@@ -92,6 +92,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   3. **Vertex colors:** a Blender round trip keeps them with FBX `colors_type='SRGB'`; the section 2 call (`'NONE'`) drops them. For GLB use `export_vertex_color='ACTIVE', export_all_vertex_colors=False`; the default `'MATERIAL'` writes a white `COLOR_0` and puts the real colors in `COLOR_1`. The Roblox side is untested.
 - Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
+- A bake through an Emission shader writes linear values. Convert sRGB colors with `c ** 2.2` before baking, or skin comes out grey or white in Roblox (fixed that way in Gym Tycoon).
 - Tint variants (rarity, tiers): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap).
 
 ## 4. Genre look (chunky cartoon)
@@ -117,6 +118,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   - Send multipart `request` JSON (`assetType` Model or Image, `displayName`, `creationContext.creator`) plus `fileContent`, then poll the operation (`GET /assets/v1/operations/{id}` until `done`; 300 per minute). One asset per call, files up to 20 MB, 120 creates per minute. Scopes `asset:read` and `asset:write`. Models accept fbx, gltf, glb, rbxm, rbxmx and become a package; images accept png, jpeg, bmp, tga under 8000x8000 px; audio mp3/ogg/wav/flac up to 7 minutes (100 uploads per month if ID-verified, 10 if not). `creationContext.expectedPrice` makes the call fail instead of charging more than you expect.
   - The result arrives as a package: unanchored, random yaw, no preview. An update adds a version, but placed copies do not update.
   - Load at runtime with `InsertService:LoadAsset(id)` (the asset must belong to the place owner or the group), or insert in Edit with Studio MCP `insert_asset`.
+  - Read the MeshIds of an uploaded FBX with `InsertService:LoadAsset(id)` in an Edit-mode `execute_luau`. Every upload makes new ids, so keep one `ids.json` per asset set and regenerate the game's data module from it.
 - Upload under the group that owns the game. Assets owned by another account can render as nothing.
 - Images: upload as Decal and use the returned `imageId`, never the `decalId`.
 
@@ -207,3 +209,19 @@ Use Studio **Avatar Setup** (auto setup) before hand-rigging a character. It rig
 | Classic clothing | 512x512 T-shirt; shirt and pants templates; 80 Robux upload fee |
 
 Marketplace publishing needs ID verification or a linked parental account plus Roblox Plus or Premium; upload fee 80 Robux per submission (updates too), plus a refundable publishing advance by type (for example hats 1,500, hair 1,000, clothing 600, body 2,500). In-game NPC and starter characters can use the loose Development preset.
+
+## 12. Cube body into Blender and R15 parts
+
+Field notes from Gym Tycoon (2026-11-03): a headless Cube body cut into 14 R15 parts in Blender. Try Avatar Setup (section 11) first; cut by hand when it does not fit.
+
+1. Get the mesh out of Studio:
+   - Geometry: `AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices`, `GetPosition`, `GetFaces`, `GetFaceVertices`, `GetFaceUVs` and `GetUV`. Send it as JSON with `HttpService:PostAsync` to a receiver bound to 127.0.0.1.
+   - One POST over 1024 KB fails ("Post data too large. Limit: 1024 KB"; the docs state no limit), so send chunks.
+   - Texture: `AssetService:CreateEditableImageAsync` on the colour map, `ReadPixelsBuffer`, hex in 400 KB chunks, decode with Pillow as RGBA with the origin at the top left.
+   - Cube meshes are not welded (7,823 vertices became 5,834 after a merge): run `remove_doubles` before any cut.
+2. Cut:
+   - A vertical plane at the armpit separates arms from torso. Bound the arm selection in height too, or it takes the shorts hem and the feet. A slanted shoulder plane left thin flaps on both parts.
+   - Horizontal planes at waist, hips, elbows, wrists, knees and ankles, each part overlapping the next by 0.04 units.
+   - Keep only the largest connected piece per part.
+   - Cap every open boundary with `bmesh.ops.holes_fill` and put the cap faces' UVs on a skin-coloured texel, or the joints show see-through holes as soon as they rotate.
+3. Export with section 2 and give every part one shared 1024 colour map as `MeshPart.TextureID`, which scripts can set (`SurfaceAppearance` maps cannot: `roblox-pitfalls` section 4).
