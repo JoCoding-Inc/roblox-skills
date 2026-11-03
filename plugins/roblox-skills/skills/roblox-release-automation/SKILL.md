@@ -1,7 +1,7 @@
 ---
 name: roblox-release-automation
 description: "Use when shipping a Roblox game or update: splits the release into what an agent can automate through Open Cloud (place publish, server restart, passes, products, place name and description, platform toggles) and what the user must do by hand (create the game, maturity questionnaire, age check, icon and thumbnails, public release), lists the API key scopes each step needs, and what to ask the user when a permission is missing."
-when_to_use: "Also before writing a publish script or CI job, when a publish or API call returns 401/403/404/409/429, when asked to 'just release it', when setting up an API key, or when deciding what to hand back to the user. Pair with roblox-publish-checklist, roblox-cloud and roblox-launch-benchmarks."
+when_to_use: "Also before writing a publish script or CI job, when a publish or API call returns 401/403/404/409/429, when asked to 'just release it', when setting up an API key, or when deciding what to hand back to the user. Pair with roblox-launch-benchmarks and roblox-pitfalls."
 last_reviewed: 2026-11-01
 sources:
   - https://github.com/Roblox/creator-docs (commit c8f5276, 2026-10-29): content/en-us/reference/cloud/openapi.json, universes-api/v1.json, game-passes-http-service/v1.json, developer-products-api/v1.json
@@ -78,13 +78,25 @@ Before blocking, state exactly what is missing, which scope or account step fixe
 
 ## 4. Release runbook
 
-1. Run `roblox-publish-checklist` and the hard gates in `roblox-launch-benchmarks`; record the rollback version.
+1. Run the release gates in section 4a and the hard gates in `roblox-launch-benchmarks`; record the rollback version.
 2. Build `game.rbxl`, run tests, publish to a **private test place** with `versionType=Saved` or `Published`, and let the user test the exact build.
 3. User confirms the manual items (questionnaire, icon, thumbnails, audience) are done in Creator Hub.
 4. Publish to the live place; print "published version N" and store it.
 5. Restart older servers (`:restartServers`), optionally after a `publishMessage` notice.
 6. Verify in a live client: assets load, a real purchase grants, save and rejoin work.
 7. Watch errors and funnel for the first day; roll back by re-publishing the stored previous build if a blocker appears.
+
+## 4a. Release gates (run before step 2)
+
+1. **Define the release:** list the changed places, scripts, assets, config, DataStore schemas, products and supported devices, plus the rollback path. Mark each gate required, conditional or not applicable.
+2. **Block on high-consequence changes.** A failed or unverified gate here means NOT READY; it is never averaged into a percentage, and user approval does not turn it into PASS.
+   - Save data changed: load, save, migration, duplicate session, disconnect and shutdown tested.
+   - Remotes or authority changed: argument types and bounds, ownership, replay, and abusive frequency validated on the server.
+   - Purchases changed: `ProcessReceipt` grants are durable and idempotent, and retries are tested.
+   - Cloud auth or webhooks changed: secrets, scopes, signatures, retries and deduplication verified.
+3. **Exercise what ships:** one normal flow plus failure, retry, leave and rejoin, and rapid input; every supported input mode (touch, keyboard, gamepad) and a phone-size and PC viewport; errors, memory, frame and network cost, streaming; touch target size, contrast, readable text.
+4. **Evidence:** every PASS cites a test, log, profiler capture, screenshot or dashboard readback. Anything without evidence is UNVERIFIED.
+5. **Report:** `READY`, `NOT READY` or `READY WITH ACCEPTED RISK`, with blockers first, then warnings, unverified gates, evidence, rollback plan and skipped gates with reasons. After publishing, confirm the version players actually get.
 
 ## 5. Handoff message to the user (template)
 

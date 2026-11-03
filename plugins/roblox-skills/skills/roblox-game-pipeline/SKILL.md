@@ -20,7 +20,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 2. **Offer the skip.** The first message says: "Say 'just decide' and I will pick defaults and write them down." Then record every default in `docs/brief.md` as assumed, so it can be corrected.
 3. **Show, do not describe**, whenever the choice is visual (style board, section 3) or about layout.
 4. **Write decisions down** in `docs/brief.md` (what and why) and `docs/ledger.md` (rulings during work, format `Ruling: <what> - <why> - <cost if wrong>`). A decision not written will be lost when the session is compacted.
-5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention (`roblox-collaboration-mode`).
+5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention.
 6. **The user owns taste and money.** The agent decides reversible technical details. The user decides look, tone, spending, publishing.
 
 ## 1. Stages and gates
@@ -36,7 +36,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 | 6 Plan | `docs/plan.md`: small tasks, each with files, done-definition and check | User reads the task list |
 | 7 Build | Greybox first, then loop, then art, then polish (`roblox-dev-workflow`) | per working mode |
 | 8 Verify | Full playtest on phone-size and PC, cinematic exits, failure paths (`roblox-dev-workflow` 4b) | Evidence list |
-| 9 Release | `roblox-publish-checklist` + `roblox-release-automation`; user does the hand steps | User approves publish |
+| 9 Release | `roblox-release-automation` (gates in 4a); user does the hand steps | User approves publish |
 
 Do not start stage 7 before 3, 4 and 5 are answered or defaulted. Changing an answer later is allowed: update the brief and say what rework it causes.
 
@@ -76,7 +76,7 @@ Ask these as **decision cards**: one line, a default, one more question only if 
 | Onboarding | Tutorial [learn by doing in the first 2 minutes] ; loading screen [custom, themed, skippable] ; first reward time [under 2 min] ; first screen assets [only what the first screen shows load before play; the rest loads in the background or on demand, `roblox-store-art-pack` section 7] |
 | Brand | Game name and logo [after core loop is fun] ; icon and thumbnails [late, `roblox-store-art-pack`] ; trailer [no] |
 | Social | Friend bonus [on] ; private servers [free] ; leaderboard [yes if score-based] ; chat [platform default] |
-| Systems | Daily reward [after the loop works] ; shop and passes [after the loop works, `roblox-monetization`] ; localization [English first, strings in a table] ; accessibility options [text size, shake toggle] |
+| Systems | Daily reward [after the loop works] ; shop and passes [after the loop works, `roblox-design-and-launch` section 2] ; localization [English first, strings in a table] ; accessibility options [text size, shake toggle] |
 
 Write the answers into the brief under "Moments and feel". Put open items in "Open questions".
 
@@ -131,7 +131,7 @@ Per task: read the task and brief, do it, run its check, read the output, commit
 
 - Evidence list in `docs/verification.md`: client and build, phone-size and PC screenshots, console clean, failure paths, cinematic exits, save and rejoin.
 - Review the whole branch once with a fresh-context reviewer.
-- Release follows `roblox-publish-checklist` and `roblox-release-automation`. The agent never publishes or merges without the user's explicit yes, and hands back the manual steps (maturity questionnaire, age check, icon and thumbnail upload).
+- Release follows the gates in `roblox-release-automation` section 4a. The agent never publishes or merges without the user's explicit yes, and hands back the manual steps (maturity questionnaire, age check, icon and thumbnail upload).
 
 ## 9. When the user changes their mind
 

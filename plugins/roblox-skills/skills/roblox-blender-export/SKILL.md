@@ -19,7 +19,7 @@ sources:
 
 # Blender to Roblox
 
-Pair with `roblox-building` (placement, collisions, map) and `roblox-cloud` (Open Cloud). Run Blender headless: `blender -b --python script.py -- args`. Keep every asset as a rerunnable script, not hand edits.
+Pair with `roblox-store-art-pack` (map composition) and `roblox-release-automation` (Open Cloud). Run Blender headless: `blender -b --python script.py -- args`. Keep every asset as a rerunnable script, not hand edits.
 
 Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are often faster and better looking from Cube (Studio MCP `generate_mesh`, see `roblox-pitfalls` section 5). Anything that must animate (monsters, quadrupeds, spiders) still comes from Blender: Cube returns one static mesh with no rig.
 

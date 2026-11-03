@@ -1,6 +1,6 @@
 # roblox-skills
 
-Claude Code skills for building Roblox games with an AI agent, from JoCoding. They add to [roblox-brain](https://github.com/TabooHarmony/roblox-brain), the general 29-skill Roblox pack, with what we learned shipping test games.
+Claude Code skills for building Roblox games with an AI agent, from JoCoding. They cover the whole path from planning interview to release, with what we learned shipping test games.
 
 | Skill | Use it for |
 |---|---|
@@ -20,13 +20,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 
 ## Install
 
-Install all of roblox-brain (29 skills) first, then this plugin. Skills only load their full text when a task needs them, so keeping every skill installed costs little and covers every genre.
-
-```bash
-npx -y skills add TabooHarmony/roblox-brain -g -a claude-code -s '*' -y
-```
-
-Keep `-g -a claude-code`: run from inside Claude Code without flags, the skills CLI installs into the current project folder (`./.claude/skills`, `./.agents/skills`) without asking.
+Skills only load their full text when a task needs them, so keeping every skill installed costs little.
 
 In Claude Code:
 
@@ -40,7 +34,6 @@ Without the plugin system, copy `plugins/roblox-skills/skills/*` into `~/.claude
 Check the install with files, then restart Claude Code so new skills show up:
 
 ```bash
-ls ~/.claude/skills | grep -c '^roblox-'   # 29 from roblox-brain
 claude plugin list                          # roblox-skills@roblox-skills enabled
 ```
 

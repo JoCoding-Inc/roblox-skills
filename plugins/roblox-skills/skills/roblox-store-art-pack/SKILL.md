@@ -1,7 +1,7 @@
 ---
 name: roblox-store-art-pack
 description: "Use for any genre when picking and quarantining Creator Store models, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only."
-when_to_use: "Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; use roblox-lighting instead."
+when_to_use: "Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
 last_reviewed: 2026-11-03
 sources:
   - https://github.com/blauwtje/roblox-kit (map-building/reference/daylight-look.md, ui-images; MIT)
@@ -19,7 +19,7 @@ sources:
 
 # World palette, store assets, icon, thumbnails, logo and loading screen
 
-Pair with `roblox-building` (geometry), `roblox-lighting`, `roblox-blender-export` (custom meshes), `roblox-ui-genre-studs` (UI) and `roblox-security` (inserted scripts).
+Pair with `roblox-blender-export` (custom meshes) and `roblox-ui-genre-studs` (UI). Inserted scripts are code you did not write: quarantine and read them (section 2).
 
 ## 1. Daylight genre world (simulator/tycoon only)
 
