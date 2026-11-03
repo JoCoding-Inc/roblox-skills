@@ -32,10 +32,11 @@ Run this at the start of every new project and when a project is opened on a new
 | Existing project | `ls`, look for `default.project.json`, `wally.toml`, `rokit.toml`, `CLAUDE.md`, `docs/` | Rojo project vs. Studio-only place |
 | Studio installed | macOS `ls /Applications/RobloxStudio.app`; Windows `%LOCALAPPDATA%\Roblox\Versions` | The MCP server ships inside Studio |
 | Studio MCP | `claude mcp list` (look for `Roblox_Studio` or the official plugin's `plugin:roblox-studio:<os>`, Connected), then call the MCP tool `list_roblox_studios` by name | Live engine access, which place is open. A server listed but not callable means it was added after this session started |
+| Open Studio windows | `list_roblox_studios` plus memory per process (`ps -axo pid,rss,command \| grep -i "[R]obloxStudio"`) | Many windows slow or crash the machine; with 3 or more, ask the user which to close (`roblox-game-pipeline` rule 8) |
 | git | `git --version`; `git rev-parse --is-inside-work-tree` in the project folder | History and rollback |
 | Toolchain | `rokit --version`, `rojo --version`, `selene --version`, `stylua --version`, `lune --version`, `luau-lsp --version` | Which checks can run locally |
 | Blender | `blender --version`, `claude mcp list` (look for `blender`), then the MCP tool `get_addon_status` | Custom meshes and rigs |
-| Open Cloud | env vars or a `chmod 600` env file with names like `ROBLOX_API_KEY`, `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (check that they exist, never print values) | Publish, asset upload, Luau Execution |
+| Open Cloud | env vars or a `chmod 600` env file with names like `ROBLOX_API_KEY`, `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (check that they exist, never print values). A key in another project's file belongs to that game: keys are restricted to one experience, so this game gets its own (step 1d) | Publish, asset upload, Luau Execution |
 | gwanggo MCP | `claude mcp list` (look for `gwanggo`), then call `get_credits`; CLI fallback `command -v gwanggo && gwanggo me` | Images and video: concept art, concept trailer, store art drafts |
 | OS | `uname`, Windows vs. macOS paths | Setup commands differ per OS |
 
@@ -54,13 +55,13 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 | Lint and test tools (selene, StyLua, luau-lsp, Lune via rokit) | Optional | Local checks before Studio | Checks run only in Studio playtests |
 | Blender + MCP for Blender | Optional | Animated creatures and rigs, exact-shape kits, icon renders | Roblox Cube for static props, Creator Store, user files |
 | Open Cloud API key in an env file | Optional until release | Automated publish, asset upload, passes and products, headless Luau tests | User publishes and uploads by hand in Studio and Creator Hub |
-| gwanggo MCP (images and video) | Optional, **recommended**; spends credits, every spend asked first | Mood images, concept images and a concept trailer before the build (`roblox-game-pipeline` 6b), logo and loading art, icon and thumbnail drafts, ad creatives (pipeline section 10). The same account opens gwanggo's web Roblox tools: Thumbnail & Icon Kit and 3D props as GLB | Written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
+| gwanggo MCP (Game Studio: images, icons, textures, 3D, video) | Optional, **recommended**; spends credits, every spend asked first | A game project with a locked art style; concept images and a concept trailer before the build (`roblox-game-pipeline` 6b); props and pets as textured GLB, inventory icons, seamless textures, logo and loading art in that style; the web Thumbnail & Icon Kit at launch (pipeline section 10) | Written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
 | Playtest Agent beta (Studio File > Beta Features) | Optional | Studio MCP `subagent` type `playtest` | The agent drives playtests with the input tools |
 
 How to ask:
 - **Required and missing:** say what it is needed for in one line and offer to walk the user through it now. Re-probe after each fix. If the user refuses, record it and stop before stage 7.
 - **Optional and missing:** one message, one line each: "set up now / later / skip". On skip, write `Skipped: <tool> - unavailable: <features> - fallback: <fallback>` under Environment in the brief and do not ask again. When a later task needs a skipped tool, say so at that moment and offer setup or the fallback.
-- **gwanggo missing:** recommend it in one line: "Connect gwanggo to see concept images and a concept trailer before we build, and to draft the icon, thumbnails and ads later. Without it I use written storyboards and Studio screenshots."
+- **gwanggo missing:** recommend it in one line: "Connect gwanggo to see concept images and a concept trailer before we build, lock the art style, and make props as 3D models, icons and textures in that style, plus thumbnails at launch. Without it I use written storyboards, Studio screenshots, Roblox Cube and Blender."
 - Every question ends with: "If you are not sure how to do this, say so and I will guide you step by step."
 
 ### 1c. Setup guides (re-read the live page first)
@@ -75,10 +76,25 @@ Menus and commands change between Studio releases. Before guiding, fetch the liv
 | Script Sync | Explorer > right-click a service > Script Sync > Sync to (`roblox-studio-ai-tools` section 6) | create.roblox.com/docs/scripting/sync | `InstanceFileSyncService:GetStatus` returns SyncedAsRoot |
 | Rojo and tools | Rokit: install script from the rokit README, `rokit self-install`, then `rokit init` and `rokit add rojo-rbx/rojo` (same for selene, StyLua, Lune); `rojo plugin install` adds the Studio plugin | github.com/rojo-rbx/rokit, rojo.space | `rojo --version`; the Rojo plugin in Studio shows Connected after `rojo serve` |
 | Blender MCP | `uvx mcp-for-blender install-addon`, enable the add-on, N panel > Connect, `claude mcp add blender uvx mcp-for-blender`, restart Claude Code (`roblox-blender-export` sections 8-9) | github.com/ahujasid/blender-mcp | `get_addon_status` answers |
-| gwanggo MCP | Account and credits: gwanggo.ai. Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, restart Claude Code, approve the gwanggo sign-in page on first use (browser, no password or key in chat; `/mcp` shows the state). Claude desktop or claude.ai: Settings > Connectors > Add custom connector, name `gwanggo`, paste the URL, Connect. CLI and skills fallback: `npm install -g https://github.com/bill-950207/gwanggo-mcp/archive/refs/heads/master.tar.gz`, `gwanggo auth login` | gwanggo.ai/dashboard/mcp (per-client steps, MCP / CLI / Skills tabs); keys for local configs only at gwanggo.ai/dashboard/api-keys (`GWANGGO_API_KEY`, set by the user) | `get_credits` answers |
+| gwanggo MCP | Account and credits: gwanggo.ai. Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, restart Claude Code, approve the gwanggo sign-in page on first use (browser, no password or key in chat; `/mcp` shows the state). Claude desktop or claude.ai: Settings > Connectors > Add custom connector, name `gwanggo`, paste the URL, Connect. CLI and skills fallback: `npm install -g https://github.com/bill-950207/gwanggo-mcp/archive/refs/heads/master.tar.gz`, `gwanggo auth login` | gwanggo.ai/game/connect (Game Studio agent tools), gwanggo.ai/dashboard/mcp (per-client steps, MCP / CLI / Skills tabs); keys for local configs only at gwanggo.ai/dashboard/api-keys (`GWANGGO_API_KEY`, set by the user) | `get_credits` answers |
 | Open Cloud key | User creates it in Creator Hub > Credentials with the scopes in `roblox-release-automation` section 2 and saves it to a `chmod 600` env file | create.roblox.com/docs/cloud/auth/api-keys | Variable exists (never print it); one read-only call returns 200 |
 
 Record the final state (tool, version, OK or skipped) in the brief's Environment line.
+
+### 1d. Keys and permissions (ask at the moment of need)
+
+Do not ask for these up front. Put each one as a `Needs user:` line on the plan task that needs it (`roblox-game-pipeline` section 6) and ask right before that task, in one message: what, why, the exact clicks, and how the agent will confirm it. Key values are typed by the user into Creator Hub or an env file, never into chat.
+
+| Need | When | User does | Agent confirms |
+|---|---|---|---|
+| Studio access to data stores (saves, leaderboards, MemoryStore in Studio) | Before the first save or load test | Publish the dev place as a private test experience (File > Publish to Roblox), then File > Experience Settings > Security > **Enable Studio Access to API Services** > Save. Test places only, never the live game | A save and load probe in a Studio playtest succeeds |
+| Allow Third Party Teleports | Teleports to games the user does not own | File > Experience Settings > Security | Teleport test in a published place (`roblox-match-flow`) |
+| Allow Loading Third Party Assets | Loading other creators' Creator Store models at runtime | Experience settings (`roblox-pitfalls` section 2) | A live-server load succeeds |
+| Open Cloud API key | First automated publish, asset upload, passes and products, Luau Execution (release stage) | Creator Hub > Credentials: a new key restricted to this experience, the scopes from `roblox-release-automation` section 2, saved in this project's `chmod 600` env file | A read-only call returns 200; on 401/403 follow `roblox-release-automation` |
+| Group permissions | Group-owned game: publish, upload, products | The group owner gives the account the role permissions; the key owner is the group | Upload or publish succeeds |
+| Creator account age check and 2-step verification | Before public release; required to reach under-16 players | Roblox account settings (`roblox-design-and-launch` section 4) | User confirms |
+| Team Create collaborators | When a teammate joins | Add them in Collaborate; they need an age check (`roblox-dev-workflow`) | Teammate can edit |
+| gwanggo sign-in and credits | First generation | Browser sign-in once; a yes to each quoted cost | `get_credits` answers |
 
 ## Step 2. Interview (ask in rounds)
 

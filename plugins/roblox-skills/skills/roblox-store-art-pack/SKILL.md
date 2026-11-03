@@ -102,6 +102,7 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - 1024 px or less per image. Many icons go on one sprite sheet (8x8 of 128 px).
 - 9-slice needs a slice centre; tune `SliceScale`.
 - Fixed words (the logo) may be images; translatable words stay TextLabels.
+- With gwanggo connected, `generate_game_asset` kind `icon` makes 1:1 icons in the project's locked style, which keeps the family consistent (`roblox-game-pipeline` section 10). Downscale to the canvas and check the outline weight matches.
 
 ## 5. Game icon and thumbnails
 

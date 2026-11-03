@@ -23,6 +23,11 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention.
 6. **Look up, do not recall.** At the start call `list_skills` on the Studio MCP and load the matching `rbx-*` skill; read the live API page (`http_get`, see `roblox-dev-workflow` section 0) before using anything new, beta or renamed.
 7. **The user owns taste and money.** The agent decides reversible technical details. The user decides look, tone, spending, publishing.
+8. **Close Studio when done.** Each Studio window holds about 0.3-1 GB (measured 2026-11-03), and many open windows slow or crash the machine.
+   - Before opening a place, list the open windows (`list_roblox_studios`) and their memory (`ps -axo pid,rss,command | grep -i "[R]obloxStudio"`; Windows `tasklist /fi "imagename eq RobloxStudioBeta.exe"`). With 3 or more open, tell the user and ask which to close. Never close another project's window yourself.
+   - One window per project: reuse it instead of opening the same place twice. Note the PID of each window you open (process list before and after) in `docs/ledger.md`.
+   - When a task, a gate or the session ends, or the window is no longer needed: stop play (`start_stop_play`), make sure the work is saved (code on disk through Rojo or Script Sync; parts and settings saved with Ctrl+S or published; no MCP tool saves the place, so ask the user to press Ctrl+S when Studio-only edits exist), close it by PID (`kill <pid>`; Windows `taskkill /pid <pid>`), never by name, and confirm with `list_roblox_studios`.
+9. **Ask for keys and permissions at the moment of need**, with what, why, the exact clicks and how to confirm (`roblox-project-intake` step 1d). Never ask for key values in chat.
 
 ## 1. Stages and gates
 
@@ -134,7 +139,7 @@ Check: playtest screenshot per shot + console clean
 Mode: solo (live Studio)
 ```
 
-Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the core loop, then the progression engine, then onboarding, then art, then moments, then polish, then economy and monetization, then store art. Tag tasks `solo` or `delegate` so the working mode is already applied. Put the riskiest or least understood task first when it can change the design (spike it).
+Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the core loop, then the progression engine, then onboarding, then art, then moments, then polish, then economy and monetization, then store art. Tag tasks `solo` or `delegate` so the working mode is already applied. Add a `Needs user:` line to every task that needs a permission, key or hand step (`roblox-project-intake` step 1d, for example Studio access to data stores before the first save test), so the agent asks right before that task, not at the start. Put the riskiest or least understood task first when it can change the design (spike it).
 
 ## 6b. First proof (after the plan, before the full build)
 
@@ -156,16 +161,17 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 - Test: the agent playtests through Studio MCP (screenshots, console), then the user plays it in Studio or on a phone through a private test place (`roblox-release-automation`). If multiplayer is the point, use Server & Clients with 2 clients.
 - Verdict from three questions: does the action feel good within 30 s? Does the player want the next upgrade? Does the twist show in the first 2 minutes? Write keep / change / drop to `docs/ledger.md` and update the plan before stage 7.
 
-**B. Concept images (gwanggo)**
-- Check the connection (`list_models`, `get_credits`), quote model, count and credits (`plan_generation` when the server has it), and wait for the user's yes.
-- Prompt from the brief: style lane, 3 palette colors, camera, the scene, "3D Roblox game screenshot, blocky avatar proportions". Pass the chosen lane card or style board as the reference image. Never name other live games or their characters in a prompt.
-- Save to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). These steer direction; they are not shipped art.
+**B. Concept images (gwanggo Game Studio, section 10)**
+- If the project has no gwanggo project yet: `create_game_project` (platform `roblox`) and `plan_game` with our brief passed as `brief`, so gwanggo uses `docs/brief.md` instead of writing its own (both free).
+- `generate_concepts` with `dry_run: true` first, show the credits, wait for yes, then run it (count 3; key art, gameplay scene, world overview, character lineup). Put the style lane, palette and "Roblox game, blocky avatar proportions" in `extra_direction`. Never name other live games or their characters.
+- Poll each task with `get_task`, show the images, and call `select_concept` with the one the user picks: this locks the style for every later asset and video.
+- Save copies to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). They steer direction; they are not shipped art.
 
 **C. Concept trailer (gwanggo)**
 - Shot list first (format in `roblox-cinematics` section 4): hook = the clip-worthy moment, then the core action, the progression payoff, the twist or friends, title card; 3-6 s per shot.
-- Each shot is image-to-video from a B still; describe motion and camera, not the still. 16:9 for a pitch or YouTube, 9:16 for Shorts or TikTok tests (the `gwanggo-social-video` skill plans these if installed).
+- `generate_gameplay_video` makes one clip from the selected concept (needs `select_concept`; credits per second, `dry_run` first; default 5 s, 16:9). Pass each shot's motion as `prompt`. For shots that start from another concept image, use `generate_video` with that image as the start frame. 9:16 for Shorts or TikTok tests (the `gwanggo-social-video` skill plans these if installed).
 - Join the clips with `ffmpeg -f concat -safe 0 -i shots.txt -c copy trailer.mp4` when ffmpeg exists (re-encode if the clips differ); otherwise hand over the clips in order.
-- Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness).
+- Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness). gwanggo's own tool description says the same.
 
 **Without gwanggo:** offer setup once (`roblox-project-intake` step 1c), then fall back: a written storyboard (one line per shot, format above), greybox screenshots with Studio MCP `screen_capture`, Blender renders (`look`), or another image or video tool the user has connected. Say which fallback was used.
 
@@ -183,20 +189,36 @@ Per task: read the task and brief, do it, run its check, read the output, commit
 
 Update the brief, list the tasks affected, and say the rework cost in one line before continuing. Do not silently keep building on an old decision.
 
-## 10. Images and video along the way (gwanggo)
+## 10. gwanggo along the way (images, icons, textures, 3D, video)
 
-Offer generation at the moment it helps, in one line with the credit cost, never all up front. Every spend needs the user's yes. Log each result in `assets/concept/README.md` (or the store-art folder): prompt, model, credits, date.
+gwanggo Game Studio (gwanggo.ai/game, agent setup at gwanggo.ai/game/connect) keeps one project per game: the brief, a locked style (palette, reference images, chosen concept) and every generated asset. The MCP tools below were listed from the live server on 2026-11-03; when a call fails, list the server's tools and trust that list.
 
-| Moment | Generate with gwanggo | Fallback without it |
+| Tool | Cost | Use |
 |---|---|---|
-| Stage 3 look | Mood images for a mix of lanes (lane card as reference) | Lane cards, live-game contact sheet |
-| Stage 6b first proof | Concept images, concept trailer | Written storyboard, greybox screenshots |
-| Brand (stage 4 cards, built in stage 7) | Logo candidates, loading-screen art (`roblox-store-art-pack` sections 6-7) | Text logo built in Studio, Blender render |
-| Stage 7 art | Static textured props from text or a concept image as GLB (web 3D tool, below) | Studio MCP `generate_mesh` (Roblox Cube), Blender, Creator Store |
-| Stage 9 launch | Thumbnail & Icon Kit from a real gameplay screenshot (web, below), Ads Manager creative variants, short social clips of real gameplay | Studio screenshots and Blender renders, edited by hand |
+| `create_game_project`, `plan_game`, `update_game_project`, `select_concept`, `list_game_projects`, `get_game_project`, `get_project_assets` | Free | Project, brief (pass ours as `brief`), style lock, asset list with download URLs (GLB for 3D) |
+| `generate_concepts` | Credits per image | 1-4 concept images from the brief |
+| `generate_game_asset` | Credits | One asset in the locked style: `kind` `image` (object on plain background), `icon` (1:1), `texture` (1:1 seamless tile), `3d` (textured GLB, Roblox limits when the project platform is `roblox`) |
+| `generate_3d` | 4-47 credits by model and texture | Text or image to GLB outside the style lock; `style` `roblox`, `face_limit` up to `15000` (Roblox-safe) |
+| `generate_gameplay_video` | Credits per second | Concept or promo clip from the selected concept; AI video, not real footage |
+| `generate_image`, `generate_video`, `list_models`, `get_credits`, `get_task` | Credits for generation | General images and video, model list with costs, balance, polling |
 
-**gwanggo web tools for Roblox** (same account; read 2026-11-03 from the site, not in the MCP, whose `list_models` offers image and video only). Send the user the link, or drive the page in Chrome if the user asks:
-- **Thumbnail & Icon Kit** (gwanggo.ai/dashboard/game/thumbnail-kit): game name, one-line hook, genre, optional gameplay screenshot as reference, style notes; returns 3 thumbnails (1920x1080, under 3 MB) and 1 icon (512x512) checked against Roblox sizes, with a 150 px legibility check and a Home preview. AI text can be misspelled: check every letter or leave the title off. Video thumbnails must be real gameplay, so it makes no AI video. Then follow `roblox-store-art-pack` section 5.
-- **3D** (gwanggo.ai/dashboard/ai-tools/3d): text or one concept image to a textured GLB, with a Roblox style (low-poly, blocky, bright) and polygon caps (3K, 10K). Its Roblox check reports triangles, size in studs against the player and texture size. Static props only (no rig); models marked "not for Roblox" (40K+ polygons) exceed the 20,000-triangle mesh limit. Import with Studio's 3D Importer and set collision as in `roblox-blender-export` section 5.
+Rules:
+- Offer generation at the moment it helps, in one line with what it adds and the cost; never a batch up front. Every paid call runs with `dry_run: true` first (or `list_models` costs), and the user says yes to the exact credits.
+- Write the gwanggo project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock.
+- Consistent 3D: `generate_game_asset` kind `image` first, poll until done, then kind `3d` with `image_url` set to that result (image-to-3D). Prefer the Roblox-friendly models (tripo-h31, rodin-25-fast, meshy-v71, trellis-2-image); Hunyuan 3D Pro is always 40K+ faces, over the 20,000-triangle mesh limit. 3D results are static meshes with no rig.
+- Import: `get_project_assets` gives the GLB URL; download it, import with Studio's 3D Importer, set collision and anchoring as in `roblox-blender-export` section 5, and log it in `assets/LICENSES.md` (source gwanggo, model, date).
 
-If gwanggo is not connected when a moment comes, say what it would add, offer the setup in `roblox-project-intake` step 1c once, and use the fallback if the user declines.
+| Moment | gwanggo | Fallback without it |
+|---|---|---|
+| Stage 1-2 brief | `create_game_project` + `plan_game` (our brief); its `asset_list` seeds the art tasks in the plan | Asset list written by hand |
+| Stage 3 look | `generate_concepts` 3, user picks, `select_concept` locks the style | Lane cards, live-game contact sheet |
+| Stage 6b first proof | Concept images, concept trailer (`generate_gameplay_video`) | Written storyboard, greybox screenshots |
+| Stage 7 props and pets | `generate_game_asset` image then 3d; packs of themed props (one call per item) | Studio MCP `generate_mesh` (Roblox Cube), Blender, Creator Store |
+| Stage 7 UI | `generate_game_asset` kind `icon` for inventory, shop and currency icons (`roblox-store-art-pack` section 4) | Blender renders, Studio screenshots |
+| Stage 7 surfaces | `generate_game_asset` kind `texture` for seamless tiles, used as `MaterialVariant` color maps | Studio Material Generator, `generate_material` |
+| Brand | Logo candidates and loading-screen art with `generate_image` (`roblox-store-art-pack` sections 6-7) | Text logo built in Studio |
+| Stage 9 launch | Game icon and thumbnails: web Thumbnail & Icon Kit (gwanggo.ai/dashboard/game/thumbnail-kit; 3 thumbnails 1920x1080 under 3 MB and a 512x512 icon from a real gameplay screenshot, checked against Roblox sizes; not an MCP tool). Ads Manager creative variants from real screenshots | Studio screenshots edited by hand |
+
+AI text in images can be misspelled: check every letter, or leave titles off and typeset them. Video thumbnails and ads must be real gameplay.
+
+If gwanggo is not connected when a moment comes, say what it would add, offer the setup in `roblox-project-intake` step 1c once, and use the fallback if the user declines. If it is connected but `create_game_project` is missing, the session holds an old tool list: reconnect it in `/mcp` or restart Claude Code.

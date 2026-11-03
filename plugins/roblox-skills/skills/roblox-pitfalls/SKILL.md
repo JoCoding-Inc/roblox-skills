@@ -58,7 +58,7 @@ Each entry gives the symptom, the cause and the fix. Pair with `roblox-studio-ai
 - A `require` from `execute_luau` gets a fresh copy of a ModuleScript, so module state (sessions, caches) is empty there. Drive the running game through its own remotes or debug actions instead of calling module functions.
 - `user_mouse_input` moves do not fire `MouseEnter`, so hover tooltips never open. Toggle the tooltip's `Visible` in a probe to check its placement.
 - Lune mock tests that run the whole client are slow, about 3-4 s of real time per simulated second; a long `Sched.advance(60)` looks hung, and parallel runs make it worse. Print a timestamp per section before calling it a hang. macOS has no `timeout` command.
-- **Close what you opened.** Each Studio window holds about 1 GB. When a task ends, close the windows and play sessions the agent opened, by PID, never by pattern, and never another project's window.
+- **Close what you opened.** Each Studio window holds about 0.3-1 GB (measured 2026-11-03), and five or more open windows have slowed or crashed the machine. When a task ends, stop play, save (Rojo or Script Sync files; Ctrl+S for Studio-only edits, which no MCP tool can do), then close the windows the agent opened by PID, never by pattern, and never another project's window. Full rule: `roblox-game-pipeline` section 0, rule 8.
 
 ## 4. Engine limits that bite
 
