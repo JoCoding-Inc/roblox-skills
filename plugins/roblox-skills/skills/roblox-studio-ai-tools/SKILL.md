@@ -49,13 +49,13 @@ Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance
 | Group | Tools | Notes |
 |---|---|---|
 | Scripts | `script_read`, `multi_edit`, `script_search`, `script_grep` | Dot-notation paths; `multi_edit` creates a script if the path is new and needs `datamodel_type` Edit. `script_search` returns 10 fuzzy matches, `script_grep` 50 |
-| Generate | `generate_mesh`, `generate_material`, `generate_procedural_model`, `generate_texture`, `segment_mesh`, `generate_scene`, `wait_job_finished` | See section 4. `segment_mesh` splits a MeshPart into named parts (up to 5 per run) |
+| Generate | `generate_mesh`, `generate_material`, `generate_procedural_model`, `generate_texture`, `segment_mesh`, `generate_scene`, `wait_job_finished` | See section 4. `segment_mesh` splits a MeshPart into named parts (up to 5 per run). `wait_job_finished` takes `jobId` (and `timeout`, default 600 s) |
 | Avatars | `generate_avatar`, `auto_setup_avatar` | Prompt-to-avatar is a Studio beta (section "Recent additions"); check the tool's own description before use |
 | Skills | `list_skills`, `skill`, `create_skill`, `edit_skill` | Call `list_skills` at the start of a task and load the matching `rbx-*` skill with `skill` |
 | Assets | `search_asset`, `insert_asset`, `upload_image`, `store_image` | `search_asset` covers Creator Store and your inventory (user, group, universe) with type, price, tag filters. `store_image` turns a local file into a URI for reference images |
 | Explore | `search_game_tree`, `inspect_instance`, `subagent` | `subagent` types: `explore` (investigate game state) and `playtest` (run gameplay scenarios and verify outcomes; the Playtest Agent is a beta under File > Beta Features and has a daily cap, and can report false passes). The `subagent` tool in the Studio build of 2026-11-02 listed only `explore`, `screen_capture` and `unit_test`, so `playtest` needs the beta on. A secondhand report says it could not jump in one run; recheck any climb it fails |
 | Run | `execute_luau` | `datamodel_type` Edit, Client or Server |
-| Playtest | `get_studio_state`, `start_stop_play`, `get_console_output`, `screen_capture` | `screen_capture` accepts a camera position and look-at |
+| Playtest | `get_studio_state`, `start_stop_play`, `get_console_output`, `screen_capture` | `start_stop_play` takes `is_start` (bool). `screen_capture` needs a `capture_id`; `camera_position` and `look_at_position` are 3-number arrays, given together |
 | Input | `character_navigation`, `user_keyboard_input`, `user_mouse_input` | Sequences of actions; can target UI instances |
 | Docs | `http_get`, `skill` | `http_get` reads allowed Roblox docs URLs (Engine API, Creator docs, Cloud API). Use it before guessing an API |
 | Sessions | `list_roblox_studios` | |
@@ -80,7 +80,7 @@ Use Assistant for things that live best inside Studio; use Claude Code for repo-
 
 | Tool | Use | Notes |
 |---|---|---|
-| `generate_mesh` | One static textured mesh | Prompt rules and failure modes in `roblox-pitfalls` section 5. Reference image allowed instead of text. Segmentation: none for static props; named parts (max 8) for pieces that must move, with function names such as `door`, `lid`, `lever` |
+| `generate_mesh` | One static textured mesh | Prompt rules and failure modes in `roblox-pitfalls` section 5. Reference image allowed instead of text. Segmentation: `none` for static props; `explicit` with `partNames` (max 8) for pieces that must move, with function names such as `door`, `lid`, `lever` |
 | `generate_material` | Restyle parts | Returns the base material plus a variant name to apply; lightweight form of the Material Generator |
 | `generate_procedural_model` | Primitive-part objects with parameters (give sizes in studs, a theme, and "add no other objects"; a character is about 5 studs tall, so jump gaps and doorways need real numbers) | Lands in a `GeneratedFolder`; behaves like normal parts; works with undo, Team Create, replication. The docs state **50 per rolling 24 hours** for Assistant; assume the MCP tool shares it. Generator is a ModuleScript returning `Attributes` and `OnGenerate(params, container)`; scaling uses `ScaleTo`, resizing regenerates; not supported in Actors and cannot become packages |
 | Texture Generator (Model tab > Texture, or `/generate_texture`) | Texture a selected mesh from text or an image | Preview in about 10 s (3 images). **Fast** = 1K diffuse in under 30 s; **Quality** = 4K PBR via `SurfaceAppearance` in a couple of minutes. Do not edit the asset while it runs; do not describe reflectivity or transparency in the prompt |
@@ -92,6 +92,8 @@ Generative AI rules (official): Roblox AI services (`GenerationService`, `TextGe
 ## 5. Studio from the command line
 
 Studio accepts documented flags (others are internal): `--task EditPlace --placeId <id> --universeId <id>` opens the latest published place; `--task EditPlaceRevision ... --placeVersion <n>` an older version; `--task EditFile` a local file; `--task RunScript --runScriptFile <file.luau> [--outputFile <f>] [--quitAfterExecution]` runs a script at command-bar permission (a default Baseplate opens if no place is given), which is a local alternative to Open Cloud Luau Execution; `--task TryAsset --assetId <id>`; `--openScriptPath` / `--openScriptFromId` with line/character flags; `--api`, `--fullApi`, `--apiV2 <path>` dump the API. Launched this way Studio streams verbose logs to stdout. Windows exe: `%localappdata%\Roblox\Versions\<version>\RobloxStudioBeta.exe`.
+
+Opening a local place on macOS: `open -a RobloxStudio file.rbxl` (also with `-g -n`) showed the start page instead of the file in two projects (2026-11-03). Run the binary in the background instead: `/Applications/RobloxStudio.app/Contents/MacOS/RobloxStudio -localPlaceFile <absolute path> -task EditFile`. Its new window takes focus; to keep the user's app in front, a small helper can watch `NSWorkspace.didActivateApplicationNotification` and re-activate the previous app when that pid comes forward (Gym Tycoon built one in Swift). Screenshots and FPS checks still need the window in front (`roblox-pitfalls` section 3).
 
 ## 6. Script Sync (code between Studio and your editor)
 
