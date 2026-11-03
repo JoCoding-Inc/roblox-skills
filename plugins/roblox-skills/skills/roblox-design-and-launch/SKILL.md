@@ -1,9 +1,12 @@
 ---
 name: roblox-design-and-launch
 description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization."
-when_to_use: "Also before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, or when asked what Roblox pays creators."
-last_reviewed: 2026-11-01
+when_to_use: "Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, or when asked what Roblox pays creators."
+last_reviewed: 2026-11-03
 sources:
+  - https://create.roblox.com/docs/production/roblox-user-base
+  - https://www.gameanalytics.com/reports/2026-roblox-report (vendor report; figures read through a newsletter summary)
+  - https://rolearn.dev/trend-reports/roleplay-vs-simulator-genre-comparison-2026/ (vendor, directional)
   - https://create.roblox.com/docs/production/game-design (core-loops, prototyping, onboarding, ui-ux-design, monetization-foundations)
   - https://create.roblox.com/docs/production/monetization (developer-exchange, 18-plus-devex-rate, subscriptions, immersive-ads, roblox-plus)
   - https://create.roblox.com/docs/creator-rewards
@@ -27,6 +30,35 @@ Read from the official creator-docs repository (state 2026-10-29). Numbers and p
 - **UI/UX:** prioritise information (what is the player doing right now?), keep visual language consistent, follow platform conventions. Design for phone first, then scale up. Test layouts with Experiments, toggle platform or seasonal UI with Configs.
 - **Economy:** every currency needs sources, sinks and a pacing target. Simulate the economy in a spreadsheet or Lune script before shipping prices. Avoid power that only paying players can reach if the game is for younger audiences.
 - **Genre craft:** for chunky simulator/tycoon looks use `roblox-ui-genre-studs`; for other genres use roblox-brain `roblox-gui`.
+
+## 1a. Platform play patterns (advise from these in planning)
+
+Use this when a plan is being shaped. Compare the plan with the table, then give the developer at most 3 concrete suggestions in the form "pattern -> your plan -> change". Evidence grades: **O** = Roblox docs, **M** = measured by us on the live charts (n=76, 2026-11-02, approximate), **V** = vendor report (GameAnalytics, sample = 500+ games with 1M+ MAU, Aug 2025-Jul 2026; not Roblox's own data), **J** = our design judgment from the evidence above it.
+
+| Pattern | Evidence | Planning advice (J) |
+|---|---|---|
+| Players come for variety, low friction and social play; a session is a handful of games, and players join one briefly and switch (YouTube-like) | O (`roblox-user-base`) | Value must show before the player's patience runs out. Do not require a tutorial, queue or signup before the first reward |
+| Median player opens games 3 times a day; median player session 7.3 min; median game session 9.8 min (top 5% of games 16.6 min) | V | Plan a complete mini-loop (action, reward, upgrade) in 5-10 min. Save progress at any moment. Make leaving and coming back painless |
+| Median D1 10.3%, D7 1.6%, D30 0.5%. Top 1% of games: 22.2 / 9.1 / 4.7%. GameAnalytics calls the often-quoted 20% D1 benchmark inflated | V | Set targets from this table, not from blog posts. D1 is won in the first two minutes; D30 needs live ops, events or deep progression |
+| Friends are a main growth channel (invite, join friend, word of mouth). Third-party guides claim friend play multiplies return rates several times, but give no Roblox source | O for the channel; the multiplier is unverified, do not quote it | Social is a **bonus layer**, not a prerequisite. Add join-friend-friendly hooks (see below) |
+| No source gives a solo versus social share of playtime. Charts show both: about 18% of sampled descriptions mention co-op or friends words and 4% mention solo (keyword count, rough) | M | Design **solo-viable, better with friends**: the core loop must work with one player in the server |
+| Max players on the charts: median 16; 9 of 76 games cap at 1-6, 23 at 7-12, 36 at 13-30, 8 above 30. Weighted by current players: 5% / 51% / 30% / 14% | M | A cap of 7-12 carries about half of all current players in the sample; a cap of 1-6 is rare. Choose the cap from the design (see below) |
+| Devices (GameAnalytics, all devices a player used in a year): 44% both phone and PC, 40.8% PC only, 11.6% phone only, 0.4% console only. Newzoo counted 24% phone only (different method, excludes the youngest) | V | Plan for phone and PC from day one, controls and UI included. Console is a small extra |
+| Genre session lengths (ROLearn, Q4 2025-Feb 2026): roleplay 48 min against simulator 26 min; co-op horror and roleplay lead long sessions | V, one source | Genre sets the session you can expect. Do not plan a 60-minute loop for a simulator |
+| Roblox says Home exposure can favor games strong in both retention and monetization (secondhand report, since Aug 2026) | V, secondhand | Do not plan around one strong number. Track retention and spend together |
+| About 3.8% of players spend anything in a year; median payer spends $0.81 a year, top 10% $8.88 | V | Monetization must be useful to the 96% who never pay; free play stays complete |
+
+**Solo-viable checklist (check at planning time):**
+1. Can one player finish the core loop alone, in an empty server? If not, name the fallback: bots or NPC allies (`roblox-npc-ai`), a smaller mode, or a short wait with a bot fill.
+2. Is the minimum players to start 1 for the main mode? If a match needs more, set a timeout that starts with bots.
+3. Does progress come from solo actions, with group actions as a multiplier (bonus XP, shared base, co-op boss, trading)?
+4. Is there a reason to bring a friend: friend bonus, invite prompt, shared plot, leaderboard among friends, free private server for the group (`private-servers`; under-13 players may be blocked from them by parental settings)?
+5. Does the join-friend path work for a server that is full, private or reserved (`TeleportOptions` ids)?
+6. Is anything that needs a crowd (trading, shops of other players, PvP) labeled as optional so an empty server does not look dead?
+
+**Max players guidance (J, from the table):** solo-first or heavy per-player world (tycoon, base-building, obby with checkpoints): 7-12 keeps the world lively and cheaper. Social hubs, roleplay, battle games: 16-30 and up when the map and `StreamingEnabled` can carry it. Under 7 only for a deliberate co-op or horror format. Justify values outside 7-30 (`roblox-launch-benchmarks` gate 9).
+
+Re-measure the M rows with `scripts/benchmark` before quoting them after a month; re-read the V sources for new reports.
 
 ## 2. Monetization options (Robux)
 
