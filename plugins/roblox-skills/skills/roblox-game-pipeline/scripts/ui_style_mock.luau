@@ -29,38 +29,44 @@ local CONFIG = {
 local rgb = Color3.fromRGB
 local fredoka = Font.fromName("FredokaOne")
 
+-- Each preset follows its card in assets/ui-styles. rarity: one color per item card, drawn as
+-- "fill" (card color, diagonal shade), "line" (thin bar over the price) or "tag" (small pill top-left).
 local PRESETS = {
 	["soft-dark"] = {
 		font = fredoka, text = rgb(255, 255, 255), stroke = rgb(25, 28, 36), strokeW = 2,
-		panel = rgb(45, 50, 60), panelT = 0.12, panelStroke = rgb(255, 255, 255), panelStrokeW = 2, panelStrokeT = 0.84, radius = 12, lip = nil,
-		header = nil, card = rgb(255, 255, 255), cardT = 0.93, cardStroke = rgb(255, 255, 255), cardStrokeW = 1, cardStrokeT = 0.82, cardRadius = 10,
-		chip = rgb(67, 194, 58), chipLip = rgb(43, 138, 36), close = rgb(224, 48, 42),
-		btn = rgb(35, 40, 48), btnT = 0.18, btnGrad = nil, btnStroke = rgb(255, 255, 255), btnStrokeW = 2, btnStrokeT = 0.86, btnRadius = 12,
-		barTrack = rgb(29, 74, 26), barFill = rgb(79, 224, 60), chipText = nil,
+		panel = rgb(32, 34, 40), panelT = 0.1, panelStroke = rgb(255, 255, 255), panelStrokeW = 2, panelStrokeT = 0.8, radius = 10, lip = nil,
+		header = nil, pills = { rgb(250, 200, 40), rgb(160, 90, 240), rgb(60, 210, 220) },
+		card = rgb(60, 64, 74), cardT = 0, cardStroke = rgb(255, 255, 255), cardStrokeW = 1, cardStrokeT = 0.7, cardRadius = 6,
+		rarity = { rgb(250, 190, 30), rgb(150, 80, 235), rgb(30, 195, 200), rgb(240, 70, 160) }, rarityMode = "fill",
+		chip = rgb(30, 32, 40), chipLip = nil, chipWide = false, close = rgb(224, 48, 42), closeRadius = 4,
+		btn = rgb(35, 40, 48), btnT = 0.15, btnGrad = nil, btnStroke = rgb(255, 255, 255), btnStrokeW = 2, btnStrokeT = 0.8, btnRadius = 12, chipText = nil,
 	},
 	["stud-chunky"] = {
 		font = fredoka, text = rgb(255, 255, 255), stroke = rgb(13, 15, 24), strokeW = 3,
-		panel = rgb(32, 36, 58), panelT = 0, panelStroke = rgb(13, 15, 24), panelStrokeW = 4, panelStrokeT = 0, radius = 22, lip = rgb(13, 15, 24),
-		header = { rgb(255, 179, 64), rgb(240, 124, 18) }, card = rgb(46, 52, 84), cardT = 0, cardStroke = rgb(13, 15, 24), cardStrokeW = 3, cardStrokeT = 0, cardRadius = 16,
-		chip = rgb(67, 194, 58), chipLip = rgb(43, 138, 36), close = rgb(224, 48, 42),
-		btn = rgb(140, 90, 230), btnT = 0, btnGrad = { rgb(170, 120, 245), rgb(118, 62, 208) }, btnStroke = rgb(13, 15, 24), btnStrokeW = 4, btnStrokeT = 0, btnRadius = 16,
-		barTrack = rgb(29, 74, 26), barFill = rgb(79, 224, 60), chipText = nil,
+		panel = rgb(28, 32, 62), panelT = 0, panelStroke = rgb(13, 15, 24), panelStrokeW = 4, panelStrokeT = 0, radius = 16, lip = rgb(13, 15, 24),
+		header = { rgb(150, 95, 250), rgb(75, 70, 220) }, sheen = true,
+		card = rgb(46, 52, 84), cardT = 0, cardStroke = rgb(13, 15, 24), cardStrokeW = 3, cardStrokeT = 0, cardRadius = 10,
+		rarity = { rgb(60, 200, 60), rgb(40, 130, 240), rgb(150, 70, 230), rgb(225, 50, 60) }, rarityMode = "fill",
+		chip = rgb(120, 220, 40), chipLip = rgb(60, 140, 20), chipWide = true, close = rgb(224, 48, 42),
+		btn = rgb(140, 90, 230), btnT = 0, btnGrad = { rgb(170, 120, 245), rgb(118, 62, 208) }, btnStroke = rgb(13, 15, 24), btnStrokeW = 4, btnStrokeT = 0, btnRadius = 16, chipText = nil,
 	},
 	["bright-cards"] = {
-		font = fredoka, text = rgb(43, 47, 69), stroke = rgb(43, 47, 69), strokeW = 0,
-		panel = rgb(255, 250, 240), panelT = 0, panelStroke = rgb(43, 47, 69), panelStrokeW = 3, panelStrokeT = 0, radius = 18, lip = nil,
-		header = { rgb(255, 166, 74), rgb(255, 127, 31) }, card = rgb(217, 244, 239), cardT = 0, cardStroke = rgb(43, 47, 69), cardStrokeW = 2, cardStrokeT = 0, cardRadius = 14,
-		chip = rgb(67, 194, 58), chipLip = rgb(43, 138, 36), close = rgb(224, 48, 42),
-		btn = rgb(47, 156, 232), btnT = 0, btnGrad = { rgb(92, 200, 255), rgb(47, 156, 232) }, btnStroke = rgb(43, 47, 69), btnStrokeW = 3, btnStrokeT = 0, btnRadius = 14,
-		barTrack = rgb(200, 210, 220), barFill = rgb(79, 200, 60), chipText = rgb(255, 255, 255),
+		font = fredoka, text = rgb(43, 47, 69), stroke = rgb(25, 60, 110), strokeW = 0,
+		panel = rgb(255, 255, 255), panelT = 0, panelStroke = rgb(120, 200, 245), panelStrokeW = 4, panelStrokeT = 0, radius = 18, lip = nil,
+		header = { rgb(90, 190, 255), rgb(40, 140, 230) }, headerTab = true, pills = { rgb(240, 90, 160), rgb(250, 200, 40), rgb(80, 200, 90), rgb(160, 110, 240) },
+		card = rgb(215, 238, 252), cardT = 0, cardStroke = rgb(255, 255, 255), cardStrokeW = 3, cardStrokeT = 0, cardRadius = 14,
+		rarity = { rgb(190, 90, 240), rgb(70, 140, 240), rgb(250, 190, 40), rgb(170, 110, 240) }, rarityMode = "tag",
+		chip = rgb(90, 200, 60), chipLip = rgb(40, 140, 30), chipWide = true, close = rgb(235, 60, 70),
+		btn = rgb(150, 215, 250), btnT = 0, btnGrad = { rgb(190, 235, 255), rgb(110, 190, 245) }, btnStroke = rgb(60, 150, 230), btnStrokeW = 3, btnStrokeT = 0, btnRadius = 14, chipText = nil,
 	},
 	["dark-flat"] = {
-		font = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Bold), text = rgb(235, 238, 245), stroke = rgb(0, 0, 0), strokeW = 0,
-		panel = rgb(20, 22, 28), panelT = 0.08, panelStroke = rgb(58, 63, 75), panelStrokeW = 1, panelStrokeT = 0, radius = 6, lip = nil,
-		header = nil, card = rgb(35, 38, 46), cardT = 0, cardStroke = rgb(58, 63, 75), cardStrokeW = 1, cardStrokeT = 0, cardRadius = 4,
-		chip = nil, chipLip = nil, close = nil, accent = rgb(155, 92, 255),
-		btn = rgb(20, 22, 28), btnT = 0.12, btnGrad = nil, btnStroke = rgb(58, 63, 75), btnStrokeW = 1, btnStrokeT = 0, btnRadius = 6,
-		barTrack = rgb(42, 45, 54), barFill = rgb(155, 92, 255), chipText = rgb(201, 167, 255),
+		font = Font.new("rbxasset://fonts/families/Montserrat.json", Enum.FontWeight.SemiBold), text = rgb(235, 238, 245), stroke = rgb(0, 0, 0), strokeW = 0,
+		panel = rgb(22, 24, 28), panelT = 0.05, panelStroke = rgb(55, 58, 66), panelStrokeW = 1, panelStrokeT = 0, radius = 8, lip = nil,
+		header = nil, accent = rgb(55, 58, 66),
+		card = rgb(34, 36, 42), cardT = 0, cardStroke = rgb(48, 50, 58), cardStrokeW = 1, cardStrokeT = 0, cardRadius = 4,
+		rarity = { rgb(40, 130, 240), rgb(150, 80, 235), rgb(240, 160, 30), rgb(150, 80, 235) }, rarityMode = "line",
+		chip = rgb(60, 200, 70), chipLip = nil, chipWide = true, close = rgb(200, 40, 40), closeRadius = 4,
+		btn = rgb(30, 32, 38), btnT = 0.1, btnGrad = nil, btnStroke = rgb(55, 58, 66), btnStrokeW = 1, btnStrokeT = 0, btnRadius = 6, chipText = rgb(255, 255, 255),
 	},
 }
 
@@ -155,7 +161,7 @@ local function label(text, size, parent, props)
 	return t
 end
 local function row(parent, gap)
-	new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, gap), SortOrder = Enum.SortOrder.LayoutOrder }, parent)
+	return new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, gap), SortOrder = Enum.SortOrder.LayoutOrder }, parent)
 end
 local function viewport(model, parent, size)
 	local vf = new("ViewportFrame", {
@@ -213,13 +219,13 @@ for i, v in CONFIG.icons.menu do
 	centered(v, button(menu, { LayoutOrder = i }, 78), 58)
 end
 centered(CONFIG.icons.settings, button(root, { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 14) }, 56, true), 40)
-local cash = box({ Position = UDim2.new(0, 16, 1, -50), AnchorPoint = Vector2.new(0, 1), AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1 }, root)
+local cash = box({ Position = UDim2.new(0, 16, 1, -16), AnchorPoint = Vector2.new(0, 1), AutomaticSize = Enum.AutomaticSize.XY, BackgroundColor3 = S.btn, BackgroundTransparency = S.btnT }, root)
+corner(cash, S.btnRadius * 2)
+stroke(cash, S.btnStroke, S.btnStrokeW, S.btnStrokeT)
+new("UIPadding", { PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 18), PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4) }, cash)
 row(cash, 8)
 img(CONFIG.icons.coin, cash, 44, { LayoutOrder = 1 })
-label(CONFIG.currency, 38, cash, { color = rgb(255, 255, 255), strokeW = math.max(S.strokeW, 2) }).LayoutOrder = 2 -- over the world: always light with a stroke
-local bar = box({ Position = UDim2.new(0, 16, 1, -20), AnchorPoint = Vector2.new(0, 1), Size = px(220, 14), BackgroundColor3 = S.barTrack }, root)
-corner(bar, 7)
-corner(box({ Size = UDim2.fromScale(0.62, 1), BackgroundColor3 = S.barFill }, bar), 7)
+label(CONFIG.currency, 34, cash, { color = rgb(255, 255, 255), strokeW = math.max(S.strokeW, 2) }).LayoutOrder = 2 -- always light with a stroke
 
 -- shop panel
 local W, H, HEAD = 470, 420, 66
@@ -230,22 +236,41 @@ end
 local panel = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = panelPos, Size = px(W, H), BackgroundColor3 = S.panel, BackgroundTransparency = S.panelT }, root)
 corner(panel, S.radius)
 stroke(panel, S.panelStroke, S.panelStrokeW, S.panelStrokeT)
-if S.header then
+if S.header and not S.headerTab then
 	local hd = box({ Size = px(W, HEAD), BackgroundColor3 = rgb(255, 255, 255) }, panel)
 	corner(hd, S.radius)
 	grad(hd, S.header)
 	local sq = box({ Position = px(0, HEAD / 2), Size = px(W, HEAD / 2), BackgroundColor3 = rgb(255, 255, 255) }, panel)
 	grad(sq, { S.header[1]:Lerp(S.header[2], 0.5), S.header[2] })
+	if S.sheen then -- two light diagonal stripes across the band
+		local clip = box({ Size = px(W, HEAD), BackgroundTransparency = 1, ClipsDescendants = true }, panel)
+		for i, x in { 0.56, 0.68 } do
+			box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(x, 0, 0.5, 0), Size = px(i == 1 and 34 or 16, HEAD * 2), Rotation = 28, BackgroundColor3 = rgb(255, 255, 255), BackgroundTransparency = 0.82 }, clip)
+		end
+	end
 end
 if S.accent then
 	box({ Position = px(0, HEAD - 2), Size = px(W, 2), BackgroundColor3 = S.accent }, panel)
 end
-local title = box({ Position = px(14, HEAD / 2), AnchorPoint = Vector2.new(0, 0.5), AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1 }, panel)
-row(title, 10)
+-- title row: icon and title (inside a colored tab that sticks out of the corner when headerTab), then pill chips
+local head = box({ Position = px(S.headerTab and -10 or 14, S.headerTab and 6 or HEAD / 2), AnchorPoint = Vector2.new(0, 0.5), AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1 }, panel)
+row(head, 12)
+local title = head
+if S.headerTab then
+	title = box({ LayoutOrder = 1, AutomaticSize = Enum.AutomaticSize.XY, BackgroundColor3 = rgb(255, 255, 255) }, head)
+	corner(title, 16)
+	grad(title, S.header)
+	stroke(title, S.panelStroke:Lerp(rgb(255, 255, 255), 0.4), 3)
+	new("UIPadding", { PaddingLeft = UDim.new(0, 8), PaddingRight = UDim.new(0, 16), PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4) }, title)
+	row(title, 8)
+end
 img(CONFIG.icons.title, title, 44, { LayoutOrder = 1 })
 label(CONFIG.title, 30, title, { color = S.header and rgb(255, 255, 255) or S.text, strokeW = S.header and math.max(S.strokeW, 2) or S.strokeW }).LayoutOrder = 2
+for i, c in S.pills or {} do
+	corner(box({ LayoutOrder = 2 + i, Size = px(34, 14), BackgroundColor3 = c }, head), 7)
+end
 local close = box({ AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0, HEAD / 2), Size = px(46, 46), BackgroundColor3 = S.close or S.panel, BackgroundTransparency = S.close and 0 or 1 }, panel)
-corner(close, 10)
+corner(close, S.closeRadius or 10)
 stroke(close, S.close and S.stroke or S.panelStroke, S.close and 2 or 1)
 local x = label("X", 30, close, { color = rgb(255, 255, 255), strokeW = S.close and 2 or 0 })
 x.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -257,18 +282,27 @@ for i, item in CONFIG.items do
 	if i > 4 then
 		break
 	end
-	local card = box({ LayoutOrder = i, BackgroundColor3 = S.card, BackgroundTransparency = S.cardT }, grid)
+	local rc = S.rarity and S.rarity[i]
+	local card = box({ LayoutOrder = i, BackgroundColor3 = (S.rarityMode == "fill" and rc) or S.card, BackgroundTransparency = S.cardT }, grid)
 	corner(card, S.cardRadius)
 	stroke(card, S.cardStroke, S.cardStrokeW, S.cardStrokeT)
-	if item.model then
-		viewport(item.model, card, 100)
-	else
-		img(item.icon, card, 100, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8) })
+	if rc and S.rarityMode == "fill" then -- diagonal shade, light top-left
+		new("UIGradient", { Color = ColorSequence.new(rgb(255, 255, 255), rgb(170, 170, 170)), Rotation = 45 }, card)
+	elseif rc and S.rarityMode == "line" then
+		box({ Position = UDim2.new(0, 0, 1, -58), Size = UDim2.new(1, 0, 0, 3), BackgroundColor3 = rc }, card)
+	elseif rc and S.rarityMode == "tag" then
+		corner(box({ Position = px(10, 8), Size = px(40, 14), BackgroundColor3 = rc }, card), 7)
 	end
-	local chip = box({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -12), AutomaticSize = Enum.AutomaticSize.XY, BackgroundColor3 = S.chip or S.card, BackgroundTransparency = S.chip and 0 or 1 }, card)
+	local iconSize = S.chipWide and 90 or 100
+	if item.model then
+		viewport(item.model, card, iconSize)
+	else
+		img(item.icon, card, iconSize, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8) })
+	end
+	local chip = box({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -10), AutomaticSize = S.chipWide and Enum.AutomaticSize.None or Enum.AutomaticSize.XY, Size = S.chipWide and UDim2.new(1, -20, 0, 42) or px(0, 0), BackgroundColor3 = S.chip or S.card, BackgroundTransparency = S.chip and 0 or 1 }, card)
 	corner(chip, 10)
 	new("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 16), PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 4) }, chip)
-	row(chip, 6)
+	row(chip, 6).HorizontalAlignment = Enum.HorizontalAlignment.Center
 	if S.chipLip then
 		new("UIStroke", { Color = S.chipLip, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, chip)
 		grad(chip, { rgb(255, 255, 255), rgb(215, 215, 215) }) -- gloss: lighter top
