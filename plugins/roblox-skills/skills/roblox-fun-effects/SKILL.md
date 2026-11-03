@@ -2,7 +2,7 @@
 name: roblox-fun-effects
 description: "Use when adding or reviewing any animation, particle effect, aura, trail, title, roll or egg-hatch reveal, rarity look, mutation or variant, level-up or rebirth celebration, emote, finisher or kill effect, or rare-drop announcement in a Roblox game. Decides what the effect rewards, who sees it, how it escalates and how it pays off in a clip, so it adds fun instead of only working."
 when_to_use: "Also when an effect 'works but feels like nothing', a roll or reveal is boring or too long, when planning rarity tiers, cosmetics or auras, when players should be able to show off, when asked for 'more juice' or 'make it satisfying', or in roblox-game-pipeline stage 4 (Feel cards). Pair with roblox-feel-audio-vfx (how to build it and phone budgets), roblox-cinematics (long scenes), roblox-design-and-launch section 2 (paid random odds)."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/en-us/production/game-design/design-for-roblox.md (fun first; players want their avatars seen)
   - https://create.roblox.com/docs/en-us/production/game-design/ui-ux-design.md (feedback)
@@ -73,7 +73,10 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 | 5 Settle | 0.3-0.5 s | stats count up, index fills, equip offered only if better |
 | 6 Share | tier 5+ | clip and share buttons, server toast (section 6); never blocks the next roll |
 
-- The server rolls and saves before beat 0; leaving mid-reveal never loses the item. The client plays the presentation from the result id, driven by the tier table, not one script per tier.
+- The server rolls and saves before beat 0; leaving mid-reveal never loses the item. The client plays the presentation from the result id, driven by the tier table, not one script per tier. The server refuses the next roll until the minimum reveal time has passed, or a script skips the reveal and farms (`roblox-engine-2026` section 4, item 13).
+- **Color ladder** (honest anticipation): in beat 1 the container steps up one tier color per pulse (white, blue, purple, gold, ...) with rising pitch and stops at the result's tier. It never passes the real tier and drops back (a near-miss tease, section 10), so the ladder's length tells the tier and long anticipation comes only with rare results.
+- Effect caps (pools, a maximum of live rigs) apply to other players' effects. The local player's own reveal always gets one (reserve or force a slot), or a busy server shows them nothing (field observation, 2026-11-04).
+- Review the top tiers first: they are the clip moments and the least seen in testing. Force the result with a Studio-only hook (`roblox-pitfalls` section 3). An effect that only pulls inward (a vortex) read as an empty frame at reveal distance; end it with an outward burst (field observation).
 - Tap skips to beat 4, never past the grant. Auto-roll plays the short version below the skip tier.
 - Never stack two tier sounds or a tier jingle over the music; duck the music.
 - Cosmetic bursts may go over `UnreliableRemoteEvent`; the result itself goes over a `RemoteEvent`.
@@ -140,6 +143,7 @@ Each is a bug: a reveal that plays long but does not say what you got; rare-item
 | Fun card filled for every effect longer than a tick | yes |
 | Tier table drives roll, odds UI, labels and effects | yes |
 | Each tier's reveal timed against section 4; skip works and never loses the grant | yes |
+| Every tier's reveal captured in Studio through a forced-result hook, top tiers first | yes |
 | 20 players with the top aura: FPS stable on the low-end phone profile | yes |
 | A 5 s muted clip of a tier 5 result makes sense | yes |
 | User playtest (`roblox-game-pipeline` section 7a): "Did you want to show someone?" | yes, notes in `docs/playtests.md` |

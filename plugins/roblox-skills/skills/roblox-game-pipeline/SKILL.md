@@ -2,7 +2,7 @@
 name: roblox-game-pipeline
 description: "Use FIRST for any new Roblox game, game idea or big feature to run the staged production workflow: tool check, vision, live-market and platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, first proof (core-fun prototype, concept images or concept trailer with gwanggo), build loop with evidence, verify, release. For Roblox games this replaces generic brainstorming."
 when_to_use: "Also when the user says 'make a game', 'I'm making a Roblox game', 'what do you think of this idea', 'is X a good game idea', 'what should I make', 'what is trending', 'plan this game', 'let's start a project', asks how autonomous the agent should be, or whether to use subagents; asks for a prototype, a playable test of the core loop, concept art or a trailer before building; when a step is judged by feel (controls, combat, difficulty, scares, audio) and the user should play it and give feedback; when small decisions (cinematic, style, intro, music, loading screen) keep coming up late; when the user asks 'is it all done?' or 'how much is left?'; when a layout or feature set should match a reference game; when work stalls because nobody chose a working mode. Replaces ad-hoc starts: run roblox-project-intake inside stage 0-1 and roblox-market-research in stages 1-2, then continue here."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - superpowers plugin 7.0.0 skills: brainstorming, writing-plans, executing-plans, subagent-driven-development, verification-before-completion, finishing-a-development-branch (read 2026-11-03; rules adapted, not copied)
   - roblox-project-intake, roblox-market-research, roblox-design-and-launch (section 1a), roblox-dev-workflow, roblox-cinematics, roblox-store-art-pack
@@ -65,7 +65,7 @@ Stage 0 runs before the first question, also when the user opens with an idea. S
 - Size for week 8, not launch week: the competitor's half-life from `history`.
 - Live-ops load: what the first 4 weeks of updates would be (section 4, Live ops card).
 
-Then the platform checks: run the checks in `roblox-design-and-launch` section 1a and give the developer at most 3 pieces of advice, each as "pattern -> your plan -> suggested change" with the evidence grade. Typical ones: playable alone, a complete mini-loop in 5-10 minutes, first reward in 2 minutes, friend hooks as a bonus, phone and PC from day one, max players chosen from the design.
+Then the platform checks: run the checks in `roblox-design-and-launch` section 1a and give the developer at most 3 pieces of advice, each as "pattern -> your plan -> suggested change" with the evidence grade. Typical ones: playable alone, a complete mini-loop in 5-10 minutes, first reward within 30 s for a simulator (5 recent hits: 2-27 s, `roblox-market-research` section 7) and 2 minutes at most otherwise, friend hooks as a bonus, phone and PC from day one, max players chosen from the design.
 
 ## 3. Look and style board (stage 3)
 
@@ -98,7 +98,7 @@ Ask these as **decision cards**: one line, a default, one more question only if 
 |---|---|
 | Moments | Cinematic at all? [none until the loop is fun; if yes, `roblox-cinematics` section 1] ; first-join intro [short, skippable] ; boss or unlock moment [4-6 s, skippable] ; ending [none yet] ; one clip-worthy moment [name the 5-second moment a player would record and share: a huge reveal, a steal, a jump scare] |
 | Feel | Camera [third person, shoulder only if shooter] ; hit feedback and screen shake [on, with a setting] ; haptics on phone [off] ; music [one looping track + SFX set] ; SFX style [matches lane] ; signature reveal or celebration [one, tiered by rarity or effort, skippable; `roblox-fun-effects`] ; status other players see [aura, trail or title with a free path, if the game has rarity] |
-| Onboarding | Tutorial [learn by doing in the first 2 minutes] ; loading screen [custom, themed, skippable] ; first reward time [under 2 min] ; first screen assets [only what the first screen shows load before play; the rest loads in the background or on demand, `roblox-store-art-pack` section 7] |
+| Onboarding | Tutorial [learn by doing in the first 2 minutes] ; loading screen [custom, themed, skippable] ; first reward time [under 30 s for a simulator, under 2 min otherwise] ; first screen assets [only what the first screen shows load before play; the rest loads in the background or on demand, `roblox-store-art-pack` section 7] |
 | Brand | Game name and logo [after core loop is fun] ; icon and thumbnails [late, `roblox-store-art-pack`] ; trailer [no] |
 | Social | Friend bonus [on] ; private servers [free] ; leaderboard [yes if score-based] ; chat [platform default] |
 | Systems | Daily reward [after the loop works] ; shop and passes [after the loop works, `roblox-design-and-launch` section 2] ; localization [English first, strings in a table] ; accessibility options [text size, shake toggle] |
@@ -133,6 +133,7 @@ Roblox constraints that decide this:
 - **Never delegate:** taste decisions, spending Robux or credits, API keys, publishing, DataStore schema decisions.
 - **Briefs and lanes:** every subagent brief and every parallel lane follows `roblox-dev-workflow` (parallel lanes: section 5; brief rules and the commit and ledger rule: section 8).
 - **Four stop conditions** (any mode): an irreversible or destructive operation; a security-sensitive action; a side effect outside the dev place (publish, merge, push to shared branch, spend credits); a plan so broken that every path forward is a guess. Everything else is decided, written as a `Ruling:` line, and the work continues. Planned playtest checkpoints (section 7a) are not extra stops in Auto mode unless later tasks build on that feel; otherwise they wait for the end.
+- **Unattended runs** (overnight): keep the gates, write every decision as a `Ruling:` line with its cost if wrong, and end with a summary in `docs/progress/` in the user's language: how to play, an evidence table, the rulings, known issues and what only the user can do. Hand over a build checked against HEAD (`roblox-dev-workflow` section 6) and close the Studio windows the agent opened by PID.
 
 Record both choices in the brief ("Working mode") and repeat them back in one line.
 
@@ -190,6 +191,7 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 - Out: saves, shop, monetization, art pass, cinematics, loading screen, settings.
 - Test: the agent playtests through Studio MCP (screenshots, console), then the user plays it in Studio or on a phone through a private test place (`roblox-release-automation`), following section 7a steps 3-5. If multiplayer is the point, use Server & Clients with 2 clients.
 - Verdict from three questions: does the action feel good within 30 s? Does the player want the next upgrade? Does the twist show in the first 2 minutes? Write keep / change / drop to `docs/ledger.md` and update the plan before stage 7.
+- After a passing prototype the next feedback is often about looks and anticipation (one project, C). Have a current-vs-target table ready: one row per beat (effect, motion, sound, model), with a same-angle screenshot next to the concept image. It turns broad feedback into scoped tasks; then run the art bake-off (6a).
 
 **B. Concept images (gwanggo Game Studio, section 10)**
 - If the project has no gwanggo project yet: `create_game_project` (platform `roblox`) and `plan_game` with our brief passed as `brief`, so gwanggo uses `docs/brief.md` instead of writing its own (both free).
@@ -199,7 +201,7 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 
 **C. Concept trailer (gwanggo)**
 - Shot list first (format in `roblox-cinematics` section 4): hook = the clip-worthy moment, then the core action, the progression payoff, the twist or friends, title card; 3-6 s per shot.
-- `generate_gameplay_video` makes one clip from the selected concept (needs `select_concept`; credits per second, `dry_run` first; default 5 s, 16:9). Pass each shot's motion as `prompt`. For shots that start from another concept image, use `generate_video` with that image as the start frame. 9:16 for Shorts or TikTok tests (the `gwanggo-social-video` skill plans these if installed).
+- `generate_gameplay_video` makes one clip from the selected concept (needs `select_concept`; credits per second, `dry_run` first; default 5 s, 16:9). Pass each shot's motion as `prompt`. For shots that start from another concept image, use `generate_video` with that image as the start frame, and compare frame 0 of the clip with that image: some models dropped the start frame and still charged until a gwanggo fix on 2026-11-04. Make the first 1-2 shots, show them, then the rest (one trailer was stopped after 2 shots as "too different from the game"). 9:16 for Shorts or TikTok tests (the `gwanggo-social-video` skill plans these if installed).
 - Join the clips with `ffmpeg -f concat -safe 0 -i shots.txt -c copy trailer.mp4` when ffmpeg exists (re-encode if the clips differ); otherwise hand over the clips in order.
 - Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness). gwanggo's own tool description says the same.
 

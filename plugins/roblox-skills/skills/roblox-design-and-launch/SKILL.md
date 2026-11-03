@@ -2,7 +2,7 @@
 name: roblox-design-and-launch
 description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization."
 when_to_use: "Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, or when asked what Roblox pays creators."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/production/roblox-user-base
   - https://www.gameanalytics.com/reports/2026-roblox-report (vendor report; primary page read 2026-11-03)
@@ -52,6 +52,7 @@ Read from the official creator-docs repository (state 2026-10-29). Numbers and p
   - In a tiered economy (price grows per tier, each tier adds a gain), retune price growth and per-tier gain together in the sim: cutting only the price lets progress run away. Live price tests (section 5) still change one thing at a time.
   - Run one bot policy per way to play: the intended path plus every shortcut (for example repeating one action, standing idle, camping in one spot), and assert that each shortcut earns less than the intended path. The intended-path bot must buy every item on the path; a sim that skips an item hides gate failures. Add a policy whenever you add a shortcut.
   - Run the sim to the end state before adding content: a stall near the end shows only there.
+  - A gain that grows with the stat it raises (gain = base + a percent of current power) compounds: in one prototype an idle bot reached the top tier in about 5 min. `base * sqrt(1 + power * k)` stretched that to about 30 min (field observation, 2026-11-04). Assert a time-to-top for the idle policy.
 - **Genre craft:** for chunky simulator/tycoon looks use `roblox-ui-genre-studs`; for other genres use the UI rules in `roblox-engine-2026`. Weapons and damage: `roblox-combat-tools`; rounds, lobbies and teams: `roblox-match-flow`. Judge the idea against the live market (trends, keywords, competitors) with `roblox-market-research`.
 - **Quests, daily rewards, season pass:** start from Roblox's official feature packages (missions, season passes, bundles, engagement rewards; docs `resources/feature-packages`) before hand-rolling one. Badges mark milestones; their award counts later show how far players get.
 
@@ -82,7 +83,7 @@ Use this when a plan is being shaped. Compare the plan with the table, then give
 5. Does the join-friend path work for a server that is full, private or reserved (`TeleportOptions` ids)?
 6. Is anything that needs a crowd (trading, shops of other players, PvP) labeled as optional so an empty server does not look dead?
 
-**Max players guidance (J, from the table):** solo-first or heavy per-player world (tycoon, base-building, obby with checkpoints): 7-12 keeps the world lively and cheaper. Social hubs, roleplay, battle games: 16-30 and up when the map and `StreamingEnabled` can carry it. Under 7 only for a deliberate co-op or horror format. Justify values outside 7-30 (`roblox-launch-benchmarks` gate 9).
+**Max players guidance (J, from the table):** solo-first or heavy per-player world (tycoon, base-building, obby with checkpoints): 7-12 keeps the world lively and cheaper. Social hubs, roleplay, battle games: 16-30 and up when the map and `StreamingEnabled` can carry it. Under 7 only for a deliberate co-op or horror format. Justify values outside 7-30 (`roblox-launch-benchmarks` gate 9). Per-player plot games (tycoon, garden, base): set `MaxPlayers` to the plot count, and hand plots out from a waiting list, not only at join; in one prototype a player who joined while all plots were taken never got one, even after someone left (field observation, 2026-11-04).
 
 Re-measure the M rows with the `roblox-launch-benchmarks` scripts before quoting them after a month; re-read the V sources for new reports. For today's charts, keyword competition, competitor teardowns and decay curves, run `roblox-market-research`.
 

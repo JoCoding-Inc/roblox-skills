@@ -2,7 +2,7 @@
 name: roblox-studio-ai-tools
 description: "Use when connecting Claude Code to Roblox Studio (official Roblox Studio plugin or the built-in Studio MCP server), choosing among its tools or built-in rbx-* skills, using Studio Assistant (Planning Mode, /generate_mesh, /generate_procedural_model, skills, bring-your-own-key), generating materials/meshes/procedural models, or running Luau headlessly through Open Cloud."
 when_to_use: "Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, MCP key or mouse input that misses its target, writing Assistant skills, or CI that needs to run Luau against a place."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - https://github.com/Roblox/roblox-studio-agent-plugin (README, read 2026-11-03)
   - Studio MCP list_skills output (Studio build of 2026-11-03)
@@ -62,7 +62,7 @@ Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance
 | Docs | `http_get`, `skill` | `http_get` reads allowed Roblox docs URLs (Engine API, Creator docs, Cloud API). Use it before guessing an API |
 | Sessions | `list_roblox_studios` | |
 
-Use them in this order for a change: `get_studio_state` > `search_game_tree` / `inspect_instance` > `script_read` > `multi_edit` > `execute_luau` probe > `start_stop_play` > `get_console_output` > `screen_capture`; for a change that Play must see, follow the Edit and Play order below. Pitfalls with these tools (camera type reset, fresh module copies, hover not firing, window must be frontmost) are in `roblox-pitfalls` section 3.
+Use them in this order for a change: `get_studio_state` > `search_game_tree` / `inspect_instance` > `script_read` > `multi_edit` > `execute_luau` probe > `start_stop_play` > `get_console_output` > `screen_capture`; for a change that Play must see, follow the Edit and Play order below. Pitfalls with these tools (camera type reset, fresh module copies, hover not firing, fast moments, captures from a background window) are in `roblox-pitfalls` section 3.
 
 Edit and Play do not overlap. Order: stop Play > apply in the Edit context (`multi_edit`, `execute_luau` with `datamodel_type` Edit) > `start_stop_play` with `is_start` true > check `get_studio_state` > read back in Client and Server. Send these one call at a time: overlapping calls fail with "Edit datamodel is not available in Play mode" or "Start play hasn't finished yet" (field observation). Make a bulk apply return the number of entries it wrote and check that number before you start Play.
 
@@ -97,7 +97,7 @@ Generative AI rules (official): Roblox AI services (`GenerationService`, `TextGe
 
 Studio accepts documented flags (others are internal): `--task EditPlace --placeId <id> --universeId <id>` opens the latest published place; `--task EditPlaceRevision ... --placeVersion <n>` an older version; `--task EditFile` a local file; `--task RunScript --runScriptFile <file.luau> [--outputFile <f>] [--quitAfterExecution]` runs a script at command-bar permission (a default Baseplate opens if no place is given), which is a local alternative to Open Cloud Luau Execution; `--task TryAsset --assetId <id>`; `--openScriptPath` / `--openScriptFromId` with line/character flags; `--api`, `--fullApi`, `--apiV2 <path>` dump the API. Launched this way Studio streams verbose logs to stdout. Windows exe: `%localappdata%\Roblox\Versions\<version>\RobloxStudioBeta.exe`.
 
-Opening a local place on macOS: `open -a RobloxStudio file.rbxl` (also with `-g -n`) showed the start page instead of the file (field observation, 2026-11-03). Run the binary in the background instead: `/Applications/RobloxStudio.app/Contents/MacOS/RobloxStudio -localPlaceFile <absolute path> -task EditFile`. Its new window takes focus; to keep the user's app in front, a small Swift helper can watch `NSWorkspace.didActivateApplicationNotification` and re-activate the previous app when that pid comes forward. Screenshots and FPS checks still need the window in front (`roblox-pitfalls` section 3).
+Opening a local place on macOS: `open -a RobloxStudio file.rbxl` (also with `-g -n`) showed the start page instead of the file (field observation, 2026-11-03). Pass the file as Studio flags to a new background instance instead: `open -g -n -a /Applications/RobloxStudio.app --args -localPlaceFile <absolute path> -task EditFile` (every launch of an overnight run, 2026-11-04), or run the binary `/Applications/RobloxStudio.app/Contents/MacOS/RobloxStudio` with the same flags. Studio still activates itself at launch and later; to keep the user's app in front, a small Swift helper started with the new pid can watch `NSWorkspace.didActivateApplicationNotification` and re-activate the user's last app when that pid comes forward. Screenshots work from the background window; FPS checks do not (`roblox-pitfalls` section 3).
 
 ## 6. Script Sync (code between Studio and your editor)
 
