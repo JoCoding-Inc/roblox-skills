@@ -1,22 +1,27 @@
 --!nocheck
 -- UI style mockup built as a real ScreenGui in the game's own place, so fonts, strokes,
--- corners and the world behind it are what the game will show.
--- Use: edit CONFIG, run in Edit mode (Studio MCP execute_luau), screen_capture, show the user.
--- Remove after: StarterGui.UiStyleMock and Lighting.UiStyleMockBlur (rerunning replaces both).
--- Items: set `model` to a Model or Part from the game (cloned into a ViewportFrame);
--- without it a placeholder (gem, sword, egg, potion) is built from parts.
+-- corners, icons and the world behind it are what the game will show.
+-- Use: start `python3 -I serve_icons.py <png dir>` (local icons, nothing is uploaded), edit CONFIG,
+-- run in Edit mode (Studio MCP execute_luau), screen_capture, show the user.
+-- Local icons load over 127.0.0.1 into EditableImages; HttpService.HttpEnabled is switched on
+-- only while loading and restored. Remove after: StarterGui.UiStyleMock, Lighting.UiStyleMockBlur.
 
 local CONFIG = {
 	preset = "soft-dark", -- soft-dark | stud-chunky | bright-cards | dark-flat
-	override = {}, -- any STYLE key, for example { accent = Color3.fromRGB(255, 120, 40) }
+	override = {}, -- any STYLE key, for example { chip = Color3.fromRGB(150, 230, 40) }
 	title = "SHOP",
 	currency = "8,423",
+	-- an image is a name served by serve_icons.py or an uploaded "rbxassetid://" id
+	-- bundled names (assets/ui-styles/icons): gem sword egg star coin bag pack gift gear
+	iconServer = "http://127.0.0.1:18765/",
+	iconSize = 192, -- serve_icons.py output size
+	icons = { menu = { "bag", "pack", "gift" }, settings = "gear", coin = "coin", title = "bag" },
 	items = {
-		{ price = "150", shape = "gem" },
-		{ price = "300", shape = "sword" },
-		{ price = "500", shape = "egg" },
-		{ price = "750", shape = "potion" },
-		-- { price = "990", model = game.ReplicatedStorage.Pets.Dog },
+		{ price = "150", icon = "gem" },
+		{ price = "300", icon = "sword" },
+		{ price = "500", icon = "egg" },
+		{ price = "750", icon = "star" },
+		-- { price = "990", model = game.ReplicatedStorage.Pets.Dog }, -- a 3D item from the game
 	},
 	blur = 10, -- world blur behind the open panel, 0 for none
 }
@@ -63,7 +68,37 @@ local S = table.clone(PRESETS[CONFIG.preset])
 for k, v in CONFIG.override do
 	S[k] = v
 end
-local INK = rgb(28, 31, 38) -- icon outlines
+
+-- images: load every local icon once, with HTTP on only for the fetch
+local HttpService = game:GetService("HttpService")
+local AssetService = game:GetService("AssetService")
+local images = {}
+do
+	local wanted = { CONFIG.icons.settings, CONFIG.icons.coin, CONFIG.icons.title }
+	for _, v in CONFIG.icons.menu do
+		table.insert(wanted, v)
+	end
+	for _, it in CONFIG.items do
+		if it.icon then
+			table.insert(wanted, it.icon)
+		end
+	end
+	local was = HttpService.HttpEnabled
+	HttpService.HttpEnabled = true
+	local ok, err = pcall(function()
+		local n = CONFIG.iconSize
+		for _, v in wanted do
+			if images[v] == nil and not v:find("^rbxassetid://") then
+				local body = HttpService:GetAsync(CONFIG.iconServer .. v .. ".rgba")
+				local ei = AssetService:CreateEditableImage({ Size = Vector2.new(n, n) })
+				ei:WritePixelsBuffer(Vector2.zero, Vector2.new(n, n), buffer.fromstring(body))
+				images[v] = Content.fromObject(ei)
+			end
+		end
+	end)
+	HttpService.HttpEnabled = was
+	assert(ok, "icon load failed (is serve_icons.py running?): " .. tostring(err))
+end
 
 local function new(class, props, parent)
 	local o = Instance.new(class)
@@ -93,6 +128,21 @@ local function box(props, parent)
 	props.BorderSizePixel = 0
 	return new("Frame", props, parent)
 end
+local function img(v, parent, size, props)
+	local i = new("ImageLabel", { Size = px(size, size), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit }, parent)
+	if v:find("^rbxassetid://") then
+		i.Image = v
+	else
+		i.ImageContent = images[v]
+	end
+	for k, x in props or {} do
+		i[k] = x
+	end
+	return i
+end
+local function centered(v, parent, size)
+	return img(v, parent, size, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5) })
+end
 local function label(text, size, parent, props)
 	local t = new("TextLabel", {
 		Text = text, FontFace = S.font, TextSize = size, TextColor3 = props and props.color or S.text,
@@ -107,110 +157,16 @@ end
 local function row(parent, gap)
 	new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0, gap), SortOrder = Enum.SortOrder.LayoutOrder }, parent)
 end
-
--- icons drawn with frames, 40 px box
-local function coin(parent, d)
-	local c = box({ Size = px(d, d), BackgroundColor3 = rgb(255, 194, 26) }, parent)
-	corner(c, d)
-	stroke(c, INK, math.max(2, d / 14))
-	local i = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = px(d * 0.55, d * 0.55), BackgroundTransparency = 1 }, c)
-	corner(i, d)
-	stroke(i, rgb(230, 154, 0), math.max(1.5, d / 16))
-	return c
-end
-local ICONS = {
-	bag = function(f)
-		local h = box({ Position = px(13, 4), Size = px(14, 14), BackgroundTransparency = 1 }, f)
-		corner(h, 7)
-		stroke(h, INK, 3)
-		local b = box({ Position = px(6, 13), Size = px(28, 23), BackgroundColor3 = rgb(255, 210, 63) }, f)
-		corner(b, 5)
-		stroke(b, INK, 3)
-	end,
-	pack = function(f)
-		local b = box({ Position = px(8, 8), Size = px(24, 28), BackgroundColor3 = rgb(47, 156, 232) }, f)
-		corner(b, 7)
-		stroke(b, INK, 3)
-		local p = box({ Position = px(5, 13), Size = px(14, 9), BackgroundColor3 = rgb(127, 208, 255) }, b)
-		corner(p, 2)
-		stroke(p, INK, 2)
-	end,
-	gift = function(f)
-		local b = box({ Position = px(7, 16), Size = px(26, 20), BackgroundColor3 = rgb(224, 48, 42) }, f)
-		corner(b, 3)
-		stroke(b, INK, 3)
-		local l = box({ Position = px(4, 10), Size = px(32, 8), BackgroundColor3 = rgb(255, 90, 79), ZIndex = 2 }, f)
-		corner(l, 2)
-		stroke(l, INK, 3)
-		box({ Position = px(18, 10), Size = px(4, 26), BackgroundColor3 = rgb(255, 210, 63), ZIndex = 3 }, f)
-	end,
-	gear = function(f)
-		for _, a in { 0, 45, 90, 135 } do
-			local t = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = px(20, 20), Size = px(34, 8), Rotation = a, BackgroundColor3 = rgb(255, 255, 255) }, f)
-			corner(t, 2)
-		end
-		local r = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = px(20, 20), Size = px(26, 26), BackgroundColor3 = rgb(255, 255, 255) }, f)
-		corner(r, 13)
-		local d = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = px(20, 20), Size = px(11, 11), BackgroundColor3 = S.btn }, f)
-		corner(d, 6)
-	end,
-}
-local function icon(name, parent, size)
-	local f = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = px(40, 40), BackgroundTransparency = 1 }, parent)
-	new("UIScale", { Scale = size / 40 }, f)
-	ICONS[name](f)
-	return f
-end
-
--- placeholder item models
-local function part(model, props)
-	props.Anchored = true
-	props.TopSurface = Enum.SurfaceType.Smooth
-	props.BottomSurface = Enum.SurfaceType.Smooth
-	if not props.Material then
-		props.Material = Enum.Material.SmoothPlastic
-	end
-	return new("Part", props, model)
-end
-local SHAPES = {
-	gem = function(m)
-		part(m, { Size = Vector3.new(2, 2, 2), Color = rgb(58, 184, 255), Reflectance = 0.15, CFrame = CFrame.Angles(math.rad(45), 0, math.rad(35.26)) })
-	end,
-	sword = function(m)
-		local tilt = CFrame.Angles(0, 0, math.rad(-45))
-		part(m, { Size = Vector3.new(0.6, 3.4, 0.25), Color = rgb(215, 227, 240), Reflectance = 0.2, CFrame = tilt * CFrame.new(0, 1.2, 0) })
-		part(m, { Size = Vector3.new(1.8, 0.35, 0.4), Color = rgb(232, 162, 58), CFrame = tilt * CFrame.new(0, -0.6, 0) })
-		part(m, { Size = Vector3.new(0.35, 1.1, 0.35), Color = rgb(138, 90, 43), CFrame = tilt * CFrame.new(0, -1.3, 0) })
-	end,
-	egg = function(m)
-		local e = part(m, { Size = Vector3.new(2, 2.6, 2), Color = rgb(244, 238, 252), CFrame = CFrame.new() })
-		new("SpecialMesh", { MeshType = Enum.MeshType.Sphere }, e)
-		for _, p in { Vector3.new(-0.45, 0.4, -0.85), Vector3.new(0.5, -0.2, -0.85), Vector3.new(-0.2, -0.75, -0.8) } do
-			part(m, { Shape = Enum.PartType.Ball, Size = Vector3.new(0.45, 0.45, 0.45), Color = rgb(154, 107, 224), CFrame = CFrame.new(p) })
-		end
-	end,
-	potion = function(m)
-		part(m, { Shape = Enum.PartType.Ball, Size = Vector3.new(2, 2, 2), Color = rgb(226, 70, 160), Reflectance = 0.1, CFrame = CFrame.new(0, -0.3, 0) })
-		part(m, { Shape = Enum.PartType.Cylinder, Size = Vector3.new(0.8, 0.6, 0.6), Color = rgb(200, 230, 240), CFrame = CFrame.new(0, 0.9, 0) * CFrame.Angles(0, 0, math.rad(90)) })
-		part(m, { Size = Vector3.new(0.5, 0.35, 0.5), Color = rgb(150, 100, 60), CFrame = CFrame.new(0, 1.4, 0) })
-	end,
-}
-local function viewport(item, parent, size)
+local function viewport(model, parent, size)
 	local vf = new("ViewportFrame", {
-		AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 10), Size = px(size, size), BackgroundTransparency = 1,
+		AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8), Size = px(size, size), BackgroundTransparency = 1,
 		Ambient = rgb(120, 120, 130), LightColor = rgb(255, 255, 255), LightDirection = Vector3.new(0.7, -1, 0.6),
 	}, parent)
-	local m
-	if item.model then
-		m = item.model:Clone()
-		if m:IsA("BasePart") then
-			local w = Instance.new("Model")
-			m.Parent = w
-			m = w
-		end
-	else
-		m = Instance.new("Model")
-		SHAPES[item.shape or "gem"](m)
+	local m = model:Clone()
+	if m:IsA("BasePart") then
+		local w = Instance.new("Model")
+		m.Parent = w
+		m = w
 	end
 	m.Parent = vf
 	local cf, sz = m:GetBoundingBox()
@@ -250,18 +206,16 @@ local function button(parent, props, d, round)
 	return b
 end
 
--- left menu
+-- left menu, settings, currency
 local menu = box({ Position = px(14, 120), Size = px(78, 258), BackgroundTransparency = 1 }, root)
 new("UIListLayout", { Padding = UDim.new(0, 12), SortOrder = Enum.SortOrder.LayoutOrder }, menu)
-for i, n in { "bag", "pack", "gift" } do
-	icon(n, button(menu, { LayoutOrder = i }, 78), 48)
+for i, v in CONFIG.icons.menu do
+	centered(v, button(menu, { LayoutOrder = i }, 78), 58)
 end
--- settings
-icon("gear", button(root, { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 14) }, 54, true), 36)
--- currency and bar
+centered(CONFIG.icons.settings, button(root, { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -16, 0, 14) }, 56, true), 40)
 local cash = box({ Position = UDim2.new(0, 16, 1, -50), AnchorPoint = Vector2.new(0, 1), AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1 }, root)
 row(cash, 8)
-coin(cash, 40).LayoutOrder = 1
+img(CONFIG.icons.coin, cash, 44, { LayoutOrder = 1 })
 label(CONFIG.currency, 38, cash, { color = rgb(255, 255, 255), strokeW = math.max(S.strokeW, 2) }).LayoutOrder = 2 -- over the world: always light with a stroke
 local bar = box({ Position = UDim2.new(0, 16, 1, -20), AnchorPoint = Vector2.new(0, 1), Size = px(220, 14), BackgroundColor3 = S.barTrack }, root)
 corner(bar, 7)
@@ -271,8 +225,7 @@ corner(box({ Size = UDim2.fromScale(0.62, 1), BackgroundColor3 = S.barFill }, ba
 local W, H, HEAD = 470, 420, 66
 local panelPos = UDim2.new(0.5, 0, 0.52, 0)
 if S.lip then
-	local lip = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = panelPos + px(0, 6), Size = px(W, H), BackgroundColor3 = S.lip }, root)
-	corner(lip, S.radius)
+	corner(box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = panelPos + px(0, 6), Size = px(W, H), BackgroundColor3 = S.lip }, root), S.radius)
 end
 local panel = box({ AnchorPoint = Vector2.new(0.5, 0.5), Position = panelPos, Size = px(W, H), BackgroundColor3 = S.panel, BackgroundTransparency = S.panelT }, root)
 corner(panel, S.radius)
@@ -289,8 +242,7 @@ if S.accent then
 end
 local title = box({ Position = px(14, HEAD / 2), AnchorPoint = Vector2.new(0, 0.5), AutomaticSize = Enum.AutomaticSize.XY, BackgroundTransparency = 1 }, panel)
 row(title, 10)
-local ti = box({ Size = px(40, 40), BackgroundTransparency = 1, LayoutOrder = 1 }, title)
-icon("bag", ti, 40)
+img(CONFIG.icons.title, title, 44, { LayoutOrder = 1 })
 label(CONFIG.title, 30, title, { color = S.header and rgb(255, 255, 255) or S.text, strokeW = S.header and math.max(S.strokeW, 2) or S.strokeW }).LayoutOrder = 2
 local close = box({ AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -12, 0, HEAD / 2), Size = px(46, 46), BackgroundColor3 = S.close or S.panel, BackgroundTransparency = S.close and 0 or 1 }, panel)
 corner(close, 10)
@@ -308,15 +260,20 @@ for i, item in CONFIG.items do
 	local card = box({ LayoutOrder = i, BackgroundColor3 = S.card, BackgroundTransparency = S.cardT }, grid)
 	corner(card, S.cardRadius)
 	stroke(card, S.cardStroke, S.cardStrokeW, S.cardStrokeT)
-	viewport(item, card, 92)
-	local chip = box({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), AutomaticSize = Enum.AutomaticSize.XY, BackgroundColor3 = S.chip or S.card, BackgroundTransparency = S.chip and 0 or 1 }, card)
+	if item.model then
+		viewport(item.model, card, 100)
+	else
+		img(item.icon, card, 100, { AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 8) })
+	end
+	local chip = box({ AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -12), AutomaticSize = Enum.AutomaticSize.XY, BackgroundColor3 = S.chip or S.card, BackgroundTransparency = S.chip and 0 or 1 }, card)
 	corner(chip, 10)
-	new("UIPadding", { PaddingLeft = UDim.new(0, 14), PaddingRight = UDim.new(0, 16), PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 4) }, chip)
+	new("UIPadding", { PaddingLeft = UDim.new(0, 12), PaddingRight = UDim.new(0, 16), PaddingTop = UDim.new(0, 3), PaddingBottom = UDim.new(0, 4) }, chip)
 	row(chip, 6)
 	if S.chipLip then
 		new("UIStroke", { Color = S.chipLip, Thickness = 2, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, chip)
+		grad(chip, { rgb(255, 255, 255), rgb(215, 215, 215) }) -- gloss: lighter top
 	end
-	coin(chip, 26).LayoutOrder = 1
+	img(CONFIG.icons.coin, chip, 30, { LayoutOrder = 1 })
 	label(item.price, 28, chip, { color = S.chipText or rgb(255, 255, 255), strokeW = S.chipText and 0 or math.max(S.strokeW, 2) }).LayoutOrder = 2
 end
 

@@ -11,7 +11,9 @@ Evidence: the live top-50 chart on 2026-11-03 (Explore API `top-playing-now`) an
 | 3 | Bright cartoon cards | `bright-cards.jpg` | White or cream cards, colored tab header, pastel item cards, glossy green buy buttons | Pet collecting, kid games, tap games | Adopt Me, Pet Simulator 99, Tap Simulator | Simulator or Cozy row |
 | 4 | Dark flat compact | `dark-flat.jpg` | Near-black slate, 1 px stroke, one accent color, small line icons, no gloss | Shooters, battlegrounds, sports, survival, RPG, fishing | Rivals, Blox Fruits, Forsaken, Volleyball Legends, Fisch | Anime/battlegrounds or Sci-fi row |
 
-`studio-mock.jpg`: the same four styles built as a real ScreenGui in Studio by `scripts/ui_style_mock.luau` (the bright-cards one shows a game model in its first card). Show it next to the cards when offering the Studio mockup.
+`studio-mock.jpg`: the same four styles built as a real ScreenGui in Studio by `scripts/ui_style_mock.luau` with the bundled icons, over a part-built world. Show it next to the cards when offering the Studio mockup.
+
+`icons/`: nine 192 px PNG icons with alpha (gem, sword, egg, star, coin, bag, pack, gift, gear) for mockups until the game has its own. Made as one gwanggo sheet (`gpt-image-2.5` high, 3 credits, 2026-11-03) on a flat magenta background, keyed and sliced with Pillow. Make a game's own set the same way: one 3x3 sheet in its locked style, "flat solid pure magenta (#FF00FF) background, wide margins, no magenta inside the icons", then key out the magenta and cut each icon by its largest connected shape.
 
 Themed looks (words only, no card; build them on the closest basic style when the game asks for it):
 
@@ -43,19 +45,20 @@ Keep UIShadow instances to about 100 on screen. Check every style on a phone-siz
 
    | Way | Cost | Gives | Best when |
    |---|---|---|---|
-   | Studio mockup (`scripts/ui_style_mock.luau`) | Free | A real ScreenGui in the game's own place: real Roblox fonts, strokes and corners, the game's own item models in the cards, the game's world behind it. Close to buildable | Studio MCP is connected and the place has a world or items (default) |
+   | Studio mockup (`scripts/ui_style_mock.luau`) | Free | A real ScreenGui in the game's own place: real Roblox fonts, strokes and corners, the bundled icons or the game's own, its item models in the cards, its world behind it. Close to buildable | Studio MCP is connected (default). It looks only as good as its icons and world: never draw icons with frames |
    | gwanggo image (prompt below) | about 3 credits each on `gpt-image-2.5` high; quote and ask first | A mood image with the game's world and themed ornament (wood, gold, glam) that parts and frames cannot draw yet | No place yet, or the user wants a themed look explored before building |
 
 3. Show 2-3 variants, let the user pick or mix, and record the pick in the brief as `UI style: <name>` with the font pair and the palette.
 
 ### Studio mockup
 
-1. Read `scripts/ui_style_mock.luau` and edit only `CONFIG`: `preset` (closest basic style), `override` (palette, font, corners from the brief; keys are those of `PRESETS`, for example `{ font = Font.fromName("LuckiestGuy"), chip = Color3.fromRGB(150, 230, 40) }`), `title`, `currency`, and `items` with `model = <a Model or Part in the game>` where the game has items.
-2. Run it with Studio MCP `execute_luau` in Edit mode on the user's game place (never another project's window), then `screen_capture` with `camera_position` and `look_at_position` on a typical spot of the world.
-3. Send the image. For each variant change `override` and run again (it replaces the previous mock).
-4. Afterwards delete `StarterGui.UiStyleMock` and `Lighting.UiStyleMockBlur`; the script adds nothing else.
+1. Start the icon server in the background: `python3 -I <skill dir>/scripts/serve_icons.py <skill dir>/assets/ui-styles/icons [<game icon dir>]` (later folders override by name). Icons stay local: Studio loads them over 127.0.0.1 into EditableImages, nothing is uploaded.
+2. Read `scripts/ui_style_mock.luau` and edit only `CONFIG`: `preset` (closest basic style), `override` (palette, font, corners from the brief; keys are those of `PRESETS`, for example `{ font = Font.fromName("LuckiestGuy"), chip = Color3.fromRGB(150, 230, 40) }`), `title`, `currency`, `icons` (menu, settings, coin, title), and `items`, each with `icon = <served name or "rbxassetid://">` or `model = <a Model or Part in the game>`.
+3. Run it with Studio MCP `execute_luau` in Edit mode on the user's game place (never another project's window), then `screen_capture` with `camera_position` and `look_at_position` on a busy, typical spot of the world (trees or buildings on both sides of the panel).
+4. Send the image. For each variant change `override` and run again (it replaces the previous mock).
+5. Afterwards delete `StarterGui.UiStyleMock` and `Lighting.UiStyleMockBlur` and stop the server. The script turns `HttpService.HttpEnabled` on only while it loads icons and restores it.
 
-Icons are drawn with frames (bag, backpack, gift, gear); real icons come later from `roblox-store-art-pack` section 6. Tested 2026-11-03 in Studio at 1309x747: all four presets and the model path.
+Tested 2026-11-03 in Studio at 1309x747: all four presets with the bundled icons, a 3D model in a card, `HttpEnabled` restored to off.
 
 ### gwanggo image
 
