@@ -2,7 +2,7 @@
 name: roblox-dev-workflow
 description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud)."
 when_to_use: "Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, how to organise a multi-session build, or how to brief and run parallel agents (worktree lanes, an agent that stalls). Run roblox-project-intake first if docs/brief.md does not exist."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/studio/mcp
   - https://create.roblox.com/docs/assistant/guide
@@ -125,13 +125,16 @@ Repeat per feature, small steps:
 3. In Studio through MCP: `get_studio_state`, then `execute_luau` probes in Edit mode; `start_stop_play`; read `get_console_output`. Lint does not catch runtime-only errors in UI code (for example a renamed theme key): Play after UI changes and read the console.
 4. Run a bot scenario for the behaviour (the `playtest` subagent, or your own scripted scenario returning PASS/FAIL lines). See `roblox-pitfalls` section 3. For a layout or loop task a passing scenario does not replace walking the player path with real input (`roblox-game-pipeline` section 7).
 4b. For every economy or save feature add a failure path, not only the happy path: try to buy without enough currency, then buy normally, then reset or rejoin, and check the balance, the granted upgrade and persistence against the intended rules. A clean console does not catch a wrong charge or a missing save.
-5. `screen_capture` after bringing the dev window to the front; check layout at phone size with the Device Simulator (Assistant skill `rbx-device-simulator-lua`).
+5. `screen_capture` from the dev window left in the background (never bring Studio to the front: `roblox-pitfalls` section 3); check layout at phone size with the Device Simulator (Assistant skill `rbx-device-simulator-lua`).
 6. Commit. One feature per commit.
 
 When two agents or windows are involved, always pass the right `studio_id` and list instances with `list_roblox_studios` first. Within one project only one agent at a time drives the shared Studio place or Blender scene; the others do file-only work or headless Blender, or work in their own Blender instance (`roblox-game-pipeline` section 5, `roblox-blender-export` section 8).
 
 Parallel work lanes (several agents building at once; whether to delegate at all: `roblox-game-pipeline` section 5):
 
+- Before spawning more than two agents, post the plan (one row per agent: task, files, model; open decisions with defaults; credit quotes) and wait for an explicit go. A user stopped 8 agents that were launched before the plan was shown (field observation).
+- Write a lane contract before spawning (for example `docs/prototype-contract.md`): instance tree names, remote names and payloads, module APIs, and which lane owns which files. Three lanes (server, client flow, effects) built against one contract merged cleanly overnight (field observation, 2026-11-04).
+- A lane that needs Studio opens its own dev place file, built from its worktree and named after the lane (`<Game>-dev-<lane>.rbxl`), and drives only the window with that name, never another lane's or another project's. Cap open windows by memory (`roblox-game-pipeline` section 0, rule 8).
 - Claude Code's Agent tool option `isolation: "worktree"` covers only the session's own repo (branched from the remote default branch unless `worktree.baseRef` is `"head"`); lane agents could not use git in a target repo outside the session directory (field observation). Create the worktrees by hand, `git worktree add -b feat/<lane> ../<repo>-<lane> <base>`, start each agent without `isolation`, and give it the absolute path, the files it may edit and the files it must not touch.
 - One owner lane per shared module (HUD module, asset-id manifest, the ScreenGui `DisplayOrder` table); the other lanes do not edit it. Regenerate generated manifests with their generator after a merge; never hand-merge them.
 - After every merge run lint and tests and grep for symbols the merge dropped.
@@ -142,6 +145,7 @@ Parallel work lanes (several agents building at once; whether to delegate at all
 - Feel: speeds, combat, difficulty, scares, audio and phone controls are judged by a person playing, not by screenshots; plan user play sessions with `roblox-game-pipeline` section 7a.
 - Performance: MicroProfiler and the Developer Console memory tab on a throttled device profile, then on a real low-end Android phone for 10-15 minutes (the emulator is inaccurate for memory); Assistant skills `rbx-perf-profiling` and `rbx-scene-analysis` help interpret traces and find leaks. Keep Studio-only caches out of the live path.
 - Publish: Open Cloud place publishing (`.rbxl` binary), print the published version number, keep the previous version number for rollback. See `roblox-pitfalls` section 1 for the 409 busy error.
+- Handing over a place file (for example on the Desktop after an unattended run): prove it matches the commit. `rojo build` HEAD to a scratch file and `cmp` it with the handed-over `.rbxl`; the two were byte-identical in our run (2026-11-04).
 - First publish screens (from a secondhand article, verify in Studio): Data Sharing on the first screen may be on by default and use the game's data to train Roblox's generative models, so decide on purpose; leave "Continue" alone unless you mean to start a public release; and turn on Studio Access to API Services only on a test place, because Studio then uses the same data as real players.
 - Before the first public publish: content maturity questionnaire, icon, thumbnails, description, genre, age-check requirements. Follow `roblox-design-and-launch` sections 4-6.
 

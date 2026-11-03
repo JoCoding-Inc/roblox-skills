@@ -2,7 +2,7 @@
 name: roblox-engine-2026
 description: "Use when writing or reviewing Roblox game code and UI in 2026: task scheduler, deferred events, Parallel Luau, native codegen, strict types, StreamingEnabled settings, flex layouts and UI styling, Input Action System, mobile/console rules, performance budgets, remote security, server-side exploit detection, Server Authority, platform-integrated chat, and a status board of betas, rollouts and planned features."
 when_to_use: "Also when code uses wait/spawn/delay or PhysicsService collision groups, when a UI breaks on phone or console, when memory or crash rates are high, when adding remotes, ProximityPrompts or purchases, when exploiters speed-hack or farm currency, when code touches Motor6D joints or rotated UI, when scenery vanishes at a distance on phones or low graphics, when a client stalls waiting for a remote at join or an item is lost as a player leaves, before raising a region, stage or tier count, or when an old tutorial's pattern might be outdated."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/scripting (scheduler, events/deferred, multithreading, locations, security, transparent-batching)
   - https://create.roblox.com/docs/luau (type-checking, native-code-gen)
@@ -83,6 +83,12 @@ Where this file and an older tutorial disagree, this file follows the current do
 9. Teleports: use server `TeleportAsync` (client `Teleport` is deprecated), set Access Control for Places to "Secure within universe only", treat teleport data as client-visible. For private servers set `TeleportOptions.ReservedServerId` or `TeleportOptions.VipServerId` (a GUID, `game.PrivateServerId` of the target); set at most one, since two raise a Luau error. The old access-code fields still work but print deprecation messages. Handle `TeleportInitFailed`: players can close or leave VIP servers.
 10. `Player.DeviceTrustLevel` (Pending/Unknown/None/Standard/Full) is a server-side signal and always Pending in Studio. Device Trust API (announced 2026-10-27, Android and the upcoming Web client; iOS, console and Windows planned for 2027): set `IntegrityService.EvaluatePlayerDeviceTrust` on the server to approve or reject a join (return a decision table, with a kick message), or read the cached level later. Never trust the value on the client; have the server tell the client which features are on. It does not replace server-side validation.
 11. Buffer networking libraries (Zap, Blink) cut bandwidth but do not replace steps 1-4. Start with plain `RemoteEvent` and `UnreliableRemoteEvent`; switch only when the profiler shows remote cost.
+12. One purchase path per action: a server `ProximityPrompt.Triggered` handler next to a client buy remote charged twice for one press. Keep one.
+13. Server-timed flows: when the server decides a result at request time and the client then plays a long presentation (cinematic, reveal), a script can skip the presentation and request again at once. Store `readyAt = now + 0.8 x minimum presentation time` on the server (the 0.8 is slack for latency), refuse earlier requests, and cap any storage such farming would fill.
+14. Client-reported timing (a meter stopped on PERFECT, a rhythm hit) is a claim. The server knows when the meter started and its speed, so it checks the phase within a latency margin.
+15. Close server sessions on every exit path: a per-player flag (launching, rolling, in a minigame) is cleared on finish, death, cancel and leave; a timeout is only the backstop. A player who died mid-flow stayed locked until a 40 s timeout.
+
+Items 12-15 are field observations from one prototype (2026-11-04): an independent code review found all four while lint, types and 296 tests were green. Review remote flows on their own; tests do not cover them.
 
 ### 4b. Server-side detection (beyond single remotes)
 

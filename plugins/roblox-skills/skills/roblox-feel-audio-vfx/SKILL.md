@@ -1,8 +1,8 @@
 ---
 name: roblox-feel-audio-vfx
 description: "Use when adding or tuning game feel in Roblox: sound effects and music, particles, beams, trails, hit feedback, screen shake, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist."
-when_to_use: "Also when a game feels flat or silent, effects are invisible or too heavy on phones, audio is too loud, overlaps or loops wrongly, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
-last_reviewed: 2026-11-03
+when_to_use: "Also when a game feels flat or silent, effects are invisible or too heavy on phones or look thin and cheap next to concept art, audio is too loud, overlaps or loops wrongly, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
   - https://create.roblox.com/docs/effects/particle-emitters (Rate limits, fill rate)
@@ -35,6 +35,8 @@ For each frequent action write what the player sees, hears and feels: action, re
 
 - `ParticleEmitter`: one emitter makes up to 400 particles per second (100 on mobile) according to the docs; keep `Rate` low and `Lifetime` short. Particle size costs GPU fill rate, so many large overlapping particles hurt phones.
 - Flipbooks (`ParticleEmitter.FlipbookLayout` 2x2, 4x4, 8x8 or `Custom` with `FlipbookSizeX`/`FlipbookSizeY`) cost texture memory, and clients switch them off when low on memory (docs), so an effect must still read without its flipbook. `ParticleEmitter.TimeScale` (0-1) slows or freezes an effect for a hit stop.
+- Size particles for the real camera distance: 1-1.5 stud stars all but vanished 40-100 studs away, while 1.8-3 studs by tier read (field observation, 2026-11-04). Check in a screenshot from the player's camera, not up close.
+- The built-in `rbxasset://textures/particles/*` textures plus thin Trails read as a wireframe of lines on a dark sky next to concept art. A release-quality burst needs custom glow, star, streak and sparkle (flipbook) textures, dense emission along the shape, additive layers (`LightEmission` 1, `LightInfluence` 0) and a moderate `Bloom`. Dark semi-transparent layers over a night sky render brown and muddy; use fewer, brighter additive ones (field observations, 2026-11-04).
 - Beams, trails, lights, highlights: use sparingly; each light source and highlight has a cost.
 - Burst on events, not constant emission; destroy or disable emitters when done; cap simultaneous effects per player and per server.
 - Hit feedback: flash/highlight + sound + small camera shake or knockback; damage numbers short and readable.
@@ -60,7 +62,7 @@ For each frequent action write what the player sees, hears and feels: action, re
 - Set colors on `Ambient`/`OutdoorAmbient`, intensity on `Brightness`/`ExposureCompensation`, time on `ClockTime`; `GlobalShadows` toggles shadows; `PrioritizeLightingQuality` decides whether quality or view distance scales down first on weak devices.
 - `Atmosphere` adds haze and depth (density, offset, color); post effects (bloom, color correction, depth of field) in small amounts. Judge colors in Studio, not in renders.
 - Bright daylight simulator look: `roblox-store-art-pack` section 1. Horror or night: lower brightness, fog and a few small lights instead of global brightness, except where the player must read the ground (next bullet).
-- Space or night area the player must read: keep the black sky (`ClockTime` 0) and no haze over objects (`Atmosphere.Density` 0; the docs say Density does not directly affect the skybox) but do not dim the surfaces. Starting values from one test scene, not a docs rule: `Brightness` about 3 with mid-grey `Ambient` (RGB about 125) and `OutdoorAmbient` (RGB about 165) read well; `Brightness` 0.6 with a dark `Ambient` made the area one unreadable blob. `OutdoorAmbient` is clamped to at least `Ambient` in every channel (docs).
+- Space or night area the player must read: keep the black sky (`ClockTime` 0) and no haze over objects (`Atmosphere.Density` 0; the docs say Density does not directly affect the skybox) but do not dim the surfaces. Starting values from one test scene, not a docs rule: `Brightness` about 3 with mid-grey `Ambient` (RGB about 125) and `OutdoorAmbient` (RGB about 165) read well; `Brightness` 0.6 with a dark `Ambient` made the area one unreadable blob. `OutdoorAmbient` is clamped to at least `Ambient` in every channel (docs). Separate the surfaces by value too, not only by light: under an indigo night every mid-tone surface merged into one flat lavender until the floors went warm and light and the stage pads dark (field observation, 2026-11-04).
 
 ## 5. Budgets and checklist
 

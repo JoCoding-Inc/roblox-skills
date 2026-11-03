@@ -2,7 +2,7 @@
 name: roblox-market-research
 description: "Use when ideating or judging a Roblox game idea against the live market: what is trending or rising, which genres and themes are crowded, search keyword competition, competitor teardown (players, age, passes, badges), how fast hits decay, and which sites and public APIs hold Roblox charts, stats and keyword data."
 when_to_use: "Also when the user asks 'what do you think of this game idea', 'how about a gym tycoon (or any genre) idea', 'is X a good idea', 'what should I make', 'what is popular on Roblox now', 'is this genre saturated', 'who are the competitors', picks a game name or title keywords, times an update to a season or event, or wants sources for Roblox trends. Run in roblox-game-pipeline stages 1-2, before the brief is fixed."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/discovery
   - https://create.roblox.com/docs/production/analytics/analytics-dashboard
@@ -96,10 +96,11 @@ Example (M, 2026-11-03): "steal" had 39 of 40 results with the word in the title
 
 - **Size for week 8, not launch day.** Viral hits decay fast. Measured 2026-11-03 (M): 99 Nights in the Forest fell to 12 % of its peak 7-day average with a half-life of 82 days, and it updates often. Trackers (V) show Grow a Garden 2 going from about 976K at its June 2026 peak to under 1K, and Kick a Lucky Block from about 1.7M (May 2026) to about 10K. Plan servers, economy and live ops for the week-8 audience, with D8-28 hooks and weekly drops ready before launch.
 - **New games do break in.** Roblox says about 40 % of the weekly RFY top 100 by impressions were created in the last three months (Q3 2026 letter, O), and RFY is tuned for long-term retention with age-cohort weighting. A fresh game with good retention is not locked out; a fast clone with poor retention is.
-- **Clone check.** If most top results for the theme are under 90 days old and share the title word, the idea needs a twist: name one thing it does that the top clone does not. Speed to market is not a moat; Roblox reports AI-built fast follows reaching the top 20 (Q3 2026 letter, O).
+- **Clone check.** If most top results for the theme are under 90 days old and share the title word, the idea needs a twist: name one thing it does that the top clone does not. Speed to market is not a moat; Roblox reports AI-built fast follows reaching the top 20 (Q3 2026 letter, O). A presentation twist is copyable too: Throw An Egg! had the tap meter, PERFECT and chase camera of Throw Food For Animals two days before it and stayed at about 1.3K CCU, and a paid template of Throw Food For Animals was on sale 3 days after its breakout (M, 2026-11-03). Treat a cinematic or a meter as table stakes; the moat is execution and update speed.
+- **Ignition lag.** Hits took off 1-5 weeks after creation (Steal An Egg about 19 days, Throw Food For Animals about 5 weeks; M/V dates), and YouTube videos came after the ramp had started. Their shops were live before the ramp: Throw Food For Animals had 33 developer products, +1 Spider Arm 13 passes 3 hours after creation (M, 2026-11-03). Ship the shop, group reward and update rhythm with the first public release, and launch a seasonal game weeks before its date (J).
 - **Monetization signal.** A game ranked higher on top-earning than on playing-now earns above its size; open its passes with `game` to see the ladder.
 - **Badge funnel.** Award counts of the first badge vs later badges approximate how far players get. Rough; badges can be granted in different orders.
-- **Seasons and events.** Event tags (for example a pumpkin emoji in October titles) skew chart titles for weeks: The Hollow ended 2026-11-02 and many titles still carried Halloween tags the next day. Do not count tags or event frames in or right after an event window. Replay shows horror and Halloween searches peak in September and October (O).
+- **Seasons and events.** Event tags (for example a pumpkin emoji in October titles) skew chart titles for weeks: The Hollow ended 2026-11-02 and many titles still carried Halloween tags the next day. Do not count tags or event frames in or right after an event window. Event weekends inflate peaks too: the Halloween weekend (2026-10-31 and 11-01) lifted every current peak, so re-pull a week later before reading decay (V/M). Replay shows horror and Halloween searches peak in September and October (O).
 - **Trackers disagree.** Steal An Egg's all-time peak is reported as 9.9M and as 14.2M by different trackers (V). Quote a range and a source, or your own measured number.
 - **Device and country.** Charts differ by device and country; check `high_end_phone` before a phone-first plan.
 
@@ -114,6 +115,9 @@ Example (M, 2026-11-03): "steal" had 39 of 40 results with the word in the title
 | Murder Mystery 2 | A seasonal event plus pass lifts an old social game (+146 % Sep to Oct, vendor) | V |
 | RIVALS | Short ranked duels plus cosmetics hold a mid-size audience; earns above its CCU | M |
 | Grow a Garden 2, Kick a Lucky Block | Huge launch spikes without retention fade within weeks | V |
+| Throw Food For Animals (ramped about 5 weeks after creation) | One tap per throw, then a fixed 3.8 s chase-camera flight and 9 s from tap to the item card; small servers that stay full (5 of 5) | M |
+
+First reward after spawning, from footage of 5 hits (M, 2026-11-03): Steal An Egg about 2 s (egg) and 9 s (pet), Ragdoll Playground 6 s, +1 Spider Arm 13 s, Throw Food For Animals 16-27 s; a skill run (DONT SPLASH) 33-55 s.
 
 Genre share of plays 2026-08-24 to 2026-09-20 (V, dubit.io): Simulation 36.7 %, Survival 14.6 %, Obby 8.5 %, Roleplay 8.4 %. On 2026-11-03, 10 of the top 20 chart games were 90 days old or younger (M).
 
