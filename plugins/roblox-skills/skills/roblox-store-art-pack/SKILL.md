@@ -139,7 +139,7 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 
 **Making them:**
 - Path 1: a Blender diorama of the game's own assets. 35-50 mm lens for thumbnails, 50-85 mm for the icon, key plus rim light.
-- Path 2: Studio `screen_capture` during a playtest with an explicit camera and the HUD hidden (`ScreenGui.Enabled = false`).
+- Path 2: during a playtest, set the camera with the render-step camera and hide the HUD (`ScreenGui.Enabled = false`), then `screen_capture` with no camera arguments (recipe: `roblox-pitfalls` section 3, Screenshots in Play).
 - Post-process: crop to the focus point, Lanczos resize, optional outlined title, enforce 3 MB.
 
 **Upload:** in Creator Dashboard (Configurations > Places > Icon / Thumbnails), or the experimental `legacy-game-internationalization` game-icon and game-thumbnails endpoints with an API key (see `roblox-release-automation`, not yet tested). The Open Cloud Assets API does not set the game icon. Never use a .ROBLOSECURITY cookie.
