@@ -1,0 +1,4 @@
+# Names the skills mention on purpose although they are gone or deprecated. One per line: Class.Member  # reason
+AssetService.PromptCreateAssetAsync  # documented as removed (renamed)
+Lighting.Technology  # documented as unreadable from execute_luau
+ChatWindowConfiguration.TextChannelDisplayMode  # announced 2026-10-22, not in the reference on 2026-11-03; re-check

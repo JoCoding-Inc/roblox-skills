@@ -2,7 +2,7 @@
 name: roblox-engine-2026
 description: "Use when writing or reviewing Roblox game code and UI in 2026: task scheduler, deferred events, Parallel Luau, native codegen, strict types, StreamingEnabled settings, flex layouts and UI styling, Input Action System, mobile/console rules, performance budgets, remote security, platform-integrated chat."
 when_to_use: "Also when code uses wait/spawn/delay or PhysicsService collision groups, when a UI breaks on phone or console, when memory or crash rates are high, when adding remotes, ProximityPrompts or purchases, or when an old tutorial's pattern might be outdated."
-last_reviewed: 2026-11-02
+last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/scripting (scheduler, events/deferred, multithreading, locations, security, transparent-batching)
   - https://create.roblox.com/docs/luau (type-checking, native-code-gen)
@@ -72,16 +72,18 @@ Where this file and an older tutorial disagree, this file follows the current do
 
 - Platform-integrated chat (`TextChatService.PlatformIntegratedChat`, Studio-only toggle) becomes **required for all games in May 2027**. When on, `TextChatMessage.Text`/`Translation` return empty, and `PrefixText`, `OnIncomingMessage` and `Player.Chatted` are unsupported. Move to `TextChannelWindow` and `TextChatCommand` now. Games with the default chat and no customization need no action.
 - **Free text is enforced now (DevForum 2026-10-20, phase 0):** any player-to-player free text outside `TextChatService` (signs, bulletin boards, pet names, license plates, trading notes, announcement systems, admin-tool messaging, comment systems) must be removed, moved to a `TextChannel`, or rate limited to 1 update per minute. Violations get notices and can lead to suspension; developers report games taken down for weeks, so audit this before every release.
-- **Chat roadmap (official, 2026-10-22):** `TextChannelWindow` (also in a `SurfaceGui`) and `ChatWindowConfiguration.TextChannelDisplayMode` are live; `TextSource.CanSend=false` makes a channel read-only; `DisplaySystemMessage` is client-side, so call it per player from the server (rich text works). Display-name colors and gradients: November 2026. Role badges replacing prefixes plus keyword commands anywhere in a message: February 2027. Quick Action Menu: April 2027. Creator blocked-word list: May 2027. Bubble chat styling stays (`BubbleChatConfiguration`, `OnBubbleAdded`). Multiple channels in one window are not supported yet (use one window per channel or the default window).
+- **Chat roadmap (official, 2026-10-22):** `TextChannelWindow` (also in a `SurfaceGui`) and `ChatWindowConfiguration.TextChannelDisplayMode` are live per the announcement (the property is not in the engine reference yet on 2026-11-03: look it up before using it); `TextSource.CanSend=false` makes a channel read-only; `DisplaySystemMessage` is client-side, so call it per player from the server (rich text works). Display-name colors and gradients: November 2026. Role badges replacing prefixes plus keyword commands anywhere in a message: February 2027. Quick Action Menu: April 2027. Creator blocked-word list: May 2027. Bubble chat styling stays (`BubbleChatConfiguration`, `OnBubbleAdded`). Multiple channels in one window are not supported yet (use one window per channel or the default window).
 - **Avatars:** `AvatarUnificationMode` is deprecated on 2026-12-01 (setting no longer supported). SLIM avatars use `Workspace.EnableSLIMAvatars`.
 - Voice chat: experiences up to 100 players, ID-verified 13+ users in supported countries. Cross-server chat about 200 users per channel.
 - Matchmaking: up to 5 server attributes and 5 player attributes per game.
 - Audio import: under 20 MB, under 7 minutes, 48 kHz or less; free imports per 30 days 2,000 (ID verified) or 100 (unverified).
 - Data/Memory/HTTP limits: see `roblox-studio-ai-tools` and the Open Cloud numbers in `roblox-pitfalls` section 1; DataStore value 4 MB, keys 50 characters, 25 MB/min read and 4 MB/min write per key.
 
-## 6. APIs and betas seen in the October 2026 recaps
+## 6. Status board: betas, rollouts and known issues (what the API docs do not say)
 
-Source: DevForum weekly recaps of Oct 5-30 and the individual announcement posts of Oct 26-30 (read 2026-11-02). "Studio 0.745 check" means tested through Studio MCP on that build; items without it are from the posts only.
+**Look up the API, trust this table only for status.** Signatures, properties and enums come from the live reference: `http_get` on `https://create.roblox.com/docs/reference/engine/classes/<Class>.md` (use `query`), or the `rbx-docs-search` Studio skill. Verified 2026-11-03: the Oct 26-30 additions (`RaycastParams.Margin`, `TeleportOptions.ReservedServerId`, `IntegrityService.EvaluatePlayerDeviceTrust`, `Camera.ProjectionType`) are all in the live reference. This table records only what the reference omits: which beta flag, rollout date, known bug, and our test result. `scripts/check_apis.py` checks that every API name used in these skills still exists.
+
+Source: DevForum weekly recaps of Oct 5-30 and the announcement posts of Oct 26-30 (read 2026-11-02). "Studio 0.745 check" means tested through Studio MCP on that build; items without it are from the posts only.
 
 | Item | State | Note |
 |---|---|---|
@@ -94,7 +96,7 @@ Source: DevForum weekly recaps of Oct 5-30 and the individual announcement posts
 | `UIShadow` upgrades, Package Overrides | Studio Beta | `UIShadow` class exists in 0.745 |
 | Device Simulator toolbar and Network Simulator | Full release | Use for mobile and bad-network checks |
 | Studio deep links on server-log stack traces | Live | Click an error in server logs to open the script line |
-| Shapecast upgrade | Live (2026-10-28) | New implementation of every Blockcast, Spherecast and Shapecast: exact mesh collision geometry, tighter results, up to 4.1x faster (Roblox benchmark), no script change. New `RaycastParams.Margin` (inflates the shape; a raycast with a margin acts like a spherecast) and `RaycastParams.SizeGradient` (ends at 1 + gradient times the size; the margin is not scaled), plus `WorldRoot:Shapecast(part, direction, params, cframeOverride, sizeOverride)`. Visualize under Visualization Modes > Physics simulation > Shapecasts. Studio 0.745 check: both params can be set; cast behavior not tested |
+| Shapecast upgrade | Live (2026-10-28) | New implementation of every Blockcast, Spherecast and Shapecast: exact mesh collision geometry, up to 4.1x faster (Roblox benchmark), no script change. Look up `RaycastParams` (Margin, SizeGradient) and `WorldRoot:Shapecast`. Visualize under Visualization Modes > Physics simulation > Shapecasts. Studio 0.745 check: both params can be set; cast behavior not tested |
 | `TeleportOptions.ReservedServerId` / `VipServerId` | Live (2026-10-28) | See section 4 item 9. Studio 0.745 check: both properties exist and take a GUID; teleports cannot be tested in Studio |
 | `PartType.Capsule` | Added in 0.745 | Release-notes thread replies say it does not work yet; the enum member exists |
 | Web Play (test on the web) | Early Access (2026-10-29) | Creator Hub > Play in Browser tests a game in Chrome on macOS, Windows and Android |

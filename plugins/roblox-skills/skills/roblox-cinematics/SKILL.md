@@ -42,7 +42,7 @@ Keep the first minute interactive: a long intro before the first action costs th
 
 | Method | Use when | Notes |
 |---|---|---|
-| Script: `Camera.CameraType = Scriptable`, tween `CFrame` and `FieldOfView` between shot points (Parts as camera marks) | Most cases; easy to skip, restore and localize | Recipe in section 3a. Put marks in a folder `Workspace.CineMarks` named `Shot01_A`, `Shot01_B` |
+| Script: `Camera.CameraType = Scriptable`, tween `CFrame` and `FieldOfView` between shot points (Parts as camera marks) | Most cases; easy to skip, restore and localize | Recipe in section 3a. Put marks in a Workspace folder called `CineMarks`, named `Shot01_A`, `Shot01_B` |
 | Animation Editor on a camera rig, played through an Animator | Complex timing with actors and camera together | More setup; plugins exist (community) but check they are maintained |
 | Pre-rendered image sequence or video frame | Trailer-like title cards | Heavy; not recommended for a first game |
 

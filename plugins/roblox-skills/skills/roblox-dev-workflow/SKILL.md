@@ -2,7 +2,7 @@
 name: roblox-dev-workflow
 description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud)."
 when_to_use: "Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, or how to organise a multi-session build. Run roblox-project-intake first if docs/brief.md does not exist."
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/studio/mcp
   - https://create.roblox.com/docs/assistant/guide
@@ -16,6 +16,10 @@ sources:
 # Roblox development workflow (idea to live ops)
 
 Run `roblox-game-pipeline` for the staged flow (questions, working mode, plan). Pair with `roblox-engine-2026` (current code, UI and performance rules), `roblox-project-intake` (start), `roblox-studio-ai-tools` (tool details), `roblox-design-and-launch` (planning and policy), `roblox-data-saves`, `roblox-bots-npcs`, `roblox-feel-audio-vfx`, `roblox-cinematics`, `roblox-blender-export`, `roblox-store-art-pack`, `roblox-ui-genre-studs` and `roblox-pitfalls`.
+
+## 0. Look up before you use (every session)
+
+The model's own API knowledge is older than Studio. At session start call the Studio MCP `list_skills` (Roblox ships `rbx-*` skills for docs search, device and network simulation, profiling, unit tests, debugging, analytics, Configs) and load the matching one before the task. Before writing code with an API that is new, beta, renamed, or listed in `roblox-engine-2026` section 6, read its page with `http_get` (`https://create.roblox.com/docs/reference/engine/classes/<Class>.md`, `query` for the member). If the page does not have it, probe in Studio with `pcall` before relying on it, and say it is unverified. These skills hold workflow, judgment, policy, market data and pitfalls; they do not replace the reference.
 
 ## 1. The phases
 
@@ -77,7 +81,7 @@ assets/ (Blender sources, exports, LICENSES.md)    tests/    docs/brief.md
 | Real-world reference for sculpting or retopo | Blender MCP asset import (CC0 sources: Poly Haven, Poly Pizza) or AI 3D services, then clean up | Check license; retopo to budget; see `roblox-blender-export` section 9 |
 | Fillers, audio, plugins | Creator Store via `search_asset` then `insert_asset` | Quarantine and audit first (`roblox-store-art-pack` section 3) |
 | UI images, icons | Blender renders, image generation, or Cube textures | Upload as image; use the image id, not the decal id |
-| Terrain | Terrain Editor, `Terrain:Write*`, or terrain generation by script | Heights snap to the voxel grid (`roblox-pitfalls` section 4) |
+| Terrain | Terrain Editor, `Terrain:WriteVoxels`, or terrain generation by script | Heights snap to the voxel grid (`roblox-pitfalls` section 4) |
 | Animations | Animation Editor or Blender (one animation track per FBX export) | Import via the Studio importer; match R15 or custom rig rules |
 
 Rules for all generated assets:

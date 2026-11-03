@@ -48,6 +48,10 @@ Skills load on their own when the task matches their description. To update, run
 - Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
 - Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs; read the safety notes in `roblox-blender-export` section 9
 
+## Keeping it current
+
+The skills do not copy API signatures; the agent looks them up live through the Studio MCP (`list_skills`, `http_get`). The skills hold workflow, judgment, policy, market data, beta status and pitfalls. `python3 -I scripts/check_apis.py` checks that every API name used in the skills still exists in the live reference. The update routine is in `docs/weekly-update.md`.
+
 ## License
 
 MIT. Credits for sources are in [NOTICE.md](NOTICE.md).
