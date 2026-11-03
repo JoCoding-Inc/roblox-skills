@@ -35,6 +35,8 @@ Do phases in order. Skipping the greybox is the most common failure: art and UI 
 
 ## 2. Plan (phase 1)
 
+Before fixing the feature list, check the plan against `roblox-design-and-launch` section 1a (solo-viable, session length, max players, friend hooks) and advise the developer.
+
 - Write the core loop in three lines: minute-to-minute interaction, most repeated action, progression engine. If the progression engine is missing, the game will feel repetitive; add it before art.
 - Prototype cheaply first: paper or a one-page rules sheet for systems and UI, then a greybox in Studio for feel. Roblox's own guidance: prototyping finds design flaws early and confirms the game is fun before you invest in content.
 - Studio Assistant **Planning Mode** (`/plan` or the **Plan** dropdown) writes an editable Markdown plan that only executes when the user clicks **Build**. Use it when the user wants to stay inside Studio. From Claude Code, keep the plan in `docs/plan.md` and tick tasks off there.

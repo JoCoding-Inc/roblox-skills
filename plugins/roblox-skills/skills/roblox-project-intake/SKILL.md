@@ -2,7 +2,7 @@
 name: roblox-project-intake
 description: "Use FIRST when a user starts a new Roblox game, prototype, or big feature, or opens a Roblox project the agent has not worked in before. The agent interviews the user, probes the local setup, and writes a project brief before any design, code or asset work."
 when_to_use: "Also when the request is vague ('make me a Roblox game', 'add a shop'), when no CLAUDE.md or docs/brief.md exists in the project, when the user switches genre or target audience, or before choosing between Blender, Roblox Cube, Creator Store and Assistant for art."
-last_reviewed: 2026-11-01
+last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/production/game-design/prototyping
   - https://create.roblox.com/docs/production/game-design/core-loops
@@ -39,7 +39,7 @@ If the Studio MCP is missing, point the user to `roblox-studio-ai-tools` section
 2. Genre and camera: simulator/tycoon, obby, horror, RPG/adventure, shooter/PvP, social/roleplay, racing, tower defense, other. First person, third person, top-down?
 3. Target audience and age: all ages, 9-12, 13+, 17+? (This sets the content maturity label, chat and monetization limits. See `roblox-design-and-launch` section 4.)
 4. Platforms: phone, PC, console, VR? Mobile-first changes UI size, part count and texture budgets.
-5. Solo or multiplayer? Co-op, PvP, or single-player with leaderboards? Expected players per server?
+5. Solo or multiplayer? Co-op, PvP, or single-player with leaderboards? Expected players per server? (D: playable alone, better with friends. See `roblox-design-and-launch` section 1a.)
 6. Scope for this session: a playable vertical slice in one sitting, or a full game plan? (D: vertical slice with one complete core loop.)
 
 **Round B: look and assets (ask when art is in scope)**
@@ -60,6 +60,10 @@ If the Studio MCP is missing, point the user to `roblox-studio-ai-tools` section
 14. Planned monetization: none yet / passes / developer products / subscriptions / paid access / ads. (D: none in the prototype; add after the core loop is fun.)
 15. Update cadence and events planned?
 
+## Step 2b. Advise from platform play patterns
+
+After Round A, read `roblox-design-and-launch` section 1a and check the answers against it (solo-viable checklist, session length for the genre, max players, phone and PC, friend hooks). Tell the developer at most 3 findings, each as "pattern -> your plan -> suggested change", and say the evidence grade (Roblox docs, our chart sample, vendor report, or judgment). The developer decides; record accepted and rejected advice in the brief. Example: "Players hop between games and a median session is about 7 min -> your match needs 8 players to start -> allow a bot fill after 20 s so a solo player can play."
+
 ## Step 3. Write the brief
 
 Create `docs/brief.md` (and a short `CLAUDE.md` pointing to it) with:
@@ -69,6 +73,7 @@ Create `docs/brief.md` (and a short `CLAUDE.md` pointing to it) with:
 Pitch: one sentence
 Core loop: minute-to-minute / most-repeated action / progression engine
 Genre + camera + platforms + audience (content maturity target)
+Play mode: solo-viable? min players to start, max players and why, target session length, friend hooks, advice accepted/rejected (design-and-launch 1a)
 Art direction: style, palette, references, source per asset class (Cube / Blender / Store)
 Environment: OS, toolchain versions, MCP servers connected, dev place id, test place id
 Scope of this session: milestone + done-definition + out of scope
