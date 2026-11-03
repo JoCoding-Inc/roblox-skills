@@ -1,0 +1,19 @@
+# Style lane cards
+
+Seven original concept images the agent shows the user in stage 3 of `roblox-game-pipeline` so the user can point at a look instead of describing it. They are AI-generated mood images (gwanggo, model `gpt-image-2.5`, 2026-11-03), not Studio renders and not copies of any game or brand. Use them to choose a direction; the real look is built in Studio.
+
+| Card | File | Look | Palette to start from | Fits | UI feel |
+|---|---|---|---|---|---|
+| Chunky cartoon | `chunky-cartoon.jpg` | Thick outlines, candy colors, rounded oversized shapes, sunburst sky, stud floor | saturated green, sky blue, yellow, hot pink, black outlines | Simulators, tycoons, pet and collect games | Glossy outlined buttons with highlight lips (`roblox-ui-genre-studs`) |
+| Classic blocky | `classic-blocky.jpg` | Plain primary-color parts on a green baseplate, flat sky | red, blue, yellow, green | Obbies, classic builds, nostalgia | Plain translucent gray bars, square icons |
+| Low-poly stylized | `low-poly.jpg` | Flat-shaded facets, few colors per object, warm sunset | teal, orange, olive, warm gray | Adventure, exploration, RPG | Thin rounded panels, pictogram icons |
+| Anime cel | `anime-cel.jpg` | Ink outlines, flat fills, hard shadows, dramatic sky | electric blue, magenta, white, deep navy | Action RPG, fighting, gacha-like | Angled sleek HUD, skill icons |
+| Cozy pastel | `cozy-pastel.jpg` | Soft light, rounded props, muted colors | peach, mint, lavender, cream | Farming, decorating, social, roleplay | Cream rounded cards, pastel buttons |
+| Dark horror | `dark-horror.jpg` | Low light, fog, desaturated, one warm light | gray-green, black, one warm yellow | Horror, survival, escape | Minimal thin bars |
+| Neon sci-fi | `neon-scifi.jpg` | Dark base, glowing cyan and magenta edges, bloom | navy, cyan, magenta | Racing, arena, sci-fi shooters | Holographic thin frames, gauges |
+
+How to use: `python3 -I scripts/style_board.py out.png` builds one labeled contact sheet of all cards (or `--only chunky-cartoon cozy-pastel`); send it to the user, ask "closest / opposite", and record the pick in the brief. Mix lanes if the user wants ("cozy but with thick outlines"). Add live-chart references of the same genre on top (stage 3, step 2).
+
+More real examples live in `../examples/` (a loading screen) and in `roblox-ui-genre-studs/references/` (a stud-style HUD and shop). Those are the owner's own screens, included with permission.
+
+Making a new card: prompt pattern `Game concept art for <genre> game, <lane look words>, <palette>, <scene>, in-game HUD with <UI feel>, icons only, no readable text. No logos, no real brand names.` Use 16:9, check it is not close to any toy or game brand, compress to JPEG at or under 200 KB and 1024 px wide.

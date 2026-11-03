@@ -4,7 +4,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 
 | Skill | Use it for |
 |---|---|
-| `roblox-game-pipeline` | Run first: staged game-development workflow (probe, vision, platform-fit advice, style board with reference images, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
+| `roblox-game-pipeline` | Run first: staged game-development workflow (probe, vision, platform-fit advice, style board with seven reference lane cards, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
 | `roblox-cinematics` | Whether and how to add intros, boss reveals and unlock moments: questions, budgets, shot list, skip and restore rules, testing through Studio MCP |
 | `roblox-data-saves` | Player saves: what to store, DataStore layout, session lock, retries, schema versions and migrations, test cases, limits, deletion rules |
 | `roblox-bots-npcs` | NPCs, enemies, allies and bot fill so a solo player never waits in an empty server: pathfinding, state machines, server cost, tests |
