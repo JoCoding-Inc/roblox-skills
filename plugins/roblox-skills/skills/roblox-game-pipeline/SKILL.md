@@ -1,6 +1,6 @@
 ---
-name: roblox-superpowers
-description: "Use FIRST for any new Roblox game or big feature to run the staged production workflow: probe, vision, platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, build loop with evidence, verify, release. Roblox version of the superpowers workflow."
+name: roblox-game-pipeline
+description: "Use FIRST for any new Roblox game or big feature to run the staged production workflow: probe, vision, platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, build loop with evidence, verify, release.."
 when_to_use: "Also when the user says 'make a game', 'plan this game', 'let's start a project', asks how autonomous the agent should be, or whether to use subagents; when small decisions (cinematic, style, intro, music, loading screen) keep coming up late; when work stalls because nobody chose a working mode. Replaces ad-hoc starts: run roblox-project-intake inside stage 0-1, then continue here."
 last_reviewed: 2026-11-03
 sources:
@@ -10,7 +10,7 @@ sources:
   - original (Roblox-specific constraints from shipping test games with an AI agent)
 ---
 
-# Roblox superpowers: the staged game-development workflow
+# Roblox game pipeline: the staged game-development workflow
 
 The superpowers plugin (if installed) gives generic habits: ask before building, plan before coding, execute with evidence, review before finishing. This skill adds what is specific to Roblox: one live Studio place, MCP tools, platform play patterns, art and cinematic choices, and publish limits. Use the plugin skills for the generic parts when they exist, and follow the stages below either way.
 

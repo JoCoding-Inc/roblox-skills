@@ -48,11 +48,11 @@ If the Studio MCP is missing, point the user to `roblox-studio-ai-tools` section
 8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), Creator Store (fillers, audio), or user-supplied files.
 9. Is the user willing to approve anything that spends money or Robux (ads, paid uploads, Hyper3D/Meshy credits)? (D: no spend without asking.)
 
-**Round A2: look, moments and working mode (ask after Round A; the full flow is `roblox-superpowers` stages 3-5)**
+**Round A2: look, moments and working mode (ask after Round A; the full flow is `roblox-game-pipeline` stages 3-5)**
 
 A1. Style: show a labeled contact sheet of reference games (one per style lane) and ask which is closest and which is the opposite. (D: chunky cartoon for simulator/tycoon.)
 A2. Cinematics: none, intro, boss or unlock moment, ending? (D: none until the core loop is fun; see `roblox-cinematics`.)
-A3. Small decisions as decision cards with defaults: loading screen, music, tutorial style, hit feedback, friend bonus, localization (`roblox-superpowers` section 4).
+A3. Small decisions as decision cards with defaults: loading screen, music, tutorial style, hit feedback, friend bonus, localization (`roblox-game-pipeline` section 4).
 A4. Control level: auto, stage gates, or task by task? (D: stage gates for a new game.)
 A5. Agent mode: solo, subagents, or hybrid? (D: hybrid, Studio edits solo.)
 
