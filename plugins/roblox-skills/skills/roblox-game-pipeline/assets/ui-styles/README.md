@@ -1,17 +1,19 @@
 # UI style cards
 
-Four basic example screens the agent shows in stage 3 (section 3, step 4) so the user can point at a UI style. Every card shows the same screen (left menu column, currency bottom-left, settings top-right, an open shop with four items), so only the style changes. AI-generated with gwanggo (`gpt-image-2.5`, quality high, 2026-11-03): mood images, not Studio renders, not copies of any game. The cards stay basic on purpose; the game's own tone and manner comes after the pick (see "After the pick").
+Four basic example screens the agent shows in stage 3 (section 3, step 4) so the user can point at a UI style. Every card shows the same screen (left menu column, currency bottom-left, settings top-right, an open shop with four items), so only the style changes. Each card was redrawn with gwanggo (`gpt-image-2.5`, quality high, 2026-11-03) from a collage of real shop and inventory panels of current chart games, used as a style reference only: layout, items, text and world are ours, and no game's art, names or logos are copied. The cards stay basic on purpose; the game's own tone and manner comes after the pick (see "After the pick").
 
-Evidence: the live top-50 chart on 2026-11-03 (Explore API `top-playing-now`) and HUD frames from 2026 gameplay videos of about 27 games. Stud chunky, bright cards and dark flat, plus the illustrated horror look in the themed table, covered about 84% of top-50 concurrent players (our own classification of a one-day snapshot). Soft dark was added later from a simulator screen the repository owner supplied and was not part of that count. Dark flat is mostly older hits; the 2025-26 breakouts (egg, "+1", brainrot games) use stud chunky and bright cards.
+Evidence: the live Explore API charts on 2026-11-03 (top-playing-now, top-trending, up-and-coming, top-earning) and UI frames from 2026 gameplay videos of about 55 games. Stud chunky, bright cards and dark flat, plus the illustrated horror look in the themed table, covered about 84% of top-50 concurrent players (our own classification of a one-day snapshot; soft dark was not part of that count). The 2025-26 risers on the chart (egg, pet, "+1" and brainrot games) nearly all use stud chunky; dark flat is mostly older hits and competitive games.
 
 | # | Style | File | Look | Fits | Seen in (by name, never copied) | Font (`roblox-ui-typography` section 2) |
 |---|---|---|---|---|---|---|
-| 1 | Soft dark | `soft-dark.jpg` | Dark slate panel at about 85% opacity, 10-12 px corners, faint light border, no outline or header band; red close, green price chips, white digits with a thin dark stroke | Simulators, tycoons, clickers, any genre that wants a quiet neutral UI | a simulator screen supplied by the repository owner (not yet counted on the chart) | Simulator row |
-| 2 | Stud chunky | `stud-chunky.jpg` | Rounded blocks, thick black outline, darker lip, gradient faces, faint studs; dark panel with one colored header band | Simulators, tycoons, steal/collect, "+1" clickers, pets and eggs | Steal a Brainrot, Steal An Egg, Throw Food For Animals | Simulator row |
-| 3 | Bright cartoon cards | `bright-cards.jpg` | White or cream cards, colored tab header, pastel item cards, glossy green buy buttons | Pet collecting, kid games, tap games | Adopt Me, Pet Simulator 99, Tap Simulator | Simulator or Cozy row |
-| 4 | Dark flat compact | `dark-flat.jpg` | Near-black slate, 1 px stroke, one accent color, small line icons, no gloss | Shooters, battlegrounds, sports, survival, RPG, fishing | Rivals, Blox Fruits, Forsaken, Volleyball Legends, Fisch | Anime/battlegrounds or Sci-fi row |
+| 1 | Soft dark | `soft-dark.jpg` | Charcoal panel at about 85% opacity, small corners, thin light border, plain title with no header band, item cards on bright diagonal gradients, small dark price chips, small square red close | Simulators, fishing, tycoons, clickers: a quiet frame with loud items | Fish It | Simulator row |
+| 2 | Stud chunky | `stud-chunky.jpg` | Dark navy panel, thick near-black outline, glossy colored header band with a stripe sheen, item cards in saturated rarity colors (green, blue, purple, red), chunky lime buttons with a darker lip, white text with a thick dark stroke | Simulators, tycoons, steal/collect, "+1" clickers, pets and eggs | Break and Steal an Egg, Steal A Pet And Ride It, +1 Spider Arm, +1 Venom Evolution, Steal An Egg, Steal a Brainrot | Simulator row |
+| 3 | Bright cartoon cards | `bright-cards.jpg` | White panel with a light blue outline, a colored tab label on the top-left corner, pill tab chips, light blue item cards with rarity pill tags, glossy green buy buttons | Pet collecting, kid games, tap games, unit shops | Arm Wrestle Simulator, Toilet Tower Defense, Pet Simulator 99, Tap Simulator | Simulator or Cozy row |
+| 4 | Dark flat compact | `dark-flat.jpg` | Near-black slate, 8 px corners, 1 px gray border, small uppercase title, dark tiles with a thin rarity line, one accent color for buttons, no gloss | Shooters, battlegrounds, survival, evolution, RPG, tower defense | Bug Evolution, Tower Defense Simulator, Sniper Arena, Rivals, Blox Fruits | Anime/battlegrounds or Sci-fi row |
 
-`studio-mock.jpg`: the same four styles built as a real ScreenGui in Studio by `scripts/ui_style_mock.luau` with the bundled icons, over a part-built world. Show it next to the cards when offering the Studio mockup.
+`studio-mock.jpg`: the four styles built as a real ScreenGui in Studio by `scripts/ui_style_mock.luau` with the bundled icons, over a part-built world. Its `PRESETS` follow the first version of the cards (one card color, no rarity colors); match `override` to the card the user picked.
+
+Live references: `python3 -I <skill dir>/scripts/ui_refs.py <scratch dir> "Game A" "Game B" --query "shop inventory"` grabs frames from each game's newest gameplay video (last 90 days) and tiles them into `sheet.jpg`. Use it when the user names a game whose UI they like, or to refresh the "Seen in" column. The frames are other games' art: show them, never commit them.
 
 `icons/`: nine 192 px PNG icons with alpha (gem, sword, egg, star, coin, bag, pack, gift, gear) for mockups until the game has its own. Made as one gwanggo sheet (`gpt-image-2.5` high, 3 credits, 2026-11-03) on a flat magenta background, keyed and sliced with Pillow. Make a game's own set the same way: one 3x3 sheet in its locked style, "flat solid pure magenta (#FF00FF) background, wide margins, no magenta inside the icons", then key out the magenta and cut each icon by its largest connected shape.
 
@@ -31,8 +33,8 @@ Not carded: glass (frosted translucent panels), a designer trend with no confirm
 
 | Style | Build with | Phone risks |
 |---|---|---|
-| Soft dark | Frame BackgroundTransparency 0.1-0.2, UICorner 10-12, UIStroke 1-2 white at Transparency 0.8+, text UIStroke 2; scale transparency by `GuiService.PreferredTransparency` | Panel too clear over a busy world, thin gray text |
-| Stud chunky | `roblox-ui-genre-studs` (UICorner, Border UIStroke, vertical UIGradient, lip Frame or 9-slice, tiled stud image, UIScale pop) | Text under 26 design px, too many UIStrokes, HUD over 15% of screen height |
+| Soft dark | Frame BackgroundTransparency 0.1-0.2, UICorner 8-10, UIStroke 1-2 white at Transparency 0.8+, item cards with a rotated UIGradient, text UIStroke 2; scale transparency by `GuiService.PreferredTransparency` | Panel too clear over a busy world, thin gray text |
+| Stud chunky | `roblox-ui-genre-studs` (UICorner, Border UIStroke, vertical UIGradient, lip Frame or 9-slice, a rarity color per card, UIScale pop) | Text under 26 design px, too many UIStrokes, HUD over 15% of screen height |
 | Bright cards | UICorner, colored UIStroke, UIGradient header, UIShadow on cards, UIGridLayout | White text on pastel needs a stroke; a white panel glares over a bright world |
 | Dark flat | Frame with BackgroundTransparency 0.1-0.4, UICorner 6, UIStroke 1, small UIShadow | Tiny text, low contrast over bright maps, 1 px strokes jag on low-DPI screens |
 
@@ -69,3 +71,10 @@ A 16:9 landscape screenshot of a mobile game interface, UI only over a softly bl
 ```
 
 Use 16:9, quality high, and compress to JPEG at or under 200 KB and 1024 px wide.
+
+To match a real game's look (how the four cards were made), add a reference image:
+
+1. Grab frames with `scripts/ui_refs.py`, crop 2-4 clean panels (no facecam, no subtitles) and paste them into one collage.
+2. Start the prompt with: "Redraw as an original mobile game UI screenshot. The attached image is a collage of UI panels from other games: use it ONLY as a style reference (panel shape and color, outline weight, header bar, card and button style, text style). Do not copy its layout, text, item art, characters or logos."
+3. Send the collage as a data URL with the gwanggo CLI (no upload step): `gwanggo generate image "<prompt>" --model gpt-image-2.5 --quality high --aspect-ratio 16:9 --image-url "data:image/jpeg;base64,$(base64 -i collage.jpg)"`. Keep the collage under about 700 KB so the command line fits. Tested 2026-11-03: 3 credits, 1088x608 output.
+4. Check the result for copied names, logos or item art before showing it.
