@@ -12,6 +12,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-data-saves` | Player saves: what to store, DataStore layout, session lock, retries, schema versions and migrations, test cases, limits, deletion rules |
 | `roblox-bots-npcs` | NPCs, enemies, allies and bot fill so a solo player never waits in an empty server: pathfinding, state machines, server cost, tests |
 | `roblox-feel-audio-vfx` | Game feel: feedback map, audio objects and mix, particle and effect budgets, lighting and atmosphere, mobile checklist |
+| `roblox-fun-effects` | Make effects fun, not only working: fun card, rarity tier ladder, roll and hatch reveal beats, auras and status others see, announcements and clip sharing, mutations, hit stop and finishers, odds and flashing guard rails |
 | `roblox-project-intake` | Run first: tool check (Studio, Studio MCP and git required; Script Sync or Rojo, Blender MCP, Open Cloud key optional) with step-by-step setup from the live docs, interview about the game, audience and art sources, writes `docs/brief.md` and a project `CLAUDE.md` |
 | `roblox-engine-2026` | Current engine rules: task scheduler, deferred events, Parallel Luau, types, flex layouts and UI styling, Input Action System, streaming, memory budgets, remote security and server-side exploit detection, Server Authority, platform chat change, status board of betas and rollouts |
 | `roblox-dev-workflow` | Idea to live ops in 9 phases, project layout, and which tool makes each asset (Cube, procedural models, Blender, Creator Store) |
@@ -22,6 +23,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-pitfalls` | Field notes: Open Cloud publish 409, Studio vs live asset loading, Creator Store 403, testing through Studio MCP with bot scenarios, Roblox Cube mesh generation, teleport/DataStore/light/texture/terrain limits |
 | `roblox-blender-export` | Blender meshes into Studio: scale, pivot, axis, FBX export call, palette textures, triangle budgets, upload |
 | `roblox-store-art-pack` | Any genre: Creator Store picks and quarantine, map composition check, game icon and thumbnails. Bright world palette for simulator/tycoon games |
+| `roblox-ui-typography` | Fonts and text for any genre: built-in and Creator Store fonts (no uploads), display and body pair per genre, phone readability, stroke and text performance, numbers, fonts for Korean and other languages |
 | `roblox-ui-genre-studs` | Simulator/tycoon games only: stud-style UI with outlines, lips, gradients, HUD zones, motion |
 
 ## Install

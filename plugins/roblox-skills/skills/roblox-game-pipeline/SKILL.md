@@ -79,7 +79,7 @@ Ask for taste with pictures, not adjectives.
 
 2. After the user leans toward a lane, add real references from live games of the same genre for that lane (not for all seven): run `roblox-launch-benchmarks` `scripts/collect.py` then `scripts/art_fetch.py` (thumbnails land in `thumbs/`), or search the genre on the charts. Make one labeled contact sheet (Pillow) with the lane names.
 3. Show it to the user: send the PNG (`SendUserFile`) or publish a private Artifact page. Ask: "Which lane is closest? Which one is the opposite of what you want?" If no lane fits, the user wants a mix, or describes a look the cards do not show, generate 3-4 example images of that look with gwanggo (section 10a) and ask again. Examples of finished screens: `assets/examples/` (loading screen) and `roblox-ui-genre-studs/references/` (stud-style HUD, shop, quests, rewards).
-4. Record in the brief: chosen lane, 3 palette colors, line weight, 2-3 reference file paths in `assets/refs/` (private notes, never shipped or uploaded), and the "avoid" lane.
+4. Record in the brief: chosen lane, 3 palette colors, line weight, the font pair (picked from a specimen screenshot, `roblox-ui-typography` section 2), 2-3 reference file paths in `assets/refs/` (private notes, never shipped or uploaded), and the "avoid" lane.
 5. Rules: live-game references are other creators' work: they steer direction and are never copied, traced or uploaded. The lane cards and the example images in this plugin are ours or the owner's own. Logo and icon follow `roblox-store-art-pack` section 6.
 
 ## 4. Moments and small decisions (stage 4)
@@ -89,7 +89,7 @@ Ask these as **decision cards**: one line, a default, one more question only if 
 | Group | Cards (default in brackets) |
 |---|---|
 | Moments | Cinematic at all? [none until the loop is fun; if yes, `roblox-cinematics` section 1] ; first-join intro [short, skippable] ; boss or unlock moment [4-6 s, skippable] ; ending [none yet] ; one clip-worthy moment [name the 5-second moment a player would record and share: a huge reveal, a steal, a jump scare] |
-| Feel | Camera [third person, shoulder only if shooter] ; hit feedback and screen shake [on, with a setting] ; haptics on phone [off] ; music [one looping track + SFX set] ; SFX style [matches lane] |
+| Feel | Camera [third person, shoulder only if shooter] ; hit feedback and screen shake [on, with a setting] ; haptics on phone [off] ; music [one looping track + SFX set] ; SFX style [matches lane] ; signature reveal or celebration [one, tiered by rarity or effort, skippable; `roblox-fun-effects`] ; status other players see [aura, trail or title with a free path, if the game has rarity] |
 | Onboarding | Tutorial [learn by doing in the first 2 minutes] ; loading screen [custom, themed, skippable] ; first reward time [under 2 min] ; first screen assets [only what the first screen shows load before play; the rest loads in the background or on demand, `roblox-store-art-pack` section 7] |
 | Brand | Game name and logo [after core loop is fun] ; icon and thumbnails [late, `roblox-store-art-pack`] ; trailer [no] |
 | Social | Friend bonus [on] ; private servers [free] ; leaderboard [yes if score-based] ; chat [platform default] |
@@ -179,7 +179,7 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 
 ## 7. Build loop (stage 7)
 
-Per task: read the task and brief, do it, run its check, read the output, commit, write the ledger line, tick the task. Use `roblox-dev-workflow` for tools and `roblox-pitfalls` when MCP or publishing misbehaves. Saves: `roblox-data-saves`. Enemies, allies, bot fill: `roblox-bots-npcs`. Weapons, hit detection, Server Authority: `roblox-combat-tools`. Rounds, lobbies, teleports, leaderboards: `roblox-match-flow`. Sound, effects, lighting: `roblox-feel-audio-vfx`. Camera moments: `roblox-cinematics`. On a failure, find the cause before changing code (`superpowers:systematic-debugging`). Spikes (throwaway builds to feel something out) are allowed and labeled as spikes; their lessons go back to the brief.
+Per task: read the task and brief, do it, run its check, read the output, commit, write the ledger line, tick the task. Use `roblox-dev-workflow` for tools and `roblox-pitfalls` when MCP or publishing misbehaves. Saves: `roblox-data-saves`. Enemies, allies, bot fill: `roblox-bots-npcs`. Weapons, hit detection, Server Authority: `roblox-combat-tools`. Rounds, lobbies, teleports, leaderboards: `roblox-match-flow`. Sound, effects, lighting: `roblox-feel-audio-vfx`. Reveals, auras, rarity and celebrations: `roblox-fun-effects`. Fonts and text: `roblox-ui-typography`. Camera moments: `roblox-cinematics`. On a failure, find the cause before changing code (`superpowers:systematic-debugging`). Spikes (throwaway builds to feel something out) are allowed and labeled as spikes; their lessons go back to the brief.
 
 ## 7a. Feel checkpoints: the user plays
 
@@ -192,7 +192,8 @@ The agent checks what a machine can measure: errors, console, layout, screenshot
 | Combat and hit feel (hit timing, knockback, cooldowns, enemy damage) | Fairness and impact depend on reaction time and latency | Did hits land when you expected? Were deaths fair? |
 | Difficulty and pacing (first 10 minutes, jumps, upgrade costs) | Frustration and boredom are personal; the agent knows every answer | Where did you get stuck or bored? |
 | Onboarding (first 2 minutes) | A first-time player does not know what the agent knows; best tested by someone who has never seen the game | Did you know what to do without reading? |
-| Scares, tension, cinematics, reveals | Timing works on people, not on logs | Surprised or scared? Too long? |
+| Scares, tension, cinematics | Timing works on people, not on logs | Surprised or scared? Too long? |
+| Rolls, reveals, rare drops, celebrations | Excitement and "too long" are felt; tier timings are judgment (`roblox-fun-effects`) | Did you want to show someone? Skip anything? |
 | Audio mix and music | Loudness and annoyance on real speakers over 5+ minutes | Anything too loud or tiring? |
 | Phone controls | Thumb reach and button size on a real phone, not the emulator | Anything hard to tap or under your thumb? |
 | Social and multiplayer fun | Needs real people together | More fun with a friend? |

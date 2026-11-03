@@ -18,7 +18,7 @@ Feel is what makes the same loop satisfying. Plan it as part of the loop (stage 
 
 ## 1. Feedback map (planning)
 
-For each frequent action write what the player sees, hears and feels: action, result, reward, error. Example: tap to collect -> pop sound + number rising + currency counter bump. Every repeated action needs feedback in at least two channels (sight + sound). Errors need a different, clear cue (never the same as success).
+For each frequent action write what the player sees, hears and feels: action, result, reward, error. Example: tap to collect -> pop sound + number rising + currency counter bump. Every repeated action needs feedback in at least two channels (sight + sound). Errors need a different, clear cue (never the same as success). For any effect longer than a short tick (reveals, auras, celebrations, finishers), first fill the fun card in `roblox-fun-effects` section 1: what it rewards, who sees it, how it escalates.
 
 ## 2. Audio (docs)
 
@@ -33,6 +33,7 @@ For each frequent action write what the player sees, hears and feels: action, re
 ## 3. Effects
 
 - `ParticleEmitter`: one emitter makes up to 400 particles per second (100 on mobile) according to the docs; keep `Rate` low and `Lifetime` short. Particle size costs GPU fill rate, so many large overlapping particles hurt phones.
+- Flipbooks (`ParticleEmitter.FlipbookLayout` 2x2, 4x4, 8x8 or `Custom` with `FlipbookSizeX`/`FlipbookSizeY`) cost texture memory, and clients switch them off when low on memory (docs), so an effect must still read without its flipbook. `ParticleEmitter.TimeScale` (0-1) slows or freezes an effect for a hit stop.
 - Beams, trails, lights, highlights: use sparingly; each light source and highlight has a cost.
 - Burst on events, not constant emission; destroy or disable emitters when done; cap simultaneous effects per player and per server.
 - Hit feedback: flash/highlight + sound + small camera shake or knockback; damage numbers short and readable.
@@ -62,6 +63,7 @@ For each frequent action write what the player sees, hears and feels: action, re
 | Check | Pass |
 |---|---|
 | Every frequent action has 2-channel feedback | yes |
+| Every effect longer than a tick has a fun card (`roblox-fun-effects` section 1) | yes |
 | Error cue differs from success cue | yes |
 | Sound set under about 20 unique sounds for the first release (judgment) | yes |
 | Emitter `Rate` low, bursts short, mobile cap known | yes |

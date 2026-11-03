@@ -187,7 +187,7 @@ Use the kit for a prototype, a game jam or casual third-person shooter feel in a
 - Latency: Test > Device Simulator, **Network** pill, **Apply** a preset. Presets (in/out): Home Wi-Fi 30/30 ms, Standard Mobile 45/55 ms, Bad Connection 150/180 ms; round trip is the sum plus real ping. Scriptable with `NetworkSettings.InboundNetworkMinDelayMs` and `OutboundNetworkMinDelayMs`. The docs page still labels it beta (enable New Device Simulator in Beta Features); `roblox-engine-2026` lists it as full release.
 - Bot scenarios (`roblox-bots-npcs`), one PASS/FAIL line each: standing target in range = hit with config damage; target at range + 50 studs, behind a wall, dead or respawning, or a teammate (friendly fire off) = no damage and no second kill credit; run-speed target at the 4G preset = 90 percent or better hits (judgment); fire at 3 x max rate for 2 s = accepted shots at or below max rate.
 - Exploit tests from a test LocalScript: spam the remote at 100 per second; send NaN, inf, huge vectors, wrong types, a destroyed Instance; claim a target 500 studs away; fire while dead; fire an unequipped weapon. Expected: no damage, no server errors, flags logged.
-- Hit feedback checks belong to `roblox-feel-audio-vfx`; save data for loadouts to `roblox-data-saves`; Studio MCP quirks to `roblox-pitfalls`.
+- Hit feedback checks belong to `roblox-feel-audio-vfx`; hit stop, combo escalation and finisher effects to `roblox-fun-effects` section 8; save data for loadouts to `roblox-data-saves`; Studio MCP quirks to `roblox-pitfalls`.
 
 ## 12. Done when
 

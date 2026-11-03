@@ -77,6 +77,7 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 
 ## 3. Text
 
+- Fonts for every genre, readability rules and non-Latin coverage: `roblox-ui-typography`. This section only adds the stud-style specifics.
 - Font: `Font.fromEnum(Enum.Font.FredokaOne)`, with another current display font as the alternative (`GothamBlack` is removed and renders as Montserrat). Never mix the two on one screen. At most 2 fonts in the whole game.
 - UIStroke on text:
 
@@ -126,14 +127,14 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 - **Numbers:** count up over about 0.45 s.
 - Never continuously scale anything that contains text, because text steps between whole font sizes. Pulse color, or rotate +-8 degrees (never inside a ScrollingFrame).
 - Float images only: 10 px or more each way over 0.9-1.2 s.
-- Scale every UIStroke by viewport height / 1080 (minimum 1). Add `UITextSizeConstraint` to TextScaled labels.
+- Scale every UIStroke by viewport height / 1080 (minimum 1), or on text set `UIStroke.StrokeSizingMode` to `ScaledSize` so the stroke follows the font size. Never tween stroke `Thickness`. Add `UITextSizeConstraint` to TextScaled labels.
 - Animate UIScale, not Size. Honor `GuiService.ReducedMotionEnabled`.
 
 ## 6. World labels (BillboardGui)
 
 - No frame. Stacked stroked text over each pedestal or animal:
   - name (white);
-  - rarity (rarity color, rainbow gradient for the top tier);
+  - rarity (rarity color, rainbow gradient for the top tier; colors from the one tier table in `roblox-fun-effects` section 3);
   - "$X/s" (yellow-green);
   - value or price.
 - A green "Collect" pad in front of each pedestal, with its amount in stroked text.
