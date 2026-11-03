@@ -13,3 +13,5 @@ The skills here are written for this repository. Each `SKILL.md` lists its sourc
 | [Crazyshermy/-Roblox](https://github.com/Crazyshermy/-Roblox) | none stated | Facts only; no text copied |
 | [Roblox Creator Docs](https://create.roblox.com/docs) and its source repo [Roblox/creator-docs](https://github.com/Roblox/creator-docs) (read 2026-11-01) | CC BY 4.0 for docs content per the repo; Roblox terms for the site | Studio MCP tools, Assistant, art specifications, monetization, policy facts, re-authored in our own words |
 | [ahujasid/blender-mcp](https://github.com/ahujasid/blender-mcp) (MCP for Blender) | MIT | Blender MCP tool list and safety notes |
+
+Images: `roblox-game-pipeline/assets/lanes/` are AI-generated concept images made for this repository (gwanggo, `gpt-image-2.5`, 2026-11-03). `roblox-game-pipeline/assets/examples/` and `roblox-ui-genre-studs/references/` are screenshots of the repository owner's own games, included with the owner's permission.

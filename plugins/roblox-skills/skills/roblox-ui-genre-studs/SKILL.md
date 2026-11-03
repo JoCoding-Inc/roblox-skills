@@ -163,3 +163,16 @@ Each of these is a defect:
   - never tint full-color art with ImageColor3; white art tinted by ImageColor3 is fine;
   - many small icons go on one 1024 px sprite sheet with ImageRectOffset/ImageRectSize.
 - Free community textures: ui-resources.com (stud textures, sunbursts, halftones). Some ".png" files are really WebP, so convert them with `sips -s format png`. Credit the creators.
+
+## 9. Reference screens (owner's own prototype)
+
+Six screenshots in `references/` show the look at work: a simulator HUD with a left menu column, right-side offer buttons and a bottom action bar, over a blurred 3D world. Open them when restyling; match the structure and weights, not the exact art.
+
+| File | Shows |
+|---|---|
+| `house-ui-hud.jpg` | Full HUD: currency top left, menu column left, offer tiles right, auto-action bar and damage meter bottom |
+| `house-ui-shop.jpg` | Shop panel: title tab with icon, four product cards, small price pills, red close button |
+| `house-ui-rewards.jpg` | Daily rewards: day grid with a highlighted current day, claim buttons, group reward row |
+| `house-ui-quests.jpg` | Quest list: icon, progress bar, reward chip, green claim button |
+| `house-ui-playtime.jpg` | Playtime rewards: 4x3 grid of timed rewards with countdowns |
+| `house-egg-panel-robux.jpg` | World-space egg station label with hatch buttons and a paid hatch option |

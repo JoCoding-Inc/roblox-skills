@@ -49,7 +49,8 @@ Run the checks in `roblox-design-and-launch` section 1a and give the developer a
 
 Ask for taste with pictures, not adjectives.
 
-1. Pick 4-6 **style lanes** that fit the genre and audience:
+0. **Show the lane cards first.** `assets/lanes/` holds seven original concept images, one per lane (see `assets/lanes/README.md`). Build a labeled sheet with `python3 -I scripts/style_board.py out.png` (add `--only a b c` to show a subset that fits the genre), send it to the user, and propose 3-4 lanes with a one-line reason each. The user can also pick two and ask for a mix.
+1. The **style lanes**:
 
    | Lane | Look |
    |---|---|
@@ -61,10 +62,10 @@ Ask for taste with pictures, not adjectives.
    | Dark realistic or horror | low light, fog, desaturated palette |
    | Neon or sci-fi | dark base, glow accents |
 
-2. Gather one reference image per lane from live games of the same genre: run `scripts/benchmark` `collect.py` then `art_fetch.py` (thumbnails land in `thumbs/`), or search the genre on the charts. Make one labeled contact sheet (Pillow) with the lane names.
-3. Show it to the user: send the PNG (`SendUserFile`) or publish a private Artifact page. Ask: "Which lane is closest? Which one is the opposite of what you want?" Offer to generate mood images with an image-generation tool, and ask before spending credits.
+2. After the user leans toward a lane, add real references from live games of the same genre for that lane (not for all seven): run `scripts/benchmark` `collect.py` then `art_fetch.py` (thumbnails land in `thumbs/`), or search the genre on the charts. Make one labeled contact sheet (Pillow) with the lane names.
+3. Show it to the user: send the PNG (`SendUserFile`) or publish a private Artifact page. Ask: "Which lane is closest? Which one is the opposite of what you want?" Offer to generate mood images for a mix of lanes with an image-generation tool (for example gwanggo; the lane cards cost 3 credits each), and ask before spending credits. Examples of finished screens: `assets/examples/` (loading screen) and `roblox-ui-genre-studs/references/` (stud-style HUD, shop, quests, rewards).
 4. Record in the brief: chosen lane, 3 palette colors, line weight, 2-3 reference file paths in `assets/refs/` (private notes, never shipped or uploaded), and the "avoid" lane.
-5. Rules: references steer direction; they are other creators' work and are never copied, traced or uploaded. Logo and icon follow `roblox-store-art-pack` section 6.
+5. Rules: live-game references are other creators' work: they steer direction and are never copied, traced or uploaded. The lane cards and the example images in this plugin are ours or the owner's own. Logo and icon follow `roblox-store-art-pack` section 6.
 
 ## 4. Moments and small decisions (stage 4)
 
