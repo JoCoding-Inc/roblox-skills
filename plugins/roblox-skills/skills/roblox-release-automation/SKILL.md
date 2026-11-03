@@ -90,7 +90,7 @@ Before blocking, state exactly what is missing, which scope or account step fixe
 
 1. **Define the release:** list the changed places, scripts, assets, config, DataStore schemas, products and supported devices, plus the rollback path. Mark each gate required, conditional or not applicable.
 2. **Block on high-consequence changes.** A failed or unverified gate here means NOT READY; it is never averaged into a percentage, and user approval does not turn it into PASS.
-   - Save data changed: load, save, migration, duplicate session, disconnect and shutdown tested.
+   - Save data changed: load, save, migration, duplicate session, disconnect and shutdown tested (test table in `roblox-data-saves` section 6).
    - Remotes or authority changed: argument types and bounds, ownership, replay, and abusive frequency validated on the server.
    - Purchases changed: `ProcessReceipt` grants are durable and idempotent, and retries are tested.
    - Cloud auth or webhooks changed: secrets, scopes, signatures, retries and deduplication verified.
