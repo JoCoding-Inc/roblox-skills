@@ -1,6 +1,6 @@
 ---
 name: roblox-game-pipeline
-description: "Use FIRST for any new Roblox game or big feature to run the staged production workflow: probe, vision, platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, build loop with evidence, verify, release.."
+description: "Use FIRST for any new Roblox game or big feature to run the staged production workflow: probe, vision, platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, build loop with evidence, verify, release."
 when_to_use: "Also when the user says 'make a game', 'plan this game', 'let's start a project', asks how autonomous the agent should be, or whether to use subagents; when small decisions (cinematic, style, intro, music, loading screen) keep coming up late; when work stalls because nobody chose a working mode. Replaces ad-hoc starts: run roblox-project-intake inside stage 0-1, then continue here."
 last_reviewed: 2026-11-03
 sources:
