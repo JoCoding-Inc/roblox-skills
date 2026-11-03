@@ -192,6 +192,11 @@ Offer generation at the moment it helps, in one line with the credit cost, never
 | Stage 3 look | Mood images for a mix of lanes (lane card as reference) | Lane cards, live-game contact sheet |
 | Stage 6b first proof | Concept images, concept trailer | Written storyboard, greybox screenshots |
 | Brand (stage 4 cards, built in stage 7) | Logo candidates, loading-screen art (`roblox-store-art-pack` sections 6-7) | Text logo built in Studio, Blender render |
-| Stage 9 launch | Icon and thumbnail drafts built from real screenshots, Ads Manager creative variants, short social clips of real gameplay | Studio screenshots and Blender renders, edited by hand |
+| Stage 7 art | Static textured props from text or a concept image as GLB (web 3D tool, below) | Studio MCP `generate_mesh` (Roblox Cube), Blender, Creator Store |
+| Stage 9 launch | Thumbnail & Icon Kit from a real gameplay screenshot (web, below), Ads Manager creative variants, short social clips of real gameplay | Studio screenshots and Blender renders, edited by hand |
+
+**gwanggo web tools for Roblox** (same account; read 2026-11-03 from the site, not in the MCP, whose `list_models` offers image and video only). Send the user the link, or drive the page in Chrome if the user asks:
+- **Thumbnail & Icon Kit** (gwanggo.ai/dashboard/game/thumbnail-kit): game name, one-line hook, genre, optional gameplay screenshot as reference, style notes; returns 3 thumbnails (1920x1080, under 3 MB) and 1 icon (512x512) checked against Roblox sizes, with a 150 px legibility check and a Home preview. AI text can be misspelled: check every letter or leave the title off. Video thumbnails must be real gameplay, so it makes no AI video. Then follow `roblox-store-art-pack` section 5.
+- **3D** (gwanggo.ai/dashboard/ai-tools/3d): text or one concept image to a textured GLB, with a Roblox style (low-poly, blocky, bright) and polygon caps (3K, 10K). Its Roblox check reports triangles, size in studs against the player and texture size. Static props only (no rig); models marked "not for Roblox" (40K+ polygons) exceed the 20,000-triangle mesh limit. Import with Studio's 3D Importer and set collision as in `roblox-blender-export` section 5.
 
 If gwanggo is not connected when a moment comes, say what it would add, offer the setup in `roblox-project-intake` step 1c once, and use the fallback if the user declines.

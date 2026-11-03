@@ -13,6 +13,7 @@ sources:
   - https://create.roblox.com/docs/scripting/sync
   - https://create.roblox.com/docs/cloud/auth/api-keys
   - https://github.com/rojo-rbx/rokit (README, read 2026-11-03)
+  - https://gwanggo.ai/dashboard/mcp (setup steps, read 2026-11-03)
   - original (workflow notes from shipping test games with an AI agent)
 ---
 
@@ -53,7 +54,7 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 | Lint and test tools (selene, StyLua, luau-lsp, Lune via rokit) | Optional | Local checks before Studio | Checks run only in Studio playtests |
 | Blender + MCP for Blender | Optional | Animated creatures and rigs, exact-shape kits, icon renders | Roblox Cube for static props, Creator Store, user files |
 | Open Cloud API key in an env file | Optional until release | Automated publish, asset upload, passes and products, headless Luau tests | User publishes and uploads by hand in Studio and Creator Hub |
-| gwanggo MCP (images and video) | Optional, **recommended**; spends credits, every spend asked first | Mood images, concept images and a concept trailer before the build (`roblox-game-pipeline` 6b), logo and loading art, icon and thumbnail drafts, ad creatives (pipeline section 10) | Written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
+| gwanggo MCP (images and video) | Optional, **recommended**; spends credits, every spend asked first | Mood images, concept images and a concept trailer before the build (`roblox-game-pipeline` 6b), logo and loading art, icon and thumbnail drafts, ad creatives (pipeline section 10). The same account opens gwanggo's web Roblox tools: Thumbnail & Icon Kit and 3D props as GLB | Written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
 | Playtest Agent beta (Studio File > Beta Features) | Optional | Studio MCP `subagent` type `playtest` | The agent drives playtests with the input tools |
 
 How to ask:
@@ -74,7 +75,7 @@ Menus and commands change between Studio releases. Before guiding, fetch the liv
 | Script Sync | Explorer > right-click a service > Script Sync > Sync to (`roblox-studio-ai-tools` section 6) | create.roblox.com/docs/scripting/sync | `InstanceFileSyncService:GetStatus` returns SyncedAsRoot |
 | Rojo and tools | Rokit: install script from the rokit README, `rokit self-install`, then `rokit init` and `rokit add rojo-rbx/rojo` (same for selene, StyLua, Lune); `rojo plugin install` adds the Studio plugin | github.com/rojo-rbx/rokit, rojo.space | `rojo --version`; the Rojo plugin in Studio shows Connected after `rojo serve` |
 | Blender MCP | `uvx mcp-for-blender install-addon`, enable the add-on, N panel > Connect, `claude mcp add blender uvx mcp-for-blender`, restart Claude Code (`roblox-blender-export` sections 8-9) | github.com/ahujasid/blender-mcp | `get_addon_status` answers |
-| gwanggo MCP | `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, restart Claude Code, then sign in from `/mcp` (browser login, no key in chat). CLI fallback: `npm install -g https://github.com/bill-950207/gwanggo-mcp/archive/refs/heads/master.tar.gz`, `gwanggo auth login` | gwanggo.ai; the `gwanggo-generate` skill if installed | `get_credits` answers |
+| gwanggo MCP | Account and credits: gwanggo.ai. Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, restart Claude Code, approve the gwanggo sign-in page on first use (browser, no password or key in chat; `/mcp` shows the state). Claude desktop or claude.ai: Settings > Connectors > Add custom connector, name `gwanggo`, paste the URL, Connect. CLI and skills fallback: `npm install -g https://github.com/bill-950207/gwanggo-mcp/archive/refs/heads/master.tar.gz`, `gwanggo auth login` | gwanggo.ai/dashboard/mcp (per-client steps, MCP / CLI / Skills tabs); keys for local configs only at gwanggo.ai/dashboard/api-keys (`GWANGGO_API_KEY`, set by the user) | `get_credits` answers |
 | Open Cloud key | User creates it in Creator Hub > Credentials with the scopes in `roblox-release-automation` section 2 and saves it to a `chmod 600` env file | create.roblox.com/docs/cloud/auth/api-keys | Variable exists (never print it); one read-only call returns 200 |
 
 Record the final state (tool, version, OK or skipped) in the brief's Environment line.

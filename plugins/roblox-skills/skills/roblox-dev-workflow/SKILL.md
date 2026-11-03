@@ -93,6 +93,7 @@ assets/ (Blender sources, exports, LICENSES.md)    tests/    docs/brief.md
 | Quick restyle of existing parts | Studio MCP `generate_material` (or Assistant "restyle") | Returns a `MaterialVariant`; apply to parts |
 | Static prop, furniture, vehicle, simple weapon | Studio MCP `generate_mesh` (Roblox Cube) | Textured mesh from text or one reference image. Default 10k tris; see `roblox-pitfalls` section 5 |
 | Parametric or scalable object (shelves, fences, ferris wheel, stack of books) | Studio MCP `generate_procedural_model` | Built from primitive parts; adjustable parameters; low runtime cost. Limit 50 per rolling 24 h. Poll with `wait_job_finished` |
+| Static prop from a concept image, or when Cube output misses the look | gwanggo web 3D tool (GLB, Roblox style, 3K-10K polygon caps; `roblox-game-pipeline` section 10) | Static, no rig; import with the 3D Importer; costs gwanggo credits, ask first |
 | Mesh that needs separate moving pieces | `generate_mesh` with segmentation (max 8 named parts), or Blender | Name parts by function (door, lid, lever) |
 | Anything animated or rigged (creatures, monsters, custom characters) | Blender (`roblox-blender-export`) | Cube output is a static mesh with no rig |
 | Exact kit pieces, palette textures, voxel animals, icons | Blender | Scripted, rerunnable, one shared palette |
