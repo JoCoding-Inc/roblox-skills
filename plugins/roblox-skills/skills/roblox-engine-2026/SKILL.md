@@ -39,6 +39,7 @@ Where this file and an older tutorial disagree, this file follows the current do
 
 ## 2. UI
 
+- **Style first:** pick the UI style from the four basic cards in `roblox-game-pipeline/assets/ui-styles/` (README has build notes and phone risks per style); stud chunky goes to `roblox-ui-genre-studs`.
 - **Layouts:** `UIListLayout` has flex (`HorizontalFlex`/`VerticalFlex`, `ItemLineAlignment`, `UIFlexItem.FlexMode` Fill/Grow/Shrink/Custom; slightly more expensive). Also `UIGridLayout`, `UITableLayout`, `UIPageLayout`. A `UIAspectRatioConstraint` or `UISizeConstraint` overrides layout sizing. `AutomaticSize` turns `Size` into a minimum. To reverse order negate `LayoutOrder`.
 - **Styling system:** `StyleSheet` (tokens as `$Token` attributes, themes), `StyleRule` selectors (class, `.tag`, name, GuiState, `@query`), `StyleLink` on a ScreenGui (one sheet per tree), `StyleDerive`. Built-in queries `@ViewportDisplaySizeSmall/Medium/Large` (phone and tablet = Small, laptop = Medium, console = Large) and `@PreferredInputTouch`. Use it for per-device scale instead of hand-written branching.
 - **Effects:** `UIShadow` and per-corner `UICorner` radii (full release 2026-06-23), `UIGradient` Radial/Elliptical/Conical (full release 2026-10-29), 9-slice via `ScaleType=Slice` + `SliceCenter`. Upgraded `UIShadow` (text, inset, knockout) is still Studio beta. `RichText=true` for markup (localisation strips tags).

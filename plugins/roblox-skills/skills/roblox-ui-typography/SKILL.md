@@ -31,6 +31,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 
 ## 2. Pick a pair
 
+- Start from the row that matches the chosen UI style (`roblox-game-pipeline/assets/ui-styles/README.md` names it).
 - At most 2 fonts in the whole game: one **display** (titles, buttons, big numbers) and one **body** (descriptions, settings, dialog). One font with two weights is also fine.
 - Show, do not describe: in Studio, make a temporary ScreenGui with the game name, a button label, a big number and one body line in each candidate pair, `screen_capture` it at phone size, let the user pick, then delete it. AI images misspell text, so do not use generated images to choose fonts.
 - FredokaOne and Poppins are on many front-page games (community opinion), so they read as default. If the game uses them, stand out with stroke color, gradients and layout, or pick a less common display face.
