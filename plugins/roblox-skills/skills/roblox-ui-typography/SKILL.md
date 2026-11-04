@@ -51,7 +51,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 
 ## 3. Readable on a phone
 
-- Sizes (judgment, at 1080p design scale): body 14 or more, key labels and buttons 20 or more; never below the docs floor of `MinTextSize` 9. Stud-style games use their own larger minimums (`roblox-ui-genre-studs` section 3).
+- Sizes (judgment, at 1080p design scale): body 14 or more, key labels and buttons 20 or more; never below the docs floor of `MinTextSize` 9. Phone floors at `UIScale` 1 (14 px body, 18 px labels): `roblox-ui-layout` section 4. Stud-style games use their own larger minimums (`roblox-ui-genre-studs` section 3).
 - Text over the 3D world needs a stroke (`UIStroke` on the label) or a `UIShadow`; check contrast against the brightest and darkest spot the label can sit on.
 - Avoid Thin, ExtraLight and Light weights below about size 24: since the July 2026 FreeType update (Release 731), thin text and BillboardGui text look jagged on low-DPI screens (staff and community reports).
 - Prefer `AutomaticSize` plus `TextWrapped` over `TextScaled` (the docs recommend it). The player's Text Size setting (`GuiService.PreferredTextSize`) does not scale `TextScaled` text, and `TextScaled` stops at 100. If you use it, add a `UITextSizeConstraint`.
