@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rank free Creator Store icon packs or single icons and make a contact sheet to look at.
+"""Rank free Creator Store packs (icon packs, world-prop packs) or single icons and make a contact sheet.
 
   python3 -I store_icons.py "simulator icon pack" "icon pack" --type model
   python3 -I store_icons.py "rebirth icon" "shop icon" --type decal --out sheet.png
