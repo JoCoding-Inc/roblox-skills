@@ -55,14 +55,14 @@ Skills load on their own when the task matches their description. To update, run
 - `/roblox-game-pipeline` always works.
 - After the first session, intake writes a project `CLAUDE.md` whose first line marks the folder as a Roblox project, so "I'm making a game" alone is enough there.
 - The first step is a tool check: the agent shows which tools are connected, says what each one unlocks, sets up the required ones with you, and lets you skip optional ones.
-- When the plan is done, the agent asks what to see first: a core-fun prototype to playtest, concept images, a concept trailer (gwanggo), or straight to the full build.
+- When the plan is done, the agent asks what to see first: a core-fun prototype to playtest, concept images, a concept trailer, or straight to the full build.
 
 ## Works best with
 
 - Roblox Studio MCP: easiest is the official plugin (`/plugin`, search **Roblox Studio**, then ask "Get me set up with Roblox Studio"). Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). The old Rust server is archived
 - Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
 - Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs. In Blender, turn the add-on on first: Edit > Preferences > Add-ons > MCP for Blender (tick it), then press Connect to MCP server in the viewport `N` panel. Read the safety notes in `roblox-blender-export` section 9
-- [gwanggo](https://gwanggo.ai) Game Studio MCP: a game project with a locked art style, concept images and a concept trailer, props and pets as textured GLB, icons, textures, logo and loading art; plus the web Thumbnail & Icon Kit. Every credit spend is quoted (`dry_run`) and asked first. Setup: https://gwanggo.ai/game/connect and https://gwanggo.ai/dashboard/mcp (Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, then approve the sign-in page). Without it the agent uses written storyboards, Studio screenshots, Roblox Cube and Blender
+- Optional: [gwanggo](https://gwanggo.ai) Game Studio MCP (paid credits; every step has a free route): a game project with a locked art style, concept images and a concept trailer, props and pets as textured GLB, icons, textures, logo and loading art; plus the web Thumbnail & Icon Kit. Every credit spend is quoted (`dry_run`) and asked first. Setup: https://gwanggo.ai/game/connect and https://gwanggo.ai/dashboard/mcp (Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, then approve the sign-in page). Without it the agent uses written storyboards, Studio screenshots, Roblox Cube and Blender
 
 ## Keeping it current
 
