@@ -4,7 +4,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 
 | Skill | Use it for |
 |---|---|
-| `roblox-game-pipeline` | Run first: staged game-development workflow (tool check, vision, live-market and platform-fit advice, style board with seven reference lane cards, four basic UI style cards and a Studio UI mockup script, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
+| `roblox-game-pipeline` | Run first: staged game-development workflow (tool check, vision, live-market and platform-fit advice, style board with eight reference lane cards, four basic UI style cards and a Studio UI mockup script, cinematics and small decisions as decision cards, choice of auto/staged and solo/subagents, plan, build loop with evidence, release) |
 | `roblox-market-research` | Judge an idea against the live market: trending and rising charts, keyword competition, competitor teardown, hit decay curves, and a catalog of sites and public APIs for Roblox charts and keywords. `scripts/market.py` needs only Python 3 |
 | `roblox-combat-tools` | Weapons and Tools, hit detection, server validation, lag compensation and Server Authority caveats |
 | `roblox-match-flow` | Rounds, lobbies, matchmaking and teleports, reserved servers, leaderboards, AFK and shutdown handling |
