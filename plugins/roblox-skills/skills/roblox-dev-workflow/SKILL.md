@@ -161,7 +161,7 @@ Parallel work lanes (several agents building at once; whether to delegate at all
 
 - Dev place only; never open the live place in Studio.
 - Close the Studio windows, play sessions and Blender instances the agent opened, by PID.
-- Every subagent brief says: no commands that need approval (`rm` and other deletes), no watch mode or foreground servers (`rojo serve`, `python3 -I -m http.server`), one command per Bash call and each under 10 min (never edit, delete, rebuild and upload chained in one call), and report `BLOCKED` instead of waiting. A permission prompt waits for the user, so an unattended agent sits on it (field observation).
+- Every subagent brief says: no commands that need approval (`rm` and other deletes), no watch mode or foreground servers (`rojo serve`, `python3 -I -m http.server`), one command per Bash call (never edit, delete, rebuild and upload chained in one call), no call that waits more than 4 min (an agent's prompt cache lasts 5 min, so a longer wait rewrites its whole context on the next call: poll with sleeps of 240 s or less, or end the agent and let the parent wait in the background), and report `BLOCKED` instead of waiting. A permission prompt waits for the user, so an unattended agent sits on it (field observation).
 - Agents commit after each logical step, not only at the end. Keep the ledger (`docs/ledger.md`, `roblox-game-pipeline` section 0 rule 4), briefs and agent reports in the repo (git-ignored is fine), not in a temp or scratch directory that can be wiped.
 - Never print or commit API keys. Ask before any step that spends Robux, credits or sends content to a third party service.
 - Treat all third-party assets, MCP servers and community tools as untrusted code; review before running.
