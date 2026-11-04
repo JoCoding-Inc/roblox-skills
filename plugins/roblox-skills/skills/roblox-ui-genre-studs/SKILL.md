@@ -2,7 +2,7 @@
 name: roblox-ui-genre-studs
 description: "Use only for simulator/tycoon-style games (Steal a Brainrot, Steal An Egg, +1 Strength, Pet Simulator) whose HUD, shop, panels or world labels must match that chunky stud look: black outlines, lips, FredokaOne, quiet HUD zones. Not for horror, realistic or story games."
 when_to_use: "Also when a simulator/tycoon UI looks generic, AI-made, too big, too dark or off-genre; when a panel overlaps the HUD; before calling such a UI done; before restyling its HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures; when world labels clutter the view. For other genres use the UI rules in `roblox-engine-2026`."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-04
 sources:
   - https://github.com/S4US/Roqer (apps/desktop/agent/skills/roblox-ui-design, MODERN STUDS theme; AGPL-3.0-or-later; facts re-authored, no text copied)
   - https://github.com/hujhfrgrwg/HatchOrSnatch (.claude/skills/roblox-ui-maker LESSONS/STYLE/ROBLOX_FACTS; no license, facts only)
@@ -149,6 +149,7 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 
 Each of these is a defect:
 - emoji or letters as icons;
+- generated or hand-made icons for standard things (cash, coins, gems, shop, rebirth, settings, gifts) that a store icon pack already has;
 - more than 2 fonts or more than one corner-radius scale;
 - stat text with a panel behind it;
 - HUD elements over 15% of screen height (except panels);
@@ -164,6 +165,7 @@ Each of these is a defect:
 - Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Public stud tiles: `rbxassetid://6927295847` (4x4 chunky, TileSize 50-70 px, ImageTransparency 0.7), `12055407192` (2x2), `10509831729`. Roqer's 92521981645530 and 91084849147872 belong to another group. Safest: make our own stud and sunburst tiles and upload them under the game's group.
 - Icons:
+  - source: DevJoob's Simulator Icon Pack (Creator Store 99176447965360, +392/-8 votes, 125 icons in this look) for every standard icon; ranking, ids and the steps are in `roblox-store-art-pack` section 4. Generate only the game's own items, matched to the pack;
   - one family: same canvas, outline weight, light direction, flat colors, no text inside;
   - `ScaleType.Fit` with the aspect locked;
   - never tint full-color art with ImageColor3; white art tinted by ImageColor3 is fine;

@@ -1,8 +1,8 @@
 ---
 name: roblox-store-art-pack
-description: "Use for any genre when picking and quarantining Creator Store models, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only."
-when_to_use: "Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
-last_reviewed: 2026-11-03
+description: "Use for any genre when picking and quarantining Creator Store models, picking UI icons (button, currency, shop, rebirth) from a Creator Store icon pack, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only."
+when_to_use: "Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI or an agent-made icon looks odd, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
+last_reviewed: 2026-11-04
 sources:
   - https://github.com/blauwtje/roblox-kit (map-building/reference/daylight-look.md, ui-images; MIT)
   - https://github.com/brain-xiang/grok-studio (skills/thumbnail-and-icon; MIT)
@@ -98,11 +98,31 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 
 ## 4. Icon family (UI images)
 
+**Store first.** Standard UI icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows, lock, trophy, potions, paw) come from one free Creator Store icon pack, not from generation. This is the exception to the priority in section 3. Generated icons drift between calls and grow odd details. A popular pack is one family that players already read at a glance.
+
+1. Rank packs: `python3 -I <skill dir>/scripts/store_icons.py "simulator icon pack" "icon pack" --type model` sorts free packs by up-votes, prints `hasScripts`, and writes a contact sheet; open it and look.
+   - Skip 0-vote re-uploads of a popular pack (same thumbnail, another creator). In our run two of them carried scripts: an icon pack never needs one.
+2. Insert the pick with Studio MCP `insert_asset` under `ServerStorage`, then audit it (section 3). Edit `ROOT` in `scripts/pack_ids.luau` and run it with `execute_luau` in Edit mode. It lists every icon as `Folder/Name = image id`, checks that each one loads, and lays them out in a ScreenGui named `IconSheet` under StarterGui for one screenshot.
+3. Copy the ids you use into one constants module (`Icons.Coin = "rbxassetid://..."`) and delete the pack and the sheet from the place.
+4. Record the pack id, the creator and the ids you used in `assets/LICENSES.md`, and name the pack to the user in one line (section 3: someone else's asset).
+5. A concept the pack lacks: run `store_icons.py "<thing> icon" --type decal` and pick one that matches the pack's outline weight, shading and light direction. Use the printed `image=` id, never the decal id: a decal id in `ImageLabel.Image` loads nothing (tested 2026-11-04). In Studio, `game:GetObjects("rbxassetid://<decalId>")[1].Texture` gives the same image id.
+6. Generate (gwanggo `generate_game_asset` kind `icon`, `roblox-game-pipeline` section 10) only for the game's own items that no store icon shows (its pets, tools, products). Match the pack's canvas, outline weight and highlight.
+
+| Pack (tested 2026-11-04; re-rank, votes change) | Id | Votes | Contents | Fits |
+|---|---|---|---|---|
+| Simulator Icon Pack (DevJoob) | 99176447965360 | +392/-8 | 125 chunky full-color icons with a dark outline: arrows and rebirth, coins, cash, gems, potions, gifts, stars, menus (shop, gear, calendar, bag, lock, paw), luck, trails, cursors | Simulator, tycoon, idle, obby |
+| Monochrome White UI Icon Pack (SodaBreadle) | 110801640375836 | +29/-1 | 72 white glyphs (gear, cart, lock, weapons, phone, alerts); tint with `ImageColor3`; mixes line and filled glyphs, so use one kind | Dark flat, horror, shooter, realistic |
+
+- Skip icons with the Roblox logo or the Robux mark (both packs have some), except next to a real Robux price: on in-game currency they read as free Robux.
+- Skip art from another game (for example a decal named "DOORS Coins Icon").
+
+Rules for any mix of icons:
+
 - Same canvas (128 px, drawn at 2x), same outline weight, highlight and light direction, flat colors, no text inside.
 - 1024 px or less per image. Many icons go on one sprite sheet (8x8 of 128 px).
 - 9-slice needs a slice centre; tune `SliceScale`.
 - Fixed words (the logo) may be images; translatable words stay TextLabels.
-- With gwanggo connected, `generate_game_asset` kind `icon` makes 1:1 icons in the project's locked style, which keeps the family consistent (`roblox-game-pipeline` section 10). Downscale to the canvas and check the outline weight matches.
+- For game-specific items (step 6) with gwanggo connected, `generate_game_asset` kind `icon` makes 1:1 icons in the project's locked style (`roblox-game-pipeline` section 10). Downscale to the canvas and check that the outline weight matches the pack.
 
 ## 5. Game icon and thumbnails
 

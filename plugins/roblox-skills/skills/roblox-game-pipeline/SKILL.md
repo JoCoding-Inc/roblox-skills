@@ -165,7 +165,7 @@ List the asset classes (for example machines and furniture, building kit, charac
 | gwanggo `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
 | `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) | Organic shapes |
 | Blender (scripted) | Free, slowest | Rigs and animation, modular kit pieces with exact sizes (walls, floors, trims), voxel animals | Many detailed props fast |
-| Creator Store | Free | Fillers, audio | Hero assets (quarantine first) |
+| Creator Store | Free | Fillers, audio, standard UI icons (one voted icon pack, `roblox-store-art-pack` section 4) | Hero assets (quarantine first) |
 
 - When a class covers many assets and the user has not seen the options, run a **bake-off**: make the same object (one machine, one pet) with each available tool, screenshot them side by side in Studio (or a sheet with `scripts/style_board.py`), and let the user pick. Quote gwanggo credits first. Never mark one option (D) and skip the others unseen. Replacing an asset the game already has (a character, a pet, a machine) is a bake-off too, with the old asset as one option: never swap without a same-camera side-by-side against the old one at play distance, label each with the tool that really made it (parts by script, Blender primitives, Cube, AI 3D), and keep the new one behind a flag (a `Tuning` value or attribute, section 7a) until the user approves.
 - Judge from the samples, not from memory: "AI output has inconsistent style" is not true of a style-locked gwanggo project or Cube with a reference image; the raw-mesh warning in `roblox-blender-export` section 9 is about the Blender MCP generators.
@@ -290,7 +290,7 @@ Rules:
 | Stage 3 look | `generate_concepts` 3, user picks, `select_concept` locks the style | Lane cards, live-game contact sheet |
 | Stage 6b first proof | Concept images, concept trailer (`generate_gameplay_video`) | Written storyboard, greybox screenshots |
 | Stage 7 props and pets | `generate_game_asset` image then 3d; packs of themed props (one call per item) | Studio MCP `generate_mesh` (Roblox Cube), Blender, Creator Store |
-| Stage 7 UI | `generate_game_asset` kind `icon` for inventory, shop and currency icons (`roblox-store-art-pack` section 4) | Blender renders, Studio screenshots |
+| Stage 7 UI | Standard icons come from a Creator Store icon pack, not gwanggo (`roblox-store-art-pack` section 4). `generate_game_asset` kind `icon` only for the game's own items, matched to the pack | Blender renders, Studio screenshots |
 | Stage 7 surfaces | `generate_game_asset` kind `texture` for seamless tiles, used as `MaterialVariant` color maps | Studio Material Generator, `generate_material` |
 | Brand | Logo candidates and loading-screen art with `generate_image` (`roblox-store-art-pack` sections 6-7) | Text logo built in Studio |
 | Stage 9 launch | Game icon and thumbnails: web Thumbnail & Icon Kit (gwanggo.ai/dashboard/game/thumbnail-kit; 3 thumbnails 1920x1080 under 3 MB and a 512x512 icon from a real gameplay screenshot, checked against Roblox sizes; not an MCP tool). Ads Manager creative variants from real screenshots | Studio screenshots edited by hand |
