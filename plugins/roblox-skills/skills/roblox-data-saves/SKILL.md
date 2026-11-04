@@ -92,7 +92,7 @@ Wally `lm-loleris/profilestore` 1.0.3 (no GitHub releases; last commit 2025-07-3
 | Custom top-N board | `OrderedDataStore:GetSortedAsync(false, pageSize)` | Cache the result and refresh every few minutes; never per player join |
 | Badges | `BadgeService:AwardBadgeAsync(userId, badgeId)` in `pcall`, server only; check `UserHasBadgeAsync` / `CheckUserBadgesAsync` first and `GetBadgeInfoAsync().IsEnabled` | Rate limit 50 + 35 x players per minute. 5 free badges per game per 24 h, then 100 Robux each. A badge is a progress funnel signal (`roblox-market-research` reads others' award counts) |
 
-Keep the save as the source of truth: a leaderboard or badge is a view of saved progress, never the other way round. Round-based scoring lives in `roblox-match-flow`.
+Keep the save as the source of truth: a leaderboard or badge is a view of saved progress, never the other way round. Round-based scoring lives in `roblox-match-flow`. An `OrderedDataStore` holds integers only and has no versions (docs). A score that can outgrow the integer range (simulator numbers) goes in as a log-scale integer; when its scale changes, use a new store name with a version suffix instead of rewriting in place (field observation, 2026-11). A new name needs its own RTBF template (section 7) and, for a registered leaderboard, a new registration in Creator Hub.
 
 ## 6. Tests (evidence for the release gate)
 
@@ -114,3 +114,4 @@ Keep the save as the source of truth: a leaderboard or badge is a view of saved 
 - Storage limit: 500 MB + 1 MB x lifetime users, measured on the compressed latest version of each key.
 - Watch the Data Stores observability dashboard and set alerts for sustained failures and storage growth. Delete test data when testing ends; a deleted store has a 30-day restore window.
 - Player data must be deletable: use static key patterns and configure automated right-to-be-forgotten processing, or the right-to-erasure webhook for custom schemas.
+- RTBF templates (Creator Hub > Data stores manager > RTBF Deletion; docs `data-stores/right-to-be-forgotten`): one store and one key pattern each, `{UserId}` is case-sensitive. Keys like `p_{UserId}` in a shared store take type **Standard Key**; an ordered leaderboard store gets its own **Ordered Key** template. **Standard Data Store** matches a whole store per player, so it is wrong for a shared store (a game picked it first and had to recreate it, 2026-11).

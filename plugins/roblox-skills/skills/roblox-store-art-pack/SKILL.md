@@ -137,7 +137,7 @@ Gaps found: no voted free wall pack in most lanes (Synty has rock walls, Beyond 
 
 ## 4. Icon family (UI images)
 
-**Store first.** Standard UI icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows, lock, trophy, potions, paw) come from one free Creator Store icon pack, not from generation. This is the exception to the priority in section 3. Generated icons drift between calls and grow odd details. A popular pack is one family that players already read at a glance.
+**Store first.** Standard UI icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows, lock, trophy, potions, paw) come from one free Creator Store icon pack, not from generation. This is the exception to the priority in section 3. Generated icons drift between calls and grow odd details. A popular pack is one family that players already read at a glance. Pass and product icons of generic items (potions, luck, boosts) also come from the pack; only an icon showing the game's own character or creature stays custom.
 
 1. Rank packs: `python3 -I <skill dir>/scripts/store_icons.py "simulator icon pack" "icon pack" --type model` sorts free packs by up-votes, prints `hasScripts`, and writes a contact sheet; open it and look.
    - Skip 0-vote re-uploads of a popular pack (same thumbnail, another creator). In our run two of them carried scripts: an icon pack never needs one.
@@ -264,5 +264,6 @@ Measure instead of guessing (docs): time it with a stopwatch from Play to a visi
 - Show the logo, one short tip and a progress indicator tied to real loading. A uniform tween that stalls near the end reads as fake.
 - Match the game's art style and the thumbnail the player clicked (inference: the first frame should confirm they entered the game they chose). Plain "Loading..." text with a spinner is the commonly criticised default.
 - A theme-matched progress bar beats a plain spinner: the owner's "+1 BAT" loading screen (image: `roblox-game-pipeline/assets/examples/loading-screen-baseball.jpg`) shows a large sticker-style logo over a blurred copy of the game's own field, a green bar with a baseball as the knob that rolls to 100%, and a one-line flavor text ("Play ball!") instead of "Loading". Keep the logo clear of the top-left corner, where Roblox's menu and chat buttons sit over the screen.
+- Full-screen key art with `ScaleType.Crop` shows a different part on each screen shape: a wide phone (844x390) shows less height than 16:9. Check both and keep the subject clear of the bar and the logo. In one game a character sat under the bar on phones until the art was regenerated zoomed out (field observation, 2026-11).
 - Add a timeout that closes the screen if loading hangs, and keep the screen under a few seconds on a typical phone. Do not put ads or claims on it.
 - Test on a throttled network and a low-end phone (Device and Network Simulator) for the worst-case time, and check the screen on phone, tablet and console safe areas.
