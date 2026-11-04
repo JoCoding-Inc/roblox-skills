@@ -151,7 +151,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 Each of these is a defect:
 - emoji or letters as icons;
 - generated or hand-made icons for standard things (cash, coins, gems, shop, rebirth, settings, gifts) that a store icon pack already has;
-- more than 2 fonts or more than one corner-radius scale;
+- more than 2 fonts, or corner radii outside section 2 (one value per kind from the table; panels 14-30 px, the same on every panel);
 - stat text with a panel behind it;
 - HUD elements over 15% of screen height on desktop or over 72 px on a phone (except panels and offers);
 - near-black navy giant panels;
