@@ -41,6 +41,7 @@ python3 -I <skill dir>/scripts/market.py keyword "steal" "fishing"   # search co
 python3 -I <skill dir>/scripts/market.py suggest "tycoon" --expand   # autocomplete long tail
 python3 -I <skill dir>/scripts/market.py game 10563114921            # teardown by universe id
 python3 -I <skill dir>/scripts/market.py history 107778070777162     # Rolimon's CCU curve, root place or universe id
+python3 -I <skill dir>/scripts/ref_sheet.py "grow a garden" 7709344486 --out refs.png   # reference-game sheet for the user
 ```
 
 Raw JSON lands in `./market-YYYYMMDD/` so every number can be cited. Sponsored rows are skipped and counted. `charts` flags `rising` (on trending or up-and-coming but not on playing-now) and `earner` (earning rank above its playing rank). Calls are spaced out; do not loop the script.

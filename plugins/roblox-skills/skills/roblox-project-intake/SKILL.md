@@ -100,7 +100,7 @@ Do not ask for these up front. Put each one as a `Needs user:` line on the plan 
 
 **Round A: the game (always ask)**
 
-1. One sentence: what is the game, and what does the player do every minute? Name 1-3 reference games.
+1. One sentence: what is the game, and what does the player do every minute? Name 1-3 reference games (the pipeline's reference step, `roblox-game-pipeline` section 2, proposes more and records what to take from each).
 2. Genre and camera: simulator/tycoon, obby, horror, RPG/adventure, shooter/PvP, social/roleplay, racing, tower defense, other. First person, third person, top-down?
 3. Target audience and age: Roblox Kids (5-8), Roblox Select (9-15), 16+, or 18+ Restricted? (This sets the content maturity label, the publishing bar, chat and monetization limits. See `roblox-design-and-launch` section 4.)
 4. Platforms: phone, PC, console, VR? Mobile-first changes UI size, part count and texture budgets.

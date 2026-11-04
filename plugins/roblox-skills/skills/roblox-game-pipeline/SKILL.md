@@ -42,7 +42,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 | Stage | Output | Gate (user says yes to move on) |
 |---|---|---|
 | 0 Tool check | Probe, then one table of Required / Recommended / Optional tools with status; setup offered for gaps, skips recorded (`roblox-project-intake` step 1) | Required tools OK before stage 7; optional ones set up or skipped |
-| 1 Vision | Pitch, genre, audience, platforms, references (intake Round A); idea check with live data (section 2) | Brief draft confirmed |
+| 1 Vision | Pitch, genre, audience, platforms (intake Round A); idea check with live data and reference games picked by the user (section 2) | Brief draft confirmed |
 | 2 Market and platform fit | Market snapshot for the idea (`roblox-market-research`) and up to 3 pieces of advice from `roblox-design-and-launch` 1a (solo-viable, session, devices, max players) | Accept or reject each |
 | 3 Look | Style board result, palette, art sources (section 3) | Style lane picked |
 | 4 Moments and small decisions | Cinematics (`roblox-cinematics`), intro, loading screen, logo, music, tutorial, etc. (section 4) | Decision cards answered or defaulted |
@@ -64,6 +64,14 @@ Stage 0 runs before the first question, also when the user opens with an idea. S
 - Twist test: one thing the idea does that the top clone does not. No twist, no green light.
 - Size for week 8, not launch week: the competitor's half-life from `history`.
 - Live-ops load: what the first 4 weeks of updates would be (section 4, Live ops card).
+
+**Reference games, right after the idea check.** Settle which live games this one learns from before the brief is fixed:
+1. Ask: "Which 1-3 Roblox games feel closest to what you want? Names or links; none is fine." Reuse the intake answer if there is one.
+2. Always propose 3-5 more from the idea check's data: the leader for the idea's keywords, a riser under 90 days old (`charts` flags `rising`, RoTerminal `rising?genre=` or `screen?theme=`), and one that does the core action differently. Skip games whose players fell below half their peak (`history`), unless the user named them.
+3. Send one sheet of the user's and the proposed games: `python3 -I <roblox-market-research dir>/scripts/ref_sheet.py "<name>" <universe id> ... --out refs.png` (first thumbnail, icon, players now, age, last update). Add one line per game: why it is here. The sheet holds other creators' art: send it, never commit or upload it.
+4. The user picks 1-3 and says, per game, what to take: core loop, progression and economy, layout (base or HUD arrangement), monetization, look, onboarding. Then run `market.py game` on each pick for passes, max players, update cadence and the badge funnel.
+5. Record in the brief one line per pick: `Reference: <name> (<universe id>) - take: <parts> - avoid: <parts>`. Later stages read these lines: the style board (section 3, only when the look is taken), the layout table (section 3, step 5), the first-reward and monetization checks.
+6. References steer; they are never copied. No names, characters, art, maps or text from them (`roblox-design-and-launch` section 6), and the twist test above still applies: a "make it like X" with no twist gets the twist question.
 
 Then the platform checks: run the checks in `roblox-design-and-launch` section 1a and give the developer at most 3 pieces of advice, each as "pattern -> your plan -> suggested change" with the evidence grade. Typical ones: playable alone, a complete mini-loop in 5-10 minutes, first reward within 30 s for a simulator (5 recent hits: 2-27 s, `roblox-market-research` section 7) and 2 minutes at most otherwise, friend hooks as a bonus, phone and PC from day one, max players chosen from the design.
 
