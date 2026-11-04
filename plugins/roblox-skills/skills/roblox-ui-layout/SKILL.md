@@ -55,6 +55,8 @@ One standard for every genre. The genre skills set the look; this one sets where
 
 Reach: a button 40% below the top is easy on a phone and almost unreachable on a tablet (docs). Frequent buttons go near the bottom corners above the keep boxes; rare ones go into a menu on small screens (docs adaptive design).
 
+See the game: on a phone, measure the share of the centre 50% x 50% box that visible HUD covers at idle (the union of their rects), not only overlaps between elements. A desktop-style bottom cluster plus 2x2 offer cards covered about 40% of it and the owner rejected the HUD; moving groups to the edges and shrinking them got it near 1% (field observation, 2026-11).
+
 Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `Portrait` (default `LandscapeSensor`). In portrait the stick takes the bottom 40% and the top strip may be full: menu buttons go in a bottom row above the stick zone or behind one menu button.
 
 ## 3. Insets

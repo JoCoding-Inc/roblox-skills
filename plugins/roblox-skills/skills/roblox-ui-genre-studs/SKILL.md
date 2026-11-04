@@ -121,6 +121,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 - **Top-centre:** one timer or objective, or at most 3 nav chips (13.6% x 7.5% each). Otherwise empty. Event banners are short ("RUN!!").
 - **Quiet HUD:** show only per-second info (main currency, one goal, 4-5 buttons). Reveal secondary currencies and timers when they start to matter.
 - Tap targets: 124 design px or more at 1080p and never under 44 px on a phone. Primary buttons 150-190 at 1080p. Keep the thumbstick and jump keep boxes clear on touch (`roblox-ui-layout` section 1).
+- Under a canvas scale k (screen px = design px x k) a floor is floor / k design px. When shrinking a HUD, clamp each size: `math.max(math.ceil(v * factor), math.ceil(44 / k))`. On small phones the floor wins; say so instead of claiming the full shrink.
 - Never auto-claim rewards. Hide zero rewards. An unaffordable item is a grey plate, and tapping it says how much is missing.
 
 ## 5. Motion and polish
@@ -144,7 +145,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 - Floating income: large green "+$1.5M" with a black stroke that rises and fades. It is the main juice.
 - Owner sign over the base: "<DisplayName>'s Base".
 - Set `BillboardGui.MaxDistance` on every world label (`roblox-ui-typography` section 5), high enough that a label is already small when it vanishes (docs: avoids pop-out). Add a declutter pass near the camera: shrink close labels, hide one that would cover a nearer one (field observation).
-- Guide arrows (trail to the next goal): raycast down per arrow (`roblox-combat-tools` section 4) and sit each just above the floor; interpolating between player and target makes the arrows climb toward a tall trigger. Clamp each arrow's width by its camera distance so a near arrow does not fill the screen (field observation).
+- Guide arrows (trail to the next goal): raycast down per arrow (`roblox-combat-tools` section 4) and sit each just above the floor; interpolating between player and target makes the arrows climb toward a tall trigger. Clamp each arrow's width by its camera distance so a near arrow does not fill the screen (field observation). Lay the trail along a `PathfindingService` path (straight line as fallback) with a pooled set of arrows, CanCollide, CanTouch and CanQuery off. Recompute on a timer (about 0.75 s) or after a few studs of movement, not every frame (`ComputeAsync` yields), and hide the arrows near the target. Judge their size from the default camera: in one game the first size read too small and 1.5x read right (field observation, 2026-11).
 
 ## 7. Anti-slop list
 
