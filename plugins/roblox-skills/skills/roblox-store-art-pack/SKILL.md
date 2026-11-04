@@ -1,6 +1,6 @@
 ---
 name: roblox-store-art-pack
-description: "Use for any genre when picking and quarantining Creator Store models, picking UI icons (button, currency, shop, rebirth) from a Creator Store icon pack, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only."
+description: "Use for any genre when picking and quarantining Creator Store models, picking UI icons (button, currency, shop, rebirth) from a Creator Store icon pack, offering popular world-prop packs (trees, rocks, fences) for the user to pick, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only."
 when_to_use: "Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI or an agent-made icon looks odd, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
 last_reviewed: 2026-11-04
 sources:
@@ -93,8 +93,47 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Keep meshes, textures and UI art. Delete every script.
 - `script_grep` for `require getfenv setfenv loadstring HttpService GetObjects InsertService MarketplaceService DataStore MessagingService TeleportService RemoteEvent string.char string.reverse`.
 - Red-flag names: AntiLag, MainModule, Loader, Handler, Update, Version, HDAdmin, Free, Fix.
-- Verdict for each insert: visual-only / reviewed / quarantine / reject. `insert_asset` strips scripts; recreate the behavior yourself.
+- Verdict for each insert: visual-only / reviewed / quarantine / reject. `insert_asset` keeps scripts and only sets `Sandboxed` on them (observed 2026-11-04), so delete them yourself and recreate the behavior.
 - Assets owned by someone else need user consent for use. Record the source in the licenses file.
+
+## 3a. World props from a store pack (the user picks)
+
+Filler world props (trees, rocks, bushes and grass, fences, walls) come from one popular free pack that fits the lane. Pick it with the user from real renders, not from words: `roblox-game-pipeline` section 3, step 4a. Hero props and landmarks stay custom, because a famous pack used for them makes the game look like an asset flip.
+
+1. Rank packs for the lane: `python3 -I <skill dir>/scripts/store_icons.py "<lane word> nature pack" "<lane word> tree" "<lane word> rock" --type model`. Start from the table below. Skip 0-vote re-uploads (most lane keywords return mostly these, many with scripts). A pack with scripts is read before it is kept (section 3).
+2. Insert 2-4 candidates under `ServerStorage` with Studio MCP `insert_asset`, in the game's dev place so they are judged under its lighting.
+3. Edit `PACKS` in `scripts/pack_lineup.luau` and run it with `execute_luau` (Edit). It does four things:
+   - places the largest and a middle-sized tree, rock, plant and wall of each pack side by side, left to right in `PACKS` order, each block next to a red player-size block;
+   - anchors the copies and drops their scripts;
+   - returns each pack's parts, MeshParts, unique meshes, scripts and unanchored parts;
+   - returns camera and look-at positions for `screen_capture`.
+4. Capture once overall and once per pack. Save the captures in one folder named after the packs and build a labeled sheet with `python3 -I <roblox-game-pipeline dir>/scripts/style_board.py kit.png --dir <folder>` (3D labels do not show in edit-mode captures).
+5. Send the sheet with one line per pack: its look in this game, what it covers, how heavy it is. The user picks one pack per lane. Mix two packs only when the shading matches.
+6. Using the pick:
+   - keep only the pieces used and delete the rest of the pack;
+   - anchor every part (several packs ship unanchored, see the table);
+   - set decor collisions (`roblox-blender-export` section 5);
+   - record the pack in `assets/LICENSES.md`.
+   A class the pack lacks (walls in most lanes) is built from parts or generated to match the pack.
+
+| Lane (tested 2026-11-04; re-rank, votes change) | Pack | Id | Votes | Covers | Parts / scripts / unanchored |
+|---|---|---|---|---|---|
+| Chunky cartoon | Simulator Pack (qorrium) | 106310348164692 | +29/-1 | bright faceted round trees, blue rocks, grass tufts, fence, chest, coins | 71 / 1 (an ad README) / 0 |
+| Chunky cartoon, cozy | Low-Poly Asset Pack (TRG_USER) | 8904182484 | +192/-8 | smooth rounded trees (one snowy), grey rocks, flower, bush, fence | 241 / 0 / 0 |
+| Low-poly | Low Poly Nature Pack (Proudism) | 9682467046 | +39/-1 | small faceted trees, palm, rocks, bushes | 51 / 0 / 25 |
+| Low-poly, semi-realistic | Synty Nature Pack (Roblox) | 6933438443 | +768/-32 | 200 meshes: trees, rocks, plants, rock walls, fences, ground; the most-voted free nature pack | 200 / 0 / 0 |
+| Cozy pastel | Low-Poly Oak Trees Asset Pack (Cliosow) | 8556375773 | +49/-1 | lime puffy oaks | 53 / 0 / 53 |
+| Cozy pastel, fantasy | Fantasy Decorations Pack (Z3roTho52) | 8400234126 | +30/-0 | faceted trees, pine, standing stones, plants | 106 / 0 / 0 |
+| Anime, stylized | Yasu's Stylized Tree Pack (mvyasu) | 79689531752352 | +400/-0 | 20 painterly trees, bushes; ships texture swatches; no rocks or walls | 396 / 0 / 0 |
+| Anime | Sakura Tree With Falling Petals (Biryuvignette) | 8976941336 | +89/-11 | one large cherry tree | 4 / 0 / 0 |
+| Dark realistic | Realistic Tree & Bush Pack (luckycowboy44) | 10907214341 | +96/-4 | pines, bushes, grass, small rocks | 110 / 0 / 0 |
+| Dark realistic, horror | Dead Trees (Zalensito) | 15113312104 | +90/-10 | 7 black bare trees | 14 / 0 / 14 |
+| Dark realistic | PBR foliage and nature pack (moviroon) | 13536410655 | +196/-4 | leafy trees, mossy boulders, rocks, bushes; PBR textures cost phone memory | 227 / 0 / 24 |
+| Neon sci-fi | Alien Plants Pack - Beyond the Dark (CurbMandrill) | 10980935233 | +28/-2 | purple and teal alien trees and plants | 119 / 0 / 1 |
+| Neon sci-fi | Space Station Architecture Pack - Beyond the Dark (Roblox) | 10980780693 | +188/-12 | modular station walls, floors, railings; take pieces only | 2837 / 93 (image animators) / 594 |
+| Any (fence) | Low-Poly Fence (Catherine858) | 4845879207 | +90/-10 | one rail fence | 1 / 0 / 1 |
+
+Gaps found: no voted free wall pack in most lanes (Synty has rock walls, Beyond the Dark has station walls), few true thick-outline props, no pastel flowers.
 
 ## 4. Icon family (UI images)
 

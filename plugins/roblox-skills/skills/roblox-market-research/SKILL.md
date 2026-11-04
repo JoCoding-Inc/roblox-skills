@@ -61,6 +61,7 @@ Raw JSON lands in `./market-YYYYMMDD/` so every number can be cited. Sponsored r
 | Creator Hub analytics, peer benchmarks | Your game against similar games (p50-p90) | Login, own game only | O | After launch |
 | DevForum `devforum.roblox.com/latest.json`, `/search.json?q=` | Policy and algorithm changes, weekly recaps, roadmap | Open JSON | O/C | Risk check |
 | Rolimon's `www.rolimons.com/game/<rootPlaceId>`, `api.rolimons.com/games/v1/gamelist` | CCU history (6-hourly points), avg playtime, visits; about 7,900 games tracked | Open; crawl delay 2 s | M/V | Decay, half-life |
+| RoTerminal agent API `roterminal.co/api/agent/<tool>` (spec: `roterminal.co/agents.md`) | `trends?word=` (game-title words, last 30 days vs the 30 before), `rising?range=7d&genre=`, `screen?theme=` (filters the top 600), `charts?chart=&country=` (daily Roblox charts, 60 countries), `updates?game=` (players before and after each update) | Open JSON, no login, 50 calls a day per address; repackaged Roblox data, matched the games API within 0-5.5% on 9 games (2026-11-04); history only since 2026-09-27; Robux estimates paid | M/V | Theme crowding, breakouts per genre, country charts. Rolimon's stays the source for decay |
 | RoTrends `rotrends.com/genres` | Genre table: game count, visits, CCU, session, rating | Open HTML, but its terms bar bots: let the user open it, or read one page by hand | M/V | Genre crowding |
 | RobloxGameStats, RoWatcher | CCU, records, emerging games; revenue estimates | Open pages; revenue paywalled; error 30-50% by their own method page | V | Revenue sanity only |
 | GameAnalytics 2026 Roblox report | D1/D7/D30, session length, device mix, payer share | Open | V | Retention targets (`roblox-design-and-launch` 1a) |
@@ -89,7 +90,7 @@ Example (M, 2026-11-03): "steal" had 39 of 40 results with the word in the title
 2. **Charts.** `charts --top 25`, then the trending-in-genre sorts that fit the idea, for computer and high_end_phone. Note rank, CCU, age and flags.
 3. **Shortlist.** Pick 3-5 games closest to the idea. Run `game` on each for passes, max players, update recency and the badge funnel.
 4. **Decay.** Run `history` on the shortlist. Note peak (7-day average of daily peaks), now/peak and half-life.
-5. **Keywords.** Section 4 for 2-3 candidate themes or names.
+5. **Keywords.** Section 4 for 2-3 candidate themes or names. Add RoTerminal `trends?word=<theme>` for how many new games used the word in the last 30 days against the 30 before (clone pressure), one call per theme.
 6. **Verdict.** Write `docs/research.md`: date, table of findings with grades, then 3 findings for the user, each with "pattern -> your plan -> suggested change". End with go, change or stop, and what evidence would flip it.
 
 ## 6. Reading the numbers (judgment unless graded)
@@ -125,5 +126,5 @@ Genre share of plays 2026-08-24 to 2026-09-20 (V, dubit.io): Simulation 36.7 %, 
 
 - Read-only, low volume, cached: one run per question, results saved, never a loop or a crawler.
 - Roblox's public gateway endpoints above are undocumented; the Terms of Use allow API use only "as described in the documentation". Keep use light and manual, and never bulk-harvest descriptions or images into a model.
-- Respect third-party rules: Rolimon's asks for a 2 s crawl delay; RoTrends bars bots; RobloxGameStats disallows `/api/`.
+- Respect third-party rules: Rolimon's asks for a 2 s crawl delay; RoTrends bars bots; RobloxGameStats disallows `/api/`; RoTerminal allows its `/api/agent/*` within the daily limit, bans bulk resale, copies of the site and limit dodging, asks for a link to roterminal.co when its numbers are shown publicly, and puts its HTML pages behind a bot check (use only the API).
 - Data about other creators' games is for your planning; do not copy their names, thumbnails or text (`roblox-design-and-launch` section 6).
