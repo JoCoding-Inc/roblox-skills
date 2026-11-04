@@ -61,7 +61,7 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 How to ask:
 - **Required and missing:** say what it is needed for in one line and offer to walk the user through it now. Re-probe after each fix. If the user refuses, record it and stop before stage 7.
 - **Optional and missing:** one message, one line each: "set up now / later / skip". On skip, write `Skipped: <tool> - unavailable: <features> - fallback: <fallback>` under Environment in the brief and do not ask again. When a later task needs a skipped tool, say so at that moment and offer setup or the fallback.
-- **gwanggo missing:** list it as optional in the table and move on; the free routes (written storyboards, Studio screenshots, Roblox Cube, Blender) cover every step. Bring it up again only when the user asks for generated images or video.
+- **gwanggo missing:** probe it silently and move on: no "set up now / later / skip" line, no `Skipped:` record, and it never blocks the stage 0 gate. The free routes (written storyboards, Studio screenshots, Roblox Cube, Blender) cover every step. Bring it up again only when the user asks for generated images or video.
 - Every question ends with: "If you are not sure how to do this, say so and I will guide you step by step."
 
 ### 1c. Setup guides (re-read the live page first)
@@ -110,7 +110,7 @@ Do not ask for these up front. Put each one as a `Needs user:` line on the plan 
 **Round B: look and assets (ask when art is in scope)**
 
 7. Art style: chunky cartoon / low-poly / stylised realistic / blocky Roblox / user's own references (ask for 2-3 images or links). Show only the lane cards that fit the idea, describe each in one line set in this game, then offer to show the user's own game in the closest looks: a Studio greybox (free) or an image generator the user has connected (`roblox-game-pipeline` rule 3 and section 3).
-8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: parts built by script (blocky props, machines and buildings, free and instant), Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), gwanggo 3D (many props in one locked style, credits), Creator Store (fillers, audio), or user-supplied files. If the user is unsure, write "Art source: decide by bake-off" and settle it in `roblox-game-pipeline` section 6a; never leave it out of the brief.
+8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: parts built by script (blocky props, machines and buildings, free and instant), Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), gwanggo 3D (only if connected: many props in one locked style, credits), Creator Store (fillers, audio), or user-supplied files. If the user is unsure, write "Art source: decide by bake-off" and settle it in `roblox-game-pipeline` section 6a; never leave it out of the brief.
 9. Is the user willing to approve anything that spends money or Robux (ads, paid uploads, Hyper3D/Meshy credits)? (D: no spend without asking.)
 
 **Round A2: look, moments and working mode (ask after Round A; the full flow is `roblox-game-pipeline` stages 3-5)**

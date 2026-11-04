@@ -52,21 +52,41 @@ Keep the first minute interactive: a long intro before the first action costs th
 ### 3a. Script recipe (client; syntax checked with luau-analyze, not run in a live playtest, so adapt and test)
 
 ```luau
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
+local controls = require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")):GetControls()
 local running = 0 -- newest cinematic wins
-local saved = nil -- camera from before the first cinematic; one that interrupts another keeps it
+local activeTween: Tween? = nil
+-- state from before the first cinematic; one that interrupts another keeps it
+local saved: {type: Enum.CameraType, subject: Instance?, fov: number}? = nil
 
 local function restore(withSubject: boolean)
+	if activeTween then -- or it keeps writing CFrame and FOV after the restore
+		activeTween:Cancel()
+		activeTween = nil
+	end
 	if not saved then return end
 	camera.CameraType = saved.type
-	if withSubject then camera.CameraSubject = saved.subject end
+	if withSubject and saved.subject and saved.subject.Parent then camera.CameraSubject = saved.subject end
 	camera.FieldOfView = saved.fov
+	controls:Enable() -- only play() below disabled it
 	saved = nil
 end
 
--- death or respawn ends the cinematic; the new character sets the camera subject itself
-game:GetService("Players").LocalPlayer.CharacterRemoving:Connect(function()
+-- death ends the cinematic at once (the character is removed only after Players.RespawnTime)
+local function watch(char: Model)
+	local hum = char:WaitForChild("Humanoid") :: Humanoid
+	hum.Died:Connect(function()
+		running += 1
+		restore(true)
+	end)
+end
+if player.Character then task.spawn(watch, player.Character) end
+player.CharacterAdded:Connect(watch)
+-- so does a respawn without death (LoadCharacter); the new character sets the camera subject itself
+player.CharacterRemoving:Connect(function()
 	running += 1
 	restore(false)
 end)
@@ -77,6 +97,7 @@ local function play(shots, skipSignal: RBXScriptSignal)
 	local me = running
 	if not saved then
 		saved = {type = camera.CameraType, subject = camera.CameraSubject, fov = camera.FieldOfView}
+		controls:Disable() -- the movement lock lives here, never in the caller
 	end
 	local skipped = false
 	local skipConn = skipSignal:Connect(function() skipped = true end)
@@ -87,6 +108,7 @@ local function play(shots, skipSignal: RBXScriptSignal)
 			local goal = {CFrame = shot.marks[2]}
 			if shot.fov then goal.FieldOfView = shot.fov end
 			local tween = TweenService:Create(camera, TweenInfo.new(shot.time, Enum.EasingStyle.Sine), goal)
+			activeTween = tween
 			tween:Play()
 			local done = false
 			tween.Completed:Once(function() done = true end)
@@ -103,7 +125,7 @@ local function play(shots, skipSignal: RBXScriptSignal)
 end
 ```
 
-Lock and unlock movement around the call in the same pattern (save, lock, restore in every exit). Do not restore hard-coded defaults.
+Movement is locked inside `play` with the camera: the first cinematic saves and disables the controls, `restore` enables them once on every exit, death included. Never lock or save movement in the caller: a second cinematic would save the locked state and restore it. Do not restore hard-coded defaults.
 
 ## 4. Shot list (write it before code)
 
@@ -119,8 +141,8 @@ Keep 3-6 shots per cinematic. Name every mark. Include what the player's charact
 
 1. **Skip:** a visible Skip button (touch size, 44 px or more), gamepad and keyboard binding. Skip restores everything exactly as the end of the cutscene would.
 2. **Restore:** save camera type, subject and FOV before; restore after, also on skip, error and player death.
-3. **Input:** lock movement controls during the cutscene; unlock in a `pcall`-safe finally path.
-4. **Safety:** make the player invulnerable or anchored while the camera is away from the character; unanchor after. Anchored roots ignore `Humanoid:MoveTo` (`roblox-pitfalls`).
+3. **Input:** lock movement controls during the cutscene inside the cinematic module (section 3a), never in the caller; unlock on every exit, death included.
+4. **Safety:** make the player invulnerable or anchored while the camera is away from the character; unanchor after, on every exit, and save the old state once in one place like the camera (first save wins). Anchored roots ignore `Humanoid:MoveTo` (`roblox-pitfalls`).
 5. **Streaming:** with `StreamingEnabled`, call `Player:RequestStreamAroundAsync(position)` for the cutscene area before the first shot, or shots show unloaded geometry.
 6. **Client authority:** the server sends one event ("play cinematic X to player P") and tracks "seen X" in the save; the client plays it. Do not let the client decide that a reward was earned.
 7. **Overlap:** one cinematic owner at a time; a new one cancels the old one cleanly.

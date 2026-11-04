@@ -187,7 +187,7 @@ Check the installed version's tool list first (`claude mcp list`, then ask the s
 
 ### AI-generated 3D (Hyper3D, Hunyuan3D, Meshy, Tripo) for Roblox
 
-This is about the raw output of the generators inside Blender MCP (`generate_3d`). For Roblox props, first compare Roblox Cube (`generate_mesh`) and gwanggo kind `3d`, which already target Roblox limits and, for gwanggo, the project's locked style (`roblox-game-pipeline` section 6a). The Blender MCP generators make dense, untidy meshes with baked textures. Use them for reference or hero props, then in Blender: decimate or retopo to budget (under 20,000 and usually under 3,000 for props), fix normals and scale, rebake the colour to one 1024 map or a palette, remove interior faces, check licence and moderation risk, then export with section 2. Never upload raw output. For characters, rig and skin by hand (4 influences max) or via Studio Avatar Auto Setup.
+This is about the raw output of the generators inside Blender MCP (`generate_3d`). For Roblox props, first compare Roblox Cube (`generate_mesh`, free) and, if gwanggo is connected, its kind `3d`; both already target Roblox limits and gwanggo also the project's locked style (`roblox-game-pipeline` section 6a). The Blender MCP generators make dense, untidy meshes with baked textures. Use them for reference or hero props, then in Blender: decimate or retopo to budget (under 20,000 and usually under 3,000 for props), fix normals and scale, rebake the colour to one 1024 map or a palette, remove interior faces, check licence and moderation risk, then export with section 2. Never upload raw output. For characters, rig and skin by hand (4 influences max) or via Studio Avatar Auto Setup.
 
 ## 10. Upload paths summary
 
@@ -218,8 +218,9 @@ Marketplace publishing needs ID verification or a linked parental account plus R
 Field notes (2026-11): a headless Cube body cut into R15 parts in Blender. Try Avatar Setup (section 11) first; cut by hand when it does not fit.
 
 1. Get the mesh out of Studio:
-   - Geometry: `AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices`, `GetPosition`, `GetFaces`, `GetFaceVertices`, `GetFaceUVs` and `GetUV`. Send it as JSON with `HttpService:PostAsync` to a receiver bound to 127.0.0.1. Run the receiver in the background and stop it by PID. If the call turns `HttpService.HttpEnabled` on, restore it in the same call (`roblox-pitfalls` section 3) and never publish with it changed.
+   - Geometry: `AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices`, `GetPosition`, `GetFaces`, `GetFaceVertices`, `GetFaceUVs` and `GetUV`. Send it as JSON with `HttpService:PostAsync` to a receiver bound to 127.0.0.1. Run the receiver in the background and stop it by PID.
    - One POST over 1024 KB fails ("Post data too large. Limit: 1024 KB"; the docs state no limit), so send chunks.
+   - If the execute_luau call turns `HttpService.HttpEnabled` on, restore it in the same call (`roblox-pitfalls` section 3); never publish with it changed.
    - Texture: `AssetService:CreateEditableImageAsync` on the colour map, `ReadPixelsBuffer`, hex in 400 KB chunks, decode with Pillow as RGBA with the origin at the top left.
    - Cube meshes are not welded: run `remove_doubles` before any cut.
 2. Cut:

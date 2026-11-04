@@ -17,7 +17,7 @@ Other looks seen on the 2026-11-03 chart, for words or a live reference: Steal A
 
 Live references: `python3 -I <skill dir>/scripts/ui_refs.py <scratch dir> "Game A" "Game B" --query "shop inventory"` grabs frames from each game's newest gameplay video (last 90 days) and tiles them into `sheet.jpg`. Use it when the user names a game whose UI they like, or to refresh the "Seen in" column. The frames are other games' art: show them, never commit them.
 
-`icons/`: nine 192 px PNG icons with alpha (gem, sword, egg, star, coin, bag, pack, gift, gear) for mockups until the game has its own. Made as one gwanggo sheet (`gpt-image-2.5` high, 3 credits, 2026-11-03) on a flat magenta background, keyed and sliced with Pillow. Make a game's own set the same way: one 3x3 sheet in its locked style, "flat solid pure magenta (#FF00FF) background, wide margins, no magenta inside the icons", then key out the magenta and cut each icon by its largest connected shape.
+Free first for a game's own icons: store icon pack icons (`roblox-store-art-pack` section 4) or renders of the game's own models. `icons/`: nine 192 px PNG icons with alpha (gem, sword, egg, star, coin, bag, pack, gift, gear) for mockups until the game has its own. Made as one gwanggo sheet (`gpt-image-2.5` high, 3 credits, 2026-11-03) on a flat magenta background, keyed and sliced with Pillow. Make a game's own set the same way: one 3x3 sheet in its locked style, "flat solid pure magenta (#FF00FF) background, wide margins, no magenta inside the icons", then key out the magenta and cut each icon by its largest connected shape.
 
 Themed looks (words only, no card; build them on the closest basic style when the game asks for it):
 
@@ -45,12 +45,12 @@ Keep UIShadow instances to about 100 on screen. Check every style on a phone-siz
 ## How to use
 
 1. Pick the 2-4 styles whose "Fits" column matches the genre and the chosen lane, build a sheet of only those with `python3 -I <skill dir>/scripts/style_board.py ui.png --dir <skill dir>/assets/ui-styles --only soft-dark stud-chunky bright-cards`, and send it. Describe each in one line set in the user's game ("soft dark gym: slate panels, lime buy chips, dumbbell icons").
-2. After the pick, ask: "Shall I make a design that matches your game's tone and manner?" Offer both ways in one line each and recommend the free Studio mockup unless the user wants a painted mood image:
+2. After the pick, ask: "Shall I make a design that matches your game's tone and manner?" Offer the free Studio mockup; add the gwanggo row only when gwanggo is connected or the user asks for a painted mood image:
 
    | Way | Cost | Gives | Best when |
    |---|---|---|---|
    | Studio mockup (`scripts/ui_style_mock.luau`) | Free | A real ScreenGui in the game's own place: real Roblox fonts, strokes and corners, the bundled icons or the game's own, its item models in the cards, its world behind it. Close to buildable | Studio MCP is connected (default). It looks only as good as its icons and world: never draw icons with frames |
-   | gwanggo image (prompt below) | about 3 credits each on `gpt-image-2.5` high; quote and ask first | A mood image with the game's world and themed ornament (wood, gold, glam) that parts and frames cannot draw yet | No place yet, or the user wants a themed look explored before building |
+   | gwanggo image (prompt below) | about 3 credits each on `gpt-image-2.5` high; quote and ask first | A mood image with the game's world and themed ornament (wood, gold, glam) that parts and frames cannot draw yet | gwanggo is connected and there is no place yet, or the user asks for a themed look explored before building |
 
 3. Show 2-3 variants, let the user pick or mix, and record the pick in the brief as `UI style: <name>` with the font pair and the palette.
 
