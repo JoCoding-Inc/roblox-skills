@@ -98,13 +98,14 @@ Several rows often fit the same asset. When the choice decides many assets (all 
 | Static prop, furniture, vehicle, simple weapon | Studio MCP `generate_mesh` (Roblox Cube) | Textured mesh from text or one reference image. Default 10k tris; see `roblox-pitfalls` section 5 |
 | Parametric or scalable object (shelves, fences, ferris wheel, stack of books) | Studio MCP `generate_procedural_model` | Built from primitive parts; adjustable parameters; low runtime cost. Limit 50 per rolling 24 h. Poll with `wait_job_finished` |
 | Static props, pets and pickups in one locked style | gwanggo MCP `generate_game_asset` kind `image`, then kind `3d` from that image (textured GLB, Roblox limits; `roblox-game-pipeline` section 10) | Static, no rig; import with the 3D Importer; costs gwanggo credits, `dry_run` and ask first |
-| Inventory, shop and currency icons; seamless textures | gwanggo MCP `generate_game_asset` kind `icon` or `texture` in the project style | Upload as image; textures go into a `MaterialVariant` |
+| Standard UI icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows) | Free Creator Store icon pack, ranked by votes (`roblox-store-art-pack` section 4) | One family players already know; use image ids, never decal ids; delete the pack from the place |
+| Icons for the game's own items (no store icon fits); seamless textures | gwanggo MCP `generate_game_asset` kind `icon` or `texture` in the project style | Upload as image; textures go into a `MaterialVariant`; match icons to the store pack |
 | Mesh that needs separate moving pieces | `generate_mesh` with segmentation (max 8 named parts), or Blender | Name parts by function (door, lid, lever) |
 | Anything animated or rigged (creatures, monsters, custom characters) | Blender (`roblox-blender-export`) | Cube output is a static mesh with no rig |
 | Modular kit pieces with exact sizes (walls, floors, trims, rails), palette textures, voxel animals, icons | Blender | Scripted, rerunnable, one shared palette. Distinct props (machines, furniture) are the Cube or gwanggo rows |
 | Real-world reference for sculpting or retopo | Blender MCP asset import (CC0 sources: Poly Haven, Poly Pizza) or AI 3D services, then clean up | Check license; retopo to budget; see `roblox-blender-export` section 9 |
 | Fillers, audio, plugins | Creator Store via `search_asset` then `insert_asset` | Quarantine and audit first (`roblox-store-art-pack` section 3) |
-| UI images, icons | Blender renders, image generation, or Cube textures | Upload as image; use the image id, not the decal id |
+| UI images other than standard icons (item renders, banners) | Blender renders, image generation, or Cube textures | Upload as image; use the image id, not the decal id |
 | Terrain | Terrain Editor, `Terrain:WriteVoxels`, or terrain generation by script | Heights snap to the voxel grid (`roblox-pitfalls` section 4) |
 | Animations | Contact loops (exercise, sitting, machines): solve and bake by script; expressive clips: Animation Editor or Blender (FBX or glTF, several clips per file) | `roblox-character-motion`. Script-registered ids work only in Studio: upload before release |
 
