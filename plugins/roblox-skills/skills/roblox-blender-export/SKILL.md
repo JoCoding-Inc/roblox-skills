@@ -101,11 +101,19 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 
 - Flat shading, 6-12 segments around curves, a 1-3 segment bevel on every edge. Never smooth-shade hard edges.
 - Visible part breakup: trims, rims, bolts or studs, plank or brick lines in geometry or palette. Avoid single smooth slabs.
-- Voxel creatures (Steal An Egg / Brainrot look):
-  1. Start from a CC0 low-poly source (Poly Pizza, Quaternius, Kenney).
-  2. Remesh to Blocks (Voxel remesh, size about 0.15-0.25 of the height).
-  3. Transfer the color to a palette.
-  4. Decimate interior faces. Keep 3k tris or fewer.
+- Voxel creatures (Steal An Egg / Brainrot look; lane card `roblox-game-pipeline/assets/lanes/voxel.jpg`):
+  1. Start from a CC0 low-poly source (Poly Pizza, Quaternius, Kenney), or build the body from ellipsoids.
+  2. Remesh modifier, mode **Blocks** (Voxel mode gives a smooth surface), `scale` 0.99. `octree_depth` sets the density; measured on a 4-unit creature, 2026-11-04:
+
+     | Look | Depth | Blocks tall | Tris |
+     |---|---|---|---|
+     | Low-res (big blocks, flat color per part) | 4 | 15 | about 1,200 |
+     | High-res (small blocks, per-block shading) | 5 | 29 | about 5,900 |
+     | Too fine | 6 | 59 | about 26,000, over the 20,000 mesh limit |
+
+     The depth works on the longest side, so a long tail or wings lower the blocks tall.
+  3. Color each block from the source part it sits in. Low-res: one flat color per part, and grow small parts (eyes, spikes) by half a block or they vanish. High-res: add plus or minus 10-15 percent brightness per block for the hand-shaded look.
+  4. Use the same density for every model in the game (creatures, trees, rocks).
 - Detail under about 4 px at play distance averages away: at 15 studs and 70 FOV, 1 stud is about 36 px. Make features bigger than feels natural.
 
 ## 5. Studio import settings
