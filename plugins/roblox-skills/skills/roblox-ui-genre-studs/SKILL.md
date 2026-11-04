@@ -14,7 +14,7 @@ sources:
 
 # Roblox genre UI: stud style
 
-Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). This skill owns the genre LOOK. Numbers below are strong starting values from a few low-star sources. Confirm each one with a Studio screenshot next to a reference frame before treating it as a hard rule.
+Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (placement, reserved zones, phone and console floors; it wins on those). This skill owns the genre LOOK. Numbers below are strong starting values from a few low-star sources. Confirm each one with a Studio screenshot next to a reference frame before treating it as a hard rule.
 
 ## 0. Look before you build
 
@@ -101,13 +101,14 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 
   Warning text: 255,92,92.
 - Robux price goes in ONE label: `utf8.char(0xE002) .. " 249"`.
-- Phone minimums: body text 26 design px or more, titles 40 or more (design px at 1920x1080).
+- Phone minimums: body text 26 design px or more, titles 40 or more (design px at 1920x1080). On a phone those shrink to about a third, so the px floors in `roblox-ui-layout` section 4 win (14 px body, 18 px labels).
 - One number formatter: truncate and never round up into the next suffix (250K, not 0.3M).
 
 ## 4. HUD zones (1080p measurements, all in Scale)
 
+- These are desktop proportions. On phones the safe frame is about 667x317 px: apply the keep boxes and floors of `roblox-ui-layout` (sections 1, 2 and 4) and run its `scripts/ui_device_check.luau` per device.
 - Treat the screen as a 3x3 grid. The centre 50% x 50% stays empty. Zones inset 2% or more.
-- Nothing inside the top-left 350x70 px (Roblox core UI). With the default `ScreenInsets = CoreUISafeInsets` the top bar is already cleared; push top-corner groups below `GuiService.TopbarInset` only when `ScreenInsets` is `None` or `DeviceSafeInsets`. The 350x70 px figure is our measurement, not an official number.
+- Roblox's controls fill the left of a 58 px top strip (`roblox-ui-layout` section 1). With the default `ScreenInsets = CoreUISafeInsets` the safe frame starts below it; with `None` or `DeviceSafeInsets`, push top-corner groups below `GuiService.TopbarInset`.
 - **Left:** menu tiles in 1-2 columns, vertically centred.
   - Tile `UDim2.new(0.065,0,0.115,0)` plus `UIAspectRatioConstraint` 0.97 (about 124 px at 1080p).
   - Icon at 0.8 of the face, with the label over the icon foot.
@@ -119,7 +120,7 @@ Pair with `roblox-engine-2026` (flex layouts, mobile and console rules, input). 
 - **Right:** small square icon buttons (store, daily, codes), plus up to 2 unframed offers. An offer is art on a sunburst at 0.17 of screen height with a green `0,255,8` price.
 - **Top-centre:** one timer or objective, or at most 3 nav chips (13.6% x 7.5% each). Otherwise empty. Event banners are short ("RUN!!").
 - **Quiet HUD:** show only per-second info (main currency, one goal, 4-5 buttons). Reveal secondary currencies and timers when they start to matter.
-- Tap targets: 124 design px or more (about 48 screen px). Primary buttons 150-190. Keep the bottom-left joystick and bottom-right jump zones clear on touch.
+- Tap targets: 124 design px or more at 1080p and never under 44 px on a phone. Primary buttons 150-190 at 1080p. Keep the thumbstick and jump keep boxes clear on touch (`roblox-ui-layout` section 1).
 - Never auto-claim rewards. Hide zero rewards. An unaffordable item is a grey plate, and tapping it says how much is missing.
 
 ## 5. Motion and polish
@@ -152,7 +153,7 @@ Each of these is a defect:
 - generated or hand-made icons for standard things (cash, coins, gems, shop, rebirth, settings, gifts) that a store icon pack already has;
 - more than 2 fonts or more than one corner-radius scale;
 - stat text with a panel behind it;
-- HUD elements over 15% of screen height (except panels);
+- HUD elements over 15% of screen height on desktop or over 72 px on a phone (except panels and offers);
 - near-black navy giant panels;
 - pills everywhere;
 - one size of button for every importance;

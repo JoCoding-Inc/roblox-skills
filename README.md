@@ -25,6 +25,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-blender-export` | Blender meshes into Studio: scale, pivot, axis, FBX export call, palette textures, triangle budgets, upload |
 | `roblox-store-art-pack` | Any genre: Creator Store picks and quarantine, map composition check, game icon and thumbnails. Bright world palette for simulator/tycoon games |
 | `roblox-ui-typography` | Fonts and text for any genre: built-in and Creator Store fonts (no uploads), display and body pair per genre, phone readability, stroke and text performance, numbers, fonts for Korean and other languages |
+| `roblox-ui-layout` | Any genre: one placement and size standard for phone, tablet, desktop and console, with Roblox's reserved zones in px (top bar, thumbstick, jump, hotbar, chat), insets, scaling, touch and text floors, TV-safe area and a device check script |
 | `roblox-ui-genre-studs` | Simulator/tycoon games only: stud-style UI with outlines, lips, gradients, HUD zones, motion |
 
 ## Install
