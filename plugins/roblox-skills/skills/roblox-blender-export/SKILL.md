@@ -218,7 +218,7 @@ Marketplace publishing needs ID verification or a linked parental account plus R
 Field notes (2026-11): a headless Cube body cut into R15 parts in Blender. Try Avatar Setup (section 11) first; cut by hand when it does not fit.
 
 1. Get the mesh out of Studio:
-   - Geometry: `AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices`, `GetPosition`, `GetFaces`, `GetFaceVertices`, `GetFaceUVs` and `GetUV`. Send it as JSON with `HttpService:PostAsync` to a receiver bound to 127.0.0.1. Run the receiver in the background and stop it by PID.
+   - Geometry: `AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices`, `GetPosition`, `GetFaces`, `GetFaceVertices`, `GetFaceUVs` and `GetUV`. Send it as JSON with `HttpService:PostAsync` to a receiver bound to 127.0.0.1. Run the receiver in the background and stop it by PID. If the call turns `HttpService.HttpEnabled` on, restore it in the same call (`roblox-pitfalls` section 3) and never publish with it changed.
    - One POST over 1024 KB fails ("Post data too large. Limit: 1024 KB"; the docs state no limit), so send chunks.
    - Texture: `AssetService:CreateEditableImageAsync` on the colour map, `ReadPixelsBuffer`, hex in 400 KB chunks, decode with Pillow as RGBA with the origin at the top left.
    - Cube meshes are not welded: run `remove_doubles` before any cut.

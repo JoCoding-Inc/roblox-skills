@@ -55,12 +55,29 @@ Keep the first minute interactive: a long intro before the first action costs th
 local TweenService = game:GetService("TweenService")
 local camera = workspace.CurrentCamera
 local running = 0 -- newest cinematic wins
+local saved = nil -- camera from before the first cinematic; one that interrupts another keeps it
+
+local function restore(withSubject: boolean)
+	if not saved then return end
+	camera.CameraType = saved.type
+	if withSubject then camera.CameraSubject = saved.subject end
+	camera.FieldOfView = saved.fov
+	saved = nil
+end
+
+-- death or respawn ends the cinematic; the new character sets the camera subject itself
+game:GetService("Players").LocalPlayer.CharacterRemoving:Connect(function()
+	running += 1
+	restore(false)
+end)
 
 -- shots: { {marks = {CFrame, CFrame}, time = number, fov = number?} }
 local function play(shots, skipSignal: RBXScriptSignal)
 	running += 1
 	local me = running
-	local saved = {type = camera.CameraType, subject = camera.CameraSubject, fov = camera.FieldOfView}
+	if not saved then
+		saved = {type = camera.CameraType, subject = camera.CameraSubject, fov = camera.FieldOfView}
+	end
 	local skipped = false
 	local skipConn = skipSignal:Connect(function() skipped = true end)
 	camera.CameraType = Enum.CameraType.Scriptable
@@ -79,10 +96,8 @@ local function play(shots, skipSignal: RBXScriptSignal)
 		end
 	end)
 	skipConn:Disconnect()
-	if running == me then -- restore in every exit: complete, skip, error
-		camera.CameraType = saved.type
-		camera.CameraSubject = saved.subject
-		camera.FieldOfView = saved.fov
+	if running == me then -- restore in every exit: complete, skip, error (death restores above)
+		restore(true)
 	end
 	if not ok then warn(err) end
 end

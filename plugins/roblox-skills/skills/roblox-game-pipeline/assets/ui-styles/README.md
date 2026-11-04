@@ -45,7 +45,7 @@ Keep UIShadow instances to about 100 on screen. Check every style on a phone-siz
 ## How to use
 
 1. Pick the 2-4 styles whose "Fits" column matches the genre and the chosen lane, build a sheet of only those with `python3 -I <skill dir>/scripts/style_board.py ui.png --dir <skill dir>/assets/ui-styles --only soft-dark stud-chunky bright-cards`, and send it. Describe each in one line set in the user's game ("soft dark gym: slate panels, lime buy chips, dumbbell icons").
-2. After the pick, ask: "Shall I make a design that matches your game's tone and manner?" Offer both ways in one line each and recommend one:
+2. After the pick, ask: "Shall I make a design that matches your game's tone and manner?" Offer both ways in one line each and recommend the free Studio mockup unless the user wants a painted mood image:
 
    | Way | Cost | Gives | Best when |
    |---|---|---|---|
