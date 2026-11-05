@@ -118,6 +118,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 
 ## 5. Studio import settings
 
+- With the Studio MCP, the built-in skill `rbx-import-asset` (2026-11-04) exports, uploads and inserts a GLB or FBX, then compares it with the source and fixes scale, rotation, dropped textures, grey parts, anchoring and ground placement. It needs MCP Permissions Publish & manage assets and the approved export folder (`roblox-studio-ai-tools` section 1a). Uploads are permanent, so it asks first. Still check orientation (section 0) and collision (below) on the result.
 - 3D Importer:
   - File Geometry: Scale Unit = Studs.
   - File Transform: World Forward Front, World Up Top.
