@@ -62,7 +62,7 @@ Keep UIShadow instances to about 100 on screen. Check every style on a phone-siz
 4. Send the image. For each variant change `override` and run again (it replaces the previous mock).
 5. Afterwards delete `StarterGui.UiStyleMock` and `Lighting.UiStyleMockBlur` and stop the server. The script turns `HttpService.HttpEnabled` on only while it loads icons and restores it.
 
-Tested 2026-11-03 in Studio at 1309x747: all four presets with the bundled icons, a 3D model in a card, `HttpEnabled` restored to off.
+Tested 2026-11-03 in Studio at 1309x747: all four presets with the bundled icons, a 3D model in a card, `HttpEnabled` restored to off. Since the 2026-11-04 Studio update the local icons need a place saved to Roblox with MCP Permissions > Connect to the internet and `127.0.0.1` allowed (not on a local `.rbxl`, tested 2026-11-05); otherwise pass `rbxassetid://` icons.
 
 ### gwanggo image
 

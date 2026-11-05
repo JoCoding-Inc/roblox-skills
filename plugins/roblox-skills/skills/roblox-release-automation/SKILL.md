@@ -27,7 +27,7 @@ Facts come from the official OpenAPI specs and publishing docs, not memory. Scop
 
 | Release step | Who | How |
 |---|---|---|
-| Create the game (universe) and first place | **User** | Studio File > Publish to Roblox, or Creator Hub. The OpenAPI has no create-universe endpoint |
+| Create the game (universe) and first place | **User** | Studio File > Save to Roblox (or Publish), or Creator Hub. The OpenAPI has no create-universe endpoint |
 | Age check (facial age estimation) or ID verification, 2-step verification | **User only** | Needs the user's camera or ID document. No endpoint exists in the OpenAPI; the agent must not try to drive it |
 | Create the API key (choose experience, scopes, IP rules, expiry) | **User** | Creator Hub > Credentials. The agent never creates keys and never sees the key in chat |
 | Build the place file (`rojo build -o game.rbxl`) and run tests | Agent | Local tools; Luau Execution API for engine tests |

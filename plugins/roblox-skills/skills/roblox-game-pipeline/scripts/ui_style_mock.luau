@@ -89,21 +89,33 @@ do
 			table.insert(wanted, it.icon)
 		end
 	end
-	local was = HttpService.HttpEnabled
-	HttpService.HttpEnabled = true
-	local ok, err = pcall(function()
-		local n = CONFIG.iconSize
-		for _, v in wanted do
-			if images[v] == nil and not v:find("^rbxassetid://") then
-				local body = HttpService:GetAsync(CONFIG.iconServer .. v .. ".rgba")
-				local ei = AssetService:CreateEditableImage({ Size = Vector2.new(n, n) })
-				ei:WritePixelsBuffer(Vector2.zero, Vector2.new(n, n), buffer.fromstring(body))
-				images[v] = Content.fromObject(ei)
+	local needHttp = false
+	for _, v in wanted do
+		needHttp = needHttp or not v:find("^rbxassetid://")
+	end
+	if needHttp then
+		-- since the 2026-11-04 Studio update, HTTP from execute_luau needs MCP Permissions >
+		-- Connect to the internet with 127.0.0.1 allowed, which a local .rbxl cannot have
+		local readOk, was = pcall(function()
+			return HttpService.HttpEnabled
+		end)
+		assert(readOk, "local icons need HTTP: open a place saved to Roblox with MCP Permissions > "
+			.. "Connect to the internet and 127.0.0.1 allowed, or use rbxassetid:// icons. " .. tostring(was))
+		HttpService.HttpEnabled = true
+		local ok, err = pcall(function()
+			local n = CONFIG.iconSize
+			for _, v in wanted do
+				if images[v] == nil and not v:find("^rbxassetid://") then
+					local body = HttpService:GetAsync(CONFIG.iconServer .. v .. ".rgba")
+					local ei = AssetService:CreateEditableImage({ Size = Vector2.new(n, n) })
+					ei:WritePixelsBuffer(Vector2.zero, Vector2.new(n, n), buffer.fromstring(body))
+					images[v] = Content.fromObject(ei)
+				end
 			end
-		end
-	end)
-	HttpService.HttpEnabled = was
-	assert(ok, "icon load failed (is serve_icons.py running?): " .. tostring(err))
+		end)
+		HttpService.HttpEnabled = was
+		assert(ok, "icon load failed (is serve_icons.py running?): " .. tostring(err))
+	end
 end
 
 local function new(class, props, parent)
