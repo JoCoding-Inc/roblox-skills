@@ -36,7 +36,7 @@ Run this at the start of every new project and when a project is opened on a new
 | git | `git --version`; `git rev-parse --is-inside-work-tree` in the project folder | History and rollback |
 | Toolchain | `rokit --version`, `rojo --version`, `selene --version`, `stylua --version`, `lune --version`, `luau-lsp --version` | Which checks can run locally |
 | Blender | `blender --version`, `claude mcp list` (look for `blender`), then the MCP tool `get_addon_status` | Custom meshes and rigs |
-| Open Cloud | env vars or a `chmod 600` env file with names like `ROBLOX_API_KEY`, `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (check that they exist, never print values). A key in another project's file belongs to that game: keys are restricted to one experience, so this game gets its own (step 1d) | Publish, asset upload, Luau Execution |
+| Open Cloud | env vars or a `chmod 600` env file with names like `ROBLOX_API_KEY`, `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (check that they exist, never print values). A key in another project's file belongs to that game: keys are restricted to one experience, so this game gets its own (step 1d). Or the Studio MCP lists `open_cloud_invoke` (no key; MCP Permissions per game, `roblox-studio-ai-tools` section 1a) | Publish, asset upload, Luau Execution |
 | RoDesigner MCP | `claude mcp list` (look for the RoDesigner server; TODO(RoDesigner launch): server name), then call `get_credits` | Images and video: concept art, concept trailer, store art drafts |
 | OS | `uname`, Windows vs. macOS paths | Setup commands differ per OS |
 
@@ -54,7 +54,7 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 | Code on disk: Script Sync (built into Studio) or Rojo | Recommended, pick one (D: Script Sync for a Studio-first game, Rojo for a code-heavy one; `roblox-dev-workflow` section 3) | Scripts as files: diffs, lint, subagents on files | Code lives only in the place; export scripts to git regularly |
 | Lint and test tools (selene, StyLua, luau-lsp, Lune via rokit) | Optional | Local checks before Studio | Checks run only in Studio playtests |
 | Blender + MCP for Blender | Optional | Animated creatures and rigs, exact-shape kits, icon renders | Roblox Cube for static props, Creator Store, user files |
-| Open Cloud API key in an env file | Optional until release | Automated publish, asset upload, passes and products, headless Luau tests | User publishes and uploads by hand in Studio and Creator Hub |
+| Open Cloud access: Studio MCP Permissions (no key), or an API key in an env file for CI | Optional until release | Automated publish, asset upload, passes and products, headless Luau tests | User publishes and uploads by hand in Studio and Creator Hub |
 | RoDesigner MCP (images, icons, textures, 3D, video; style pack applied automatically) | Optional; spends credits, every spend asked first | A game project with a locked art style; concept images and a concept trailer before the build (`roblox-game-pipeline` 6b); props and pets as textured GLB, inventory icons, seamless textures, logo and loading art in that style | Written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
 | Playtest Agent beta (Studio File > Beta Features) | Optional | Studio MCP `subagent` type `playtest` | The agent drives playtests with the input tools |
 
@@ -87,10 +87,11 @@ Do not ask for these up front. Put each one as a `Needs user:` line on the plan 
 
 | Need | When | User does | Agent confirms |
 |---|---|---|---|
-| Studio access to data stores (saves, leaderboards, MemoryStore in Studio) | Before the first save or load test | Publish the dev place as a private test experience (File > Publish to Roblox), then File > Experience Settings > Security > **Enable Studio Access to API Services** > Save. Test places only, never the live game | A save and load probe in a Studio playtest succeeds |
+| Studio access to data stores (saves, leaderboards, MemoryStore in Studio) | Before the first save or load test | Publish the dev place as a private test experience (File > Publish to Roblox), then File > Experience Settings > Security > **Enable Studio Access to API Services** > Save. Test places only, never the live game. From an MCP client also turn on Save & load data in MCP Permissions | A save and load probe in a Studio playtest succeeds |
 | Allow Third Party Teleports | Teleports to games the user does not own | File > Experience Settings > Security | Teleport test in a published place (`roblox-match-flow`) |
 | Allow Loading Third Party Assets | Loading other creators' Creator Store models at runtime | Experience settings (`roblox-pitfalls` section 2) | A live-server load succeeds |
-| Open Cloud API key | First automated publish, asset upload, passes and products, Luau Execution (release stage) | Creator Hub > Credentials: a new key restricted to this experience, the scopes from `roblox-release-automation` section 2, saved in this project's `chmod 600` env file | A read-only call returns 200; on 401/403 follow `roblox-release-automation` |
+| MCP Permissions (Studio, this game) | First publish, upload, pass or product, settings change or analytics read through the Studio MCP | Assistant > ... > Settings > MCP Permissions: turn on only the sections the task needs (`roblox-studio-ai-tools` section 1a); the agent cannot turn them on | The `open_cloud_invoke` call succeeds |
+| Open Cloud API key | CI with no Studio, Luau Execution, or an endpoint that refuses the Studio token | Creator Hub > Credentials: a new key restricted to this experience, the scopes from `roblox-release-automation` section 2, saved in this project's `chmod 600` env file | A read-only call returns 200; on 401/403 follow `roblox-release-automation` |
 | Group permissions | Group-owned game: publish, upload, products | The group owner gives the account the role permissions (docs `groups`: Universe Publisher to publish, Universe Monetization Manager for passes and products, Development Item Manager to upload, API Key Manager for keys); the key owner is the group. Group settings such as manual join approval were owner-only in a 2026-11 run: hand them to the owner | Upload or publish succeeds |
 | Creator account age check and 2-step verification | Before public release; required to reach under-16 players | Roblox account settings (`roblox-design-and-launch` section 4) | User confirms |
 | Team Create collaborators | When a teammate joins | Add them in Collaborate; they need an age check (`roblox-dev-workflow`) | Teammate can edit |
@@ -126,7 +127,7 @@ A5. Agent mode: solo, subagents, or hybrid? (D: hybrid, Studio edits solo.)
 10. Who owns the game: personal account or group? (Assets must be owned by the account/group that owns the place, or they can render blank.)
 11. Is there an existing experience/universe, or should a new private test place be made? Is there a separate dev place? (D: separate dev place plus a private test place; never open the live place in Studio.)
 12. Is the creator account age-checked and 2-step enabled? Reaching players under 16 (Kids, Select) needs both, plus a refundable per-game fee or a 2+ month old Plus/Premium subscription, plus the evaluation; 16+ has a lower bar. See `roblox-design-and-launch` section 4.
-13. API key available? Tell the user which scopes are needed and that the key goes into an env file, never into chat.
+13. Open Cloud access: MCP Permissions in Studio for this game (no key), or an API key for CI? Tell the user which permissions or scopes are needed; a key goes into an env file, never into chat.
 
 **Round D: monetization and live ops (ask when the user says "launch" or "earn")**
 

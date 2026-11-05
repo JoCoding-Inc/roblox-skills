@@ -1,9 +1,10 @@
 ---
 name: roblox-studio-ai-tools
 description: "Use when connecting Claude Code to Roblox Studio (official Roblox Studio plugin or the built-in Studio MCP server), choosing among its tools or built-in rbx-* skills, using Studio Assistant (Planning Mode, /generate_mesh, /generate_procedural_model, skills, bring-your-own-key), generating materials/meshes/procedural models, or running Luau headlessly through Open Cloud."
-when_to_use: "Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, MCP key or mouse input that misses its target, writing Assistant skills, or CI that needs to run Luau against a place."
-last_reviewed: 2026-11-04
+when_to_use: "Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, an MCP client that should call Open Cloud (open_cloud_invoke, MCP Permissions, import from Blender), MCP key or mouse input that misses its target, writing Assistant skills, or CI that needs to run Luau against a place."
+last_reviewed: 2026-11-05
 sources:
+  - https://devforum.roblox.com/t/4975849 (Studio MCP Server Updates: Open Cloud access and asset import, posted 2026-11-04, read 2026-11-05)
   - https://github.com/Roblox/roblox-studio-agent-plugin (README, read 2026-11-03)
   - Studio MCP list_skills output (Studio build of 2026-11-03)
   - Studio MCP tool schemas for user_keyboard_input, user_mouse_input, screen_capture and start_stop_play (read 2026-11-03)
@@ -44,6 +45,19 @@ Manual path:
 
 Security: any connected client can read and modify the open places. Connect only clients you trust, and keep execute tools on prompt in Claude Code's permissions.
 
+### 1a. Open Cloud through Studio and MCP Permissions (2026-11-04)
+
+Announced on the DevForum on 2026-11-04; the docs page `studio/mcp` did not have it yet on 2026-11-05. Update Studio, reconnect, and check that the server lists `open_cloud_invoke` before relying on it.
+
+- `open_cloud_invoke` calls any Open Cloud API from the MCP client with Studio's token, no API key, limited to the permissions the user turned on for this game.
+- **MCP Permissions**: Assistant > ... > Settings > MCP Permissions tab, or click MCP in Studio's bottom-right corner. Saved per account and per game; each collaborator sets their own; only the user can change them. External MCP clients only, not the Assistant inside Studio. Sections: Publish & manage assets (upload models and images, check status), Look at your game (settings, version history, analytics), Edit your game (settings, publish, restart servers), Save & load data (data stores and memory stores from `execute_luau`), Connect to the internet (HTTP from Luau to allowed domains), Money & monetization (passes and products), plus the Open Cloud scopes and the local folders uploads may come from.
+- Ask for only the permissions the task needs, and ask before any call that spends money, affects players, touches secrets or publishes. Never work around a permission that is off (for example with an API key): ask the user.
+- Some endpoints accept API keys but refuse the Studio token, even with the permission on. Use a Studio tool, the API key route (`roblox-release-automation` section 2), or hand the step to the user in Creator Dashboard.
+- Data store calls from `execute_luau` need Save & load data and the game setting Security > Enable Studio Access to API Services.
+- Uploads are permanent: Open Cloud cannot delete or archive models or images (Creator Dashboard only). They go to the game's owner (the group for a group game) and through moderation. Ask before uploading.
+- New built-in skills: `rbx-open-cloud-usage` (find the endpoint, call it, handle errors), `rbx-permissions` (which permissions a task needs; asks for the missing ones), `rbx-import-asset` (GLB or FBX from Blender or another tool, then fixes scale, rotation, textures and anchoring; `roblox-blender-export` section 5). Load them with `skill`.
+- Same update: a playtest started from an MCP client no longer brings Studio to the front; each place gets a new Studio ID when you switch places; Studio shows the MCP status in its bottom-right corner.
+
 ## 2. Tool map (built-in server)
 
 Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance id, place id) and pass the id of your dev place, especially with several windows or agents. Window rules: `roblox-game-pipeline` section 0, rule 8.
@@ -61,6 +75,7 @@ Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance
 | Input | `character_navigation`, `user_keyboard_input`, `user_mouse_input` | Sequences of actions; can target UI instances. Keyboard, mouse and navigation take `datamodel_type` `Client` only, so Play must be running. Keyboard example: `{action: 'keyPress', key_code: 'E'}` (`key_code`, not `key`). Mouse example: `{action: 'moveTo', instance_path: 'LocalPlayer.PlayerGui.Frame'}` then `{action: 'mouseButtonClick', mouse_button: 'left'}`; `instance_path` wins over `x` and `y`, and later steps reuse the last position. Other actions: the tool schema. Misses and wrong clicks: `roblox-pitfalls` section 3 |
 | Docs | `http_get`, `skill` | `http_get` reads allowed Roblox docs URLs (Engine API, Creator docs, Cloud API). Use it before guessing an API |
 | Sessions | `list_roblox_studios` | |
+| Open Cloud | `open_cloud_invoke` | Any Open Cloud API with Studio's token, within MCP Permissions (section 1a) |
 
 Use them in this order for a change: `get_studio_state` > `search_game_tree` / `inspect_instance` > `script_read` > `multi_edit` > `execute_luau` probe > `start_stop_play` > `get_console_output` > `screen_capture`; for a change that Play must see, follow the Edit and Play order below. Pitfalls with these tools (camera type reset, fresh module copies, hover not firing, fast moments, captures from a background window) are in `roblox-pitfalls` section 3.
 
@@ -136,7 +151,8 @@ For CI and automated checks without Studio (stable API, official reference is th
 | Inspect or change the open place, playtest, screenshots | Studio MCP |
 | Generate a mesh/material/procedural model from inside Studio with human review | Assistant (or the MCP generate tools) |
 | Plan with approval gate inside Studio | Assistant Planning Mode |
-| Publish, upload assets, run tests with no Studio window | Open Cloud |
+| Store setup, game and place settings, publish, restart, analytics while Studio is open | Studio MCP `open_cloud_invoke` (section 1a), no API key |
+| Publish, upload assets, run tests with no Studio window (CI), or an endpoint that refuses the Studio token | Open Cloud with an API key |
 
 ## Recent additions (DevForum recaps, Oct 2026)
 
