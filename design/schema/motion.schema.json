@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/JoCoding-Inc/roblox-skills/design/schema/motion.schema.json",
   "title": "UI motion: panel open and close, button feedback, counters, idle motion, rules",
+  "description": "Derived from the motion data by scripts/export_design_pack.py --write-schemas: every key present today is required and typed. Unknown keys are allowed everywhere (minor versions add keys); readers ignore them.",
   "type": "object",
   "required": [
     "type",
@@ -11,7 +12,6 @@
     "sources",
     "data"
   ],
-  "additionalProperties": false,
   "properties": {
     "type": {
       "const": "motion"
@@ -38,6 +38,11 @@
         "panel_open",
         "panel_close",
         "button",
+        "number_count_up_s",
+        "float",
+        "idle_rotate_deg",
+        "badge_attention",
+        "stroke_scaling",
         "rules"
       ],
       "properties": {
@@ -51,20 +56,79 @@
           ],
           "properties": {
             "from_scale": {
-              "$ref": "#/$defs/num"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
             },
             "to_scale": {
-              "$ref": "#/$defs/num"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
             },
             "easing": {
-              "$ref": "#/$defs/text"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
             },
             "duration_s": {
-              "$ref": "#/$defs/numOrRange"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
             }
           },
           "additionalProperties": {
-            "$ref": "#/$defs/leaf"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
           }
         },
         "panel_close": {
@@ -74,11 +138,30 @@
           ],
           "properties": {
             "duration_s": {
-              "$ref": "#/$defs/numOrRange"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
             }
           },
           "additionalProperties": {
-            "$ref": "#/$defs/leaf"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
           }
         },
         "button": {
@@ -86,25 +169,274 @@
           "required": [
             "hover_scale",
             "press_scale",
-            "duration_s"
+            "duration_s",
+            "via"
           ],
           "properties": {
             "hover_scale": {
-              "$ref": "#/$defs/num"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
             },
             "press_scale": {
-              "$ref": "#/$defs/numOrRange"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
             },
             "duration_s": {
-              "$ref": "#/$defs/numOrRange"
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "via": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
             }
           },
           "additionalProperties": {
-            "$ref": "#/$defs/leaf"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
           }
         },
+        "number_count_up_s": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          ]
+        },
+        "float": {
+          "type": "object",
+          "required": [
+            "distance_px_min",
+            "period_s"
+          ],
+          "properties": {
+            "distance_px_min": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "period_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "idle_rotate_deg": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          ]
+        },
+        "badge_attention": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "stroke_scaling": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
         "rules": {
-          "$ref": "#/$defs/node"
+          "type": "object",
+          "required": [
+            "animate_uiscale_not_size",
+            "never_scale_text_continuously",
+            "never_tween_stroke_thickness_or_text_size",
+            "honor_reduced_motion"
+          ],
+          "properties": {
+            "animate_uiscale_not_size": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "never_scale_text_continuously": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "never_tween_stroke_thickness_or_text_size": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "honor_reduced_motion": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
         }
       },
       "additionalProperties": {
@@ -119,15 +451,16 @@
       }
     }
   },
+  "additionalProperties": true,
   "$defs": {
     "provenance": {
       "enum": [
-        "measured",
         "documented",
         "field",
+        "measured",
         "opinion"
       ],
-      "description": "measured: we measured it (engine source, pixels on reference frames, store API, tested in Studio); documented: Roblox docs or staff posts; field: observed while shipping a game (dated when known); opinion: judgment, house style, owner rule or community starting value"
+      "description": "documented: Roblox docs, staff posts or filings; field: observed while shipping a game (dated when known); measured: we measured it: engine source, pixels on reference frames, store API reads, tested in Studio; opinion: judgment, house style, owner rule or a community starting value"
     },
     "leaf": {
       "type": "object",
@@ -135,23 +468,23 @@
         "v",
         "p"
       ],
-      "additionalProperties": false,
       "properties": {
         "v": {
-          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a size"
+          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a width-height size"
         },
         "p": {
           "$ref": "#/$defs/provenance"
         },
         "src": {
           "type": "string",
-          "description": "where the value came from or a short qualifier"
+          "description": "source or qualifier (for example 'about')"
         },
         "date": {
           "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$"
         }
-      }
+      },
+      "additionalProperties": true
     },
     "node": {
       "type": "object",
@@ -167,50 +500,7 @@
         ]
       }
     },
-    "num": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "number"
-            }
-          }
-        }
-      ]
-    },
-    "range": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              },
-              "minItems": 2,
-              "maxItems": 2
-            }
-          }
-        }
-      ]
-    },
-    "numOrRange": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/num"
-        },
-        {
-          "$ref": "#/$defs/range"
-        }
-      ]
-    },
-    "rgbValue": {
+    "rgb": {
       "type": "array",
       "items": {
         "type": "integer",
@@ -219,51 +509,6 @@
       },
       "minItems": 3,
       "maxItems": 3
-    },
-    "rgb": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "$ref": "#/$defs/rgbValue"
-            }
-          }
-        }
-      ]
-    },
-    "text": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    },
-    "textList": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      ]
     }
   }
 }

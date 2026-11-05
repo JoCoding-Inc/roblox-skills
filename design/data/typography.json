@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "title": "Fonts: what exists, display and body pairs per genre, Creator Store font ids, readability",
   "scope": "every genre",
-  "sources": ["roblox-ui-typography#1-4", "roblox-ui-genre-studs#3"],
+  "sources": ["roblox-ui-typography/SKILL.md#1-4", "roblox-ui-genre-studs/SKILL.md#3"],
   "data": {
     "font_uploads_allowed": {"v": false, "p": "documented", "date": "2026-11-02"},
     "max_fonts_per_game": {"v": 2, "p": "opinion", "src": "one display, one body; or one font in two weights"},
@@ -70,9 +70,9 @@
       "label_button_min": {"v": 20, "p": "opinion"},
       "min_text_size": {"v": 9, "p": "documented"}
     },
-    "thin_weights_avoid_below_px": {"v": 24, "p": "field", "src": "jagged since the July 2026 FreeType update, staff and community reports"},
+    "thin_weights_avoid_below_px": {"v": 24, "p": "field", "src": "below about size 24; jagged since the July 2026 FreeType update, staff and community reports"},
     "text_over_world": {"v": "UIStroke or UIShadow; check against the brightest and darkest spot", "p": "opinion"},
-    "visible_strokes_max": {"v": 300, "p": "documented", "src": "staff 2025-09-25"},
+    "visible_strokes_max": {"v": 300, "p": "documented", "src": "staff guidance, under about 300", "date": "2025-09-25"},
     "rich_text_tags": {"v": ["b", "i", "stroke", "font", "uc", "sc", "mark", "br"], "p": "documented"}
   }
 }
