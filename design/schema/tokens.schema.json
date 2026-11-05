@@ -2,6 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/JoCoding-Inc/roblox-skills/design/schema/tokens.schema.json",
   "title": "Stud house style tokens: surface kit, color ramps, panels, text, currency gradients, house rules",
+  "description": "Derived from the tokens data by scripts/export_design_pack.py --write-schemas: every key present today is required and typed. Unknown keys are allowed everywhere (minor versions add keys); readers ignore them.",
   "type": "object",
   "required": [
     "type",
@@ -11,7 +12,6 @@
     "sources",
     "data"
   ],
-  "additionalProperties": false,
   "properties": {
     "type": {
       "const": "tokens"
@@ -39,8 +39,10 @@
         "ramps",
         "color_meaning",
         "panel",
+        "surface",
         "text",
         "currency_gradients",
+        "stud_tiles",
         "rules"
       ],
       "properties": {
@@ -51,23 +53,414 @@
             "chip",
             "tile",
             "card",
-            "band"
+            "band",
+            "text_button_stroke_mode",
+            "one_corner_value_per_kind"
           ],
           "properties": {
             "button": {
-              "$ref": "#/$defs/kitKind"
+              "type": "object",
+              "required": [
+                "lip_of_height",
+                "corner_scale",
+                "stroke_px",
+                "stud_rows"
+              ],
+              "properties": {
+                "lip_of_height": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "corner_scale": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stroke_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stud_rows": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
             },
             "chip": {
-              "$ref": "#/$defs/kitKind"
+              "type": "object",
+              "required": [
+                "lip_of_height",
+                "corner_scale",
+                "stroke_px"
+              ],
+              "properties": {
+                "lip_of_height": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "corner_scale": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stroke_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
             },
             "tile": {
-              "$ref": "#/$defs/kitKind"
+              "type": "object",
+              "required": [
+                "lip_of_height",
+                "corner_scale",
+                "stroke_px",
+                "stud_rows"
+              ],
+              "properties": {
+                "lip_of_height": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "corner_scale": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stroke_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stud_rows": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
             },
             "card": {
-              "$ref": "#/$defs/kitKind"
+              "type": "object",
+              "required": [
+                "lip_of_height",
+                "corner_px",
+                "stroke_px",
+                "stud_tile_px"
+              ],
+              "properties": {
+                "lip_of_height": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "corner_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stroke_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stud_tile_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
             },
             "band": {
-              "$ref": "#/$defs/kitKind"
+              "type": "object",
+              "required": [
+                "lip_of_height",
+                "corner_px",
+                "stroke_px"
+              ],
+              "properties": {
+                "lip_of_height": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "corner_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stroke_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "text_button_stroke_mode": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "one_corner_value_per_kind": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
             }
           },
           "additionalProperties": {
@@ -83,68 +476,1254 @@
         },
         "ramps": {
           "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "object",
-            "required": [
-              "top_rgb",
-              "bottom_rgb",
-              "lip_rgb"
-            ],
-            "properties": {
-              "top_rgb": {
-                "$ref": "#/$defs/rgb"
+          "required": [
+            "green",
+            "red",
+            "purple",
+            "gold",
+            "blue"
+          ],
+          "properties": {
+            "green": {
+              "type": "object",
+              "required": [
+                "top_rgb",
+                "bottom_rgb",
+                "lip_rgb"
+              ],
+              "properties": {
+                "top_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "bottom_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "lip_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
               },
-              "bottom_rgb": {
-                "$ref": "#/$defs/rgb"
-              },
-              "lip_rgb": {
-                "$ref": "#/$defs/rgb"
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
               }
             },
-            "additionalProperties": false
-          }
-        },
-        "currency_gradients": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "object",
-            "required": [
-              "from_rgb",
-              "to_rgb"
-            ],
-            "properties": {
-              "from_rgb": {
-                "$ref": "#/$defs/rgb"
+            "red": {
+              "type": "object",
+              "required": [
+                "top_rgb",
+                "bottom_rgb",
+                "lip_rgb"
+              ],
+              "properties": {
+                "top_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "bottom_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "lip_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
               },
-              "to_rgb": {
-                "$ref": "#/$defs/rgb"
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
               }
             },
-            "additionalProperties": false
+            "purple": {
+              "type": "object",
+              "required": [
+                "top_rgb",
+                "bottom_rgb",
+                "lip_rgb"
+              ],
+              "properties": {
+                "top_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "bottom_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "lip_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "gold": {
+              "type": "object",
+              "required": [
+                "top_rgb",
+                "bottom_rgb",
+                "lip_rgb"
+              ],
+              "properties": {
+                "top_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "bottom_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "lip_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "blue": {
+              "type": "object",
+              "required": [
+                "top_rgb",
+                "bottom_rgb",
+                "lip_rgb"
+              ],
+              "properties": {
+                "top_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "bottom_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "lip_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
           }
         },
         "color_meaning": {
           "type": "object",
+          "required": [
+            "green",
+            "red",
+            "purple",
+            "gold",
+            "grey",
+            "slate"
+          ],
+          "properties": {
+            "green": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "red": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "purple": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "gold": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "grey": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "slate": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
           "additionalProperties": {
-            "$ref": "#/$defs/text"
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
           }
         },
         "panel": {
-          "$ref": "#/$defs/node"
+          "type": "object",
+          "required": [
+            "body_rgb",
+            "body_opacity_min",
+            "outline_rgb",
+            "outline_px",
+            "corner_px",
+            "header_band_colors",
+            "inner_rim_px",
+            "open_effect"
+          ],
+          "properties": {
+            "body_rgb": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "$ref": "#/$defs/rgb"
+                    }
+                  }
+                }
+              ]
+            },
+            "body_opacity_min": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "outline_rgb": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "$ref": "#/$defs/rgb"
+                    }
+                  }
+                }
+              ]
+            },
+            "outline_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "corner_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "header_band_colors": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "inner_rim_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "open_effect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
         },
         "surface": {
-          "$ref": "#/$defs/node"
+          "type": "object",
+          "required": [
+            "face_gradient",
+            "stud_emboss",
+            "item_backdrop",
+            "sunburst_image_transparency"
+          ],
+          "properties": {
+            "face_gradient": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "stud_emboss": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "item_backdrop": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "sunburst_image_transparency": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
         },
         "text": {
-          "$ref": "#/$defs/node"
+          "type": "object",
+          "required": [
+            "display_font",
+            "max_fonts",
+            "color_rgb",
+            "stroke_rgb",
+            "stroke_px",
+            "drop_shadow_px",
+            "min_design_px_1080",
+            "warning_rgb",
+            "robux_price",
+            "number_format"
+          ],
+          "properties": {
+            "display_font": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "max_fonts": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "color_rgb": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "$ref": "#/$defs/rgb"
+                    }
+                  }
+                }
+              ]
+            },
+            "stroke_rgb": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "$ref": "#/$defs/rgb"
+                    }
+                  }
+                }
+              ]
+            },
+            "stroke_px": {
+              "type": "object",
+              "required": [
+                "small",
+                "button_header",
+                "panel_title"
+              ],
+              "properties": {
+                "small": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "button_header": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "panel_title": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "drop_shadow_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "min_design_px_1080": {
+              "type": "object",
+              "required": [
+                "body",
+                "title"
+              ],
+              "properties": {
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "title": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "warning_rgb": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "$ref": "#/$defs/rgb"
+                    }
+                  }
+                }
+              ]
+            },
+            "robux_price": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "number_format": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "currency_gradients": {
+          "type": "object",
+          "required": [
+            "cash",
+            "gold",
+            "gem",
+            "candy"
+          ],
+          "properties": {
+            "cash": {
+              "type": "object",
+              "required": [
+                "from_rgb",
+                "to_rgb"
+              ],
+              "properties": {
+                "from_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "to_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "gold": {
+              "type": "object",
+              "required": [
+                "from_rgb",
+                "to_rgb"
+              ],
+              "properties": {
+                "from_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "to_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "gem": {
+              "type": "object",
+              "required": [
+                "from_rgb",
+                "to_rgb"
+              ],
+              "properties": {
+                "from_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "to_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "candy": {
+              "type": "object",
+              "required": [
+                "from_rgb",
+                "to_rgb"
+              ],
+              "properties": {
+                "from_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "to_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
         },
         "stud_tiles": {
-          "$ref": "#/$defs/node"
+          "type": "object",
+          "required": [
+            "chunky_4x4",
+            "stud_2x2",
+            "stud_alt"
+          ],
+          "properties": {
+            "chunky_4x4": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "stud_2x2": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "stud_alt": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
         },
         "rules": {
-          "$ref": "#/$defs/node"
+          "type": "object",
+          "required": [
+            "no_flat_1990s_ui_in_simulators",
+            "anti_slop"
+          ],
+          "properties": {
+            "no_flat_1990s_ui_in_simulators": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "anti_slop": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
         }
       },
       "additionalProperties": {
@@ -159,15 +1738,16 @@
       }
     }
   },
+  "additionalProperties": true,
   "$defs": {
     "provenance": {
       "enum": [
-        "measured",
         "documented",
         "field",
+        "measured",
         "opinion"
       ],
-      "description": "measured: we measured it (engine source, pixels on reference frames, store API, tested in Studio); documented: Roblox docs or staff posts; field: observed while shipping a game (dated when known); opinion: judgment, house style, owner rule or community starting value"
+      "description": "documented: Roblox docs, staff posts or filings; field: observed while shipping a game (dated when known); measured: we measured it: engine source, pixels on reference frames, store API reads, tested in Studio; opinion: judgment, house style, owner rule or a community starting value"
     },
     "leaf": {
       "type": "object",
@@ -175,23 +1755,23 @@
         "v",
         "p"
       ],
-      "additionalProperties": false,
       "properties": {
         "v": {
-          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a size"
+          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a width-height size"
         },
         "p": {
           "$ref": "#/$defs/provenance"
         },
         "src": {
           "type": "string",
-          "description": "where the value came from or a short qualifier"
+          "description": "source or qualifier (for example 'about')"
         },
         "date": {
           "type": "string",
-          "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+          "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$"
         }
-      }
+      },
+      "additionalProperties": true
     },
     "node": {
       "type": "object",
@@ -207,50 +1787,7 @@
         ]
       }
     },
-    "num": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "number"
-            }
-          }
-        }
-      ]
-    },
-    "range": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "array",
-              "items": {
-                "type": "number"
-              },
-              "minItems": 2,
-              "maxItems": 2
-            }
-          }
-        }
-      ]
-    },
-    "numOrRange": {
-      "anyOf": [
-        {
-          "$ref": "#/$defs/num"
-        },
-        {
-          "$ref": "#/$defs/range"
-        }
-      ]
-    },
-    "rgbValue": {
+    "rgb": {
       "type": "array",
       "items": {
         "type": "integer",
@@ -259,81 +1796,6 @@
       },
       "minItems": 3,
       "maxItems": 3
-    },
-    "rgb": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "$ref": "#/$defs/rgbValue"
-            }
-          }
-        }
-      ]
-    },
-    "text": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    },
-    "textList": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/leaf"
-        },
-        {
-          "properties": {
-            "v": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        }
-      ]
-    },
-    "kitKind": {
-      "type": "object",
-      "required": [
-        "lip_of_height",
-        "stroke_px"
-      ],
-      "properties": {
-        "lip_of_height": {
-          "$ref": "#/$defs/num"
-        },
-        "corner_scale": {
-          "$ref": "#/$defs/num"
-        },
-        "corner_px": {
-          "$ref": "#/$defs/num"
-        },
-        "stroke_px": {
-          "$ref": "#/$defs/num"
-        },
-        "stud_rows": {
-          "$ref": "#/$defs/num"
-        },
-        "stud_tile_px": {
-          "$ref": "#/$defs/num"
-        }
-      },
-      "additionalProperties": {
-        "$ref": "#/$defs/leaf"
-      }
     }
   }
 }

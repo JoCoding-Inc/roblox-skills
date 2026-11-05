@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "title": "UI motion: panel open and close, button feedback, counters, idle motion, rules",
   "scope": "every genre; values are the stud-style defaults",
-  "sources": ["roblox-ui-genre-studs#5", "roblox-ui-typography#4"],
+  "sources": ["roblox-ui-genre-studs/SKILL.md#5", "roblox-ui-typography/SKILL.md#4"],
   "data": {
     "panel_open": {
       "from_scale": {"v": 0.85, "p": "opinion"},

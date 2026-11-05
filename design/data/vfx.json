@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "title": "Effects: rarity tier ladder, aura and particle limits, VFX house rules",
   "scope": "every genre with rewards, rolls or effects",
-  "sources": ["roblox-fun-effects#3", "roblox-fun-effects#5", "roblox-feel-audio-vfx#3", "roblox-feel-audio-vfx#5"],
+  "sources": ["roblox-fun-effects/SKILL.md#3,5", "roblox-feel-audio-vfx/SKILL.md#3,5"],
   "data": {
     "tiers": [
       {
@@ -39,7 +39,7 @@
       {
         "rank": {"v": 7, "p": "opinion"}, "name": {"v": "Top", "p": "opinion"}, "example_odds": {"v": "above a set line", "p": "opinion"},
         "look": {"v": "unique per item", "p": "opinion"}, "effect": {"v": "short scene (roblox-cinematics rules)", "p": "opinion"},
-        "reveal_s": {"v": [0.0, 8.0], "p": "opinion"}, "seen_by": {"v": "all servers (optional)", "p": "opinion"}
+        "reveal_max_s": {"v": 8.0, "p": "opinion", "src": "up to 8 s"}, "seen_by": {"v": "all servers (optional)", "p": "opinion"}
       }
     ],
     "tier_settings": {
@@ -49,7 +49,7 @@
     "aura": {
       "max_emitters_per_player": {"v": 2, "p": "opinion"},
       "max_trails_per_player": {"v": 1, "p": "opinion"},
-      "live_particles_per_emitter": {"v": 40, "p": "opinion", "src": "Rate x Lifetime"},
+      "live_particles_per_emitter": {"v": 40, "p": "opinion", "src": "about 40, Rate x Lifetime"},
       "highlights": {"v": false, "p": "opinion"},
       "lights_from_tier": {"v": 5, "p": "opinion"},
       "distance_lod": {"v": "full near, 1 emitter mid, off far", "p": "opinion"},
@@ -74,7 +74,7 @@
       "feedback_channels_per_frequent_action": {"v": 2, "p": "opinion"}
     },
     "rules": {
-      "vfx_source": {"v": "VFX are Blender meshes plus gradient or flipbook textures. No block tiles and no default sparkles (the Sparkles object or the built-in rbxasset://textures/particles textures).", "p": "opinion", "src": "owner rule, 2026-11-05"},
+      "vfx_source": {"v": "VFX are Blender meshes plus gradient or flipbook textures. No block tiles and no default sparkles (the Sparkles object or the built-in rbxasset://textures/particles textures).", "p": "opinion", "src": "owner rule"},
       "burst_not_constant": {"v": "burst on events; destroy or disable emitters when done; cap effects per player and per server", "p": "opinion"},
       "night_sky": {"v": "fewer, brighter additive layers; dark semi-transparent layers render muddy", "p": "field", "date": "2026-11-04"}
     }
