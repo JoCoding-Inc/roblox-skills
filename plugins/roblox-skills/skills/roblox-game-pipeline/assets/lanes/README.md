@@ -1,6 +1,6 @@
 # Style lane cards
 
-Eight original concept images the agent shows the user in stage 3 of `roblox-game-pipeline` so the user can point at a look instead of describing it. Seven are AI-generated mood images (gwanggo, model `gpt-image-2.5`, 2026-11-03); `voxel.jpg` is a free headless Blender render (2026-11-04, recipe in `roblox-blender-export` section 4). None are Studio renders or copies of any game or brand. Use them to choose a direction; the real look is built in Studio.
+Eight original concept images the agent shows the user in stage 3 of `roblox-game-pipeline` so the user can point at a look instead of describing it. Seven are AI-generated mood images (model `gpt-image-2.5`, 2026-11-03); `voxel.jpg` is a free headless Blender render (2026-11-04, recipe in `roblox-blender-export` section 4). None are Studio renders or copies of any game or brand. Use them to choose a direction; the real look is built in Studio.
 
 | Card | File | Look | Palette to start from | Fits | UI feel |
 |---|---|---|---|---|---|
