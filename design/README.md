@@ -26,11 +26,11 @@ The design values of the skills as versioned data, plus the design-related skill
 
 ## Schemas
 
-Each schema requires every key the data has today and types every value (number, range, size, color, text, list). Unit suffixes add bounds: `_share` 0 to 1, other units and limits 0 or more, colors 0 to 255. Unknown keys are allowed everywhere, in the envelope and in leaves too, so a reader built for 1.0 reads 1.x files and ignores what it does not know.
+Each schema requires every key the data has today and types every value (number, range, size, color, text, list). Unit suffixes add bounds: `_share` 0 to 1, `_px`, `_s`, `_scale`, `_studs` and limits 0 or more (`_deg` may be negative), colors 0 to 255. Object values (a font's `family` and `weight`) are typed key by key. Unknown keys are allowed everywhere, in the envelope and in leaves too, so a reader built for 1.0 reads 1.x files and ignores what it does not know.
 
 ## Versions
 
-- `schema_version` (every data file and the manifest), semver: major when a key is removed, renamed or changes type; minor when keys or types are added.
+- `schema_version` (every data file and the manifest; one value per pack), semver: major when a key is removed, renamed or changes type; minor when keys or types are added.
 - `pack_version`, the release tag without `design-pack-v`, semver: major with a schema major; minor when values or keys change; patch for text and image changes only. A tag with a pre-release suffix (`design-pack-v1.1.0-rc.1`) publishes a GitHub pre-release.
 - Readers pick the highest semver among non-pre-release releases whose tag starts with `design-pack-v` (not the newest by date).
 
@@ -61,7 +61,8 @@ Each `files[]` entry has:
 | `topic` | one key of `topics`; data and the guides it mirrors share a topic (`zones` and `roblox-ui-layout` are both `layout`) |
 | `section_ref` | list of `<path>[#<sections>]`, `path` relative to the skills folder (`roblox-feel-audio-vfx/SKILL.md#1,3,4,5`, `roblox-ui-genre-studs/SKILL.md#1-3,7-9`), or `null` for schema and license files. For data it names the skill text the values mirror |
 | `schema` | data only: the schema file to validate with |
-| `unresolved_refs` | guides only: sections, skills, scripts and files the text mentions that the pack leaves out, relative to `source_base_url`. Scripts and the other skills resolve there; `docs/...`, `assets/refs/` and `assets/LICENSES.md` are the user's game project files |
+| `unresolved_refs` | guides only: sections, skills, scripts and files of the repository that the text mentions and the pack leaves out; each resolves under `source_base_url` |
+| `project_refs` | guides only: paths the text mentions that are files of the user's game project (`docs/brief.md`, `assets/refs/`, `assets/LICENSES.md`), not of this repository |
 
 ## Verify a release (importers)
 

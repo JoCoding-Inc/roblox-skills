@@ -431,7 +431,19 @@
                 {
                   "properties": {
                     "v": {
-                      "type": "object"
+                      "type": "object",
+                      "required": [
+                        "LightEmission",
+                        "LightInfluence"
+                      ],
+                      "properties": {
+                        "LightEmission": {
+                          "type": "number"
+                        },
+                        "LightInfluence": {
+                          "type": "number"
+                        }
+                      }
                     }
                   }
                 }

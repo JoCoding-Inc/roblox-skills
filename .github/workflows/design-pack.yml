@@ -48,7 +48,7 @@ jobs:
           fetch-depth: 0
       - name: Tag must be design-pack-vX.Y.Z[-pre] on a commit on main
         run: |
-          [[ "$GITHUB_REF_NAME" =~ ^design-pack-v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]] || { echo "::error::bad tag $GITHUB_REF_NAME"; exit 1; }
+          [[ "$GITHUB_REF_NAME" =~ ^design-pack-v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$ ]] || { echo "::error::bad tag $GITHUB_REF_NAME"; exit 1; }
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
       - uses: actions/setup-python@v5
         with:

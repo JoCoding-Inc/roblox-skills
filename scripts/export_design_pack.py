@@ -30,7 +30,7 @@ MOCK = SKILLS / "roblox-game-pipeline" / "scripts" / "ui_style_mock.luau"
 UI_STYLES = SKILLS / "roblox-game-pipeline" / "assets" / "ui-styles"
 SCHEMA_VERSION = "1.0.0"
 REPO = "https://github.com/JoCoding-Inc/roblox-skills"
-SEMVER = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$")
+SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$")
 
 PROVENANCE = {
     "measured": "we measured it: engine source, pixels on reference frames, store API reads, tested in Studio",
@@ -109,7 +109,7 @@ STYLE_KEYS = {
 
 # ---------- schemas derived from the data ----------
 
-UNIT = re.compile(r"_(px|s|scale|studs|deg)(_|$)")
+UNIT = re.compile(r"_(px|s|scale|studs)(_|$)")
 LIMIT = re.compile(r"(^|_)(max|min)(_|$)")
 DEFS = {
     "provenance": {"enum": sorted(PROVENANCE), "description": "; ".join("%s: %s" % kv for kv in sorted(PROVENANCE.items()))},
@@ -149,7 +149,7 @@ def value_schema(key, x):
     if isinstance(x, str):
         return {"type": "string"}
     if isinstance(x, dict):
-        return {"type": "object"}
+        return {"type": "object", "required": list(x), "properties": {k: value_schema(k, v) for k, v in x.items()}}
     if key.endswith("_rgb") or is_rgb(x):
         return {"$ref": "#/$defs/rgb"}
     if x and all(is_rgb(i) for i in x):
@@ -166,7 +166,7 @@ def value_schema(key, x):
 
 
 def typed(key):
-    return bool(re.search(r"_(share|of_height|of_face|rgb)$", key) or UNIT.search(key) or LIMIT.search(key))
+    return bool(re.search(r"_(share|of_height|of_face|rgb|deg)$", key) or UNIT.search(key) or LIMIT.search(key))
 
 
 def derive(x, key="", docs=None, tkey=""):
@@ -493,10 +493,12 @@ def owner(text, start, default):
 
 
 def refs(skill, text, packed, paths):
-    """References in a guide that the pack does not contain, relative to the skills folder."""
+    """References the pack does not contain: (repo files and sections relative to the skills folder,
+    files of the user's game project)."""
     if text.startswith("---\n"):
         text = text[text.index("\n---\n", 4) + 5:]
-    out = set()
+    text = text.replace("<skill dir>/", "")
+    out, project = set(), set()
     for m in SEC_REF.finditer(text):
         target = skill
         for s in SKILL_REF.finditer(text, max(0, m.start() - 60), m.start()):
@@ -512,9 +514,13 @@ def refs(skill, text, packed, paths):
     for m in PATH_REF.finditer(text):
         p = m.group(1).rstrip("/")
         rel = p if p.startswith("roblox-") else "%s/%s" % (owner(text, m.start(), skill), p)
-        if not any(x == "skills/" + rel or x.startswith("skills/" + rel + "/") for x in paths):
+        if any(x == "skills/" + rel or x.startswith("skills/" + rel + "/") for x in paths):
+            continue
+        if (SKILLS / rel).exists():
             out.add(rel)
-    return sorted(out)
+        else:
+            project.add(p)
+    return sorted(out), sorted(project)
 
 
 # ---------- pack ----------
@@ -575,7 +581,7 @@ def collect():
     for path, raw, entry in files:
         if entry["kind"] == "guide":
             skill = path.split("/")[1]
-            entry["unresolved_refs"] = refs(skill, raw.decode(), packed, paths)
+            entry["unresolved_refs"], entry["project_refs"] = refs(skill, raw.decode(), packed, paths)
     for name in ("LICENSE", "NOTICE.md"):
         files.append((name, (ROOT / name).read_bytes(), {"kind": "license", "topic": "license", "section_ref": None}))
     for path, raw, entry in files:
@@ -632,7 +638,7 @@ def build(out, version, tgz):
         "provenance": PROVENANCE,
         "kinds": KINDS,
         "topics": TOPICS,
-        "excluded": "scripts, the other skills and sections, and the game project's own files (docs/..., assets/refs/...); see files[].unresolved_refs",
+        "excluded": "scripts, the other skills and sections (files[].unresolved_refs, under source_base_url) and the user's game project files (files[].project_refs)",
         "skills": [{"name": s, "sections": w or "all", "topic": t} for s, w, t in GUIDES],
         "files": entries,
     }
