@@ -156,6 +156,7 @@ Each of these is a defect:
 - stat text with a panel behind it;
 - HUD elements over 15% of screen height on desktop or over 72 px on a phone (except panels and offers);
 - near-black navy giant panels;
+- flat 1990s-style UI in a simulator (plain flat boxes, thin or no outline, no lip, no gradient): use the stud house style of the section 9 screens (owner rule);
 - pills everywhere;
 - one size of button for every importance;
 - permanent upsell buttons;

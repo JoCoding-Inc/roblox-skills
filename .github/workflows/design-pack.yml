@@ -1,0 +1,63 @@
+name: design-pack
+
+on:
+  pull_request:
+    paths:
+      - "design/**"
+      - "scripts/export_design_pack.py"
+      - "plugins/roblox-skills/skills/**"
+      - "LICENSE"
+      - "NOTICE.md"
+      - ".github/workflows/design-pack.yml"
+  push:
+    tags:
+      - "design-pack-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install jsonschema==4.23.0
+      - run: python3 -I scripts/export_design_pack.py --check
+      - name: Warn when a mirrored skill changes without design/data
+        run: |
+          changed=$(git diff --name-only HEAD^1 HEAD)
+          if echo "$changed" | grep -qE '^plugins/roblox-skills/skills/roblox-(ui-layout|ui-genre-studs|ui-typography|fun-effects|feel-audio-vfx|store-art-pack)/SKILL\.md$' \
+            && ! echo "$changed" | grep -q '^design/data/'; then
+            echo "::warning::A skill mirrored in design/data changed but design/data did not. Update the data file if a value changed."
+          fi
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/design-pack-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag must point at a commit on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install jsonschema==4.23.0
+      - name: Build
+        run: python3 -I scripts/export_design_pack.py --out dist --version "${GITHUB_REF_NAME#design-pack-v}" --tgz
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" dist/design-pack.tgz dist/manifest.json
+          --title "$GITHUB_REF_NAME"
+          --notes "Design pack built from $GITHUB_SHA. Format: design/README.md."
