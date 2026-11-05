@@ -31,7 +31,7 @@ Run this at the start of every new project and when a project is opened on a new
 |---|---|---|
 | Existing project | `ls`, look for `default.project.json`, `wally.toml`, `rokit.toml`, `CLAUDE.md`, `docs/` | Rojo project vs. Studio-only place |
 | Studio installed | macOS `ls /Applications/RobloxStudio.app`; Windows `%LOCALAPPDATA%\Roblox\Versions` | The MCP server ships inside Studio |
-| Studio MCP | `claude mcp list` (look for `Roblox_Studio` or the official plugin's `plugin:roblox-studio:<os>`, Connected), then call the MCP tool `list_roblox_studios` by name | Live engine access, which place is open. A server listed but not callable means it was added after this session started |
+| Studio MCP | `claude mcp list` (look for `Roblox_Studio` or the official plugin's `plugin:roblox-studio:<os>`, Connected), then call the MCP tool `list_roblox_studios` by name; ask the user whether Assistant > ... > Settings shows an **MCP Permissions** tab (missing: update Roblox Studio and restart it) | Live engine access, which place is open. A server listed but not callable means it was added after this session started |
 | Open Studio windows | `list_roblox_studios` plus memory per process (`ps -axo pid,rss,command \| grep -i "[R]obloxStudio"`) | Many windows slow or crash the machine; with 3 or more, ask the user which to close (`roblox-game-pipeline` rule 8) |
 | git | `git --version`; `git rev-parse --is-inside-work-tree` in the project folder | History and rollback |
 | Toolchain | `rokit --version`, `rojo --version`, `selene --version`, `stylua --version`, `lune --version`, `luau-lsp --version` | Which checks can run locally |
@@ -87,7 +87,7 @@ Do not ask for these up front. Put each one as a `Needs user:` line on the plan 
 
 | Need | When | User does | Agent confirms |
 |---|---|---|---|
-| Studio access to data stores (saves, leaderboards, MemoryStore in Studio) | Before the first save or load test | Publish the dev place as a private test experience (File > Publish to Roblox), then File > Experience Settings > Security > **Enable Studio Access to API Services** > Save. Test places only, never the live game. From an MCP client also turn on Save & load data in MCP Permissions | A save and load probe in a Studio playtest succeeds |
+| Studio access to data stores (saves, leaderboards, MemoryStore in Studio) | Before the first save or load test | Save the dev place to Roblox (File > Save to Roblox; a private game, Publish is not needed), then File > Experience Settings > Security > **Enable Studio Access to API Services** > Save. Test places only, never the live game. From an MCP client also turn on Save & load data in MCP Permissions | A save and load probe in a Studio playtest succeeds |
 | Allow Third Party Teleports | Teleports to games the user does not own | File > Experience Settings > Security | Teleport test in a published place (`roblox-match-flow`) |
 | Allow Loading Third Party Assets | Loading other creators' Creator Store models at runtime | Experience settings (`roblox-pitfalls` section 2) | A live-server load succeeds |
 | MCP Permissions (Studio, this game) | First publish, upload, pass or product, settings change or analytics read through the Studio MCP | Assistant > ... > Settings > MCP Permissions: turn on only the sections the task needs (`roblox-studio-ai-tools` section 1a); the agent cannot turn them on | The `open_cloud_invoke` call succeeds |
@@ -96,6 +96,24 @@ Do not ask for these up front. Put each one as a `Needs user:` line on the plan 
 | Creator account age check and 2-step verification | Before public release; required to reach under-16 players | Roblox account settings (`roblox-design-and-launch` section 4) | User confirms |
 | Team Create collaborators | When a teammate joins | Add them in Collaborate; they need an age check (`roblox-dev-workflow`) | Teammate can edit |
 | gwanggo sign-in and credits | First generation | Browser sign-in once; a yes to each quoted cost | `get_credits` answers |
+
+### 1e. Studio MCP projects start in a place saved to Roblox
+
+MCP Permissions (`roblox-studio-ai-tools` section 1a) live on a game saved to Roblox, never on a local `.rbxl`.
+
+1. The user checks Assistant > ... > Settings for the **MCP Permissions** tab. Missing: update Roblox Studio (the tab came with the 2026-11-04 update) and restart it.
+2. Work in the dev place, saved to Roblox: Open from Roblox for an existing game, or File > Save to Roblox once for a new one (a private game; Publish is a separate step that releases a version to players). Never the live game (question 11). Permissions are per game: generous on the dev game, minimal on the live one.
+3. At the start ask only for **Look at your game** (read-only). Ask for the rest when a task needs it, through step 1d:
+
+   | Section | Ask when | Note |
+   |---|---|---|
+   | Save & load data | First save or load test | Plus Enable Studio Access to API Services; test games only |
+   | Connect to the internet | Local helpers that fetch from `127.0.0.1` (script loader, `ui_style_mock.luau` icons, Blender mesh export), or `execute_luau` that must parent scripts | Allow only the domains needed |
+   | Publish & manage assets | First upload | Uploads are permanent; approve one export folder |
+   | Edit your game | Settings change, publish, server restart | Publishing is in this section: confirm each time |
+   | Money, Players & social, Player consequences, Security | Only for that one task | A separate yes per call |
+
+4. Throwaway scratch places (UI checks, pack previews) may stay local `.rbxl`: parts, screenshots and `multi_edit` work there; scripts parented from `execute_luau`, `require`, HTTP and data stores do not.
 
 ## Step 2. Interview (ask in rounds)
 
