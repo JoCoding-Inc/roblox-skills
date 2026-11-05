@@ -74,7 +74,7 @@
       "feedback_channels_per_frequent_action": {"v": 2, "p": "opinion"}
     },
     "rules": {
-      "vfx_source": {"v": "VFX are Blender meshes plus gradient or flipbook textures. No block tiles and no default sparkles (the Sparkles object or the built-in rbxasset://textures/particles textures).", "p": "opinion", "src": "owner rule"},
+      "vfx_source": {"v": "VFX are Blender meshes plus gradient or flipbook textures. No block tiles and no default sparkles (the Sparkles object or the built-in rbxasset://textures/particles textures).", "p": "opinion", "src": "owner rule", "date": "2026-11-05"},
       "burst_not_constant": {"v": "burst on events; destroy or disable emitters when done; cap effects per player and per server", "p": "opinion"},
       "night_sky": {"v": "fewer, brighter additive layers; dark semi-transparent layers render muddy", "p": "field", "date": "2026-11-04"}
     }

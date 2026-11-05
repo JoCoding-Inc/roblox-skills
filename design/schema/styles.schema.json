@@ -175,7 +175,15 @@
                         {
                           "properties": {
                             "v": {
-                              "type": "object"
+                              "type": "object",
+                              "required": [
+                                "family"
+                              ],
+                              "properties": {
+                                "family": {
+                                  "type": "string"
+                                }
+                              }
                             }
                           }
                         }
@@ -834,7 +842,15 @@
                         {
                           "properties": {
                             "v": {
-                              "type": "object"
+                              "type": "object",
+                              "required": [
+                                "family"
+                              ],
+                              "properties": {
+                                "family": {
+                                  "type": "string"
+                                }
+                              }
                             }
                           }
                         }
@@ -1482,7 +1498,15 @@
                         {
                           "properties": {
                             "v": {
-                              "type": "object"
+                              "type": "object",
+                              "required": [
+                                "family"
+                              ],
+                              "properties": {
+                                "family": {
+                                  "type": "string"
+                                }
+                              }
                             }
                           }
                         }
@@ -2148,7 +2172,19 @@
                         {
                           "properties": {
                             "v": {
-                              "type": "object"
+                              "type": "object",
+                              "required": [
+                                "family",
+                                "weight"
+                              ],
+                              "properties": {
+                                "family": {
+                                  "type": "string"
+                                },
+                                "weight": {
+                                  "type": "string"
+                                }
+                              }
                             }
                           }
                         }

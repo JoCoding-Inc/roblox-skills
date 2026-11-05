@@ -326,8 +326,7 @@
             {
               "properties": {
                 "v": {
-                  "type": "number",
-                  "minimum": 0
+                  "type": "number"
                 }
               }
             }
