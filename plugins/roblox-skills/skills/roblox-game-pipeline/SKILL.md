@@ -22,7 +22,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
 3. **Show, tell, then offer**, whenever the choice is visual (look, UI style, characters, logo, loading screen, lighting) or about layout or motion:
    1. Show only the bundled examples that fit the idea's genre, audience and tone (at most 3-4). Skip cards that clash with the pitch, such as horror for a kids' gym tycoon, unless the user asks for them.
    2. Give 2-4 options in words, written for this game ("chunky cartoon gym: lime dumbbells, sunburst sky, thick black outlines").
-   3. Ask: "Do you want example images of your own game in these options?" Offer the free route first (a greybox or UI mock in Studio, section 10a). An image generator the user has connected (gwanggo, another tool) is one more option, with its cost quoted first.
+   3. Ask: "Do you want example images of your own game in these options?" Offer the free route first (a greybox or UI mock in Studio, section 10a). An image generator the user has connected (the RoDesigner MCP with the style pack applied automatically, or another tool) is one more option, with its cost quoted first.
    4. Record the pick.
 4. **Write decisions down** in `docs/brief.md` (what and why) and `docs/ledger.md` (rulings during work, format `Ruling: <what> - <why> - <cost if wrong>`). A decision not written will be lost when the session is compacted.
 5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention.
@@ -95,7 +95,7 @@ Ask for taste with pictures, not adjectives.
 
 2. After the user leans toward a lane, add real references from live games of the same genre for that lane (not for all eight): run `roblox-launch-benchmarks` `scripts/collect.py` then `scripts/art_fetch.py` (thumbnails land in `thumbs/`), or search the genre on the charts. Make one labeled contact sheet (Pillow) with the lane names.
 3. Show it to the user: send the PNG (`SendUserFile`) or publish a private Artifact page. Ask: "Which lane is closest? Which one is the opposite of what you want?" Then offer to show the game itself in the 2-3 closest looks, especially when no lane fits, the user wants a mix, or describes a look the cards do not show: a Studio greybox in each look (free), or one image each from an image generator the user has connected (cost quoted first). Each image shows the game's own scene (its setting and core action, for example a member lifting in a small gym), only the look changes (section 10a). Examples of finished screens: `assets/examples/` (loading screen) and `roblox-ui-genre-studs/references/` (stud-style HUD, shop, quests, rewards).
-4. **UI style**, right after the lane: `assets/ui-styles/` holds four example screens (soft dark, stud chunky, bright cards, dark flat), each a 2025-26 hit's screen redrawn with its UI kept and our own content, as dense as the real game (see its README, column "Fits"; themed looks such as cozy wood or anime gold are words only). Show the 2-4 that fit the genre and lane (`style_board.py ui.png --dir <skill dir>/assets/ui-styles --only ...`) and describe each in one line set in this game. If the user names a game whose UI they like, show live frames of it (`scripts/ui_refs.py`, never committed). After the pick, ask "Shall I make a design that matches your game's tone and manner?" and offer a Studio mockup (free: `scripts/ui_style_mock.luau` builds a real ScreenGui in the game's place with bundled or the game's own icons and items) or, only when gwanggo is connected or the user asks for a painted image, gwanggo images (about 3 credits each, quote first); the README has both. The pick decides the UI skill: stud chunky goes to `roblox-ui-genre-studs`, the others to the UI rules in `roblox-engine-2026` with the README's build notes. Placement and sizes follow `roblox-ui-layout` in every style.
+4. **UI style**, right after the lane: `assets/ui-styles/` holds four example screens (soft dark, stud chunky, bright cards, dark flat), each a 2025-26 hit's screen redrawn with its UI kept and our own content, as dense as the real game (see its README, column "Fits"; themed looks such as cozy wood or anime gold are words only). Show the 2-4 that fit the genre and lane (`style_board.py ui.png --dir <skill dir>/assets/ui-styles --only ...`) and describe each in one line set in this game. If the user names a game whose UI they like, show live frames of it (`scripts/ui_refs.py`, never committed). After the pick, ask "Shall I make a design that matches your game's tone and manner?" and offer a Studio mockup (free: `scripts/ui_style_mock.luau` builds a real ScreenGui in the game's place with bundled or the game's own icons and items) or, only when RoDesigner or another image generator is connected or the user asks for a painted image, generated images (credits per image, quote first); the README has both. The pick decides the UI skill: stud chunky goes to `roblox-ui-genre-studs`, the others to the UI rules in `roblox-engine-2026` with the README's build notes. Placement and sizes follow `roblox-ui-layout` in every style.
 4a. **World props**, right after the UI style: rank the popular free store packs for the chosen lane (trees, rocks, plants, fences), insert 2-4, render them side by side in the game's place and send the sheet with one line per pack; the user picks one (`roblox-store-art-pack` section 3a, with a tested table per lane). Hero props and landmarks are not picked from the store.
 5. Record in the brief: chosen lane, UI style, world-prop pack (`World kit: <pack id>`), 3 palette colors, line weight, the font pair (picked from a specimen screenshot, `roblox-ui-typography` section 2), 2-3 reference file paths in `assets/refs/` (private notes, never shipped or uploaded), and the "avoid" lane. When the game's layout follows a reference game (bases in a row or arc, a stadium, a shop floor, a HUD), also record a table of the reference frames' concrete properties before any layout work: arrangement, entrance position and width, spacing, HUD zones. Layout tasks start from that table. Take arrangement and measurements only; art is never copied (step 6).
 6. Rules: live-game references are other creators' work: they steer direction and are never copied, traced or uploaded. The lane cards and the example images in this plugin are ours or the owner's own. Logo and icon follow `roblox-store-art-pack` section 6.
@@ -166,19 +166,19 @@ Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the
 
 ## 6a. Art source per asset class (before writing art tasks)
 
-List the asset classes (for example machines and furniture, building kit, characters and creatures, pets and pickups, icons) and, for each, the tools this session can really use (probe again: Studio MCP, gwanggo `get_credits`, Blender `get_addon_status`):
+List the asset classes (for example machines and furniture, building kit, characters and creatures, pets and pickups, icons) and, for each, the tools this session can really use (probe again: Studio MCP, RoDesigner `get_credits`, Blender `get_addon_status`):
 
 | Tool | Cost | Good at | Not for |
 |---|---|---|---|
 | Parts built by script (agent writes `execute_luau` or Rojo model files) | No credits; instant; edit in Studio | Blocky props, machines, furniture, buildings, map structure; the classic blocky lane fully, chunky cartoon only for shapes (no thick outlines) | Organic or detailed shapes; many parts per repeated prop (keep counts low, reuse one model) |
 | Roblox Cube (Studio MCP `generate_mesh`) | No credits; rate limited (1-2 jobs at a time) | Static props, furniture, machines, vehicles; a reference image keeps the look | Rigs; exact modular sizes |
-| gwanggo `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
+| RoDesigner `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
 | `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) | Organic shapes |
 | Blender (scripted) | Free, slowest | Rigs and animation, modular kit pieces with exact sizes (walls, floors, trims), voxel animals | Many detailed props fast |
 | Creator Store | Free | Fillers, audio, world props from the pack picked in stage 3 (`roblox-store-art-pack` section 3a), standard UI icons (one voted icon pack, section 4) | Hero assets (quarantine first) |
 
 - When a class covers many assets and the user has not seen the options, run a **bake-off**: make the same object (one machine, one pet) with each available tool, screenshot them side by side in Studio (or a sheet with `scripts/style_board.py`), and let the user pick. Quote the cost of paid tools first. Never mark one option (D) and skip the others unseen. Replacing an asset the game already has (a character, a pet, a machine) is a bake-off too, with the old asset as one option: never swap without a same-camera side-by-side against the old one at play distance, label each with the tool that really made it (parts by script, Blender primitives, Cube, AI 3D), and keep the new one behind a flag (a `Tuning` value or attribute, section 7a) until the user approves.
-- Judge from the samples, not from memory: "AI output has inconsistent style" is not true of a style-locked gwanggo project or Cube with a reference image; the raw-mesh warning in `roblox-blender-export` section 9 is about the Blender MCP generators.
+- Judge from the samples, not from memory: "AI output has inconsistent style" is not true of a RoDesigner project with its style pack or Cube with a reference image; the raw-mesh warning in `roblox-blender-export` section 9 is about the Blender MCP generators.
 - When parts are in the mix, settle the part look before building: send `assets/part-looks/stud-surfaces.jpg` (studs on every face, new-part default, smooth, faint stud texture; real Studio renders) and `materials.jpg`, describe each option in one line set in this game, and record `Part look:` in the brief. The README there has the property settings and a helper.
 - Record the result in the brief as `Art source: <class> -> <tool> (<reason>)` lines and tag the art tasks with it.
 
@@ -189,8 +189,8 @@ When the plan is approved, ask once, several picks allowed: "Before the full bui
 | Option | You get | Needs | Cost |
 |---|---|---|---|
 | A. Core-fun prototype (D) | A playable greybox of the most-repeated action, its feedback, the first reward and one upgrade | Studio MCP | 1-3 plan tasks, no credits |
-| B. Concept images | 3-6 stills: key art, one gameplay screen, the clip-worthy moment, the hero character or creature | Greybox screenshots, or an image tool the user has connected (for example gwanggo MCP) | Free with greybox; credits per image when paid, quoted first |
-| C. Concept trailer | 15-30 s video made from B's stills: 3-5 shots, captions, title card | A written storyboard, or a video tool the user has connected (for example gwanggo MCP) | Free as a storyboard; more than B when paid, quoted first |
+| B. Concept images | 3-6 stills: key art, one gameplay screen, the clip-worthy moment, the hero character or creature | Greybox screenshots, or an image tool the user has connected (for example the RoDesigner MCP) | Free with greybox; credits per image when paid, quoted first |
+| C. Concept trailer | 15-30 s video made from B's stills: 3-5 shots, captions, title card | A written storyboard, or a video tool the user has connected (for example the RoDesigner MCP) | Free as a storyboard; more than B when paid, quoted first |
 | D. Straight to the full build | Stage 7 as planned | - | - |
 
 Pick A first when the core action is the risk; B or C first when the pitch or the look is the open question (the user wants to show friends or a team). B then C, and A plus B, are common.
@@ -203,19 +203,19 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 - Verdict from three questions: does the action feel good within 30 s? Does the player want the next upgrade? Does the twist show in the first 2 minutes? Write keep / change / drop to `docs/ledger.md` and update the plan before stage 7.
 - After a passing prototype the next feedback is often about looks and anticipation (one project, C). Have a current-vs-target table ready: one row per beat (effect, motion, sound, model), with a same-angle screenshot next to the concept image. It turns broad feedback into scoped tasks; then run the art bake-off (6a).
 
-**B. Concept images.** Free: greybox screenshots of the key scenes with Studio MCP `screen_capture`, or Blender renders. With gwanggo connected (section 10):
-- If the project has no gwanggo project yet: `create_game_project` (platform `roblox`) and `plan_game` with our brief passed as `brief`, so gwanggo uses `docs/brief.md` instead of writing its own (both free).
+**B. Concept images.** Free: greybox screenshots of the key scenes with Studio MCP `screen_capture`, or Blender renders. With RoDesigner connected (section 10):
+- If the project has no RoDesigner project yet: `create_game_project` (platform `roblox`) and `plan_game` with our brief passed as `brief`, so RoDesigner uses `docs/brief.md` instead of writing its own (both free).
 - `generate_concepts` with `dry_run: true` first, show the credits, wait for yes, then run it (count 3; key art, gameplay scene, world overview, character lineup). Put the style lane, palette and "Roblox game, blocky avatar proportions" in `extra_direction`. Never name other live games or their characters.
 - Poll each task with `get_task`, show the images, and call `select_concept` with the one the user picks: this locks the style for every later asset and video.
 - Save copies to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). They steer direction; they are not shipped art.
 
-**C. Concept trailer.** Free: a written storyboard (one line per shot) with greybox stills. With a video tool (gwanggo below):
+**C. Concept trailer.** Free: a written storyboard (one line per shot) with greybox stills. With a video tool (RoDesigner below):
 - Shot list first (format in `roblox-cinematics` section 4): hook = the clip-worthy moment, then the core action, the progression payoff, the twist or friends, title card; 3-6 s per shot.
-- `generate_gameplay_video` makes one clip from the selected concept (needs `select_concept`; credits per second, `dry_run` first; default 5 s, 16:9). Pass each shot's motion as `prompt`. For shots that start from another concept image, use `generate_video` with that image as the start frame, and compare frame 0 of the clip with that image: some models dropped the start frame and still charged until a gwanggo fix on 2026-11-04. Make the first 1-2 shots, show them, then the rest (one trailer was stopped after 2 shots as "too different from the game"). 9:16 for Shorts or TikTok tests (the `gwanggo-social-video` skill plans these if installed).
+- `generate_gameplay_video` makes one clip from the selected concept (needs `select_concept`; credits per second, `dry_run` first; default 5 s, 16:9). Pass each shot's motion as `prompt`. For shots that start from another concept image, use `generate_video` with that image as the start frame, and compare frame 0 of the clip with that image: some models dropped the start frame and still charged (seen 2026-11-03 on an earlier service, fixed there on 2026-11-04). Make the first 1-2 shots, show them, then the rest (one trailer was stopped after 2 shots as "too different from the game"). 9:16 for Shorts or TikTok tests.
 - Join the clips with `ffmpeg -f concat -safe 0 -i shots.txt -c copy trailer.mp4` when ffmpeg exists (re-encode if the clips differ); otherwise hand over the clips in order.
-- Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness). gwanggo's own tool description says the same.
+- Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness).
 
-Say which route was used (free storyboard and greybox, gwanggo, or another tool the user connected).
+Say which route was used (free storyboard and greybox, RoDesigner, or another tool the user connected).
 
 ## 7. Build loop (stage 7)
 
@@ -273,9 +273,9 @@ Do not ask the user to find what a test can find (errors, overlaps, saves, purch
 
 Update the brief, list the tasks affected, and say the rework cost in one line before continuing. Do not silently keep building on an old decision.
 
-## 10. Optional: gwanggo (only when the user chose it)
+## 10. Optional: RoDesigner MCP (only when the user chose it)
 
-One of several image, 3D and video options; each moment below lists the free route first. gwanggo Game Studio (gwanggo.ai/game, agent setup at gwanggo.ai/game/connect) keeps one project per game: the brief, a locked style (palette, reference images, chosen concept) and every generated asset. The MCP tools below were listed from the live server on 2026-11-03; when a call fails, list the server's tools and trust that list.
+One of several image, 3D and video options; each moment below lists the free route first. RoDesigner (setup: TODO(RoDesigner launch)) keeps one project per game: the brief, the style pack (palette, reference images, chosen concept), applied automatically to every generated asset. The tool names, order rules and costs below were measured on 2026-11-03 on an earlier image MCP of the same kind and stay placeholders until RoDesigner ships (TODO(RoDesigner launch): re-list its tools); when a call fails, list the server's tools and trust that list.
 
 | Tool | Cost | Use |
 |---|---|---|
@@ -288,13 +288,13 @@ One of several image, 3D and video options; each moment below lists the free rou
 
 Rules:
 - Use it only when the user has it connected or asks for generated images or video; never as the first suggestion and never a batch up front. State the cost in one line. Every paid call runs with `dry_run: true` first (or `list_models` costs), and the user says yes to the exact credits.
-- Write the gwanggo project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
+- Write the RoDesigner project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
 - Order matters (checked 2026-11-03): `generate_concepts` fails until `plan_game` has saved a brief; `generate_gameplay_video` fails until `select_concept`; assets made before a palette and a selected concept come back with "not color-locked" and "not style-locked" warnings. So: brief with `art_direction.palette` (or `update_game_project` style palette) -> concepts -> select -> assets and video.
 - Cost scale from `list_models` and `dry_run` on 2026-11-03 (quote the live number, not these): image 1-8 credits, icon 3, 3D 4-47 (tripo-h31 text 8, image 12), video 1-25 credits per second (a 5 s 720p clip is often 10-45).
 - Consistent 3D: `generate_game_asset` kind `image` first, poll until done, then kind `3d` with `image_url` set to that result (image-to-3D). Prefer the Roblox-friendly models (tripo-h31, rodin-25-fast, meshy-v71, trellis-2-image); Hunyuan 3D Pro is always 40K+ faces, over the 20,000-triangle mesh limit. 3D results are static meshes with no rig.
-- Import: `get_project_assets` gives the GLB URL; download it, import with Studio's 3D Importer, set collision and anchoring as in `roblox-blender-export` section 5, and log it in `assets/LICENSES.md` (source gwanggo, model, date).
+- Import: `get_project_assets` gives the GLB URL; download it, import with Studio's 3D Importer, set collision and anchoring as in `roblox-blender-export` section 5, and log it in `assets/LICENSES.md` (source RoDesigner, model, date).
 
-| Moment | Free route (first) | With gwanggo (optional) |
+| Moment | Free route (first) | With RoDesigner (optional) |
 |---|---|---|
 | Stage 1-2 brief | Asset list written by hand | `create_game_project` + `plan_game` (our brief); its `asset_list` seeds the art tasks in the plan |
 | Stage 3 look | Lane cards, live-game contact sheet, Studio greybox per look | `generate_concepts` 3, user picks, `select_concept` locks the style |
@@ -303,7 +303,7 @@ Rules:
 | Stage 7 UI | Standard icons from a Creator Store icon pack (`roblox-store-art-pack` section 4); the game's own items rendered from their models | `generate_game_asset` kind `icon` for the game's own items, matched to the pack |
 | Stage 7 surfaces | Studio Material Generator, `generate_material` | `generate_game_asset` kind `texture` for seamless tiles, used as `MaterialVariant` color maps |
 | Brand | Text logo built in Studio | Logo candidates and loading-screen art with `generate_image` (`roblox-store-art-pack` sections 6-7) |
-| Stage 9 launch | Real gameplay screenshots edited by hand | Web Thumbnail & Icon Kit (gwanggo.ai/dashboard/game/thumbnail-kit; 3 thumbnails 1920x1080 under 3 MB and a 512x512 icon from a real gameplay screenshot; not an MCP tool); Ads Manager creative variants edited from real screenshots |
+| Stage 9 launch | Real gameplay screenshots edited by hand | Thumbnail and icon drafts from a real gameplay screenshot (3 thumbnails 1920x1080 under 3 MB and a 512x512 icon; TODO(RoDesigner launch): tool or page); Ads Manager creative variants edited from real screenshots |
 
 AI text in images can be misspelled: check every letter, or leave titles off and typeset them. Video thumbnails and ads must be real gameplay.
 
@@ -324,11 +324,11 @@ Use this for every choice of how something looks or moves, after the bundled exa
 
 How:
 1. One image per option, same scene, same camera and framing; only the choice changes, so the comparison is fair. The scene comes from this game (its setting, core action, characters from the brief), not a generic one. Label each option A, B, C.
-2. With gwanggo: before the style lock use `generate_image`; after it use `generate_game_asset` kind `image` so examples match the locked style. Explore with a cheap model (1-3 credits per image in `list_models`); use high quality only for the final pick.
+2. With RoDesigner: before the style lock use `generate_image`; after it use `generate_game_asset` kind `image` so examples match the locked style. Explore with a cheap model (1-3 credits per image in `list_models`); use high quality only for the final pick.
 3. Quote the total first (count x cost) and wait for yes. Clips cost much more than stills: offer them only for motion choices.
 4. Show them on one labeled sheet: save the files as `A-<name>.png` and so on in a scratch folder and run `python3 -I <skill dir>/scripts/style_board.py sheet.png --dir <folder>`, then send the sheet.
-5. Record the pick in the brief or ledger, copy the chosen image to `assets/refs/`, and log prompt, model and credits. With gwanggo, a pick can feed the next step: a chosen character image goes to `generate_game_asset` kind `3d`.
+5. Record the pick in the brief or ledger, copy the chosen image to `assets/refs/`, and log prompt, model and credits. With RoDesigner, a pick can feed the next step: a chosen character image goes to `generate_game_asset` kind `3d`.
 
 Free route (offer it first): a quick greybox mock in Studio captured with `screen_capture` per option, live-game thumbnails of the same genre as references (`roblox-launch-benchmarks` `scripts/art_fetch.py`; references only, never copied), or a short written description per option.
 
-If gwanggo is not connected, use the free route; mention it only when the user asks for generated images or video (setup: `roblox-project-intake` step 1c). If it is connected but `create_game_project` is missing, the session holds an old tool list: reconnect it in `/mcp` or restart Claude Code. If `list_models` rejects `type: "3d"`, its schema is stale: call it with no filter, which also returns the 3D models.
+If RoDesigner is not connected, use the free route; mention it only when the user asks for generated images or video (setup: `roblox-project-intake` step 1c). If it is connected but `create_game_project` is missing, the session holds an old tool list: reconnect it in `/mcp` or restart Claude Code. If `list_models` rejects `type: "3d"`, its schema is stale: call it with no filter, which also returns the 3D models.
