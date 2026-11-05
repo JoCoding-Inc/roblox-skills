@@ -4,6 +4,7 @@ description: "Use when connecting Claude Code to Roblox Studio (official Roblox 
 when_to_use: "Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, an MCP client that should call Open Cloud (open_cloud_invoke, MCP Permissions, import from Blender), MCP key or mouse input that misses its target, writing Assistant skills, or CI that needs to run Luau against a place."
 last_reviewed: 2026-11-05
 sources:
+  - Studio MCP built-in skills rbx-permissions and rbx-open-cloud-usage, and the open_cloud_invoke tool description (Studio build of 2026-11-05)
   - https://devforum.roblox.com/t/4975849 (Studio MCP Server Updates: Open Cloud access and asset import, posted 2026-11-04, read 2026-11-05)
   - https://github.com/Roblox/roblox-studio-agent-plugin (README, read 2026-11-03)
   - Studio MCP list_skills output (Studio build of 2026-11-03)
@@ -47,15 +48,44 @@ Security: any connected client can read and modify the open places. Connect only
 
 ### 1a. Open Cloud through Studio and MCP Permissions (2026-11-04)
 
-Announced on the DevForum on 2026-11-04; the docs page `studio/mcp` did not have it yet on 2026-11-05. Update Studio, reconnect, and check that the server lists `open_cloud_invoke` before relying on it.
+Announced on the DevForum on 2026-11-04. Details below come from Roblox's own built-in skills `rbx-permissions` and `rbx-open-cloud-usage` and the `open_cloud_invoke` tool description (Studio build of 2026-11-05); the docs page `studio/mcp` did not cover it yet. Check that the server lists `open_cloud_invoke` before relying on it, and load those two skills with `skill` before the first call.
 
-- `open_cloud_invoke` calls any Open Cloud API from the MCP client with Studio's token, no API key, limited to the permissions the user turned on for this game.
-- **MCP Permissions**: Assistant > ... > Settings > MCP Permissions tab, or click MCP in Studio's bottom-right corner. Saved per account and per game; each collaborator sets their own; only the user can change them. External MCP clients only, not the Assistant inside Studio. Sections: Publish & manage assets (upload models and images, check status), Look at your game (settings, version history, analytics), Edit your game (settings, publish, restart servers), Save & load data (data stores and memory stores from `execute_luau`), Connect to the internet (HTTP from Luau to allowed domains), Money & monetization (passes and products), plus the Open Cloud scopes and the local folders uploads may come from.
-- Ask for only the permissions the task needs, and ask before any call that spends money, affects players, touches secrets or publishes. Never work around a permission that is off (for example with an API key): ask the user.
-- Some endpoints accept API keys but refuse the Studio token, even with the permission on. Use a Studio tool, the API key route (`roblox-release-automation` section 2), or hand the step to the user in Creator Dashboard.
-- Data store calls from `execute_luau` need Save & load data and the game setting Security > Enable Studio Access to API Services.
-- Uploads are permanent: Open Cloud cannot delete or archive models or images (Creator Dashboard only). They go to the game's owner (the group for a group game) and through moderation. Ask before uploading.
-- New built-in skills: `rbx-open-cloud-usage` (find the endpoint, call it, handle errors), `rbx-permissions` (which permissions a task needs; asks for the missing ones), `rbx-import-asset` (GLB or FBX from Blender or another tool, then fixes scale, rotation, textures and anchoring; `roblox-blender-export` section 5). Load them with `skill`.
+- `open_cloud_invoke(method, endpoint, body?, scopes?, files?)` calls Open Cloud from an external MCP client (not the Assistant inside Studio). For each call Studio fetches a short-lived OAuth token limited to the scopes the user switched on; never pass API keys or auth headers. `endpoint` is the path under `https://apis.roblox.com`. Find endpoints from `https://create.roblox.com/docs/cloud/llms.txt` with `http_get` (each page lists `**Scopes:**`).
+- **Where:** Assistant > ... > Settings > MCP Permissions tab, or click MCP in Studio's bottom-right corner. Saved per user and per game; collaborators set their own; only the user can change them. A local `.rbxl` shows "Save to Roblox to manage MCP permissions": a scratch place opened from a file has none, so test Open Cloud and data stores in a place saved to Roblox. The Access level dropdown offers presets and Custom (preset names not checked).
+- **Sections and scopes** (the dialog shows each scope as a "capability"):
+
+  | Section | Scopes | Unlocks |
+  |---|---|---|
+  | Look at your game | `universe:read`, `universe.place:read`, `universe.analytics:read`, `universe.place.instance:read` | Settings, configs, version history, analytics |
+  | Edit your game | `universe:write`, `universe.place:write`, `universe.place.instance:write` | Settings, configs, experiments, **publishing and server restarts** |
+  | Players & social (the skill calls it Users, groups & events) | `user.*`, `group:*`, `group-forum:read`, `universe.event:*`, `creator-store-save:*` | Profiles, inventory, notifications, groups, game events |
+  | Save & load data | `universe-datastores.*`, `universe.ordered-data-store.*`, `memory-store.*` | `DataStoreService` and `MemoryStoreService` from `execute_luau` (never through Open Cloud) |
+  | Connect to the internet | the `Network` script capability plus an HTTP domain allowlist; `universe-messaging-service:publish` | HTTP from Luau; cross-server messages |
+  | Publish & manage assets | `asset:*`, `asset-permissions:write`, `creator-store-product:*`, `universe-places:write`, `universe.thumbnail:*` | Uploads, sharing, Creator Store, place publishing, homepage thumbnails |
+  | Money & monetization | `developer-product:*`, `game-pass:*`, `ad.campaign:*`, `ad.billing:read`, `universe.subscription-product.subscription:read` | Products and passes with prices, ads |
+  | Player consequences | `universe.user-restriction:*` | Bans |
+  | Security & credentials | `universe.secret:*`, `universe.place.luau-execution-session:*` | Secrets, cloud Luau |
+
+- **Never grantable over MCP:** badge scopes, `legacy-*` scopes, `universe-datastores.control:*`, `universe-datastores.objects:create`, analytics alerts. Use an API key (`roblox-release-automation` section 2) or Creator Dashboard.
+- **Probe before acting:** `open_cloud_invoke(method: "GET", endpoint: "/cloud/v2/universes/<GameId>", scopes: [...])`. A missing scope fails at the token step before anything is sent, so it is safe for write scopes; it stops at the first missing one, and a misspelled scope fails the same way. Upload folders, the HTTP allowlist and the Studio API access setting cannot be probed: ask up front.
+- **Ask** in one message for the exact section and toggle, what it unlocks and why. Sensitive toggles get their own clear yes: money (`developer-product:write`, `game-pass:write`, `ad.campaign:write`, `ad.billing:read`), players (`universe.user-restriction:write`, `user.user-notification:write`), security (`universe.secret:write`, `universe.place.luau-execution-session:write`), publishing and sharing (`universe:write`, `universe-places:write`, `asset-permissions:write`, `creator-store-product:write`).
+- **Errors:**
+
+  | Result | Meaning | Do |
+  |---|---|---|
+  | "Scope '<scope>' has not been granted" | Toggle off or name misspelled | Ask for that toggle |
+  | 403 or 401 from the endpoint, probe passes | The endpoint does not accept the MCP token | Do not ask again; use a Studio tool or Creator Dashboard (or an API key if the user has one for this). 401: retry once first, each call gets a fresh token |
+  | Business reason (for example no ad account) | The permission worked | Explain what is missing |
+  | Data store `502 ... Access forbidden` | Save & load data scope off (reads `universe-datastores.objects:read`, writes `:update`) | Ask for it |
+  | Data store 403 "API access is not enabled" | Game setting, not MCP | Game Settings > Security > Enable Studio Access to API Services |
+  | MemoryStore `InternalError` | Usually `memory-store.*` off | Probe it |
+  | "HttpService request denied: domain ... is not in the Assistant HTTP allowlist" | Domain not allowed | User adds it under Connect to the internet |
+  | "lacking capability <capability>" | Only `Network` can be granted | Say so |
+  | "MessagingService can only be executed by game server" | No Studio route | Tell the user |
+
+- **Uploads:** `files` takes up to 5 asset files of 20 MB each (bmp, fbx, glb, gltf, jpg, png, rbxm, rbxmx, tga, mp3, ogg, wav, flac, mov, mp4) from a folder the user approved; never copy or move a file to get around that. Uploads are permanent (Open Cloud cannot delete or archive models or images; Creator Dashboard only), go to the game's owner (the group for a group game) and through moderation. Ask before uploading; asset uploads return an operation to poll.
+- **Never work around a block:** no playtest or game code to run a blocked operation, no other endpoint, domain or context for the same effect, no API key to get past a toggle the user turned off. Using a Studio tool after an endpoint refused a granted scope is fine.
+- Built-in skills from the same update: `rbx-open-cloud-usage`, `rbx-permissions`, `rbx-import-asset` (GLB or FBX from Blender or another tool, then fixes scale, rotation, textures and anchoring; `roblox-blender-export` section 5).
 - Same update: a playtest started from an MCP client no longer brings Studio to the front; each place gets a new Studio ID when you switch places; Studio shows the MCP status in its bottom-right corner.
 
 ## 2. Tool map (built-in server)
