@@ -69,8 +69,9 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
   | gold | 255,240,130 | 240,170,20 | 150,95,0 |
   | blue | 120,215,255 | 20,125,240 | 10,65,160 |
 
+- Build a face as a white `BackgroundColor3` plus a vertical `UIGradient` from the top to the bottom color: the gradient multiplies the base color, so a colored base comes out darker (`roblox-engine-2026` section 2).
 - Panels:
-  - Body: dark `13,17,23`. Over a bright 3D world, 60% opacity reads see-through, so big bodies go 90% or more opaque.
+  - Body: dark navy `23,25,40` (sampled from the section 9 screens). Over a bright 3D world, 60% opacity reads see-through, so big bodies go 90% or more opaque.
   - Outline: black UIStroke 5-7.
   - Corners: UICorner 14-30.
   - One colored header band per panel (orange, blue or purple).
@@ -155,7 +156,7 @@ Each of these is a defect:
 - more than 2 fonts, or corner radii outside section 2 (one value per kind from the table; panels 14-30 px, the same on every panel);
 - stat text with a panel behind it;
 - HUD elements over 15% of screen height on desktop or over 72 px on a phone (except panels and offers);
-- near-black navy giant panels;
+- a giant dark panel, or one with no colored header band, black outline and lighter inner cards (the section 9 panels are dark navy, but framed, banded and full of saturated parts);
 - flat 1990s-style UI in a simulator (plain flat boxes, thin or no outline, no lip, no gradient): use the stud house style of the section 9 screens (owner rule);
 - pills everywhere;
 - one size of button for every importance;
