@@ -1,0 +1,82 @@
+{
+  "type": "vfx",
+  "schema_version": "1.0.0",
+  "title": "Effects: rarity tier ladder, aura and particle limits, VFX house rules",
+  "scope": "every genre with rewards, rolls or effects",
+  "sources": ["roblox-fun-effects#3", "roblox-fun-effects#5", "roblox-feel-audio-vfx#3", "roblox-feel-audio-vfx#5"],
+  "data": {
+    "tiers": [
+      {
+        "rank": {"v": 1, "p": "opinion"}, "name": {"v": "Common", "p": "opinion"}, "example_odds": {"v": "1 in 1-10", "p": "opinion"},
+        "look": {"v": "grey, white", "p": "opinion"}, "effect": {"v": "none", "p": "opinion"},
+        "reveal_s": {"v": [0.3, 0.6], "p": "opinion"}, "seen_by": {"v": "self", "p": "opinion"}
+      },
+      {
+        "rank": {"v": 2, "p": "opinion"}, "name": {"v": "Uncommon", "p": "opinion"}, "example_odds": {"v": "1 in 10-100", "p": "opinion"},
+        "look": {"v": "green", "p": "opinion"}, "effect": {"v": "small pop (5-10 particles)", "p": "opinion"},
+        "reveal_s": {"v": [0.6, 1.0], "p": "opinion"}, "seen_by": {"v": "self", "p": "opinion"}
+      },
+      {
+        "rank": {"v": 3, "p": "opinion"}, "name": {"v": "Rare", "p": "opinion"}, "example_odds": {"v": "1 in 100-1k", "p": "opinion"},
+        "look": {"v": "blue", "p": "opinion"}, "effect": {"v": "burst + rim glow", "p": "opinion"},
+        "reveal_s": {"v": [1.0, 1.5], "p": "opinion"}, "seen_by": {"v": "self, nearby", "p": "opinion"}
+      },
+      {
+        "rank": {"v": 4, "p": "opinion"}, "name": {"v": "Epic", "p": "opinion"}, "example_odds": {"v": "1 in 1k-10k", "p": "opinion"},
+        "look": {"v": "purple", "p": "opinion"}, "effect": {"v": "burst + 1 aura emitter", "p": "opinion"},
+        "reveal_s": {"v": [1.5, 2.5], "p": "opinion"}, "seen_by": {"v": "small toast", "p": "opinion"}
+      },
+      {
+        "rank": {"v": 5, "p": "opinion"}, "name": {"v": "Legendary", "p": "opinion"}, "example_odds": {"v": "1 in 10k-1M", "p": "opinion"},
+        "look": {"v": "gold", "p": "opinion"}, "effect": {"v": "burst + aura + trail + camera kick", "p": "opinion"},
+        "reveal_s": {"v": [2.5, 4.0], "p": "opinion"}, "seen_by": {"v": "server toast", "p": "opinion"}
+      },
+      {
+        "rank": {"v": 6, "p": "opinion"}, "name": {"v": "Mythic", "p": "opinion"}, "example_odds": {"v": "1 in 1M+", "p": "opinion"},
+        "look": {"v": "animated gradient, unique shape", "p": "opinion"}, "effect": {"v": "full sequence + unique sound", "p": "opinion"},
+        "reveal_s": {"v": [4.0, 6.0], "p": "opinion"}, "seen_by": {"v": "server banner", "p": "opinion"}
+      },
+      {
+        "rank": {"v": 7, "p": "opinion"}, "name": {"v": "Top", "p": "opinion"}, "example_odds": {"v": "above a set line", "p": "opinion"},
+        "look": {"v": "unique per item", "p": "opinion"}, "effect": {"v": "short scene (roblox-cinematics rules)", "p": "opinion"},
+        "reveal_s": {"v": [0.0, 8.0], "p": "opinion"}, "seen_by": {"v": "all servers (optional)", "p": "opinion"}
+      }
+    ],
+    "tier_settings": {
+      "skip_reveal_below_tier_default": {"v": 3, "p": "opinion", "src": "popular RNG aura games ship it, community wikis"},
+      "hide_announcements_below_tier": {"v": true, "p": "opinion"}
+    },
+    "aura": {
+      "max_emitters_per_player": {"v": 2, "p": "opinion"},
+      "max_trails_per_player": {"v": 1, "p": "opinion"},
+      "live_particles_per_emitter": {"v": 40, "p": "opinion", "src": "Rate x Lifetime"},
+      "highlights": {"v": false, "p": "opinion"},
+      "lights_from_tier": {"v": 5, "p": "opinion"},
+      "distance_lod": {"v": "full near, 1 emitter mid, off far", "p": "opinion"},
+      "test_players": {"v": 20, "p": "opinion", "src": "top aura on the low-end phone profile"}
+    },
+    "particles": {
+      "per_emitter_per_s_max": {"v": 400, "p": "documented"},
+      "per_emitter_per_s_mobile_max": {"v": 100, "p": "documented"},
+      "readable_size_studs_at_40_100": {"v": [1.8, 3.0], "p": "field", "date": "2026-11-04", "src": "1-1.5 stud stars all but vanished"},
+      "additive_layer": {"v": {"LightEmission": 1, "LightInfluence": 0}, "p": "field", "date": "2026-11-04"},
+      "flipbook_layouts": {"v": ["2x2", "4x4", "8x8", "Custom"], "p": "documented"},
+      "flipbooks_drop_on_low_memory": {"v": true, "p": "documented", "src": "an effect must still read without its flipbook"},
+      "time_scale_range": {"v": [0, 1], "p": "documented", "src": "hit stop"}
+    },
+    "camera": {
+      "shake_combine": {"v": "max, never sum; clamp", "p": "field"},
+      "shake_sources": {"v": "only the followed object or the player's own actions", "p": "field"},
+      "off_switch": {"v": true, "p": "opinion"}
+    },
+    "budgets": {
+      "first_release_unique_sounds_max": {"v": 20, "p": "opinion"},
+      "feedback_channels_per_frequent_action": {"v": 2, "p": "opinion"}
+    },
+    "rules": {
+      "vfx_source": {"v": "VFX are Blender meshes plus gradient or flipbook textures. No block tiles and no default sparkles (the Sparkles object or the built-in rbxasset://textures/particles textures).", "p": "opinion", "src": "owner rule, 2026-11-05"},
+      "burst_not_constant": {"v": "burst on events; destroy or disable emitters when done; cap effects per player and per server", "p": "opinion"},
+      "night_sky": {"v": "fewer, brighter additive layers; dark semi-transparent layers render muddy", "p": "field", "date": "2026-11-04"}
+    }
+  }
+}

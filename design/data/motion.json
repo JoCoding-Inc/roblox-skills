@@ -1,0 +1,38 @@
+{
+  "type": "motion",
+  "schema_version": "1.0.0",
+  "title": "UI motion: panel open and close, button feedback, counters, idle motion, rules",
+  "scope": "every genre; values are the stud-style defaults",
+  "sources": ["roblox-ui-genre-studs#5", "roblox-ui-typography#4"],
+  "data": {
+    "panel_open": {
+      "from_scale": {"v": 0.85, "p": "opinion"},
+      "to_scale": {"v": 1.0, "p": "opinion"},
+      "easing": {"v": "Back/Out", "p": "opinion"},
+      "duration_s": {"v": [0.25, 0.38], "p": "opinion"}
+    },
+    "panel_close": {
+      "duration_s": {"v": 0.18, "p": "opinion"}
+    },
+    "button": {
+      "hover_scale": {"v": 1.06, "p": "opinion"},
+      "press_scale": {"v": [0.92, 0.94], "p": "opinion"},
+      "duration_s": {"v": 0.12, "p": "opinion"},
+      "via": {"v": "UIScale child; AutoButtonColor = false", "p": "opinion"}
+    },
+    "number_count_up_s": {"v": 0.45, "p": "opinion"},
+    "float": {
+      "distance_px_min": {"v": 10, "p": "opinion", "src": "each way, images only"},
+      "period_s": {"v": [0.9, 1.2], "p": "opinion"}
+    },
+    "idle_rotate_deg": {"v": 8, "p": "opinion", "src": "+-8, never inside a ScrollingFrame"},
+    "badge_attention": {"v": "wobble or pulse color, never size", "p": "opinion"},
+    "stroke_scaling": {"v": "UIStroke x viewport height / 1080 (min 1), or StrokeSizingMode = ScaledSize on text", "p": "documented"},
+    "rules": {
+      "animate_uiscale_not_size": {"v": true, "p": "opinion"},
+      "never_scale_text_continuously": {"v": true, "p": "documented", "src": "text steps between whole font sizes"},
+      "never_tween_stroke_thickness_or_text_size": {"v": true, "p": "documented", "src": "every in-between size renders new glyphs"},
+      "honor_reduced_motion": {"v": "GuiService.ReducedMotionEnabled", "p": "documented"}
+    }
+  }
+}

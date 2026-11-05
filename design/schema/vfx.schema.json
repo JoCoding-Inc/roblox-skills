@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JoCoding-Inc/roblox-skills/design/schema/vfx.schema.json",
+  "title": "Effects: rarity tier ladder, aura and particle limits, VFX house rules",
+  "type": "object",
+  "required": [
+    "type",
+    "schema_version",
+    "title",
+    "scope",
+    "sources",
+    "data"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "type": {
+      "const": "vfx"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "tiers",
+        "aura",
+        "particles",
+        "rules"
+      ],
+      "properties": {
+        "tiers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "rank",
+              "name",
+              "look",
+              "effect",
+              "reveal_s",
+              "seen_by"
+            ],
+            "properties": {
+              "rank": {
+                "$ref": "#/$defs/num"
+              },
+              "name": {
+                "$ref": "#/$defs/text"
+              },
+              "look": {
+                "$ref": "#/$defs/text"
+              },
+              "effect": {
+                "$ref": "#/$defs/text"
+              },
+              "reveal_s": {
+                "$ref": "#/$defs/range"
+              },
+              "seen_by": {
+                "$ref": "#/$defs/text"
+              },
+              "example_odds": {
+                "$ref": "#/$defs/text"
+              }
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/leaf"
+            }
+          }
+        },
+        "aura": {
+          "$ref": "#/$defs/node"
+        },
+        "particles": {
+          "$ref": "#/$defs/node"
+        },
+        "camera": {
+          "$ref": "#/$defs/node"
+        },
+        "budgets": {
+          "$ref": "#/$defs/node"
+        },
+        "tier_settings": {
+          "$ref": "#/$defs/node"
+        },
+        "rules": {
+          "$ref": "#/$defs/node"
+        }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "provenance": {
+      "enum": [
+        "measured",
+        "documented",
+        "field",
+        "opinion"
+      ],
+      "description": "measured: we measured it (engine source, pixels on reference frames, store API, tested in Studio); documented: Roblox docs or staff posts; field: observed while shipping a game (dated when known); opinion: judgment, house style, owner rule or community starting value"
+    },
+    "leaf": {
+      "type": "object",
+      "required": [
+        "v",
+        "p"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "v": {
+          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a size"
+        },
+        "p": {
+          "$ref": "#/$defs/provenance"
+        },
+        "src": {
+          "type": "string",
+          "description": "where the value came from or a short qualifier"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}(-[0-9]{2})?$"
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    },
+    "num": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/leaf"
+        },
+        {
+          "properties": {
+            "v": {
+              "type": "number"
+            }
+          }
+        }
+      ]
+    },
+    "range": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/leaf"
+        },
+        {
+          "properties": {
+            "v": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          }
+        }
+      ]
+    },
+    "numOrRange": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/num"
+        },
+        {
+          "$ref": "#/$defs/range"
+        }
+      ]
+    },
+    "rgbValue": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "rgb": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/leaf"
+        },
+        {
+          "properties": {
+            "v": {
+              "$ref": "#/$defs/rgbValue"
+            }
+          }
+        }
+      ]
+    },
+    "text": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/leaf"
+        },
+        {
+          "properties": {
+            "v": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "textList": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/leaf"
+        },
+        {
+          "properties": {
+            "v": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
