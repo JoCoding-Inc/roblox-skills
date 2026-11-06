@@ -71,7 +71,7 @@
       "min_text_size": {"v": 9, "p": "documented"}
     },
     "thin_weights_avoid_below_px": {"v": 24, "p": "field", "src": "below about size 24; jagged since the July 2026 FreeType update, staff and community reports"},
-    "text_over_world": {"v": "UIStroke or UIShadow; check against the brightest and darkest spot", "p": "opinion"},
+    "text_over_world": {"v": "UIStroke or an offset label copy as a shadow (UIShadow text mode is still beta); check against the brightest and darkest spot", "p": "opinion"},
     "visible_strokes_max": {"v": 300, "p": "documented", "src": "staff guidance, under about 300", "date": "2025-09-25"},
     "rich_text_tags": {"v": ["b", "i", "stroke", "font", "uc", "sc", "mark", "br"], "p": "documented"}
   }
