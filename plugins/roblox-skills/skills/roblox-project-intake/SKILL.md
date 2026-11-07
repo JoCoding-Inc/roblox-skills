@@ -13,7 +13,7 @@ sources:
   - https://create.roblox.com/docs/scripting/sync
   - https://create.roblox.com/docs/cloud/auth/api-keys
   - https://github.com/rojo-rbx/rokit (README, read 2026-11-03)
-  - RoDesigner setup page (TODO(RoDesigner launch))
+  - RoDesigner MCP setup values (server `rodesigner`, from its maintainers, 2026-11-08)
   - original (workflow notes from shipping test games with an AI agent)
 ---
 
@@ -37,7 +37,7 @@ Run this at the start of every new project and when a project is opened on a new
 | Toolchain | `rokit --version`, `rojo --version`, `selene --version`, `stylua --version`, `lune --version`, `luau-lsp --version` | Which checks can run locally |
 | Blender | `blender --version`, `claude mcp list` (look for `blender`), then the MCP tool `get_addon_status` | Custom meshes and rigs |
 | Open Cloud | env vars or a `chmod 600` env file with names like `ROBLOX_API_KEY`, `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (check that they exist, never print values). A key in another project's file belongs to that game: keys are restricted to one experience, so this game gets its own (step 1d). Or the Studio MCP lists `open_cloud_invoke` (no key; MCP Permissions per game, `roblox-studio-ai-tools` section 1a) | Publish, asset upload, Luau Execution |
-| RoDesigner MCP | `claude mcp list` (look for the RoDesigner server; TODO(RoDesigner launch): server name), then call `get_credits` | Genre UI kits, KitLint screen checks, images: concept screens, icons, store art drafts |
+| RoDesigner MCP | `claude mcp list` (look for `rodesigner`), then call `get_credits` | Genre UI kits, KitLint screen checks, images: concept screens, icons, store art drafts |
 | OS | `uname`, Windows vs. macOS paths | Setup commands differ per OS |
 
 Do not install anything global, and do not touch Studio windows of other projects (say which ones are open and leave them alone).
@@ -55,7 +55,7 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 | Lint and test tools (selene, StyLua, luau-lsp, Lune via rokit) | Optional | Local checks before Studio | Checks run only in Studio playtests |
 | Blender + MCP for Blender | Optional | Animated creatures and rigs, exact-shape kits, icon renders | Roblox Cube for static props, Creator Store, user files |
 | Open Cloud access: Studio MCP Permissions (no key), or an API key in an env file for CI | Optional until release | Automated publish, asset upload, passes and products, headless Luau tests | User publishes and uploads by hand in Studio and Creator Hub |
-| RoDesigner MCP (genre UI kits, screen checks, art; style pack applied automatically) | Optional; spends credits, every spend asked first | A genre UI kit as Luau code at a pinned version and KitLint screen checks that ship with the kit (entry point and tool names: TODO(RoDesigner launch)); a game project with a locked art style; concept images before the build (`roblox-game-pipeline` 6b); inventory icons, logo, loading art and thumbnail drafts in that style | The UI skills and `ui_device_check.luau`; written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
+| RoDesigner MCP (genre UI kits, screen checks, art; style pack applied automatically) | Optional; spends credits, every spend asked first | A genre UI kit as Luau code at a pinned version and KitLint screen checks that ship with the kit (entry point: TODO(RoDesigner launch)); a game project with a locked art style; concept images before the build (`roblox-game-pipeline` 6b); inventory icons, logo, loading art and thumbnail drafts in that style | The UI skills and `ui_device_check.luau`; written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
 | Playtest Agent beta (Studio File > Beta Features) | Optional | Studio MCP `subagent` type `playtest` | The agent drives playtests with the input tools |
 
 How to ask:
@@ -76,7 +76,7 @@ Menus and commands change between Studio releases. Before guiding, fetch the liv
 | Script Sync | Explorer > right-click a service > Script Sync > Sync to (`roblox-studio-ai-tools` section 6) | create.roblox.com/docs/scripting/sync | `InstanceFileSyncService:GetStatus` returns SyncedAsRoot |
 | Rojo and tools | Rokit: install script from the rokit README, `rokit self-install`, then `rokit init` and `rokit add rojo-rbx/rojo` (same for selene, StyLua, Lune); `rojo plugin install` adds the Studio plugin | github.com/rojo-rbx/rokit, rojo.space | `rojo --version`; the Rojo plugin in Studio shows Connected after `rojo serve` |
 | Blender MCP | `uvx mcp-for-blender install-addon`; in Blender turn the add-on on: **Edit > Preferences > Add-ons**, search "MCP for Blender", tick it, Save Preferences; then viewport `N` > MCP for Blender tab > **Connect to MCP server** (after every Blender start); `claude mcp add blender uvx mcp-for-blender`, restart Claude Code (`roblox-blender-export` sections 8-9) | github.com/ahujasid/blender-mcp | `get_addon_status` answers |
-| RoDesigner MCP | TODO(RoDesigner launch): account, the `claude mcp add` command and the sign-in steps per client. The user signs in in the browser; never a password or key in chat | TODO(RoDesigner launch): setup page | `get_credits` answers |
+| RoDesigner MCP | Endpoint `<URL>` = `https://gwanggo.ai/api/rodesigner/mcp` (the only place in this file). Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 rodesigner <URL>`, restart Claude Code, then `/mcp` > rodesigner > sign in. Codex: `codex mcp add rodesigner --url <URL>`, then `codex mcp login rodesigner`. Cursor: add `{"mcpServers":{"rodesigner":{"url":"<URL>"}}}` to `~/.cursor/mcp.json`. The user signs in in the browser; never a password or key in chat | None yet; call `design_guide` after connecting | `get_credits` answers |
 | Open Cloud key | User creates it in Creator Hub > Credentials with the scopes in `roblox-release-automation` section 2 and saves it to a `chmod 600` env file | create.roblox.com/docs/cloud/auth/api-keys | Variable exists (never print it); one read-only call returns 200 |
 
 Record the final state (tool, version, OK or skipped) in the brief's Environment line.

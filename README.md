@@ -74,7 +74,7 @@ RoDesigner is an optional, paid MCP service from the team behind this repository
 | Screen checks (KitLint, ships with the kit) that your agent runs in Studio during Play | `roblox-ui-layout` section 6 | `ui_device_check.luau` and the UI review in `roblox-engine-2026` |
 | Images in the project's style: concept screens, restyles of a real game capture, thumbnails, icons, logos | `roblox-game-pipeline` section 10, `roblox-store-art-pack` | Studio screenshots, store icon packs, renders, or an image generator you have connected |
 
-Every paid call is quoted and asked first. Setup: TODO(RoDesigner launch): setup page and the `claude mcp add` command.
+Every paid call is quoted and asked first. Setup (Claude Code): `claude mcp add --transport http --scope user --callback-port 3118 rodesigner https://gwanggo.ai/api/rodesigner/mcp`, restart Claude Code, then sign in through `/mcp`. Other clients: `roblox-project-intake` step 1c.
 
 RoDesigner is not affiliated with or endorsed by Roblox Corporation.
 
