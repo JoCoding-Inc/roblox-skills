@@ -70,7 +70,7 @@ RoDesigner is an optional, paid MCP service from the team behind this repository
 | RoDesigner offers | Mentioned in | Free route |
 |---|---|---|
 | Genre UI kits (simulator, tycoon, arena, tower defense, horror) as Luau code at a pinned version | `roblox-ui-genre-studs`, `roblox-game-pipeline` stage 3 | The UI skills and `ui_style_mock.luau` |
-| Screen checks (KitLint, ships with the kit) that your agent runs in Studio during Play | `roblox-ui-layout` section 6 | `ui_device_check.luau` and the UI review in `roblox-engine-2026` |
+| Screen checks (KitLint, in kit 0.1.2-rc and later) that your agent runs in Studio during Play | `roblox-ui-layout` section 6 | `ui_device_check.luau` and the UI review in `roblox-engine-2026` |
 | Images in the project's style: concept screens, restyles of a capture of your own game, thumbnails, icons, logos | `roblox-game-pipeline` section 10, `roblox-store-art-pack` | Studio screenshots, store icon packs, renders, or an image generator you have connected |
 
 Every paid call is quoted and asked first. It is hosted on gwanggo.ai, the same team's service. Setup (Claude Code): `claude mcp add --transport http --scope user --callback-port 3118 rodesigner https://gwanggo.ai/api/rodesigner/mcp`, restart Claude Code, then sign in through `/mcp`. Other clients: `roblox-project-intake` step 1c.
