@@ -1,7 +1,7 @@
 ---
 name: roblox-design-and-launch
 description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization."
-when_to_use: "Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, or when asked what Roblox pays creators."
+when_to_use: "Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, when adding analytics events (AnalyticsService economy, funnel, journey or custom events), or when asked what Roblox pays creators."
 last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/production/roblox-user-base
@@ -34,6 +34,7 @@ sources:
   - https://create.roblox.com/docs/production/publishing/thumbnails
   - https://create.roblox.com/docs/generative-AI
   - https://create.roblox.com/docs/production/analytics
+  - https://create.roblox.com/docs/production/analytics/event-types (and the economy, funnel, journey, custom-events, custom-fields pages; read 2026-11-06)
   - original field notes (2026-10 to 2026-11)
 ---
 
@@ -101,7 +102,16 @@ Re-measure the M rows with the `roblox-launch-benchmarks` scripts before quoting
 | Creator Rewards | Robux for Daily Engagement and Audience Expansion | Replaced Engagement-Based Payouts on 2025-07-24. Daily Engagement: 5 Robux per Active Spender per day who plays 10+ minutes in one of your first 3 experiences that day (Active Spender = at least 9.99 USD of qualifying purchases in 60 days). Audience Expansion: 35 percent of the first 100 USD a new or returning user spends in 60 days; needs 100+ average DAU. Earned Robux with a 60-day hold |
 | Roblox Plus | Subscribers get 10-20 percent discounts (Roblox covers it, your earnings are not reduced) | You can earn for driving Plus sign-ups (up to 750 Robux each) and paid private server time (up to 100 Robux per subscriber per month). **Never hard-code prices in shop UI:** a Plus subscriber would see the wrong price. Read `MarketplaceService:GetProductInfoAsync` (`PriceInRobux` = what this player pays, `UserBasePriceInRobux` = original) or `GetDeveloperProductsAsync` |
 | Robux transfers | Player sends 10-500 Robux through `PromptRobuxTransferAsync` | The game earns 10 percent (DevEx-eligible); the sender must be a Plus subscriber (docs `robux-transfers`) |
-| Sponsored ads (Ads Manager) | You pay to promote your game | Goals: Plays, Earnings (ROAS, counts Creator Rewards, ads and product revenue) and Engagement. Up to 10 thumbnails per campaign are shown evenly, a built-in creative test. Ads do not change RFY rank. More than 70 percent of the top 100 games run sponsored ads (Q3 2026 earnings call, read via a third-party transcript). Sponsored tiles now also reach users 13 and under (DevForum Ads Manager recap, 2026-10-02) |
+| Sponsored ads (Ads Manager) | You pay to promote your game | Goals: Plays, Earnings (ROAS, counts Creator Rewards, ads and product revenue) and Engagement. Up to 25 image creatives per campaign (the campaign panel shows 0/25, 2026-11-05; the docs still say 10) are shown evenly, a built-in creative test. Ads do not change RFY rank. More than 70 percent of the top 100 games run sponsored ads (Q3 2026 earnings call, read via a third-party transcript). Sponsored tiles now also reach users 13 and under (DevForum Ads Manager recap, 2026-10-02) |
+
+Sponsored campaign setup (one game's first campaign, 2026-11-05; "seen" = in the Ads Manager UI, "docs" = `production/promotion/ads-manager`):
+
+- **Account:** the Ads Manager account belongs to the group that owns the game, and the time zone picked at creation applies to every date and time (seen). A card needs an 18+ account and takes a temporary 1 USD hold (docs).
+- **Objective:** Engagement (beta, aims at the Kids & Select reach threshold) locks the audience to All players and closes advanced targeting; Plays keeps targeting; Earnings can show "coming soon" (seen). The Recent audience needs 10,000+ recent players, Lapsed 20,000+ (docs).
+- **Budget:** the payment method cannot change after publishing (docs). "Run continuously" and auto-reload are both on by default, so nothing caps the spend: for a test set an end date, which makes days x daily budget the maximum (seen).
+- **Creatives:** upload them to the asset library early (up to 10 files at a time, moderation usually within 48 h, docs); a campaign stays "Scheduled" until its review passes, which takes about 24 h (docs, seen). Images show at 16:9; keep key text off the bottom edge. AI generate (beta) makes 3 variations at 1344x756 per run against a "100/100" run counter and takes reference images only by asset library id (an image id uploaded through Open Cloud errors). In one test it added the game title by itself, ignored text asked for in the prompt, letterboxed one variation and drew an arrow backwards: use it for drafts and check every image (seen).
+- **Join options:** the start place defaults to the root place. Launch data needs `Player:GetJoinData().LaunchData` handling in the game and is visible in the join URL, so players can share it; leave it empty without that code (docs, seen).
+- **After launch:** the first 24 h show as "Learning" (docs; staff posts say 24-48 h); pausing or big edits restart learning (staff), so leave the campaign alone. Report data can lag up to 48 h (docs).
 
 Other rules: **paid random items** include probability modifiers (luck boosts such as "2x Luck" passes, pity systems, rate-up items, enhanced drops). Odds must be numeric, sum to exactly 100 percent, show before the spend and update while a boost is active; a long list may sit behind a button labelled "Info" or "Details" (a bare (i) icon does not qualify). Build the odds UI from the same table that rolls. The rules also cover indirect purchases (keys, reroll tokens or spin tickets bought with Robux or paid currency); free random rewards earned by play need no odds. Check `PolicyService:GetPolicyInfoForPlayerAsync` (`ArePaidRandomItemsRestricted`) and give restricted players one of the docs' treatments: a free earnable path, a fixed order disclosed before purchase, direct purchase priced on expected value, hiding the item, blocking with a message, or keeping them out of that area. When `IsPaidItemTradingAllowed` is false, the player cannot trade paid items or their outcomes (docs `paid-random-items`). Reveal and rarity design: `roblox-fun-effects`. Fake urgency timers and always-on "sales" are banned; paid access costs 25-1000 Robux (or local-currency tiers) and excludes private servers; developer product price 1 to 1 billion Robux; managed regional pricing runs 30-100 percent of the default and is on by default for new passes and products.
 
@@ -115,14 +125,63 @@ Design rules: never block the core loop behind a purchase; do not give Premium o
 
 ## 3. Analytics and live ops
 
-- Creator Dashboard analytics: engagement, retention (D1/D7 and beyond), monetization, acquisition, performance, crashes, demographics; custom events, funnel events, economy events, custom dashboards and alerts.
-- Economy events use Source/Sink with transaction types IAP, TimedReward, Onboarding, Shop, Gameplay, ContextualPurchase; funnels up to 10 x 100 steps. Configs: up to 1,000 active configs, 100 conditions; read with `ConfigService:GetConfigAsync`/`GetConfigForPlayerAsync`; publish takes 15-60 s. Experiments run 14-60 days, 2 variants plus control, metrics D1, D7, playtime, ARPU, ARPPU, payer conversion.
-- Instrument before launch: onboarding funnel steps, first purchase, session length, quit points, economy sources and sinks.
+- Creator Dashboard analytics: engagement, retention (D1/D7 and beyond), monetization, acquisition, performance, crashes, demographics; custom, funnel, journey and economy events (section 3a), custom dashboards and alerts.
+- Configs: up to 1,000 active configs, 100 conditions; read with `ConfigService:GetConfigAsync`/`GetConfigForPlayerAsync`; publish takes 15-60 s. Experiments run 14-60 days, 2 variants plus control, metrics D1, D7, playtime, ARPU, ARPPU, payer conversion.
+- Instrument before launch: the minimum event set in section 3a.
 - **Experiment guard rails (O):** Early Harm Detection watches the first 24 h and flags critical harm at -10% playtime, -20% ARPU or -20% payer conversion; it needs 10,000 enrolled users. A sample-ratio-mismatch (SRM) banner means stop and restart. Under about 1,000 DAU an experiment rarely reaches significance, so ship clear wins and watch the dashboard instead. `GetConfigAsync` does not apply experiment variants; use `GetConfigForPlayerAsync`.
 - Creator Hub has benchmark sets (Similar experiences / Genre) and retention by acquisition source; benchmarks do not affect ranking. Do not compare play-through rate across 2026-10-12: a measurement change raised impressions and slightly lowered PTR (Roblox says RFY was unchanged).
 - **Experiments** (A/B tests) and **Configs** (remote values) ship balance and UI changes safely. Open Cloud exposes both for automation (configs API is beta, experiments API experimental, so expect changes; configs publish is limited to 10 per minute).
 - `RecommendationService` lets you build in-game recommendation carousels (register items, log one impression per item per session, log quality actions, fetch).
 - Live ops plan: a content cadence, events (Experience Events), and a weekly review of retention, funnel and error reports. Write the **first 4 weeks** before launch: one repeatable drop type (weekly-to-monthly, built on existing systems), one timed event announced as an Experience Event, one limited item or restock; check it against the holiday calendar. Chart games update constantly: 35 of 37 with 20K+ players had updated within 7 days (M, 2026-11-03), and seasonal events with a pass can lift an evergreen game sharply (MM2 +146% Sep to Oct 2026, V).
+
+## 3a. Event tracking (AnalyticsService)
+
+Docs `production/analytics/event-types` and its economy, funnel, journey, custom-events and custom-fields pages, plus the `AnalyticsService` reference, read 2026-11-06. Each type unlocks its own Creator Hub page; all are free.
+
+| Type | Call (server) | Answers |
+|---|---|---|
+| Economy | `LogEconomyEvent(player, Enum.AnalyticsEconomyFlowType.Source or .Sink, currency, amount, balanceAfter, transactionType, itemSku?, customFields?)` | Where each currency is earned and spent, average wallet |
+| Funnel, one-time | `LogOnboardingFunnelStepEvent(player, step, stepName?, customFields?)` | Where new players drop off |
+| Funnel, recurring | `LogFunnelStepEvent(player, funnelName, funnelSessionId, step, stepName?, customFields?)` | Where a repeatable flow (shop, upgrade) is abandoned |
+| Journey | `LogJourneyEvent(player, journeyName, nodeName, journeySessionId?, customFields?)` | Which branch players take when steps can come in any order (onboarding choices, quests, several routes to checkout) |
+| Custom | `LogCustomEvent(player, eventName, value?, customFields?)` | Anything else: button use, ability use, mission time |
+
+**Rules:**
+- Events arrive only from the server of a published game, never from the client or Studio. Test in a published test place and check the near real-time **View Events** list on the Economy, Funnel or Custom page; charts take about 24 h. Tracking errors show in the error report.
+- Log after the action succeeded (the purchase went through, not the attempt). When the client reports a step through a remote, check it on the server before logging (`roblox-engine-2026` section 4).
+- Economy: the amount is always positive (the dashboard shows sinks as negative), and the balance is the one after the transaction. Start with the default transaction types (`IAP`, `TimedReward`, `Onboarding`, `Shop`, `Gameplay`, `ContextualPurchase`, as `Enum.AnalyticsEconomyTransactionType.X.Name`).
+- Funnels:
+  - A step counts once per user; repeats are ignored but still use up the rate limit.
+  - Logging a later step completes the skipped ones.
+  - Filters and the date cohort come from the first step. To start at join, log step 1 in `PlayerAdded`.
+  - A recurring funnel takes a new `funnelSessionId` (`HttpService:GenerateGUID()`) per attempt; only the 10 most recent ids per user and funnel are kept.
+  - After changing steps, start the dashboard date range on the change day.
+- Journeys: configure the journey first (Creator Hub > Analytics > Journeys, or a `JourneysConfig` Creator Config through Open Cloud with `universe:write`). Names must match the published config exactly. 2-10 stages of 1-10 nodes. Node names have no commas, quotes or line breaks and do not start with `__`.
+- Funnel and journey progress expires after 180 days without events.
+- Prefer custom fields to more names: one currency `XP` with the class in a field, one event `PlantSeed` with `Plant - Cabbage` in a field. Up to 3 fields, keyed `Enum.AnalyticsCustomFieldKeys.CustomField01.Name` to `03`, string values only.
+- `LogProgressionEvent` and its Start, Complete and Fail variants show in no Roblox chart yet; use a funnel or a custom event for level progress. The `Fire*` methods are deprecated.
+- `GetPlayerSegmentsAsync(player)` (server, may yield) returns coarse buckets for personalizing at runtime: payer status, new, active, lapsed or reactivated, days played in the last 7, acquisition source. With no data it returns `HasData = false` instead of throwing.
+
+**Limits (docs):**
+
+| Limit | Value |
+|---|---|
+| Requests | 120 + 20 x CCU per minute, all `AnalyticsService` calls together |
+| Custom fields | 3; past 8,000 value combinations, values group as "Other" |
+| Currencies | 5 on the economy page, 10 in the limits table (the docs disagree; plan for 5) |
+| Transaction types, item SKUs | past 20 types or 100 SKUs, values group as "Other" |
+| Funnels | 10, up to 100 steps each |
+| Custom event names | 100 |
+
+Limits reset daily, and an event's data rolls off 90 days after it was last received.
+
+**Minimum set before launch (judgment):**
+1. An onboarding funnel: join (in `PlayerAdded`), first core action, first reward, first upgrade, then each tutorial step.
+2. Economy source and sink events for every currency, with the item SKU on purchases.
+3. A shop funnel (open, view item, prompt, bought) or a shop journey when there are several routes.
+4. Custom events for the core action and each HUD button, with the variant (map, item, class) in a custom field.
+
+The Studio skill `rbx-instrument-analytics` can place the calls. Read the dashboards weekly (section 3).
 
 ## 4. Age, safety and content maturity (check before design is final)
 

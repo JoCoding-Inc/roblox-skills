@@ -1,0 +1,2408 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JoCoding-Inc/roblox-skills/design/schema/zones.schema.json",
+  "title": "Layout standard: reserved zones, zone map, insets, scale, floors, HUD zones, UI budgets",
+  "description": "Derived from the zones data by scripts/export_design_pack.py --write-schemas: every key present today is required and typed. Unknown keys are allowed everywhere (minor versions add keys); readers ignore them.",
+  "type": "object",
+  "required": [
+    "type",
+    "schema_version",
+    "title",
+    "scope",
+    "sources",
+    "data"
+  ],
+  "properties": {
+    "type": {
+      "const": "zones"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "devices",
+        "reserved",
+        "zone_map",
+        "insets",
+        "scale",
+        "floors",
+        "console",
+        "hud",
+        "budgets"
+      ],
+      "properties": {
+        "devices": {
+          "type": "object",
+          "required": [
+            "daily_users_share",
+            "phone_dpi_px",
+            "phone_safe_frame_px",
+            "docs_notched_phone_safe_frame_px",
+            "touch_controls_large_when_short_side_over_px",
+            "core_ui_small_when_height_under_px",
+            "core_ui_small_when_width_under_px",
+            "branch_on"
+          ],
+          "properties": {
+            "daily_users_share": {
+              "type": "object",
+              "required": [
+                "mobile",
+                "desktop",
+                "console"
+              ],
+              "properties": {
+                "mobile": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "desktop": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "console": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "phone_dpi_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_safe_frame_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "docs_notched_phone_safe_frame_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "touch_controls_large_when_short_side_over_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "core_ui_small_when_height_under_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "core_ui_small_when_width_under_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "branch_on": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "reserved": {
+          "type": "object",
+          "required": [
+            "top_bar",
+            "thumbstick",
+            "jump_button",
+            "hotbar",
+            "chat",
+            "player_list",
+            "emote_wheel_diameter_px",
+            "health_bar_px"
+          ],
+          "properties": {
+            "top_bar": {
+              "type": "object",
+              "required": [
+                "height_px",
+                "height_console_px",
+                "cell_px",
+                "controls_width_phone_landscape_px",
+                "controls_align"
+              ],
+              "properties": {
+                "height_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "height_console_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "cell_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "controls_width_phone_landscape_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "controls_align": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "thumbstick": {
+              "type": "object",
+              "required": [
+                "phone",
+                "large_touch",
+                "start_area_landscape_share",
+                "start_area_portrait_share"
+              ],
+              "properties": {
+                "phone": {
+                  "type": "object",
+                  "required": [
+                    "center_from_left_px",
+                    "center_from_bottom_px",
+                    "diameter_px",
+                    "keep_box_px"
+                  ],
+                  "properties": {
+                    "center_from_left_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "center_from_bottom_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "diameter_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "keep_box_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      }
+                    ]
+                  }
+                },
+                "large_touch": {
+                  "type": "object",
+                  "required": [
+                    "center_from_left_px",
+                    "center_from_bottom_px",
+                    "diameter_px",
+                    "keep_box_px"
+                  ],
+                  "properties": {
+                    "center_from_left_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "center_from_bottom_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "diameter_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "keep_box_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      }
+                    ]
+                  }
+                },
+                "start_area_landscape_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "start_area_portrait_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "jump_button": {
+              "type": "object",
+              "required": [
+                "phone",
+                "large_touch"
+              ],
+              "properties": {
+                "phone": {
+                  "type": "object",
+                  "required": [
+                    "size_px",
+                    "from_right_px",
+                    "from_bottom_px",
+                    "keep_box_px"
+                  ],
+                  "properties": {
+                    "size_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "from_right_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "from_bottom_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "keep_box_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      }
+                    ]
+                  }
+                },
+                "large_touch": {
+                  "type": "object",
+                  "required": [
+                    "size_px",
+                    "from_right_px",
+                    "from_bottom_px",
+                    "keep_box_px"
+                  ],
+                  "properties": {
+                    "size_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "from_right_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "from_bottom_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "keep_box_px": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      }
+                    ]
+                  }
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "hotbar": {
+              "type": "object",
+              "required": [
+                "phone_px",
+                "large_touch_px",
+                "desktop_px",
+                "console_px",
+                "open_arrow_above_bottom_px"
+              ],
+              "properties": {
+                "phone_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "large_touch_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "desktop_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "console_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "open_arrow_above_bottom_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "chat": {
+              "type": "object",
+              "required": [
+                "phone",
+                "desktop_share",
+                "console"
+              ],
+              "properties": {
+                "phone": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "desktop_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "console": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "player_list": {
+              "type": "object",
+              "required": [
+                "phone",
+                "desktop_width_px",
+                "desktop_height_share"
+              ],
+              "properties": {
+                "phone": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "desktop_width_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "desktop_height_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "emote_wheel_diameter_px": {
+              "type": "object",
+              "required": [
+                "phone",
+                "large_touch",
+                "console"
+              ],
+              "properties": {
+                "phone": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "large_touch": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "console": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "health_bar_px": {
+              "type": "object",
+              "required": [
+                "default",
+                "width_393_or_less",
+                "console"
+              ],
+              "properties": {
+                "default": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "width_393_or_less": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "console": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "zone_map": {
+          "type": "object",
+          "required": [
+            "left_menu_height_share",
+            "left_menu_max_buttons",
+            "bottom_left_readouts_from_bottom_px",
+            "action_button_size_of_jump",
+            "top_centre_max_lines",
+            "close_button_min_px",
+            "centre_box_share",
+            "centre_box_idle_cover_rejected_share",
+            "centre_box_idle_cover_target_share",
+            "default_orientation"
+          ],
+          "properties": {
+            "left_menu_height_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "left_menu_max_buttons": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "bottom_left_readouts_from_bottom_px": {
+              "type": "object",
+              "required": [
+                "phone",
+                "large_touch"
+              ],
+              "properties": {
+                "phone": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "large_touch": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "action_button_size_of_jump": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "top_centre_max_lines": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "close_button_min_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "centre_box_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "centre_box_idle_cover_rejected_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "centre_box_idle_cover_target_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "default_orientation": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "insets": {
+          "type": "object",
+          "required": [
+            "interactive_screen_insets",
+            "fullscreen_screen_insets",
+            "safe_area_compatibility",
+            "gui_inset_zero_after_join_s",
+            "ignore_gui_inset"
+          ],
+          "properties": {
+            "interactive_screen_insets": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "fullscreen_screen_insets": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "safe_area_compatibility": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "gui_inset_zero_after_join_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "ignore_gui_inset": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "scale": {
+          "type": "object",
+          "required": [
+            "ui_scale_by_display_size",
+            "player_ui_size_options",
+            "chunky_genre_medium_max",
+            "content_units",
+            "container_units"
+          ],
+          "properties": {
+            "ui_scale_by_display_size": {
+              "type": "object",
+              "required": [
+                "small",
+                "medium",
+                "large"
+              ],
+              "properties": {
+                "small": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "medium": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "large": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "player_ui_size_options": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "chunky_genre_medium_max": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "content_units": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "container_units": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "floors": {
+          "type": "object",
+          "required": [
+            "tap_target_px",
+            "tap_gap_px",
+            "frequent_button_px",
+            "body_text_px",
+            "label_text_px",
+            "min_text_size",
+            "phone_hud_button_max_px",
+            "prefer"
+          ],
+          "properties": {
+            "tap_target_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "tap_gap_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "frequent_button_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "body_text_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "label_text_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "min_text_size": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_hud_button_max_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "prefer": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "console": {
+          "type": "object",
+          "required": [
+            "tv_safe_share",
+            "tv_safe_margin_1080_px",
+            "ui_scale"
+          ],
+          "properties": {
+            "tv_safe_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "tv_safe_margin_1080_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "ui_scale": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "hud": {
+          "type": "object",
+          "required": [
+            "design_resolution_px",
+            "grid",
+            "zone_inset_min_share",
+            "menu_tile_size_scale",
+            "menu_tile_aspect",
+            "menu_tile_px_1080",
+            "menu_icon_of_face",
+            "menu_max_tiles_per_side",
+            "menu_max_badged_tiles",
+            "currency_row_height_share",
+            "offer_height_share",
+            "offer_max",
+            "offer_price_rgb",
+            "top_nav_max_chips",
+            "top_nav_chip_size_share",
+            "quiet_hud_max_buttons",
+            "tap_target_min_design_px_1080",
+            "primary_button_design_px_1080",
+            "shrink_clamp"
+          ],
+          "properties": {
+            "design_resolution_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "grid": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "zone_inset_min_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_tile_size_scale": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_tile_aspect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_tile_px_1080": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_icon_of_face": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_max_tiles_per_side": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_max_badged_tiles": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "currency_row_height_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "offer_height_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "offer_max": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "offer_price_rgb": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "$ref": "#/$defs/rgb"
+                    }
+                  }
+                }
+              ]
+            },
+            "top_nav_max_chips": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "top_nav_chip_size_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "quiet_hud_max_buttons": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "tap_target_min_design_px_1080": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "primary_button_design_px_1080": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "shrink_clamp": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "budgets": {
+          "type": "object",
+          "required": [
+            "hud_element_max_height_share_desktop",
+            "hud_element_max_px_phone",
+            "visible_strokes_max",
+            "ui_shadows_max"
+          ],
+          "properties": {
+            "hud_element_max_height_share_desktop": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "hud_element_max_px_phone": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "visible_strokes_max": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "ui_shadows_max": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "provenance": {
+      "enum": [
+        "documented",
+        "field",
+        "measured",
+        "opinion"
+      ],
+      "description": "documented: Roblox docs, staff posts or filings; field: observed while shipping a game (dated when known); measured: we measured it: engine source, pixels on reference frames, store API reads, tested in Studio; opinion: judgment, house style, owner rule or a community starting value"
+    },
+    "leaf": {
+      "type": "object",
+      "required": [
+        "v",
+        "p"
+      ],
+      "properties": {
+        "v": {
+          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a width-height size"
+        },
+        "p": {
+          "$ref": "#/$defs/provenance"
+        },
+        "src": {
+          "type": "string",
+          "description": "source or qualifier (for example 'about')"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    },
+    "rgb": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "minItems": 3,
+      "maxItems": 3
+    }
+  }
+}

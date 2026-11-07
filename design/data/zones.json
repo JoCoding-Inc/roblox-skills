@@ -1,0 +1,164 @@
+{
+  "type": "zones",
+  "schema_version": "1.0.0",
+  "title": "Layout standard: reserved zones, zone map, insets, scale, floors, HUD zones, UI budgets",
+  "scope": "every genre; hud applies to simulator/tycoon stud style",
+  "sources": ["roblox-ui-layout/SKILL.md#0-5", "roblox-ui-genre-studs/SKILL.md#4,7", "roblox-ui-typography/SKILL.md#4", "roblox-game-pipeline/assets/ui-styles/README.md"],
+  "data": {
+    "devices": {
+      "daily_users_share": {
+        "mobile": {"v": 0.83, "p": "documented", "src": "Roblox FY2025 10-K"},
+        "desktop": {"v": 0.14, "p": "documented", "src": "Roblox FY2025 10-K"},
+        "console": {"v": 0.03, "p": "documented", "src": "Roblox FY2025 10-K"}
+      },
+      "phone_dpi_px": {"v": 160, "p": "documented", "src": "about, staff", "date": "2018"},
+      "phone_safe_frame_px": {"v": [667, 317], "p": "measured", "src": "667x375 phone minus top bar"},
+      "docs_notched_phone_safe_frame_px": {"v": [733, 313], "p": "documented"},
+      "touch_controls_large_when_short_side_over_px": {"v": 500, "p": "measured", "src": "engine scripts"},
+      "core_ui_small_when_height_under_px": {"v": 500, "p": "measured", "src": "engine scripts"},
+      "core_ui_small_when_width_under_px": {"v": 700, "p": "measured", "src": "engine scripts"},
+      "branch_on": {"v": "UserInputService.PreferredInput", "p": "documented"}
+    },
+    "reserved": {
+      "top_bar": {
+        "height_px": {"v": 58, "p": "measured", "src": "TopBar Constants.lua"},
+        "height_console_px": {"v": 87, "p": "measured", "src": "TopBar Constants.lua, 58 x 1.5 with the new controls"},
+        "cell_px": {"v": 44, "p": "measured", "src": "TopBar Constants.lua"},
+        "controls_width_phone_landscape_px": {"v": 350, "p": "measured", "src": "about"},
+        "controls_align": {"v": "left", "p": "measured", "src": "TopBar Constants.lua"}
+      },
+      "thumbstick": {
+        "phone": {
+          "center_from_left_px": {"v": 66, "p": "measured", "src": "PlayerModule"},
+          "center_from_bottom_px": {"v": 56, "p": "measured", "src": "PlayerModule"},
+          "diameter_px": {"v": 74, "p": "measured", "src": "PlayerModule"},
+          "keep_box_px": {"v": [110, 100], "p": "measured", "src": "bottom-left"}
+        },
+        "large_touch": {
+          "center_from_left_px": {"v": 132, "p": "measured", "src": "PlayerModule"},
+          "center_from_bottom_px": {"v": 112, "p": "measured", "src": "PlayerModule"},
+          "diameter_px": {"v": 148, "p": "measured", "src": "PlayerModule"},
+          "keep_box_px": {"v": [215, 195], "p": "measured", "src": "bottom-left"}
+        },
+        "start_area_landscape_share": {"v": [0.4, 0.667], "p": "measured", "src": "left 40% x bottom 2/3"},
+        "start_area_portrait_share": {"v": [1.0, 0.4], "p": "measured", "src": "full width x bottom 40%"}
+      },
+      "jump_button": {
+        "phone": {
+          "size_px": {"v": 70, "p": "measured", "src": "PlayerModule"},
+          "from_right_px": {"v": 25, "p": "measured", "src": "PlayerModule"},
+          "from_bottom_px": {"v": 20, "p": "measured", "src": "PlayerModule"},
+          "keep_box_px": {"v": [95, 90], "p": "measured", "src": "bottom-right"}
+        },
+        "large_touch": {
+          "size_px": {"v": 120, "p": "measured", "src": "PlayerModule"},
+          "from_right_px": {"v": 50, "p": "measured", "src": "PlayerModule"},
+          "from_bottom_px": {"v": 90, "p": "measured", "src": "PlayerModule"},
+          "keep_box_px": {"v": [170, 210], "p": "measured", "src": "bottom-right"}
+        }
+      },
+      "hotbar": {
+        "phone_px": {"v": [200, 70], "p": "measured", "src": "3 slots, touch and width under 1024"},
+        "large_touch_px": {"v": [655, 70], "p": "measured", "src": "10 slots"},
+        "desktop_px": {"v": [655, 70], "p": "measured"},
+        "console_px": {"v": [1055, 110], "p": "measured"},
+        "open_arrow_above_bottom_px": {"v": 110, "p": "measured", "src": "up to"}
+      },
+      "chat": {
+        "phone": {"v": "hidden at start; opens top-left under the bar", "p": "measured"},
+        "desktop_share": {"v": [0.3, 0.25], "p": "opinion", "src": "about, unconfirmed"},
+        "console": {"v": "disable chat", "p": "documented"}
+      },
+      "player_list": {
+        "phone": {"v": "hidden; centred modal from the menu", "p": "measured"},
+        "desktop_width_px": {"v": [166, 210], "p": "measured", "src": "legacy values"},
+        "desktop_height_share": {"v": 0.5, "p": "measured", "src": "legacy values"}
+      },
+      "emote_wheel_diameter_px": {
+        "phone": {"v": [150, 300], "p": "measured"},
+        "large_touch": {"v": [200, 400], "p": "measured"},
+        "console": {"v": [320, 640], "p": "measured"}
+      },
+      "health_bar_px": {
+        "default": {"v": [125, 20], "p": "measured", "src": "top-right of the top strip, only after damage"},
+        "width_393_or_less": {"v": [80, 20], "p": "measured"},
+        "console": {"v": [220, 16], "p": "measured"}
+      }
+    },
+    "zone_map": {
+      "left_menu_height_share": {"v": [0.2, 0.6], "p": "opinion"},
+      "left_menu_max_buttons": {"v": 4, "p": "opinion"},
+      "bottom_left_readouts_from_bottom_px": {
+        "phone": {"v": 110, "p": "opinion", "src": "above the thumbstick keep box"},
+        "large_touch": {"v": 200, "p": "opinion", "src": "above the thumbstick keep box"}
+      },
+      "action_button_size_of_jump": {"v": [0.8, 1.0], "p": "documented", "src": "docs sample places buttons relative to the jump button"},
+      "top_centre_max_lines": {"v": 1, "p": "opinion"},
+      "close_button_min_px": {"v": 44, "p": "documented"},
+      "centre_box_share": {"v": [0.5, 0.5], "p": "opinion", "src": "stays empty at idle"},
+      "centre_box_idle_cover_rejected_share": {"v": 0.4, "p": "field", "date": "2026-11", "src": "owner rejected the HUD"},
+      "centre_box_idle_cover_target_share": {"v": 0.01, "p": "field", "date": "2026-11"},
+      "default_orientation": {"v": "LandscapeSensor", "p": "documented"}
+    },
+    "insets": {
+      "interactive_screen_insets": {"v": "CoreUISafeInsets", "p": "documented"},
+      "fullscreen_screen_insets": {"v": "None", "p": "documented"},
+      "safe_area_compatibility": {"v": "None", "p": "documented"},
+      "gui_inset_zero_after_join_s": {"v": 0.2, "p": "documented", "src": "about, staff"},
+      "ignore_gui_inset": {"v": false, "p": "documented"}
+    },
+    "scale": {
+      "ui_scale_by_display_size": {
+        "small": {"v": 1.0, "p": "measured", "src": "UIBlox tokens"},
+        "medium": {"v": 1.0, "p": "measured", "src": "UIBlox tokens"},
+        "large": {"v": 1.5, "p": "measured", "src": "UIBlox tokens"}
+      },
+      "player_ui_size_options": {"v": [1.0, 1.15, 1.3], "p": "opinion", "src": "community values"},
+      "chunky_genre_medium_max": {"v": 1.25, "p": "opinion"},
+      "content_units": {"v": "Offset px", "p": "documented"},
+      "container_units": {"v": "Scale with UISizeConstraint", "p": "documented"}
+    },
+    "floors": {
+      "tap_target_px": {"v": 44, "p": "documented", "src": "Roblox top bar targets, WCAG 2.1 AAA"},
+      "tap_gap_px": {"v": 8, "p": "documented", "src": "top bar padding"},
+      "frequent_button_px": {"v": [56, 60], "p": "documented", "src": "9 x 9 mm at 160 dpi"},
+      "body_text_px": {"v": 14, "p": "measured", "src": "Roblox chat default TextSize"},
+      "label_text_px": {"v": 18, "p": "opinion"},
+      "min_text_size": {"v": 9, "p": "documented"},
+      "phone_hud_button_max_px": {"v": 72, "p": "opinion", "src": "the jump button is 70"},
+      "prefer": {"v": "AutomaticSize with TextWrapped over TextScaled", "p": "documented"}
+    },
+    "console": {
+      "tv_safe_share": {"v": 0.9, "p": "documented"},
+      "tv_safe_margin_1080_px": {"v": [96, 54], "p": "documented", "src": "left-right, top-bottom"},
+      "ui_scale": {"v": 1.5, "p": "measured"}
+    },
+    "hud": {
+      "design_resolution_px": {"v": [1920, 1080], "p": "opinion", "src": "design canvas of the hud values"},
+      "grid": {"v": [3, 3], "p": "opinion"},
+      "zone_inset_min_share": {"v": 0.02, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "menu_tile_size_scale": {"v": [0.065, 0.115], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "menu_tile_aspect": {"v": 0.97, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "menu_tile_px_1080": {"v": 124, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "menu_icon_of_face": {"v": 0.8, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "menu_max_tiles_per_side": {"v": 6, "p": "opinion"},
+      "menu_max_badged_tiles": {"v": 2, "p": "opinion"},
+      "currency_row_height_share": {"v": 0.075, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "offer_height_share": {"v": 0.17, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "offer_max": {"v": 2, "p": "opinion"},
+      "offer_price_rgb": {"v": [0, 255, 8], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "top_nav_max_chips": {"v": 3, "p": "opinion"},
+      "top_nav_chip_size_share": {"v": [0.136, 0.075], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "quiet_hud_max_buttons": {"v": 5, "p": "opinion"},
+      "tap_target_min_design_px_1080": {"v": 124, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "primary_button_design_px_1080": {"v": [150, 190], "p": "opinion"},
+      "shrink_clamp": {"v": "max(ceil(v * factor), ceil(44 / k)) where screen px = design px x k", "p": "opinion"}
+    },
+    "budgets": {
+      "hud_element_max_height_share_desktop": {"v": 0.15, "p": "opinion", "src": "except panels and offers"},
+      "hud_element_max_px_phone": {"v": 72, "p": "opinion", "src": "except panels and offers"},
+      "visible_strokes_max": {"v": 300, "p": "documented", "src": "staff guidance, under about 300", "date": "2025-09-25"},
+      "ui_shadows_max": {"v": 100, "p": "opinion", "src": "about"}
+    }
+  }
+}

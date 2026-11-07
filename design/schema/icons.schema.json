@@ -1,0 +1,567 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JoCoding-Inc/roblox-skills/design/schema/icons.schema.json",
+  "title": "UI icons: Creator Store icon packs and family rules",
+  "description": "Derived from the icons data by scripts/export_design_pack.py --write-schemas: every key present today is required and typed. Unknown keys are allowed everywhere (minor versions add keys); readers ignore them.",
+  "type": "object",
+  "required": [
+    "type",
+    "schema_version",
+    "title",
+    "scope",
+    "sources",
+    "data"
+  ],
+  "properties": {
+    "type": {
+      "const": "icons"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "packs",
+        "store_first",
+        "custom_only_for",
+        "skip",
+        "family",
+        "decal_vs_image_id",
+        "mock_icons"
+      ],
+      "properties": {
+        "packs": {
+          "type": "object",
+          "required": [
+            "simulator_icon_pack",
+            "monochrome_white_ui_icon_pack"
+          ],
+          "properties": {
+            "simulator_icon_pack": {
+              "type": "object",
+              "required": [
+                "asset_id",
+                "creator",
+                "votes",
+                "icon_count",
+                "look",
+                "fits"
+              ],
+              "properties": {
+                "asset_id": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "creator": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "votes": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "icon_count": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "look": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "fits": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "monochrome_white_ui_icon_pack": {
+              "type": "object",
+              "required": [
+                "asset_id",
+                "creator",
+                "votes",
+                "icon_count",
+                "look",
+                "fits"
+              ],
+              "properties": {
+                "asset_id": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "creator": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "votes": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "icon_count": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "look": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "fits": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "store_first": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "custom_only_for": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "skip": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "family": {
+          "type": "object",
+          "required": [
+            "canvas_px",
+            "same",
+            "text_inside",
+            "image_max_px",
+            "sprite_sheet_grid",
+            "scale_type",
+            "tint"
+          ],
+          "properties": {
+            "canvas_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "same": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "text_inside": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              ]
+            },
+            "image_max_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "sprite_sheet_grid": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "scale_type": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "tint": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "decal_vs_image_id": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "mock_icons": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "provenance": {
+      "enum": [
+        "documented",
+        "field",
+        "measured",
+        "opinion"
+      ],
+      "description": "documented: Roblox docs, staff posts or filings; field: observed while shipping a game (dated when known); measured: we measured it: engine source, pixels on reference frames, store API reads, tested in Studio; opinion: judgment, house style, owner rule or a community starting value"
+    },
+    "leaf": {
+      "type": "object",
+      "required": [
+        "v",
+        "p"
+      ],
+      "properties": {
+        "v": {
+          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a width-height size"
+        },
+        "p": {
+          "$ref": "#/$defs/provenance"
+        },
+        "src": {
+          "type": "string",
+          "description": "source or qualifier (for example 'about')"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    },
+    "rgb": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "minItems": 3,
+      "maxItems": 3
+    }
+  }
+}

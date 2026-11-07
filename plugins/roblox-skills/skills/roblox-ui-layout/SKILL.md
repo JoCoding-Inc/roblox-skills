@@ -51,7 +51,7 @@ One standard for every genre. The genre skills set the look; this one sets where
 | Top centre, under the bar | one objective or timer line, toasts | One line, short text |
 | Top strip right (`TopbarSafeInsets` ScreenGui) | small status chips | Only through that ScreenGui; it can be zero wide (portrait) |
 | Bottom centre | hotbar if the game gives Tools, else the main prompt | Never both |
-| Centre | panels and modals, closed by default | A panel fits the phone safe frame with a scroll; close button 44 px or more inside the safe frame |
+| Centre | panels and modals, closed by default | A panel fits the phone safe frame with a scroll; close button 44 px or more inside the safe frame. If it still covers the thumbstick or jump keep box, set `GuiService.TouchControlsEnabled = false` while it is open and restore it on close (field, 667 x 375 phone) |
 
 Reach: a button 40% below the top is easy on a phone and almost unreachable on a tablet (docs). Frequent buttons go near the bottom corners above the keep boxes; rare ones go into a menu on small screens (docs adaptive design).
 

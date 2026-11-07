@@ -1,0 +1,78 @@
+{
+  "type": "typography",
+  "schema_version": "1.0.0",
+  "title": "Fonts: what exists, display and body pairs per genre, Creator Store font ids, readability",
+  "scope": "every genre",
+  "sources": ["roblox-ui-typography/SKILL.md#1-4", "roblox-ui-genre-studs/SKILL.md#3"],
+  "data": {
+    "font_uploads_allowed": {"v": false, "p": "documented", "date": "2026-11-02"},
+    "max_fonts_per_game": {"v": 2, "p": "opinion", "src": "one display, one body; or one font in two weights"},
+    "removed_font_map": {
+      "Gotham": {"v": "Montserrat", "p": "documented"},
+      "Arial": {"v": "Arimo", "p": "documented"},
+      "ArialBold": {"v": "Arimo", "p": "documented"}
+    },
+    "builder_fonts_license": {"v": "Roblox experiences and their digital promotion, not merchandise", "p": "documented"},
+    "pairs": {
+      "simulator_tycoon_obby": {
+        "display": {"v": ["FredokaOne", "LuckiestGuy", "DenkOne", "Londrina Solid"], "p": "opinion"},
+        "body": {"v": ["Nunito", "BuilderSans"], "p": "opinion"}
+      },
+      "horror": {
+        "display": {"v": ["SpecialElite", "Jolly Lodger"], "p": "opinion"},
+        "title_only": {"v": ["Creepster", "Nosifer", "Eater"], "p": "opinion"},
+        "body": {"v": ["SourceSansPro"], "p": "opinion"}
+      },
+      "anime_battlegrounds_fighting": {
+        "display": {"v": ["Bangers", "Teko", "Antonio", "Oswald"], "p": "opinion"},
+        "body": {"v": ["RobotoCondensed", "Barlow"], "p": "opinion"}
+      },
+      "rng_idle_number_heavy": {
+        "display": {"v": ["Rubik", "Goldman", "DenkOne"], "p": "opinion"},
+        "title_only": {"v": ["Bungee Inline"], "p": "opinion"},
+        "body": {"v": ["Nunito"], "p": "opinion", "src": "equal-width digits"}
+      },
+      "sci_fi": {
+        "display": {"v": ["Michroma", "Jura", "Sarpanch", "Audiowide", "Rajdhani"], "p": "opinion"},
+        "body": {"v": ["TitilliumWeb", "Roboto"], "p": "opinion"}
+      },
+      "fantasy_rpg": {
+        "display": {"v": ["Fondamento", "GrenzeGotisch", "RomanAntique"], "p": "opinion"},
+        "body": {"v": ["Merriweather"], "p": "opinion"}
+      },
+      "cozy_story": {
+        "display": {"v": ["PatrickHand", "Kalam"], "p": "opinion"},
+        "body": {"v": ["Nunito"], "p": "opinion"}
+      },
+      "retro_pixel": {
+        "display": {"v": ["PressStart2P", "Silkscreen"], "p": "opinion"},
+        "body": {"v": ["Silkscreen"], "p": "opinion"}
+      }
+    },
+    "common_defaults": {"v": ["FredokaOne", "Poppins"], "p": "opinion", "src": "on many front-page games, read as default"},
+    "creator_store_font_ids": {
+      "Londrina Solid": {"v": 113086061264643, "p": "measured", "date": "2026-11-03"},
+      "Jolly Lodger": {"v": 77368255811694, "p": "measured", "date": "2026-11-03"},
+      "Nosifer": {"v": 12187377325, "p": "measured", "date": "2026-11-03"},
+      "Eater": {"v": 12187372382, "p": "measured", "date": "2026-11-03"},
+      "Teko": {"v": 12187376174, "p": "measured", "date": "2026-11-03"},
+      "Antonio": {"v": 122516982241677, "p": "measured", "date": "2026-11-03"},
+      "Barlow": {"v": 12187372847, "p": "measured", "date": "2026-11-03"},
+      "Goldman": {"v": 115884882777577, "p": "measured", "date": "2026-11-03"},
+      "Rubik": {"v": 12187365977, "p": "measured", "date": "2026-11-03"},
+      "Bungee Inline": {"v": 12187370000, "p": "measured", "date": "2026-11-03"},
+      "Audiowide": {"v": 12187360881, "p": "measured", "date": "2026-11-03"},
+      "Rajdhani": {"v": 12187375422, "p": "measured", "date": "2026-11-03"},
+      "Silkscreen": {"v": 12187371840, "p": "measured", "date": "2026-11-03"}
+    },
+    "sizes_design_px_1080": {
+      "body_min": {"v": 14, "p": "opinion"},
+      "label_button_min": {"v": 20, "p": "opinion"},
+      "min_text_size": {"v": 9, "p": "documented"}
+    },
+    "thin_weights_avoid_below_px": {"v": 24, "p": "field", "src": "below about size 24; jagged since the July 2026 FreeType update, staff and community reports"},
+    "text_over_world": {"v": "UIStroke or an offset label copy as a shadow (UIShadow text mode is still beta); check against the brightest and darkest spot", "p": "opinion"},
+    "visible_strokes_max": {"v": 300, "p": "documented", "src": "staff guidance, under about 300", "date": "2025-09-25"},
+    "rich_text_tags": {"v": ["b", "i", "stroke", "font", "uc", "sc", "mark", "br"], "p": "documented"}
+  }
+}

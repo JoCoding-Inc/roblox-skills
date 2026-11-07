@@ -1,0 +1,1070 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/JoCoding-Inc/roblox-skills/design/schema/typography.schema.json",
+  "title": "Fonts: what exists, display and body pairs per genre, Creator Store font ids, readability",
+  "description": "Derived from the typography data by scripts/export_design_pack.py --write-schemas: every key present today is required and typed. Unknown keys are allowed everywhere (minor versions add keys); readers ignore them.",
+  "type": "object",
+  "required": [
+    "type",
+    "schema_version",
+    "title",
+    "scope",
+    "sources",
+    "data"
+  ],
+  "properties": {
+    "type": {
+      "const": "typography"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "font_uploads_allowed",
+        "max_fonts_per_game",
+        "removed_font_map",
+        "builder_fonts_license",
+        "pairs",
+        "common_defaults",
+        "creator_store_font_ids",
+        "sizes_design_px_1080",
+        "thin_weights_avoid_below_px",
+        "text_over_world",
+        "visible_strokes_max",
+        "rich_text_tags"
+      ],
+      "properties": {
+        "font_uploads_allowed": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "boolean"
+                }
+              }
+            }
+          ]
+        },
+        "max_fonts_per_game": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          ]
+        },
+        "removed_font_map": {
+          "type": "object",
+          "required": [
+            "Gotham",
+            "Arial",
+            "ArialBold"
+          ],
+          "properties": {
+            "Gotham": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "Arial": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "ArialBold": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "builder_fonts_license": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "pairs": {
+          "type": "object",
+          "required": [
+            "simulator_tycoon_obby",
+            "horror",
+            "anime_battlegrounds_fighting",
+            "rng_idle_number_heavy",
+            "sci_fi",
+            "fantasy_rpg",
+            "cozy_story",
+            "retro_pixel"
+          ],
+          "properties": {
+            "simulator_tycoon_obby": {
+              "type": "object",
+              "required": [
+                "display",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "horror": {
+              "type": "object",
+              "required": [
+                "display",
+                "title_only",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "title_only": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "anime_battlegrounds_fighting": {
+              "type": "object",
+              "required": [
+                "display",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "rng_idle_number_heavy": {
+              "type": "object",
+              "required": [
+                "display",
+                "title_only",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "title_only": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "sci_fi": {
+              "type": "object",
+              "required": [
+                "display",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "fantasy_rpg": {
+              "type": "object",
+              "required": [
+                "display",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "cozy_story": {
+              "type": "object",
+              "required": [
+                "display",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "retro_pixel": {
+              "type": "object",
+              "required": [
+                "display",
+                "body"
+              ],
+              "properties": {
+                "display": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "body": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "common_defaults": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "creator_store_font_ids": {
+          "type": "object",
+          "required": [
+            "Londrina Solid",
+            "Jolly Lodger",
+            "Nosifer",
+            "Eater",
+            "Teko",
+            "Antonio",
+            "Barlow",
+            "Goldman",
+            "Rubik",
+            "Bungee Inline",
+            "Audiowide",
+            "Rajdhani",
+            "Silkscreen"
+          ],
+          "properties": {
+            "Londrina Solid": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Jolly Lodger": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Nosifer": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Eater": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Teko": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Antonio": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Barlow": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Goldman": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Rubik": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Bungee Inline": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Audiowide": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Rajdhani": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "Silkscreen": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "sizes_design_px_1080": {
+          "type": "object",
+          "required": [
+            "body_min",
+            "label_button_min",
+            "min_text_size"
+          ],
+          "properties": {
+            "body_min": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "label_button_min": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "min_text_size": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "thin_weights_avoid_below_px": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          ]
+        },
+        "text_over_world": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "string"
+                }
+              }
+            }
+          ]
+        },
+        "visible_strokes_max": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              }
+            }
+          ]
+        },
+        "rich_text_tags": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/leaf"
+            },
+            {
+              "properties": {
+                "v": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "provenance": {
+      "enum": [
+        "documented",
+        "field",
+        "measured",
+        "opinion"
+      ],
+      "description": "documented: Roblox docs, staff posts or filings; field: observed while shipping a game (dated when known); measured: we measured it: engine source, pixels on reference frames, store API reads, tested in Studio; opinion: judgment, house style, owner rule or a community starting value"
+    },
+    "leaf": {
+      "type": "object",
+      "required": [
+        "v",
+        "p"
+      ],
+      "properties": {
+        "v": {
+          "description": "the value; units are in the key name (_px, _s, _share, _scale, _rgb, _studs, _deg); [a, b] under a unit key is a range or a width-height size"
+        },
+        "p": {
+          "$ref": "#/$defs/provenance"
+        },
+        "src": {
+          "type": "string",
+          "description": "source or qualifier (for example 'about')"
+        },
+        "date": {
+          "type": "string",
+          "pattern": "^[0-9]{4}(-[0-9]{2}(-[0-9]{2})?)?$"
+        }
+      },
+      "additionalProperties": true
+    },
+    "node": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/leaf"
+          },
+          {
+            "$ref": "#/$defs/node"
+          }
+        ]
+      }
+    },
+    "rgb": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "minItems": 3,
+      "maxItems": 3
+    }
+  }
+}

@@ -70,6 +70,10 @@ RoDesigner is not affiliated with or endorsed by Roblox Corporation.
 
 The skills do not copy API signatures; the agent looks them up live through the Studio MCP (`list_skills`, `http_get`). The skills hold workflow, judgment, policy, market data, beta status and pitfalls. Market numbers come live from `roblox-market-research/scripts/market.py`; the snapshot in that skill expires about 2026-12-15. `python3 -I scripts/check_apis.py` checks that every API name used in the skills still exists in the live reference. The update routine is in `docs/weekly-update.md`.
 
+## Design pack
+
+The design values (layout floors and zones, stud kit tokens, motion, fonts, icon packs, effect tiers, UI style presets) are mirrored as versioned JSON with one provenance tag per value in `design/`, and `scripts/export_design_pack.py` packs them with the design-related skill sections. Tags `design-pack-v*` publish the pack as a GitHub release. Format: `design/README.md`.
+
 ## License
 
 MIT. Credits for sources are in [NOTICE.md](NOTICE.md).

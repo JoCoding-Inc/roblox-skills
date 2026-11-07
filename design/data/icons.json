@@ -1,0 +1,41 @@
+{
+  "type": "icons",
+  "schema_version": "1.0.0",
+  "title": "UI icons: Creator Store icon packs and family rules",
+  "scope": "every genre",
+  "sources": ["roblox-store-art-pack/SKILL.md#4", "roblox-ui-genre-studs/SKILL.md#8", "roblox-game-pipeline/assets/ui-styles/README.md"],
+  "data": {
+    "packs": {
+      "simulator_icon_pack": {
+        "asset_id": {"v": 99176447965360, "p": "measured", "date": "2026-11-04"},
+        "creator": {"v": "DevJoob", "p": "measured", "date": "2026-11-04"},
+        "votes": {"v": "+392/-8", "p": "measured", "date": "2026-11-04"},
+        "icon_count": {"v": 125, "p": "measured", "date": "2026-11-04"},
+        "look": {"v": "chunky full-color icons with a dark outline", "p": "measured"},
+        "fits": {"v": ["simulator", "tycoon", "idle", "obby"], "p": "opinion"}
+      },
+      "monochrome_white_ui_icon_pack": {
+        "asset_id": {"v": 110801640375836, "p": "measured", "date": "2026-11-04"},
+        "creator": {"v": "SodaBreadle", "p": "measured", "date": "2026-11-04"},
+        "votes": {"v": "+29/-1", "p": "measured", "date": "2026-11-04"},
+        "icon_count": {"v": 72, "p": "measured", "date": "2026-11-04"},
+        "look": {"v": "white glyphs, tint with ImageColor3; mixes line and filled glyphs, use one kind", "p": "measured"},
+        "fits": {"v": ["dark flat", "horror", "shooter", "realistic"], "p": "opinion"}
+      }
+    },
+    "store_first": {"v": "standard icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows, lock, trophy, potions, paw) come from one store pack, never generated", "p": "opinion"},
+    "custom_only_for": {"v": "the game's own characters, creatures and items: render the model or use an image generator, matched to the pack", "p": "opinion"},
+    "skip": {"v": ["the Roblox logo or Robux mark except next to a real Robux price", "art from another game"], "p": "opinion"},
+    "family": {
+      "canvas_px": {"v": 128, "p": "opinion", "src": "drawn at 2x"},
+      "same": {"v": ["canvas", "outline weight", "highlight", "light direction", "flat colors"], "p": "opinion"},
+      "text_inside": {"v": false, "p": "opinion"},
+      "image_max_px": {"v": 1024, "p": "documented"},
+      "sprite_sheet_grid": {"v": [8, 8], "p": "opinion", "src": "8x8 of 128 px on one 1024 px sheet"},
+      "scale_type": {"v": "Fit with the aspect locked", "p": "opinion"},
+      "tint": {"v": "never tint full-color art with ImageColor3; white art may be tinted", "p": "opinion"}
+    },
+    "decal_vs_image_id": {"v": "use the image id; a decal id in ImageLabel.Image loads nothing", "p": "field", "date": "2026-11-04"},
+    "mock_icons": {"v": ["gem", "sword", "egg", "star", "coin", "bag", "pack", "gift", "gear"], "p": "measured", "src": "roblox-game-pipeline/assets/ui-styles/icons, 192 px PNG with alpha"}
+  }
+}

@@ -44,13 +44,17 @@ Doc map (official, no login; "never guess a URL", a wrong path returns an HTML 4
 | 1 Plan | Core loop doc, feature list ordered by value, risks | Core loop has the 3 parts (minute-to-minute action, most repeated action, progression engine) |
 | 2 Greybox prototype | Playable loop with primitives and placeholder UI | A tester can finish one loop in under 5 minutes and say if it is fun |
 | 3 Systems | Data, economy, progression, saving, remotes | Bot scenarios pass; server owns all state |
-| 4 Art pass | Meshes, materials, lighting, VFX, audio | Contact sheet reviewed; budgets met; assets owned by the right account |
+| 4 Art pass | Meshes, materials, lighting, VFX, audio | Contact sheet reviewed; budgets met; assets owned by the right account; no primitive stand-in left |
 | 5 UI/UX pass | HUD, menus, onboarding, mobile layouts | `roblox-ui-layout` `ui_device_check.luau` has no errors on phone, tablet, desktop (and console if shipped); gamepad focus works |
 | 6 Test | Bot scenarios, Studio playtest, device and network simulation, private test place | Test checklist green; known issues listed for testers |
 | 7 Publish | Maturity questionnaire, icon, thumbnails, description, publish | Live place loads every asset; rollback version noted |
 | 8 Live ops | Analytics review, updates, events, monetization tuning | Weekly review of retention, funnel and crash data |
 
 Do phases in order. Skipping the greybox is the most common failure: art and UI built around a loop nobody has played.
+
+Primitive stand-ins (a plant from three balls in a cylinder pot, box chairs, a block enemy) are greybox only (owner rule, 2026-11-05):
+- From the art pass on, every prop, piece of furniture, unit, enemy and piece of scenery comes from a vetted Creator Store model (`roblox-store-art-pack`), a Blender mesh (`roblox-blender-export`) or Roblox Cube, matched to the game's style. A part build (also `generate_procedural_model`) counts only when it is as detailed as those.
+- None reaches a published build or a capture shown as a finished result. Label greybox captures as greybox.
 
 ## 2. Plan (phase 1)
 
@@ -153,7 +157,7 @@ Parallel work lanes (several agents building at once; whether to delegate at all
 ## 7. Live ops (phase 8)
 
 - Read analytics weekly: retention (D1/D7), session length, funnel events, crashes, performance. Add custom events and funnels in the prototype so the first launch has data.
-- Events from the server with `AnalyticsService:LogEconomyEvent`, `LogFunnelStepEvent`, `LogOnboardingFunnelStepEvent`, `LogProgressionEvent`, `LogCustomEvent`; the `Fire*` methods are deprecated. Log after the action succeeded. Limits (docs): 120 + 20 x CCU requests per minute, 3 custom fields, 5 currency types, 10 funnels of steps 1-100; past 100 SKUs or 20 transaction types values group as "Other". Studio skill `rbx-instrument-analytics` helps plan events.
+- Events go from the server with `AnalyticsService` (economy, funnel, journey, custom); the `Fire*` methods are deprecated. Log after the action succeeded. Events from Studio or the client never arrive, so test in a published test place. Calls, rules, limits and the minimum event set: `roblox-design-and-launch` section 3a. Studio skill `rbx-instrument-analytics` helps plan events.
 - Use experiments and configs (Open Cloud / Creator Hub) for feature flags and A/B tests rather than shipping blind balance changes. Read values on the server with `ConfigService:GetConfigForPlayerAsync(player)` (applies the player's experiments) or `GetConfigAsync()` (no player, experiments not applied); both return a `ConfigSnapshot`. Studio skill `rbx-configs-experimentation`.
 - Content updates and events on a fixed cadence; announce through thumbnails and experience events.
 - Review `roblox-design-and-launch` section 5 before changing prices or adding offers.
@@ -162,7 +166,7 @@ Parallel work lanes (several agents building at once; whether to delegate at all
 
 - Dev place only; never open the live place in Studio.
 - Close the Studio windows, play sessions and Blender instances the agent opened, by PID.
-- Every subagent brief says: no commands that need approval (`rm` and other deletes), no watch mode or foreground servers (`rojo serve`, `python3 -I -m http.server`), one command per Bash call (never edit, delete, rebuild and upload chained in one call), no call that waits more than 4 min (an agent's prompt cache lasts 5 min, so a longer wait rewrites its whole context on the next call: poll with sleeps of 240 s or less, or end the agent and let the parent wait in the background), and report `BLOCKED` instead of waiting. A permission prompt waits for the user, so an unattended agent sits on it (field observation).
+- Every subagent brief says: no commands that need approval (`rm` and other deletes), no watch mode or foreground servers (`rojo serve`, `python3 -I -m http.server`), one command per Bash call (never edit, delete, rebuild and upload chained in one call), no call that waits more than 4 min (an agent's prompt cache lasts 5 min, so a longer wait rewrites its whole context on the next call: poll with sleeps of 240 s or less, or end the agent and let the parent wait in the background), and report `BLOCKED` instead of waiting. A brief that builds scenery or unit art also carries the primitive stand-in rule (section 1). A permission prompt waits for the user, so an unattended agent sits on it (field observation).
 - Agents commit after each logical step, not only at the end. Keep the ledger (`docs/ledger.md`, `roblox-game-pipeline` section 0 rule 4), briefs and agent reports in the repo (git-ignored is fine), not in a temp or scratch directory that can be wiped.
 - Never print or commit API keys. Ask before any step that spends Robux, credits or sends content to a third party service.
 - Treat all third-party assets, MCP servers and community tools as untrusted code; review before running.
