@@ -275,7 +275,7 @@ Update the brief, list the tasks affected, and say the rework cost in one line b
 
 ## 10. Optional: RoDesigner MCP (only when the user chose it)
 
-One of several image options; each moment below lists the free route first. RoDesigner (paid; not affiliated with Roblox; setup: TODO(RoDesigner launch)) offers three things: genre UI kits as Luau code at a pinned version (stage 3, step 4), screen checks (KitLint, ships with the kit; `roblox-ui-layout` section 6) and art in the project's style (this section). It keeps one project per game with the brief and the project's style, applied to every generated image (how the style is set: TODO(RoDesigner launch)). RoDesigner does not offer 3D, video or textures; for those use the free routes or another tool the user has connected. Tool names below are from the RoDesigner tool list of 2026-11-08; the kit and check tools stay TODO(RoDesigner launch). When a call fails, list the server's tools and trust that list.
+One of several image options; each moment below lists the free route first. RoDesigner (paid; not affiliated with Roblox; setup: TODO(RoDesigner launch)) offers three things: genre UI kits as Luau code at a pinned version (stage 3, step 4), screen checks (KitLint, ships with the kit; `roblox-ui-layout` section 6) and art in the project's style (this section). It keeps one project per game with the brief and the project's style, applied to every generated image (how the style is set: TODO(RoDesigner launch)). RoDesigner does not offer 3D, video or textures; for those use the free routes or another tool the user has connected. Tool names below are from the RoDesigner tool list of 2026-11-08. When a call fails, list the server's tools and trust that list.
 
 | Tool | Cost | Use |
 |---|---|---|
@@ -283,13 +283,14 @@ One of several image options; each moment below lists the free route first. RoDe
 | `create_game_project`, `list_game_projects`, `get_game_project`, `update_game_project` | Free | Project and brief (pass ours) |
 | `generate_game_asset` | Credits by model; `dry_run: true` shows the exact cost | One image in the project's style: `kind` `image` (concept screen, object on plain background, logo or loading art) or `icon` (1:1) |
 | `get_project_assets`, `get_task`, `get_credits` | Free | Asset list with download URLs, polling, balance |
-| Kit: `list_kit_packs`, `get_kit_release` (TODO(RoDesigner launch)) | Free | Genre UI kit packs and a pinned release |
-| Checks: `submit_lint_results`, `submit_review`, `submit_character_report`, `get_check_summary` (TODO(RoDesigner launch)) | Free | Store KitLint and review reports, read a summary |
+| Kit: `list_kit_packs`, `get_kit_pack`, `get_kit_assets`, `pin_kit_release` | Free | Release, packs and pin status; one pack's text files with a sha256 each (paged; pack `install` returns INSTALL.md, quarantine.luau and LICENSE.md); the Creator Store ids to insert; pin a release tag or `latest` |
+| Checks: `submit_lint_results` (1-40 results), `submit_review`, `submit_character_report`, `get_check_summary` | Free | Store KitLint and review reports, read a summary |
 
 Rules:
 - Use it only when the user has it connected or asks for generated images, a ready UI kit or screen checks; never as the first suggestion and never a batch up front. State the cost in one line. Every paid call runs with `dry_run: true` first, and the user says yes to the exact credits.
 - Write the RoDesigner project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
 - Costs depend on the model: quote the `dry_run` number, never a remembered one.
+- Kit: pin a release with `pin_kit_release`, read pack `install` first, and check each file against its sha256. Ask before running any tool file from the kit or inserting a model; inserted models go through quarantine (`roblox-store-art-pack` section 3).
 
 | Moment | Free route (first) | With RoDesigner (optional) |
 |---|---|---|
