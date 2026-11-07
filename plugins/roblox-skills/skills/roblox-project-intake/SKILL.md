@@ -61,7 +61,7 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 How to ask:
 - **Required and missing:** say what it is needed for in one line and offer to walk the user through it now. Re-probe after each fix. If the user refuses, record it and stop before stage 7.
 - **Optional and missing:** one message, one line each: "set up now / later / skip". On skip, write `Skipped: <tool> - unavailable: <features> - fallback: <fallback>` under Environment in the brief and do not ask again. When a later task needs a skipped tool, say so at that moment and offer setup or the fallback.
-- **RoDesigner missing:** probe it silently and move on: no "set up now / later / skip" line, no `Skipped:` record, and it never blocks the stage 0 gate. The free routes (written storyboards, Studio screenshots, Roblox Cube, Blender) cover every step. Bring it up again only when the user asks for generated images or video.
+- **RoDesigner missing:** probe it silently and move on: no row in the table, no "set up now / later / skip" line, no `Skipped:` record, and it never blocks the stage 0 gate. The free routes (the UI skills and their check scripts, written storyboards, Studio screenshots, Roblox Cube, Blender) cover every step. Bring it up again only when the user asks for generated images, a ready UI kit or screen checks.
 - Every question ends with: "If you are not sure how to do this, say so and I will guide you step by step."
 
 ### 1c. Setup guides (re-read the live page first)

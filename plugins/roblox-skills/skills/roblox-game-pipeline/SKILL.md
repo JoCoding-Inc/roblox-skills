@@ -204,9 +204,9 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 - After a passing prototype the next feedback is often about looks and anticipation (one project, C). Have a current-vs-target table ready: one row per beat (effect, motion, sound, model), with a same-angle screenshot next to the concept image. It turns broad feedback into scoped tasks; then run the art bake-off (6a).
 
 **B. Concept images.** Free: greybox screenshots of the key scenes with Studio MCP `screen_capture`, or Blender renders. With RoDesigner connected (section 10):
-- If the project has no RoDesigner project yet: `create_game_project` (platform `roblox`) and `plan_game` with our brief passed as `brief`, so RoDesigner uses `docs/brief.md` instead of writing its own (both free).
-- `generate_concepts` with `dry_run: true` first, show the credits, wait for yes, then run it (count 3; key art, gameplay scene, world overview, character lineup). Put the style lane, palette and "Roblox game, blocky avatar proportions" in `extra_direction`. Never name other live games or their characters.
-- Poll each task with `get_task`, show the images, and call `select_concept` with the one the user picks: this locks the style for every later asset.
+- If the project has no RoDesigner project yet: read `design_guide`, then `create_game_project` (platform `roblox`) with our brief, so RoDesigner uses `docs/brief.md` instead of writing its own (both free).
+- `generate_game_asset` kind `image` with `dry_run: true` first, show the credits, wait for yes, then make 3 concept screens (key art, gameplay scene, world overview or character lineup). Put the style lane, palette and "Roblox game, blocky avatar proportions" in the prompt. Never name other live games or their characters.
+- Poll each task with `get_task`, show the images and let the user pick one. How a pick becomes the project's style: TODO(RoDesigner launch).
 - Save copies to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). They steer direction; they are not shipped art.
 
 **C. Concept trailer.** Free: a written storyboard (one line per shot) with greybox stills. With a video tool the user has connected:
@@ -275,30 +275,31 @@ Update the brief, list the tasks affected, and say the rework cost in one line b
 
 ## 10. Optional: RoDesigner MCP (only when the user chose it)
 
-One of several image options; each moment below lists the free route first. RoDesigner (paid; not affiliated with Roblox; setup: TODO(RoDesigner launch)) offers three things: genre UI kits as Luau code at a pinned version (stage 3, step 4), screen checks (KitLint, ships with the kit; `roblox-ui-layout` section 6) and art in the project's style (this section). It keeps one project per game: the brief, the style pack (palette, reference images, chosen concept), applied automatically to every generated asset. RoDesigner does not offer 3D or video; for those use the free routes or another tool the user has connected. The tool names (`create_game_project`, `plan_game`, `generate_game_asset` and the rest), order rules and costs below were measured on 2026-11-03 on an earlier image MCP of the same kind and stay placeholders until RoDesigner ships (TODO(RoDesigner launch): final tool list); when a call fails, list the server's tools and trust that list.
+One of several image options; each moment below lists the free route first. RoDesigner (paid; not affiliated with Roblox; setup: TODO(RoDesigner launch)) offers three things: genre UI kits as Luau code at a pinned version (stage 3, step 4), screen checks (KitLint, ships with the kit; `roblox-ui-layout` section 6) and art in the project's style (this section). It keeps one project per game with the brief and the project's style, applied to every generated image (how the style is set: TODO(RoDesigner launch)). RoDesigner does not offer 3D, video or textures; for those use the free routes or another tool the user has connected. Tool names below are from the RoDesigner tool list of 2026-11-08; the kit and check tools stay TODO(RoDesigner launch). When a call fails, list the server's tools and trust that list.
 
 | Tool | Cost | Use |
 |---|---|---|
-| `create_game_project`, `plan_game`, `update_game_project`, `select_concept`, `list_game_projects`, `get_game_project`, `get_project_assets` | Free | Project, brief (pass ours as `brief`), style lock, asset list with download URLs |
-| `generate_concepts` | Credits per image | 1-4 concept images from the brief |
-| `generate_game_asset` | Credits | One asset in the locked style: `kind` `image` (object on plain background), `icon` (1:1), `texture` (1:1 seamless tile) |
-| `generate_image`, `list_models`, `get_credits`, `get_task` | Credits for generation | General images, model list with costs, balance, polling |
+| `design_guide` | Free | Reference on how to use RoDesigner; read it first |
+| `create_game_project`, `list_game_projects`, `get_game_project`, `update_game_project` | Free | Project and brief (pass ours) |
+| `generate_game_asset` | Credits by model; `dry_run: true` shows the exact cost | One image in the project's style: `kind` `image` (concept screen, object on plain background, logo or loading art) or `icon` (1:1) |
+| `get_project_assets`, `get_task`, `get_credits` | Free | Asset list with download URLs, polling, balance |
+| Kit: `list_kit_packs`, `get_kit_release` (TODO(RoDesigner launch)) | Free | Genre UI kit packs and a pinned release |
+| Checks: `submit_lint_results`, `submit_review`, `submit_character_report`, `get_check_summary` (TODO(RoDesigner launch)) | Free | Store KitLint and review reports, read a summary |
 
 Rules:
-- Use it only when the user has it connected or asks for generated images, a ready UI kit or screen checks; never as the first suggestion and never a batch up front. State the cost in one line. Every paid call runs with `dry_run: true` first (or `list_models` costs), and the user says yes to the exact credits.
-- Write the RoDesigner project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
-- Order matters (checked 2026-11-03): `generate_concepts` fails until `plan_game` has saved a brief; assets made before a palette and a selected concept come back with "not color-locked" and "not style-locked" warnings. So: brief with `art_direction.palette` (or `update_game_project` style palette) -> concepts -> select -> assets.
-- Cost scale from `list_models` and `dry_run` on 2026-11-03 (quote the live number, not these): image 1-8 credits, icon 3.
+- Use it only when the user has it connected or asks for generated images, a ready UI kit or screen checks; never as the first suggestion and never a batch up front. State the cost in one line. Every paid call runs with `dry_run: true` first, and the user says yes to the exact credits.
+- Write the RoDesigner project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
+- Costs depend on the model: quote the `dry_run` number, never a remembered one.
 
 | Moment | Free route (first) | With RoDesigner (optional) |
 |---|---|---|
-| Stage 1-2 brief | Asset list written by hand | `create_game_project` + `plan_game` (our brief); its `asset_list` seeds the art tasks in the plan |
-| Stage 3 look | Lane cards, live-game contact sheet, Studio greybox per look | `generate_concepts` 3, user picks, `select_concept` locks the style |
+| Stage 1-2 brief | Asset list written by hand | `design_guide`, then `create_game_project` with our brief |
+| Stage 3 look | Lane cards, live-game contact sheet, Studio greybox per look | `generate_game_asset` kind `image`: 2-3 concept screens of this game; the user picks (style source: TODO(RoDesigner launch)) |
 | Stage 6b first proof | Written storyboard, greybox screenshots | Concept images |
 | Stage 7 props and pets | Parts by script, Studio MCP `generate_mesh` (Roblox Cube), Blender, Creator Store | Not offered (RoDesigner has no 3D); another 3D tool the user has connected |
 | Stage 7 UI | Standard icons from a Creator Store icon pack (`roblox-store-art-pack` section 4); the game's own items rendered from their models | `generate_game_asset` kind `icon` for the game's own items, matched to the pack |
-| Stage 7 surfaces | Studio Material Generator, `generate_material` | `generate_game_asset` kind `texture` for seamless tiles, used as `MaterialVariant` color maps |
-| Brand | Text logo built in Studio | Logo candidates and loading-screen art with `generate_image` (`roblox-store-art-pack` sections 6-7) |
+| Stage 7 surfaces | Studio Material Generator, `generate_material` | Not offered; use the free route |
+| Brand | Text logo built in Studio | Logo candidates and loading-screen art with `generate_game_asset` kind `image` (`roblox-store-art-pack` sections 6-7) |
 | Stage 9 launch | Real gameplay screenshots edited by hand | Thumbnail and icon drafts from a real gameplay screenshot (3 thumbnails 1920x1080 under 3 MB and a 512x512 icon; TODO(RoDesigner launch): tool or page); Ads Manager creative variants edited from real screenshots |
 
 AI text in images can be misspelled: check every letter, or leave titles off and typeset them. Video thumbnails and ads must be real gameplay.
@@ -320,7 +321,7 @@ Use this for every choice of how something looks or moves, after the bundled exa
 
 How:
 1. One image per option, same scene, same camera and framing; only the choice changes, so the comparison is fair. The scene comes from this game (its setting, core action, characters from the brief), not a generic one. Label each option A, B, C.
-2. With RoDesigner: before the style lock use `generate_image`; after it use `generate_game_asset` kind `image` so examples match the locked style. Explore with a cheap model (1-3 credits per image in `list_models`); use high quality only for the final pick.
+2. With RoDesigner: `generate_game_asset` kind `image` (style source: TODO(RoDesigner launch)). Explore with a cheaper model (the `dry_run` cost shows the difference); use high quality only for the final pick.
 3. Quote the total first (count x cost) and wait for yes. Clips cost much more than stills: offer them only for motion choices.
 4. Show them on one labeled sheet: save the files as `A-<name>.png` and so on in a scratch folder and run `python3 -I <skill dir>/scripts/style_board.py sheet.png --dir <folder>`, then send the sheet.
 5. Record the pick in the brief or ledger, copy the chosen image to `assets/refs/`, and log prompt, model and credits.
