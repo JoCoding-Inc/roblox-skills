@@ -157,7 +157,7 @@ Parallel work lanes (several agents building at once; whether to delegate at all
 ## 7. Live ops (phase 8)
 
 - Read analytics weekly: retention (D1/D7), session length, funnel events, crashes, performance. Add custom events and funnels in the prototype so the first launch has data.
-- Events from the server with `AnalyticsService:LogEconomyEvent`, `LogFunnelStepEvent`, `LogOnboardingFunnelStepEvent`, `LogProgressionEvent`, `LogCustomEvent`; the `Fire*` methods are deprecated. Log after the action succeeded. Limits (docs): 120 + 20 x CCU requests per minute, 3 custom fields, 5 currency types, 10 funnels of steps 1-100; past 100 SKUs or 20 transaction types values group as "Other". Studio skill `rbx-instrument-analytics` helps plan events.
+- Events go from the server with `AnalyticsService` (economy, funnel, journey, custom); the `Fire*` methods are deprecated. Log after the action succeeded. Events from Studio or the client never arrive, so test in a published test place. Calls, rules, limits and the minimum event set: `roblox-design-and-launch` section 3a. Studio skill `rbx-instrument-analytics` helps plan events.
 - Use experiments and configs (Open Cloud / Creator Hub) for feature flags and A/B tests rather than shipping blind balance changes. Read values on the server with `ConfigService:GetConfigForPlayerAsync(player)` (applies the player's experiments) or `GetConfigAsync()` (no player, experiments not applied); both return a `ConfigSnapshot`. Studio skill `rbx-configs-experimentation`.
 - Content updates and events on a fixed cadence; announce through thumbnails and experience events.
 - Review `roblox-design-and-launch` section 5 before changing prices or adding offers.
