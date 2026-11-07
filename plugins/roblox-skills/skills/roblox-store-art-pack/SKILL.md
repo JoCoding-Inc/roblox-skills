@@ -145,7 +145,7 @@ Gaps found: no voted free wall pack in most lanes (Synty has rock walls, Beyond 
 3. Copy the ids you use into one constants module (`Icons.Coin = "rbxassetid://..."`) and delete the pack and the sheet from the place.
 4. Record the pack id, the creator and the ids you used in `assets/LICENSES.md`, and name the pack to the user in one line (section 3: someone else's asset).
 5. A concept the pack lacks: run `store_icons.py "<thing> icon" --type decal` and pick one that matches the pack's outline weight, shading and light direction. Use the printed `image=` id, never the decal id: a decal id in `ImageLabel.Image` loads nothing (tested 2026-11-04). In Studio, `game:GetObjects("rbxassetid://<decalId>")[1].Texture` gives the same image id.
-6. The game's own items that no store icon shows (its pets, tools, products): render the item's own model (a ViewportFrame, or a Blender render, `roblox-blender-export` section 6), or use an image generator the user has connected (for example the RoDesigner MCP, style pack applied automatically: `generate_game_asset` kind `icon`, `roblox-game-pipeline` section 10). Match the pack's canvas, outline weight and highlight.
+6. The game's own items that no store icon shows (its pets, tools, products): render the item's own model (a ViewportFrame, or a Blender render, `roblox-blender-export` section 6), or use an image generator the user has connected (for example the RoDesigner MCP, in the project's style: `generate_game_asset` kind `icon`, `roblox-game-pipeline` section 10). Match the pack's canvas, outline weight and highlight.
 
 | Pack (tested 2026-11-04; re-rank, votes change) | Id | Votes | Contents | Fits |
 |---|---|---|---|---|
@@ -161,7 +161,7 @@ Rules for any mix of icons:
 - 1024 px or less per image. Many icons go on one sprite sheet (8x8 of 128 px).
 - 9-slice needs a slice centre; tune `SliceScale`.
 - Fixed words (the logo) may be images; translatable words stay TextLabels.
-- Generated icons for step 6 (for example RoDesigner kind `icon`, 1:1 in the project's style pack): downscale to the canvas and check that the outline weight matches the pack.
+- Generated icons for step 6 (for example RoDesigner kind `icon`, 1:1 in the project's style): downscale to the canvas and check that the outline weight matches the pack.
 
 ## 5. Game icon and thumbnails
 
@@ -220,7 +220,7 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 - Sports and themed games can build the pitch into the mark: a user-supplied reference baseball game ("+1 BAT") uses a sticker-style logo (white outer edge) with a smiling avatar swinging a bat, a flaming bat, flying bricks and a yellow "+1" beside bold blue-white "BAT" letters, over a blurred in-game field. The pattern to copy is the structure (avatar action + themed props + outlined numeral/word), not the art or name.
 
 **Making the logo with image-generation AI:**
-- Workflow: brief, then 4-8 candidates, pick one, refine, then clean up and typeset. Free first: a text logo typeset in Studio or an image editor with a bold game font, outline and bevel (`roblox-game-pipeline` section 10, Brand row). Then the image tools you already have (for example the RoDesigner MCP with the style pack applied automatically, or another image generator the user has connected; models such as GPT Image 2, Nano Banana and Seedream), or Roblox Studio's own generators for in-world assets.
+- Workflow: brief, then 4-8 candidates, pick one, refine, then clean up and typeset. Free first: a text logo typeset in Studio or an image editor with a bold game font, outline and bevel (`roblox-game-pipeline` section 10, Brand row). Then the image tools you already have (for example the RoDesigner MCP, in the project's style, or another image generator the user has connected; models such as GPT Image 2, Nano Banana and Seedream), or Roblox Studio's own generators for in-world assets.
 - Prompt pattern: `game logo, text "+1 BAT", chunky 3D bubble letters, thick dark-blue outline, white sticker border, glossy highlights, [subject: avatar swinging a flaming bat], flat solid background, centered, no extra text`. Name the exact words in quotes, ask for one logo on a plain background, and add `no watermark`.
 - Image models often misspell or distort text. Proofread every letter at full size. If the words are wrong, generate the art without text and typeset the name yourself (Figma, or a bold game font plus outline and bevel), or fix it by editing the image and re-checking.
 - Ask for a transparent or single-color background so the logo can be cut out (generate on pure green or white and remove it, or use a background-removal step). Export a PNG with alpha, 1024 px or more on the long side, and keep the source and the prompt in `assets/` with the model name and date.

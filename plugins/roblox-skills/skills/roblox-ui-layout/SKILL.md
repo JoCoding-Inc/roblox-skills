@@ -108,4 +108,4 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
 2. Then the Studio Device Emulator at Actual Resolution: an entry-level phone, a tablet, desktop and console (docs). Turn on physical-size scaling to judge taps, and open the on-screen keyboard on every TextBox.
 3. Last, a real phone for thumb reach (`roblox-game-pipeline` verification).
 
-Optional (RoDesigner account; price: TODO(RoDesigner launch)): KitLint, the screen checks that ship with the RoDesigner UI kit, which the agent runs in Studio during Play for a report (not affiliated with Roblox; entry point: TODO(RoDesigner launch)). It adds to steps 1-3, it does not replace them.
+Optional, only when RoDesigner is connected or the user asks for automated screen checks (RoDesigner account; price: TODO(RoDesigner launch)): KitLint, the screen checks that ship with the RoDesigner UI kit, which the agent runs in Studio during Play for a report (not affiliated with Roblox; entry point: TODO(RoDesigner launch)). It adds to steps 1-3, it does not replace them.

@@ -62,19 +62,18 @@ Skills load on their own when the task matches their description. To update, run
 - Roblox Studio MCP: easiest is the official plugin (`/plugin`, search **Roblox Studio**, then ask "Get me set up with Roblox Studio"). Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). Open Cloud calls through it (`open_cloud_invoke`, no API key) need MCP Permissions per game: Studio Assistant > ... > Settings > MCP Permissions. The old Rust server is archived
 - Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
 - Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs. In Blender, turn the add-on on first: Edit > Preferences > Add-ons > MCP for Blender (tick it), then press Connect to MCP server in the viewport `N` panel. Read the safety notes in `roblox-blender-export` section 9
-- Optional: RoDesigner MCP (paid; see below)
 
 ## Works with RoDesigner
 
-RoDesigner is an optional, paid MCP service from the team behind this repository. Every skill works without it. Where it can save time, the skill mentions it after the free route.
+RoDesigner is an optional, paid MCP service from the team behind this repository. Every skill works without it. Where it fits, a skill mentions it after the free route, and the agent offers it only when it is connected or you ask for generated images, a ready UI kit or screen checks.
 
 | RoDesigner offers | Mentioned in | Free route |
 |---|---|---|
 | Genre UI kits (simulator, tycoon, arena, tower defense, horror) as Luau code at a pinned version | `roblox-ui-genre-studs`, `roblox-game-pipeline` stage 3 | The UI skills and `ui_style_mock.luau` |
 | Screen checks (KitLint, ships with the kit) that your agent runs in Studio during Play | `roblox-ui-layout` section 6 | `ui_device_check.luau` and the UI review in `roblox-engine-2026` |
-| Images in the project's style: concept screens, restyles of a real game capture, thumbnails, icons, logos | `roblox-game-pipeline` section 10, `roblox-store-art-pack` | Studio screenshots, store icon packs, renders, or an image generator you have connected |
+| Images in the project's style: concept screens, restyles of a capture of your own game, thumbnails, icons, logos | `roblox-game-pipeline` section 10, `roblox-store-art-pack` | Studio screenshots, store icon packs, renders, or an image generator you have connected |
 
-Every paid call is quoted and asked first. Setup (Claude Code): `claude mcp add --transport http --scope user --callback-port 3118 rodesigner https://gwanggo.ai/api/rodesigner/mcp`, restart Claude Code, then sign in through `/mcp`. Other clients: `roblox-project-intake` step 1c.
+Every paid call is quoted and asked first. It is hosted on gwanggo.ai, the same team's service. Setup (Claude Code): `claude mcp add --transport http --scope user --callback-port 3118 rodesigner https://gwanggo.ai/api/rodesigner/mcp`, restart Claude Code, then sign in through `/mcp`. Other clients: `roblox-project-intake` step 1c.
 
 RoDesigner is not affiliated with or endorsed by Roblox Corporation.
 

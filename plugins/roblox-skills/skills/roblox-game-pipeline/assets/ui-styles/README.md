@@ -50,7 +50,7 @@ Keep UIShadow instances to about 100 on screen. Check every style on a phone-siz
    | Way | Cost | Gives | Best when |
    |---|---|---|---|
    | Studio mockup (`scripts/ui_style_mock.luau`) | Free | A real ScreenGui in the game's own place: real Roblox fonts, strokes and corners, the bundled icons or the game's own, its item models in the cards, its world behind it. Close to buildable | Studio MCP is connected (default). It looks only as good as its icons and world: never draw icons with frames |
-   | Generated image (prompt below): the RoDesigner MCP with the style pack applied automatically, or another image generator the user has connected | Credits per image; quote and ask first | A mood image with the game's world and themed ornament (wood, gold, glam) that parts and frames cannot draw yet | A generator is connected and there is no place yet, or the user asks for a themed look explored before building |
+   | Generated image (prompt below): the RoDesigner MCP, in the project's style, or another image generator the user has connected | Credits per image; quote and ask first | A mood image with the game's world and themed ornament (wood, gold, glam) that parts and frames cannot draw yet | A generator is connected and there is no place yet, or the user asks for a themed look explored before building |
 
 3. Show 2-3 variants, let the user pick or mix, and record the pick in the brief as `UI style: <name>` with the font pair and the palette.
 
