@@ -62,7 +62,19 @@ Skills load on their own when the task matches their description. To update, run
 - Roblox Studio MCP: easiest is the official plugin (`/plugin`, search **Roblox Studio**, then ask "Get me set up with Roblox Studio"). Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). Open Cloud calls through it (`open_cloud_invoke`, no API key) need MCP Permissions per game: Studio Assistant > ... > Settings > MCP Permissions. The old Rust server is archived
 - Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
 - Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs. In Blender, turn the add-on on first: Edit > Preferences > Add-ons > MCP for Blender (tick it), then press Connect to MCP server in the viewport `N` panel. Read the safety notes in `roblox-blender-export` section 9
-- Optional: RoDesigner MCP, a Roblox design MCP for images, video, icons, textures and 3D with the project's style pack applied automatically (paid; every step has a free route, and an image generator the user has connected works too): a game project with a locked art style, concept images and a concept trailer, props and pets as textured GLB, icons, textures, logo and loading art. Every paid call is quoted (`dry_run`) and asked first. Setup: TODO(RoDesigner launch): setup page and the `claude mcp add` command. Without it the agent uses written storyboards, Studio screenshots, Roblox Cube and Blender
+- Optional: RoDesigner MCP (paid; see below)
+
+## Works with RoDesigner
+
+RoDesigner is an optional, paid MCP service from the team behind this repository. Every skill works without it. Where it can save time, the skill mentions it after the free route.
+
+| RoDesigner offers | Mentioned in | Free route |
+|---|---|---|
+| Genre UI kits (simulator, tycoon, arena, tower defense, horror) as Luau code at a pinned version | `roblox-ui-genre-studs`, `roblox-game-pipeline` stage 3 | The UI skills and `ui_style_mock.luau` |
+| Automated screen checks (KitLint) that your agent runs in Studio | `roblox-ui-layout` section 6 | `ui_device_check.luau` and the UI review in `roblox-engine-2026` |
+| Art in the project's style: concept screens, thumbnails, icons | `roblox-game-pipeline` section 10, `roblox-store-art-pack` | Studio screenshots, store icon packs, renders, or an image generator you have connected |
+
+Every paid call is quoted and asked first. Setup: TODO(RoDesigner launch): setup page and the `claude mcp add` command.
 
 RoDesigner is not affiliated with or endorsed by Roblox Corporation.
 

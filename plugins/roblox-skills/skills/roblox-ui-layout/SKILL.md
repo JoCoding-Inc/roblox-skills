@@ -107,3 +107,5 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
    - It does not apply your runtime `UIScale` or scripts, so for UI that scripts build, check a Play-mode copy.
 2. Then the Studio Device Emulator at Actual Resolution: an entry-level phone, a tablet, desktop and console (docs). Turn on physical-size scaling to judge taps, and open the on-screen keyboard on every TextBox.
 3. Last, a real phone for thumb reach (`roblox-game-pipeline` verification).
+
+Optional, paid: RoDesigner's KitLint runs automated screen checks that the agent starts in Studio (not affiliated with Roblox; setup and tool names: TODO(RoDesigner launch)). It adds to steps 1-3, it does not replace them.

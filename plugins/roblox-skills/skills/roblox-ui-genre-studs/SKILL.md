@@ -23,6 +23,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 - Pull reference frames of 2-3 current top games in the same genre. YouTube storyboards work when clip downloads return 403: `yt-dlp -f sb0 -o sb.mhtml URL`, then extract the JPEGs from the mhtml with Python `email`.
 - Store thumbnails come from `thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds=...` and are marketing art, not HUD.
 - Every UI task ends with the review routine in section 10.
+- Optional, paid: a ready simulator or tycoon UI kit as Luau code at a pinned version from RoDesigner (not affiliated with Roblox; setup: TODO(RoDesigner launch)). The free route is this skill: build from sections 1-5 and review with section 10.
 
 ## 1. Identity
 
