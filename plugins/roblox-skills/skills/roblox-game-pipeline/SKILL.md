@@ -166,19 +166,19 @@ Add a loading budget (tier 0 assets and size) to the plan. Order: greybox of the
 
 ## 6a. Art source per asset class (before writing art tasks)
 
-List the asset classes (for example machines and furniture, building kit, characters and creatures, pets and pickups, icons) and, for each, the tools this session can really use (probe again: Studio MCP, RoDesigner `get_credits`, Blender `get_addon_status`):
+List the asset classes (for example machines and furniture, building kit, characters and creatures, pets and pickups, icons) and, for each, the tools this session can really use (probe again: Studio MCP, any 3D generator the user connected, Blender `get_addon_status`):
 
 | Tool | Cost | Good at | Not for |
 |---|---|---|---|
 | Parts built by script (agent writes `execute_luau` or Rojo model files) | No credits; instant; edit in Studio | Blocky props, machines, furniture, buildings, map structure; the classic blocky lane fully, chunky cartoon only for shapes (no thick outlines) | Organic or detailed shapes; many parts per repeated prop (keep counts low, reuse one model) |
 | Roblox Cube (Studio MCP `generate_mesh`) | No credits; rate limited (1-2 jobs at a time) | Static props, furniture, machines, vehicles; a reference image keeps the look | Rigs; exact modular sizes |
-| RoDesigner `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
+| A 3D generator the user has connected | Credits, quoted first | Many props in one style when it takes a reference image | Rigs |
 | `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) | Organic shapes |
 | Blender (scripted) | Free, slowest | Rigs and animation, modular kit pieces with exact sizes (walls, floors, trims), voxel animals | Many detailed props fast |
 | Creator Store | Free | Fillers, audio, world props from the pack picked in stage 3 (`roblox-store-art-pack` section 3a), standard UI icons (one voted icon pack, section 4) | Hero assets (quarantine first) |
 
 - When a class covers many assets and the user has not seen the options, run a **bake-off**: make the same object (one machine, one pet) with each available tool, screenshot them side by side in Studio (or a sheet with `scripts/style_board.py`), and let the user pick. Quote the cost of paid tools first. Never mark one option (D) and skip the others unseen. Replacing an asset the game already has (a character, a pet, a machine) is a bake-off too, with the old asset as one option: never swap without a same-camera side-by-side against the old one at play distance, label each with the tool that really made it (parts by script, Blender primitives, Cube, AI 3D), and keep the new one behind a flag (a `Tuning` value or attribute, section 7a) until the user approves.
-- Judge from the samples, not from memory: "AI output has inconsistent style" is not true of a RoDesigner project with its style pack or Cube with a reference image; the raw-mesh warning in `roblox-blender-export` section 9 is about the Blender MCP generators.
+- Judge from the samples, not from memory: "AI output has inconsistent style" is not true of Cube with a reference image; the raw-mesh warning in `roblox-blender-export` section 9 is about the Blender MCP generators.
 - When parts are in the mix, settle the part look before building: send `assets/part-looks/stud-surfaces.jpg` (studs on every face, new-part default, smooth, faint stud texture; real Studio renders) and `materials.jpg`, describe each option in one line set in this game, and record `Part look:` in the brief. The README there has the property settings and a helper.
 - Record the result in the brief as `Art source: <class> -> <tool> (<reason>)` lines and tag the art tasks with it.
 
@@ -190,7 +190,7 @@ When the plan is approved, ask once, several picks allowed: "Before the full bui
 |---|---|---|---|
 | A. Core-fun prototype (D) | A playable greybox of the most-repeated action, its feedback, the first reward and one upgrade | Studio MCP | 1-3 plan tasks, no credits |
 | B. Concept images | 3-6 stills: key art, one gameplay screen, the clip-worthy moment, the hero character or creature | Greybox screenshots, or an image tool the user has connected (for example the RoDesigner MCP) | Free with greybox; credits per image when paid, quoted first |
-| C. Concept trailer | 15-30 s video made from B's stills: 3-5 shots, captions, title card | A written storyboard, or a video tool the user has connected (for example the RoDesigner MCP) | Free as a storyboard; more than B when paid, quoted first |
+| C. Concept trailer | 15-30 s video made from B's stills: 3-5 shots, captions, title card | A written storyboard, or a video tool the user has connected | Free as a storyboard; more than B when paid, quoted first |
 | D. Straight to the full build | Stage 7 as planned | - | - |
 
 Pick A first when the core action is the risk; B or C first when the pitch or the look is the open question (the user wants to show friends or a team). B then C, and A plus B, are common.
@@ -206,12 +206,12 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 **B. Concept images.** Free: greybox screenshots of the key scenes with Studio MCP `screen_capture`, or Blender renders. With RoDesigner connected (section 10):
 - If the project has no RoDesigner project yet: `create_game_project` (platform `roblox`) and `plan_game` with our brief passed as `brief`, so RoDesigner uses `docs/brief.md` instead of writing its own (both free).
 - `generate_concepts` with `dry_run: true` first, show the credits, wait for yes, then run it (count 3; key art, gameplay scene, world overview, character lineup). Put the style lane, palette and "Roblox game, blocky avatar proportions" in `extra_direction`. Never name other live games or their characters.
-- Poll each task with `get_task`, show the images, and call `select_concept` with the one the user picks: this locks the style for every later asset and video.
+- Poll each task with `get_task`, show the images, and call `select_concept` with the one the user picks: this locks the style for every later asset.
 - Save copies to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). They steer direction; they are not shipped art.
 
-**C. Concept trailer.** Free: a written storyboard (one line per shot) with greybox stills. With a video tool (RoDesigner below):
+**C. Concept trailer.** Free: a written storyboard (one line per shot) with greybox stills. With a video tool the user has connected:
 - Shot list first (format in `roblox-cinematics` section 4): hook = the clip-worthy moment, then the core action, the progression payoff, the twist or friends, title card; 3-6 s per shot.
-- `generate_gameplay_video` makes one clip from the selected concept (needs `select_concept`; credits per second, `dry_run` first; default 5 s, 16:9). Pass each shot's motion as `prompt`. For shots that start from another concept image, use `generate_video` with that image as the start frame, and compare frame 0 of the clip with that image: some models dropped the start frame and still charged (seen 2026-11-03 on an earlier service, fixed there on 2026-11-04). Make the first 1-2 shots, show them, then the rest (one trailer was stopped after 2 shots as "too different from the game"). 9:16 for Shorts or TikTok tests.
+- Make one clip per shot from B's stills (image to video, the still as the start frame; quote the cost first), and check that frame 0 of each clip matches its still. Make the first 1-2 shots, show them, then the rest (one trailer was stopped after 2 shots as "too different from the game"). 9:16 for Shorts or TikTok tests.
 - Join the clips with `ffmpeg -f concat -safe 0 -i shots.txt -c copy trailer.mp4` when ffmpeg exists (re-encode if the clips differ); otherwise hand over the clips in order.
 - Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness).
 
@@ -275,31 +275,27 @@ Update the brief, list the tasks affected, and say the rework cost in one line b
 
 ## 10. Optional: RoDesigner MCP (only when the user chose it)
 
-One of several image, 3D and video options; each moment below lists the free route first. RoDesigner (paid; not affiliated with Roblox; setup: TODO(RoDesigner launch)) offers three things: genre UI kits as Luau code at a pinned version (stage 3, step 4), automated screen checks (KitLint, `roblox-ui-layout` section 6) and art in the project's style (this section). It keeps one project per game: the brief, the style pack (palette, reference images, chosen concept), applied automatically to every generated asset. The tool names, order rules and costs below were measured on 2026-11-03 on an earlier image MCP of the same kind and stay placeholders until RoDesigner ships (TODO(RoDesigner launch): re-list its tools); when a call fails, list the server's tools and trust that list.
+One of several image options; each moment below lists the free route first. RoDesigner (paid; not affiliated with Roblox; setup: TODO(RoDesigner launch)) offers three things: genre UI kits as Luau code at a pinned version (stage 3, step 4), screen checks (KitLint, ships with the kit; `roblox-ui-layout` section 6) and art in the project's style (this section). It keeps one project per game: the brief, the style pack (palette, reference images, chosen concept), applied automatically to every generated asset. RoDesigner does not offer 3D or video; for those use the free routes or another tool the user has connected. The tool names (`create_game_project`, `plan_game`, `generate_game_asset` and the rest), order rules and costs below were measured on 2026-11-03 on an earlier image MCP of the same kind and stay placeholders until RoDesigner ships (TODO(RoDesigner launch): final tool list); when a call fails, list the server's tools and trust that list.
 
 | Tool | Cost | Use |
 |---|---|---|
-| `create_game_project`, `plan_game`, `update_game_project`, `select_concept`, `list_game_projects`, `get_game_project`, `get_project_assets` | Free | Project, brief (pass ours as `brief`), style lock, asset list with download URLs (GLB for 3D) |
+| `create_game_project`, `plan_game`, `update_game_project`, `select_concept`, `list_game_projects`, `get_game_project`, `get_project_assets` | Free | Project, brief (pass ours as `brief`), style lock, asset list with download URLs |
 | `generate_concepts` | Credits per image | 1-4 concept images from the brief |
-| `generate_game_asset` | Credits | One asset in the locked style: `kind` `image` (object on plain background), `icon` (1:1), `texture` (1:1 seamless tile), `3d` (textured GLB, Roblox limits when the project platform is `roblox`) |
-| `generate_3d` | 4-47 credits by model and texture | Text or image to GLB outside the style lock; `style` `roblox`, `face_limit` up to `15000` (Roblox-safe) |
-| `generate_gameplay_video` | Credits per second | Concept or promo clip from the selected concept; AI video, not real footage |
-| `generate_image`, `generate_video`, `list_models`, `get_credits`, `get_task` | Credits for generation | General images and video, model list with costs, balance, polling |
+| `generate_game_asset` | Credits | One asset in the locked style: `kind` `image` (object on plain background), `icon` (1:1), `texture` (1:1 seamless tile) |
+| `generate_image`, `list_models`, `get_credits`, `get_task` | Credits for generation | General images, model list with costs, balance, polling |
 
 Rules:
-- Use it only when the user has it connected or asks for generated images or video; never as the first suggestion and never a batch up front. State the cost in one line. Every paid call runs with `dry_run: true` first (or `list_models` costs), and the user says yes to the exact credits.
+- Use it only when the user has it connected or asks for generated images, a ready UI kit or screen checks; never as the first suggestion and never a batch up front. State the cost in one line. Every paid call runs with `dry_run: true` first (or `list_models` costs), and the user says yes to the exact credits.
 - Write the RoDesigner project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
-- Order matters (checked 2026-11-03): `generate_concepts` fails until `plan_game` has saved a brief; `generate_gameplay_video` fails until `select_concept`; assets made before a palette and a selected concept come back with "not color-locked" and "not style-locked" warnings. So: brief with `art_direction.palette` (or `update_game_project` style palette) -> concepts -> select -> assets and video.
-- Cost scale from `list_models` and `dry_run` on 2026-11-03 (quote the live number, not these): image 1-8 credits, icon 3, 3D 4-47 (tripo-h31 text 8, image 12), video 1-25 credits per second (a 5 s 720p clip is often 10-45).
-- Consistent 3D: `generate_game_asset` kind `image` first, poll until done, then kind `3d` with `image_url` set to that result (image-to-3D). Prefer the Roblox-friendly models (tripo-h31, rodin-25-fast, meshy-v71, trellis-2-image); Hunyuan 3D Pro is always 40K+ faces, over the 20,000-triangle mesh limit. 3D results are static meshes with no rig.
-- Import: `get_project_assets` gives the GLB URL; download it, import with Studio's 3D Importer, set collision and anchoring as in `roblox-blender-export` section 5, and log it in `assets/LICENSES.md` (source RoDesigner, model, date).
+- Order matters (checked 2026-11-03): `generate_concepts` fails until `plan_game` has saved a brief; assets made before a palette and a selected concept come back with "not color-locked" and "not style-locked" warnings. So: brief with `art_direction.palette` (or `update_game_project` style palette) -> concepts -> select -> assets.
+- Cost scale from `list_models` and `dry_run` on 2026-11-03 (quote the live number, not these): image 1-8 credits, icon 3.
 
 | Moment | Free route (first) | With RoDesigner (optional) |
 |---|---|---|
 | Stage 1-2 brief | Asset list written by hand | `create_game_project` + `plan_game` (our brief); its `asset_list` seeds the art tasks in the plan |
 | Stage 3 look | Lane cards, live-game contact sheet, Studio greybox per look | `generate_concepts` 3, user picks, `select_concept` locks the style |
-| Stage 6b first proof | Written storyboard, greybox screenshots | Concept images, concept trailer (`generate_gameplay_video`) |
-| Stage 7 props and pets | Parts by script, Studio MCP `generate_mesh` (Roblox Cube), Blender, Creator Store | `generate_game_asset` image then 3d; packs of themed props (one call per item) |
+| Stage 6b first proof | Written storyboard, greybox screenshots | Concept images |
+| Stage 7 props and pets | Parts by script, Studio MCP `generate_mesh` (Roblox Cube), Blender, Creator Store | Not offered (RoDesigner has no 3D); another 3D tool the user has connected |
 | Stage 7 UI | Standard icons from a Creator Store icon pack (`roblox-store-art-pack` section 4); the game's own items rendered from their models | `generate_game_asset` kind `icon` for the game's own items, matched to the pack |
 | Stage 7 surfaces | Studio Material Generator, `generate_material` | `generate_game_asset` kind `texture` for seamless tiles, used as `MaterialVariant` color maps |
 | Brand | Text logo built in Studio | Logo candidates and loading-screen art with `generate_image` (`roblox-store-art-pack` sections 6-7) |
@@ -327,8 +323,8 @@ How:
 2. With RoDesigner: before the style lock use `generate_image`; after it use `generate_game_asset` kind `image` so examples match the locked style. Explore with a cheap model (1-3 credits per image in `list_models`); use high quality only for the final pick.
 3. Quote the total first (count x cost) and wait for yes. Clips cost much more than stills: offer them only for motion choices.
 4. Show them on one labeled sheet: save the files as `A-<name>.png` and so on in a scratch folder and run `python3 -I <skill dir>/scripts/style_board.py sheet.png --dir <folder>`, then send the sheet.
-5. Record the pick in the brief or ledger, copy the chosen image to `assets/refs/`, and log prompt, model and credits. With RoDesigner, a pick can feed the next step: a chosen character image goes to `generate_game_asset` kind `3d`.
+5. Record the pick in the brief or ledger, copy the chosen image to `assets/refs/`, and log prompt, model and credits.
 
 Free route (offer it first): a quick greybox mock in Studio captured with `screen_capture` per option, live-game thumbnails of the same genre as references (`roblox-launch-benchmarks` `scripts/art_fetch.py`; references only, never copied), or a short written description per option.
 
-If RoDesigner is not connected, use the free route; mention it only when the user asks for generated images or video (setup: `roblox-project-intake` step 1c). If it is connected but `create_game_project` is missing, the session holds an old tool list: reconnect it in `/mcp` or restart Claude Code. If `list_models` rejects `type: "3d"`, its schema is stale: call it with no filter, which also returns the 3D models.
+If RoDesigner is not connected, use the free route; mention it only when the user asks for generated images, a ready UI kit or screen checks (setup: `roblox-project-intake` step 1c). If it is connected but `create_game_project` is missing, the session holds an old tool list: reconnect it in `/mcp` or restart Claude Code.

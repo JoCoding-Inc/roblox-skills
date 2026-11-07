@@ -71,8 +71,8 @@ RoDesigner is an optional, paid MCP service from the team behind this repository
 | RoDesigner offers | Mentioned in | Free route |
 |---|---|---|
 | Genre UI kits (simulator, tycoon, arena, tower defense, horror) as Luau code at a pinned version | `roblox-ui-genre-studs`, `roblox-game-pipeline` stage 3 | The UI skills and `ui_style_mock.luau` |
-| Automated screen checks (KitLint) that your agent runs in Studio | `roblox-ui-layout` section 6 | `ui_device_check.luau` and the UI review in `roblox-engine-2026` |
-| Art in the project's style: concept screens, thumbnails, icons | `roblox-game-pipeline` section 10, `roblox-store-art-pack` | Studio screenshots, store icon packs, renders, or an image generator you have connected |
+| Screen checks (KitLint, ships with the kit) that your agent runs in Studio during Play | `roblox-ui-layout` section 6 | `ui_device_check.luau` and the UI review in `roblox-engine-2026` |
+| Images in the project's style: concept screens, restyles of a real game capture, thumbnails, icons, logos | `roblox-game-pipeline` section 10, `roblox-store-art-pack` | Studio screenshots, store icon packs, renders, or an image generator you have connected |
 
 Every paid call is quoted and asked first. Setup: TODO(RoDesigner launch): setup page and the `claude mcp add` command.
 
