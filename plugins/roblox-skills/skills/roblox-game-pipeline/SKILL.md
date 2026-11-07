@@ -290,6 +290,7 @@ Rules:
 - Use it only when the user has it connected or asks for generated images, a ready UI kit or screen checks; never as the first suggestion and never a batch up front. When you offer it, say in one line that it is paid, from the team behind these skills and not affiliated with Roblox. State the cost in one line. Every paid call runs with `dry_run: true` first, and the user says yes to the exact credits.
 - Write the RoDesigner project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
 - Costs depend on the model: quote the `dry_run` number, never a remembered one.
+- Local images (a screenshot, a picked concept file) need a public URL first: call `prepare_image_upload` (TODO(RoDesigner launch): tool name) with `content_type`, `file_name` and `size_bytes`, PUT the exact bytes to the signed URL within 5 minutes, then pass the returned `public_url` as `image_url` or `style.conceptImageUrl`. JPEG, PNG or WebP up to 20 MB; `data:` URLs are rejected. Never ask the user to host an image on a third-party site.
 - Kit, in order: `list_kit_packs`; `get_kit_pack` with pack `install` and read INSTALL.md and LICENSE.md; `pin_kit_release` with a release tag (records the pin on the RoDesigner project); `get_kit_pack` per pack, checking each file against its sha256; `get_kit_assets` for the Creator Store ids. Ask before running any tool file from the kit or inserting a model; inserted models go through quarantine (`roblox-store-art-pack` section 3).
 
 | Moment | Free route (first) | With RoDesigner (optional) |
@@ -301,7 +302,7 @@ Rules:
 | Stage 7 UI | Standard icons from a Creator Store icon pack (`roblox-store-art-pack` section 4); the game's own items rendered from their models | `generate_game_asset` kind `icon` for the game's own items, matched to the pack |
 | Stage 7 surfaces | Studio Material Generator, `generate_material` | Not offered; use the free route |
 | Brand | Text logo built in Studio | Logo candidates and loading-screen art with `generate_game_asset` kind `image` (`roblox-store-art-pack` sections 6-7) |
-| Stage 9 launch | Real gameplay screenshots edited by hand | Thumbnail and icon drafts from a real gameplay screenshot (3 thumbnails 1920x1080 under 3 MB and a 512x512 icon; `generate_game_asset` kind `image` or `icon` with the screenshot as `image_url`); Ads Manager creative variants edited from real screenshots |
+| Stage 9 launch | Real gameplay screenshots edited by hand | Thumbnail and icon drafts from a real gameplay screenshot (3 thumbnails 1920x1080 under 3 MB and a 512x512 icon; `generate_game_asset` kind `image` or `icon` with the uploaded screenshot as `image_url`); Ads Manager creative variants edited from real screenshots |
 
 AI text in images can be misspelled: check every letter, or leave titles off and typeset them. Video thumbnails and ads must be real gameplay.
 
