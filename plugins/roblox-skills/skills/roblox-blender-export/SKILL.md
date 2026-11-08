@@ -138,7 +138,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 - Contact sheet of every asset (EEVEE, key plus rim light, flat background) for review at phone size before uploading. Make one per batch and label each cell with its asset id.
 - Icon decals: Workbench or EEVEE, `film_transparent=True`, RGBA PNG, square, 512 px.
 - Headless `-b` renders on Apple Silicon (tested Blender 5.2.2, M4 Pro). Engine ids on 5.x: `BLENDER_EEVEE`, `BLENDER_WORKBENCH`, `CYCLES` (`BLENDER_EEVEE_NEXT` raises `TypeError`). Measured: 512 px icon 0.85 s on EEVEE, 0.14 s on Workbench; a 1536x512 three-object sheet 0.3 s on EEVEE, 7.5 s on Cycles (CPU).
-- Review checklist: distinct silhouettes per tier, readable at 128 px, palette consistent across the family, nothing default grey.
+- Review checklist: distinct silhouettes per tier, readable at 128 px, palette consistent across the family, nothing default grey. For characters and units, size the test to play distance (`roblox-character-design` section 1).
 - Critic pass on every batch: a reviewer other than the builder reads the labeled sheet and lists near-identical silhouettes by asset id. Reject them and redo one of each pair with a different form, not a recolor (field observation).
 
 ## 7. Licensing

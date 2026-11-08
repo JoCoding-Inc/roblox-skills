@@ -57,6 +57,7 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 | 7 Top | above a set line | unique per item | short scene (`roblox-cinematics` rules) | up to 8 s | all servers (optional) |
 
 - Store the ladder in one ModuleScript; the roll, the odds UI, rarity labels (`roblox-ui-genre-studs` section 6) and the effects all read it.
+- For characters, towers and units, a tier also changes shape and size, not only color (`roblox-character-design` section 4).
 - Low tiers are seen thousands of times: keep them short.
 - Settings: "skip reveal below tier N" (default 3) and "hide announcements below tier N". Popular RNG aura games ship both (community wikis).
 - Show a roll counter and a collection index; never auto-equip a worse item.

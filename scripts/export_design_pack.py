@@ -67,6 +67,7 @@ GUIDES = [
     ("roblox-ui-genre-studs", None, "stud-style"),
     ("roblox-ui-typography", None, "typography"),
     ("roblox-fun-effects", None, "effects"),
+    ("roblox-character-design", None, "art-direction"),
     ("roblox-store-art-pack", None, "store-art"),
     ("roblox-feel-audio-vfx", ["1", "3", "4", "5"], "effects"),
     ("roblox-engine-2026", ["2"], "ui-engine"),
