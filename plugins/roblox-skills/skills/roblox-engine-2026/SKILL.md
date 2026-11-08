@@ -80,7 +80,7 @@ Where this file and an older tutorial disagree, this file follows the current do
 2. Type: `typeof(x) == "Instance"` and `IsDescendantOf` the expected container (tables can pose as Instances).
 3. Value: `math.isfinite` (reject NaN/inf), range-check numbers, cap string length and table size, `utf8.len`.
 4. Rate-limit with a token bucket or cooldown per player.
-5. `ProximityPrompt`, `ClickDetector` and `DragDetector` events can be fired by exploiters from any distance; only `Triggered` has a server distance check, so verify distance yourself.
+5. `ProximityPrompt`, `ClickDetector` and `DragDetector` events can be fired by exploiters from any distance; only `Triggered` has a server distance check, so verify distance yourself. Give the check movement slack (about walk speed x ping, 3 studs at 16 studs/s, judgment), and never let the client show an action button farther out than the server accepts: a Buy button shown at reach + 4 met a server that took reach, and the player got "walk closer" (field note, 2026-11-09).
 6. Purchases: grant in `ProcessReceipt`; never trust `PromptProductPurchaseFinished`.
 7. Unanchored parts are exploitable through network ownership; anchor them or set the owner.
 8. Remotes cannot pass functions; metatables are stripped; `UnreliableRemoteEvent` drops payloads over 1,000 bytes.

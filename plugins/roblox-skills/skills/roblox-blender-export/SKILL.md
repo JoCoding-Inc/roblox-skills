@@ -124,7 +124,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   - File Transform: World Forward Front, World Up Top.
   - File General: Anchored on (static), Add to Workspace on, Set Pivot to Scene Origin on, Upload to Roblox on.
 - After import, set `CollisionFidelity` explicitly every time, because the importer is inconsistent: Box or Hull for props.
-- Decor gets `CanCollide`, `CanTouch` and `CanQuery` false. A gameplay collider is an invisible primitive with the old dimensions.
+- Decor gets `CanCollide`, `CanTouch` and `CanQuery` false, except decor the camera can enter (walls, ceilings, stair treads): the default camera ignores parts with `CanCollide` false (`roblox-pitfalls` section 4). A gameplay collider is an invisible primitive with the old dimensions.
 - Open Cloud `POST https://apis.roblox.com/assets/v1/assets`:
   - Send multipart `request` JSON (`assetType` Model or Image, `displayName`, `creationContext.creator`) plus `fileContent`, then poll the operation (`GET /assets/v1/operations/{id}` until `done`; 300 per minute). One asset per call, files up to 20 MB, 120 creates per minute. Scopes `asset:read` and `asset:write`. Models accept fbx, gltf, glb, rbxm, rbxmx and become a package; images accept png, jpeg, bmp, tga under 8000x8000 px; audio mp3/ogg/wav/flac up to 7 minutes (100 uploads per month if ID-verified, 10 if not). `creationContext.expectedPrice` makes the call fail instead of charging more than you expect.
   - The result arrives as a package: unanchored, random yaw, no preview. An update adds a version, but placed copies do not update.
