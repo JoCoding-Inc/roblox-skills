@@ -53,7 +53,7 @@ pellet1 | tower, player  | 1    | 7            | squat box, 3 barrels | barrel c
 | Color | saturated warm or pastel | desaturated body, one hot accent (red or orange glow) | near-black body, sickly accent |
 | Motion | bouncy | heavy steps, sudden lunges | still, then fast |
 
-- Menace comes from shape, pose and motion, not gore: Roblox content maturity applies (`roblox-design-and-launch` section 4), and Roblox's generators fail on horror words such as "sharp teeth" (`roblox-pitfalls` section 5). Describe the shape instead: "angular jaw, wedge head, hunched shoulders".
+- Menace comes from shape, pose and motion, not gore: Roblox content maturity applies (`roblox-design-and-launch` section 4), and Roblox's generators fail on horror words such as "sharp teeth" (`roblox-pitfalls` section 5). Describe the shape instead: "angular jaw, wedge head, hunched shoulders". Cube also ignored face words such as "narrow eyes" and drew another species' parts when the prompt named a species (field notes in `roblox-pitfalls` section 5), so carry menace with head, jaw, pose and palette, and describe the shape without the name.
 - A unit that reads cute (big eyes, round body) needs the shape levers, not only darker colors (judgment). In one tower defense game the owner asked for invaders, not toys (field note, 2026-11-08).
 
 ## 3. Size against the avatar

@@ -88,6 +88,8 @@ Never invent ids.
 
 Probe every image id before relying on it (`roblox-pitfalls` section 4).
 
+Store images also texture the world by id with no upload, for example night window photos tiled on far towers for a lit skyline (field note, 2026-11-08). Most such decals have 0 votes and unknown original authorship: record each in the licenses file and list them for the user to keep or replace before release.
+
 **Model inserts (quarantine first):**
 - Insert into a quarantine folder.
 - Keep meshes, textures and UI art. Delete every script.
@@ -95,6 +97,7 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Red-flag names: AntiLag, MainModule, Loader, Handler, Update, Version, HDAdmin, Free, Fix.
 - Verdict for each insert: visual-only / reviewed / quarantine / reject. `insert_asset` keeps scripts and only sets `Sandboxed` on them (observed 2026-11-04), so delete them yourself and recreate the behavior.
 - Assets owned by someone else need user consent for use. Record the source in the licenses file.
+- A 0-vote model that is the only fit may stay in dev after this quarantine, but list it for the user with its id, creator, votes and the closest voted alternative, and get a keep-or-replace answer before release (judgment). Template MeshPart pieces, not unions (`roblox-pitfalls` section 2).
 
 ## 3a. World props from a store pack (the user picks)
 
