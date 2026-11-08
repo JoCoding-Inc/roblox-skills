@@ -95,7 +95,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 - Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
 - A bake through an Emission shader writes linear values. Convert sRGB colors with `c ** 2.2` before baking, or colors come out grey or white in Roblox (field observation).
-- Tint variants (rarity, colorways): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap). Distinct tiers need distinct silhouettes, not tints (section 6).
+- Tint variants (rarity, colorways): white or grey areas in a `SurfaceAppearance` color map plus `SurfaceAppearance.Color` at runtime (`MeshPart.Color` does not tint a textured mesh, tested 2026-11-08: `roblox-pitfalls` section 4), or one palette PNG per variant on the same mesh (`TextureID` swap). Distinct tiers need distinct silhouettes, not tints (section 6).
 
 ## 4. Genre look (chunky cartoon)
 
