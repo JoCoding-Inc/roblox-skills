@@ -109,7 +109,7 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
    - It copies the StarterGui ScreenGuis into a frame of that device's safe area and draws the reserved zones (red: never; orange: only when that UI is on).
    - It returns buttons inside zones, buttons under 44 px on touch, text under 14 px, and elements crossing the safe edge.
    - Fix every `error`, then capture the phone and desktop previews with `screen_capture`.
-   - It does not apply your runtime `UIScale` or scripts, so for UI that scripts build, check a Play-mode copy.
+   - It does not apply your runtime `UIScale` or scripts, so for UI that scripts build, check a Play-mode copy. Take that copy with every transient state up (contextual cards with their buttons, tutorial bar, prompts, toasts): one phone overlap showed only with a contextual card and the tutorial bar open (field note, 2026-11-09).
 2. Then the Studio Device Emulator at Actual Resolution: an entry-level phone, a tablet, desktop and console (docs). Turn on physical-size scaling to judge taps, and open the on-screen keyboard on every TextBox.
 3. Last, a real phone for thumb reach (`roblox-game-pipeline` verification).
 4. These steps check placement and size, not the look: also run the look check in `roblox-engine-2026` section 2 (UI review, step 4).
