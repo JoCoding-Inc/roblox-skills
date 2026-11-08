@@ -13,7 +13,7 @@ sources:
 
 # UI layout standard (phone, tablet, desktop, console)
 
-One standard for every genre. The genre skills set the look; this one sets where things go and how big they are. Coordinates below are Roblox UI px inside the CoreUI-safe frame (below the top bar, inside notches), which is where a default ScreenGui draws.
+One standard for every genre. The genre skills set the look (pick it first: `roblox-game-pipeline` section 3, step 4, style cards and a free Studio mockup; then `roblox-ui-genre-studs`, `roblox-ui-genre-scifi` or the UI rules in `roblox-engine-2026`); this one sets where things go and how big they are. Coordinates below are Roblox UI px inside the CoreUI-safe frame (below the top bar, inside notches), which is where a default ScreenGui draws.
 
 ## 0. Facts behind the standard
 
@@ -107,3 +107,4 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
    - It does not apply your runtime `UIScale` or scripts, so for UI that scripts build, check a Play-mode copy.
 2. Then the Studio Device Emulator at Actual Resolution: an entry-level phone, a tablet, desktop and console (docs). Turn on physical-size scaling to judge taps, and open the on-screen keyboard on every TextBox.
 3. Last, a real phone for thumb reach (`roblox-game-pipeline` verification).
+4. These steps check placement and size, not the look: also run the look check in `roblox-engine-2026` section 2 (UI review, step 4).

@@ -17,7 +17,7 @@ sources:
 
 # UI typography for Roblox games
 
-Fonts are part of the look: pick them in the style board (stage 3 of `roblox-game-pipeline`), next to the palette, not at the end.
+Fonts are part of the look: pick them in the style board (stage 3 of `roblox-game-pipeline`), next to the palette and the UI style card (section 3, step 4, with a free Studio mockup), not at the end.
 
 ## 1. What you can use
 

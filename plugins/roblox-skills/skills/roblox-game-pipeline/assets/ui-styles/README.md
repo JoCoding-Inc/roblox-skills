@@ -28,6 +28,7 @@ Themed looks (words only, no card; build them on the closest basic style when th
 | Dark ornate | pure black, thin bright frame with corner brackets, one glow color per item | RNG, aura collection, number-heavy idle | Sol's RNG | Dark flat |
 | Cozy wood | wood planks, cream parchment cards, amber price pills | Farming, garden, cooking, shop sims | Grow a Garden | Bright cards |
 | Illustrated | torn paper, hand-drawn ink outline, desaturated with one accent | Horror, survival, co-op | Dandy's World, DOORS, 99 Nights in the Forest | Dark flat (needs hand-drawn 9-slice art) |
+| Sci-fi or military | translucent dark glass, cut corners, thin bright edges, hazard stripes on warnings, segmented wave bars | Tower defense, shooters, mechs, space | not checked on the chart | Dark flat; recipes and a tested script in `roblox-ui-genre-scifi` |
 
 Not carded: glass (frosted translucent panels), a designer trend with no confirmed top game; a native per-element UI blur is on the roadmap for early 2027, so today it needs a screen-wide `BlurEffect` or fake glass.
 
