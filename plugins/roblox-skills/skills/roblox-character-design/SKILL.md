@@ -74,7 +74,7 @@ pellet1 | tower, player  | 1    | 7            | squat box, 3 barrels | barrel c
 1. Lock a style sheet: head to body ratio, bevel size, outline or none, 3-5 base colors plus one accent per faction, material, eye style, detail density, a shared base or plinth for towers.
 2. Make 3 pilot units of different roles with the chosen tool and show them in one same-camera shot with the avatar. Batch only after the user's yes.
 3. Keep the tool, the reference image and the prompt template the same for the whole roster; change only the shape words. Switching tools mid-roster breaks the style.
-4. **Critic pass** after every batch: one silhouette sheet and one color sheet of the whole roster at play size (section 1). List pairs that differ only by color or small detail, and units whose bevel, texture density or proportions drift. A fresh-context reviewer with the sheets and the style sheet catches what the maker misses. Fix before the next batch.
+4. **Critic pass** after every batch: one silhouette sheet and one color sheet of the whole roster at play size (section 1). List pairs that differ only by color or small detail, and units whose bevel, texture density or proportions drift. A fresh-context reviewer with the sheets and the style sheet catches what the maker misses. Ask it also for class misreads (a brute that is not the widest, a walker that is the smallest ground unit), and after any swap re-check the size order of every unit in that land or wave group: one fix only moved "smallest ground unit" from one species to another in the same land (field note, 2026-11-09). Fix before the next batch.
 
 ## 6. Parts for animation
 
