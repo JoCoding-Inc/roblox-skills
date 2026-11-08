@@ -21,7 +21,7 @@ sources:
 
 - Pick the UI style with the user first: `roblox-game-pipeline` section 3, step 4 (style cards in `assets/ui-styles/` and the free Studio mockup `scripts/ui_style_mock.luau`). This look builds on the dark flat card. Skipping that step led one agent straight to paid image mockups (field note, 2026-11-08).
 - Before any UI code, write a look table from the chosen mockup or reference frame: panel shape (which corners are cut), fill (opaque or glass, how transparent), edge (width and color), accent colors and where they go, fonts, icon style, density (labels, timers, tags per card).
-- Icons come from a Creator Store icon pack (`roblox-store-art-pack` section 4; the monochrome white glyph pack fits this look, tinted with `ImageColor3`). Never draw icons from Frames, Path2D, parts or emoji, and never let a UI agent improvise them (owner rule, 2026-11-08: "don't make icons, use the store ones").
+- Icons come from the Creator Store by default (`roblox-store-art-pack` section 4; the monochrome white glyph pack fits this look, tinted with `ImageColor3`); generated icons only when the user asks. Never build icons from Frames, lines, Path2D, parts or emoji (a house from a triangle and a box, an arrow from rotated bars), and never let a UI agent improvise them (owner rule, 2026-11-08: "don't make icons, use the store ones").
 
 ## 1. The look in numbers
 

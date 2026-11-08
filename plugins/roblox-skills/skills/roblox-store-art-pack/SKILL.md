@@ -142,13 +142,15 @@ Gaps found: no voted free wall pack in most lanes (Synty has rock walls, Beyond 
 
 **Store first.** Standard UI icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows, lock, trophy, potions, paw) come from one free Creator Store icon pack, not from generation. This is the exception to the priority in section 3. Generated icons drift between calls and grow odd details. A popular pack is one family that players already read at a glance. Pass and product icons of generic items (potions, luck, boosts) also come from the pack; only an icon showing the game's own character or creature stays custom.
 
+**Never draw icons** (owner rule, 2026-11-08): no icon built from Frames, lines, `Path2D`, parts or emoji, such as a house from a triangle and a box or an arrow from rotated bars. Those came out crude every time. A missing icon is a store search (step 5), not a drawing. Generated icons are an option only when the user asks for them.
+
 1. Rank packs: `python3 -I <skill dir>/scripts/store_icons.py "simulator icon pack" "icon pack" --type model` sorts free packs by up-votes, prints `hasScripts`, and writes a contact sheet; open it and look.
    - Skip 0-vote re-uploads of a popular pack (same thumbnail, another creator). In our run two of them carried scripts: an icon pack never needs one.
 2. Insert the pick with Studio MCP `insert_asset` under `ServerStorage`, then audit it (section 3). Edit `ROOT` in `scripts/pack_ids.luau` and run it with `execute_luau` in Edit mode. It lists every icon as `Folder/Name = image id`, checks that each one loads, and lays them out in a ScreenGui named `IconSheet` under StarterGui for one screenshot.
 3. Copy the ids you use into one constants module (`Icons.Coin = "rbxassetid://..."`) and delete the pack and the sheet from the place.
 4. Record the pack id, the creator and the ids you used in `assets/LICENSES.md`, and name the pack to the user in one line (section 3: someone else's asset).
 5. A concept the pack lacks: run `store_icons.py "<thing> icon" --type decal` and pick one that matches the pack's outline weight, shading and light direction. Use the printed `image=` id, never the decal id: a decal id in `ImageLabel.Image` loads nothing (tested 2026-11-04). In Studio, `game:GetObjects("rbxassetid://<decalId>")[1].Texture` gives the same image id.
-6. The game's own items that no store icon shows (its pets, tools, products): render the item's own model (a ViewportFrame, or a Blender render, `roblox-blender-export` section 6), or use an image generator the user has (for example gwanggo `generate_game_asset` kind `icon`, `roblox-game-pipeline` section 10). Match the pack's canvas, outline weight and highlight.
+6. The game's own items that no store icon shows (its pets, tools, products): render the item's own model (a ViewportFrame, or a Blender render, `roblox-blender-export` section 6). Only when the user asks for generated icons, use an image generator the user has (for example gwanggo `generate_game_asset` kind `icon`, `roblox-game-pipeline` section 10). Match the pack's canvas, outline weight and highlight.
 
 | Pack (tested 2026-11-04; re-rank, votes change) | Id | Votes | Contents | Fits |
 |---|---|---|---|---|

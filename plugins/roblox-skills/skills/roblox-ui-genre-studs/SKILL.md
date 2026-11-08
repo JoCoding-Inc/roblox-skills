@@ -169,7 +169,7 @@ Each of these is a defect:
 - Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Public stud tiles: `rbxassetid://6927295847` (4x4 chunky, TileSize 50-70 px, ImageTransparency 0.7), `12055407192` (2x2), `10509831729`. Roqer's 92521981645530 and 91084849147872 belong to another group. Safest: make our own stud and sunburst tiles and upload them under the game's group.
 - Icons:
-  - source: DevJoob's Simulator Icon Pack (Creator Store 99176447965360, +392/-8 votes, 125 icons in this look) for every standard icon; ranking, ids and the steps are in `roblox-store-art-pack` section 4. Generate only the game's own items, matched to the pack;
+  - source: DevJoob's Simulator Icon Pack (Creator Store 99176447965360, +392/-8 votes, 125 icons in this look) for every standard icon; ranking, ids and the steps are in `roblox-store-art-pack` section 4. for the game's own items render their models, and generate only when the user asks, matched to the pack; never draw icons from frames or lines;
   - one family: same canvas, outline weight, light direction, flat colors, no text inside;
   - `ScaleType.Fit` with the aspect locked;
   - never tint full-color art with ImageColor3; white art tinted by ImageColor3 is fine;
