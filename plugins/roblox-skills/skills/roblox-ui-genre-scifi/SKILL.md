@@ -51,7 +51,8 @@ Put the module in a ModuleScript and require it from client UI code. Tested in S
 
 - Clipping rules (docs): a non-rotated parent clips rotated children and Path2D (default since 2026-09-24; the opt-out `StarterGui.ClipsDescendantsSupportsRotation` no longer exists in Studio 0.746). A rotated parent does not clip, and a `UICorner` on the clipping frame does not round the clip: both need a `CanvasGroup`.
 - Cost (docs): at most 6 color stops per `UIGradient`; animate `Offset` or `Rotation`, not `Color` or `Transparency`; no `UIGradient` on text with `TextStrokeColor3`. Dark gradients showed a banding regression at full release (staff post, 2026-10-29); check dark sheens on a phone.
-- A chamfered panel is 3 Frames plus a Path2D. Build cards from it, not every small chip; small chips can stay rectangles.
+- Glass from several pieces: translucent frames go darker where they overlap. Make the pieces opaque inside one `CanvasGroup` per plate and set its `GroupTransparency` instead (tested 2026-11-08; CanvasGroup rules in `roblox-engine-2026` section 2).
+- A chamfered panel is 3 Frames plus a Path2D. Build cards from it, not every small chip; small chips can stay rectangles. Size a plate from its content, not with `AutomaticSize` (`roblox-ui-layout` section 4).
 
 ## 3. Creator Store frame art vs primitives
 
