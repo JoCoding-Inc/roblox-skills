@@ -94,7 +94,8 @@ Store images also texture the world by id with no upload, for example night wind
 - Insert into a quarantine folder.
 - Keep meshes, textures and UI art. Delete every script.
 - `script_grep` for `require getfenv setfenv loadstring HttpService GetObjects InsertService MarketplaceService DataStore MessagingService TeleportService RemoteEvent string.char string.reverse`.
-- Red-flag names: AntiLag, MainModule, Loader, Handler, Update, Version, HDAdmin, Free, Fix.
+- Red-flag names: AntiLag, MainModule, Loader, Handler, Update, Version, HDAdmin, Free, Fix, Runtime. Re-uploads of popular simple models are a pattern: four green "Money" models each carried an injected "Runtime" script holding a 35 kB LocalScript (field note, 2026-11-09).
+- Color is a filter when choosing. A textured store mesh cannot be recolored to the palette (`MeshPart.Color` does not tint a textured mesh, `roblox-pitfalls` section 4), and a new texture means an upload, so pick a model whose texture already fits (field note, 2026-11-09).
 - Verdict for each insert: visual-only / reviewed / quarantine / reject. `insert_asset` keeps scripts and only sets `Sandboxed` on them (observed 2026-11-04), so delete them yourself and recreate the behavior.
 - Assets owned by someone else need user consent for use. Record the source in the licenses file.
 - A 0-vote model that is the only fit may stay in dev after this quarantine, but list it for the user with its id, creator, votes and the closest voted alternative, and get a keep-or-replace answer before release (judgment). Template MeshPart pieces, not unions (`roblox-pitfalls` section 2).
