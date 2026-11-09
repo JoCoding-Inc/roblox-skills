@@ -2,7 +2,7 @@
 name: roblox-design-and-launch
 description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization."
 when_to_use: "Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, when adding analytics events (AnalyticsService economy, funnel, journey or custom events), or when asked what Roblox pays creators."
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/production/roblox-user-base
   - https://www.gameanalytics.com/reports/2026-roblox-report (vendor report; primary page read 2026-11-03)
@@ -207,6 +207,7 @@ The Studio skill `rbx-instrument-analytics` can place the calls. Read the dashbo
 - Recommended for You retrieves then ranks; ranking counts only users who arrived through it. Strongest signals: play-through rate, first-play bounce rate (negative; 61-180 s window), play days per user (D1, D2-7, D8-28), playtime per user (capped at 60 min per user per game per day). Also: co-play days, qualified sessions, spend days, Robux spent per user. Signals are per-user averages, so small games are not penalised and new games need no 28-day wait.
 - A custom thumbnail is required for home recommendations (in force since 2026-10-19: a default thumbnail gets no Home impressions). Metadata that does not match the content, giveaway-led titles and near-duplicate games hurt exposure.
 - Description: the first about 160 characters matter most (common guidance, not found in the docs; about 1,000 total); hashtags and tags are not used.
+- Promotional Text (beta, 2026-11-03; Creator Hub > Creations > Game > Game details): a short secondary line for a limited-time mode or update, so the game name stays short instead of carrying "[UPDATE]" tags. Roblox tests its placement on a small audience, so where it shows may change.
 - Other surfaces: Standout Games, Sponsored, semantic Search, Discover, notifications, experience events (max 10 events; update posts up to 60 characters, once every 3 days).
 - Event surfaces (docs `experience-events`): **Trending Events in Experiences** lists a public event that started within 7 days and has 1,000+ RSVPs; **Off-Platform Featuring** (App Store, Google Play) needs the event submitted at least 7 days ahead; events running 7-30 days do best.
 - **Moments** (newsroom 2026-07-28): a tab of player clips with a Join button, 16+ age-checked users only, rolling out from Canada, New Zealand and Singapore. Plan one clip-worthy moment (a big reveal, steal or win); in-game recording and share links (`CaptureService`, `SocialService:PromptLinkSharingAsync`) are in `roblox-fun-effects` section 6. Programs worth knowing: Creator Rewards, Developer Awards, Standout Games, Learn & Explore, Jumpstart (18+ novel games), Incubator.

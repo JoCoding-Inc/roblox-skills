@@ -2,7 +2,7 @@
 name: roblox-dev-workflow
 description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud)."
 when_to_use: "Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, how to organise a multi-session build, or how to brief and run parallel agents (worktree lanes, an agent that stalls). Run roblox-project-intake first if docs/brief.md does not exist."
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/studio/mcp
   - https://create.roblox.com/docs/assistant/guide
@@ -63,7 +63,7 @@ Before fixing the feature list, check the plan against `roblox-design-and-launch
 - Write the core loop in three lines: minute-to-minute interaction, most repeated action, progression engine. If the progression engine is missing, the game will feel repetitive; add it before art.
 - Prototype cheaply first: paper or a one-page rules sheet for systems and UI, then a greybox in Studio for feel. Roblox's own guidance: prototyping finds design flaws early and confirms the game is fun before you invest in content.
 - Studio Assistant **Planning Mode** (`/plan` or the **Plan** dropdown) writes an editable Markdown plan that only executes when the user clicks **Build**. Use it when the user wants to stay inside Studio. From Claude Code, keep the plan in `docs/plan.md` and tick tasks off there.
-- List risks early: teleports (cannot test in Studio), DataStore migrations, third-party asset loading, content maturity, mobile performance.
+- List risks early: teleports (Studio tests only `TeleportAsync` within one experience), DataStore migrations, third-party asset loading, content maturity, mobile performance.
 - Keep scope honest: one complete loop beats five half-built systems.
 
 ## 3. Project setup (phase 2)

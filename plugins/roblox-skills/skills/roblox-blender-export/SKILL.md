@@ -2,7 +2,7 @@
 name: roblox-blender-export
 description: "Use when making Roblox meshes in Blender (weapons, props, kit pieces, voxel animals, icons) and getting them into Studio: scale, pivot, axis, FBX export call, color-as-texture, triangle budgets, collision, upload."
 when_to_use: "Also when an imported mesh is the wrong size, faces the wrong way, renders white/untextured, is inside-out, too heavy, or collides badly; before scripting a Blender asset pipeline or Open Cloud upload; when driving a live Blender through MCP or sharing it between sessions; when tiers or variants in a batch look alike."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-09
 sources:
   - https://github.com/brain-xiang/grok-studio (skills/blender-assets, reference/roblox_export.py; MIT)
   - https://github.com/Crazyshermy/-Roblox (.claude/skills/roblox-blender-modelling; no license, facts re-authored)
@@ -160,6 +160,8 @@ Headless script or live window?
 | User | Nothing to do | Keeps Blender open and presses Connect |
 
 Produce and export assets headless (subagents especially). Use the live window to explore with the user, import library assets or try `generate_3d`, then move the result into a script. The MCP add-on cannot run under `blender -b` (tested 2026-11-03, add-on v1.8 on Blender 5.2.2): it refuses to start in background mode, and `bpy.app.timers`, which drain its command queue, never fire there, so commands time out. MCP tools therefore always need a window.
+
+Quality does not depend on the route: one bench brief built headless and through MCP came out near identical (3.8 min each, 9.4k and 10.0k tris), and `look` is a viewport capture, not a render (field note, 2026-11-09). Earlier props of the same game looked cheap because of the recipe: about 1.5k tris on a bench seen up close (the medium-prop band in section 1; budget props the player inspects like a landmark), primitives, no bevels and flat swatches (sections 1, 3 and 4). In the same test, free CC0 and CC-BY gym models were rare and crude, and Poly Haven had none.
 
 MCP for Blender (`uvx mcp-for-blender`, addon "MCP for Blender") drives the user's open Blender. Every Claude session with the server in its config talks to the same Blender on `localhost:9876`. The addon accepts several clients, but runs their commands one at a time in one shared scene.
 
