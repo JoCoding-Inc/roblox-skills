@@ -25,7 +25,7 @@ sources:
 
 ## 1. The look in numbers
 
-Starting points from our demo (judgment); replace them with the chosen mockup's values.
+Starting points from our demo (judgment); replace them with the chosen mockup's values. The `sci-fi` preset of `roblox-game-pipeline/scripts/ui_style_mock.luau` holds the same colors and font for a quick mockup (square corners only).
 
 | Element | Start with |
 |---|---|

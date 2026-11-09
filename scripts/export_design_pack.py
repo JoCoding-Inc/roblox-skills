@@ -44,6 +44,7 @@ KINDS = {
     "guide": "design-related skill text as markdown (whole skill or the listed sections)",
     "image": "reference image used by a guide (ours or the owner's own, never third-party screenshots)",
     "license": "license and source credits of the repository",
+    "script": "Luau source a guide builds on (ours, MIT); read it before running it",
 }
 TOPICS = {
     "layout": "placement, reserved zones, sizes and floors",
@@ -86,6 +87,10 @@ ASSET_DIRS = [
     ("roblox-game-pipeline/assets/examples", "store-art", "roblox-store-art-pack/SKILL.md#7"),
 ]
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
+# (file under SKILLS, topic, section_ref): Luau a packed guide section depends on
+SCRIPTS = [
+    ("roblox-ui-genre-scifi/scripts/hud_shapes.luau", "ui-styles", "roblox-ui-genre-scifi/SKILL.md#2"),
+]
 HEADING = re.compile(r"^## ([0-9]+[a-z]?)\. ")
 # styles.json keeps the Lua keys of PRESETS; units are given here
 STYLE_KEYS = {
@@ -413,7 +418,7 @@ def style_cards():
     for line in (UI_STYLES / "README.md").read_text().splitlines():
         cols = [c.strip() for c in line.split("|")]
         if len(cols) >= 9 and re.fullmatch(r"`[a-z-]+\.jpg`", cols[3]):
-            cards[cols[3].strip("`")[:-4]] = {"name": cols[2], "look": cols[4], "fits": cols[5], "font_row": cols[7]}
+            cards[cols[3].strip("`")[:-4]] = {"name": cols[2], "look": cols[4], "fits": cols[5], "from": cols[6], "font_row": cols[7]}
     return cards
 
 
@@ -428,7 +433,8 @@ def build_styles():
         out[key] = {
             "name": leaf(card["name"]),
             "card_image": leaf("skills/roblox-game-pipeline/assets/ui-styles/%s.jpg" % key,
-                               "pack path; a 2025-26 hit's screen redrawn with its UI kept and new content"),
+                               "pack path; " + (card["from"][len("none: "):] if card["from"].startswith("none: ")
+                                                else "a 2025-26 hit's screen redrawn with its UI kept and new content")),
             "look": leaf(card["look"]),
             "fits": leaf(card["fits"]),
             "font_row": leaf(card["font_row"], "roblox-ui-typography section 2"),
@@ -576,6 +582,12 @@ def collect():
                               {"kind": "guide", "topic": topic, "section_ref": ["%s/README.md" % folder]}))
             elif p.suffix.lower() in IMAGE_EXT:
                 files.append(("skills/%s/%s" % (folder, p.name), p.read_bytes(), {"kind": "image", "topic": topic, "section_ref": [ref]}))
+    for rel, topic, ref in SCRIPTS:
+        p = SKILLS / rel
+        if not p.is_file():
+            errs.append("scripts: missing " + rel)
+            continue
+        files.append(("skills/" + rel, p.read_bytes(), {"kind": "script", "topic": topic, "section_ref": [ref]}))
     packed = {}
     for skill, wanted, _ in GUIDES:
         text = next(t for g, t in guides if g == skill)
@@ -641,7 +653,7 @@ def build(out, version, tgz):
         "provenance": PROVENANCE,
         "kinds": KINDS,
         "topics": TOPICS,
-        "excluded": "scripts, the other skills and sections (files[].unresolved_refs, under source_base_url) and the user's game project files (files[].project_refs)",
+        "excluded": "scripts not listed as kind script, the other skills and sections (files[].unresolved_refs, under source_base_url) and the user's game project files (files[].project_refs)",
         "skills": [{"name": s, "sections": w or "all", "topic": t} for s, w, t in GUIDES],
         "files": entries,
     }

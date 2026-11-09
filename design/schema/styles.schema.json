@@ -44,7 +44,8 @@
             "soft-dark",
             "stud-chunky",
             "bright-cards",
-            "dark-flat"
+            "dark-flat",
+            "sci-fi"
           ],
           "properties": {
             "soft-dark": {
@@ -2548,6 +2549,671 @@
                           "properties": {
                             "v": {
                               "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "close button color [r, g, b]"
+                    },
+                    "closeRadius": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "close button corner radius in px (default 10)"
+                    },
+                    "btn": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "HUD menu button color [r, g, b]"
+                    },
+                    "btnT": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "menu button BackgroundTransparency, 0 to 1"
+                    },
+                    "btnGrad": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "null"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "menu button gradient [[r, g, b] top, [r, g, b] bottom], null for flat"
+                    },
+                    "btnStroke": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "menu button outline color [r, g, b]"
+                    },
+                    "btnStrokeW": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "menu button outline width in px"
+                    },
+                    "btnStrokeT": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "menu button outline transparency, 0 to 1"
+                    },
+                    "btnRadius": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "menu button corner radius in px"
+                    },
+                    "chipText": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "price text color [r, g, b]; null means white with a stroke"
+                    }
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      }
+                    ]
+                  }
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "sci-fi": {
+              "type": "object",
+              "required": [
+                "name",
+                "card_image",
+                "look",
+                "fits",
+                "font_row",
+                "values"
+              ],
+              "properties": {
+                "name": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "card_image": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "look": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "fits": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "font_row": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "values": {
+                  "type": "object",
+                  "required": [
+                    "font",
+                    "text",
+                    "stroke",
+                    "strokeW",
+                    "panel",
+                    "panelT",
+                    "panelStroke",
+                    "panelStrokeW",
+                    "panelStrokeT",
+                    "radius",
+                    "lip",
+                    "header",
+                    "accent",
+                    "card",
+                    "cardT",
+                    "cardStroke",
+                    "cardStrokeW",
+                    "cardStrokeT",
+                    "cardRadius",
+                    "rarity",
+                    "rarityMode",
+                    "chip",
+                    "chipLip",
+                    "chipWide",
+                    "close",
+                    "closeRadius",
+                    "btn",
+                    "btnT",
+                    "btnGrad",
+                    "btnStroke",
+                    "btnStrokeW",
+                    "btnStrokeT",
+                    "btnRadius",
+                    "chipText"
+                  ],
+                  "properties": {
+                    "font": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "object",
+                              "required": [
+                                "family"
+                              ],
+                              "properties": {
+                                "family": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "description": "display font as {family, weight?}"
+                    },
+                    "text": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "text color [r, g, b]"
+                    },
+                    "stroke": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "text stroke color [r, g, b]"
+                    },
+                    "strokeW": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "text stroke width in px, 0 for none"
+                    },
+                    "panel": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "panel body color [r, g, b]"
+                    },
+                    "panelT": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "panel BackgroundTransparency, 0 to 1"
+                    },
+                    "panelStroke": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "panel outline color [r, g, b]"
+                    },
+                    "panelStrokeW": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "panel outline width in px"
+                    },
+                    "panelStrokeT": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "panel outline transparency, 0 to 1"
+                    },
+                    "radius": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "panel corner radius in px"
+                    },
+                    "lip": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "null"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "color of the lip under the panel [r, g, b], null for none"
+                    },
+                    "header": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "null"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "header band gradient [[r, g, b] top, [r, g, b] bottom], null for no band"
+                    },
+                    "accent": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "color of a 2 px line under the header [r, g, b]"
+                    },
+                    "card": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "item card color [r, g, b]"
+                    },
+                    "cardT": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "card BackgroundTransparency, 0 to 1"
+                    },
+                    "cardStroke": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "card outline color [r, g, b]"
+                    },
+                    "cardStrokeW": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "card outline width in px"
+                    },
+                    "cardStrokeT": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "card outline transparency, 0 to 1"
+                    },
+                    "cardRadius": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "card corner radius in px"
+                    },
+                    "rarity": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/$defs/rgb"
+                              }
+                            }
+                          }
+                        }
+                      ],
+                      "description": "one color per item card"
+                    },
+                    "rarityMode": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "how rarity is drawn: fill (card color, diagonal shade), line (bar over the price), tag (pill top-left)"
+                    },
+                    "chip": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "$ref": "#/$defs/rgb"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "price chip color [r, g, b]"
+                    },
+                    "chipLip": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "null"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "price chip outline color [r, g, b], null for none"
+                    },
+                    "chipWide": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "boolean"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "price chip spans the card width"
+                    },
+                    "close": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "null"
                             }
                           }
                         }

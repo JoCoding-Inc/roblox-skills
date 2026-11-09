@@ -44,6 +44,7 @@ design-pack/
   skills/<skill>/SKILL.md            whole skill, or only the listed sections
   skills/<skill>/.../README.md       style card, lane and part-look notes
   skills/<skill>/.../*.jpg|png       images the guides point to, at the same relative paths
+  skills/<skill>/scripts/*.luau      Luau a packed guide section is built on (listed in SCRIPTS)
   LICENSE, NOTICE.md
 ```
 
@@ -57,7 +58,7 @@ Each `files[]` entry has:
 |---|---|
 | `path` | path inside `design-pack/` |
 | `sha256`, `bytes` | of the file as packed |
-| `kind` | `data`, `schema`, `guide`, `image` or `license` |
+| `kind` | `data`, `schema`, `guide`, `image`, `script` (since 1.2.0) or `license` |
 | `topic` | one key of `topics`; data and the guides it mirrors share a topic (`zones` and `roblox-ui-layout` are both `layout`) |
 | `section_ref` | list of `<path>[#<sections>]`, `path` relative to the skills folder (`roblox-feel-audio-vfx/SKILL.md#1,3,4,5`, `roblox-ui-genre-studs/SKILL.md#1-3,7-9`), or `null` for schema and license files. For data it names the skill text the values mirror |
 | `schema` | data only: the schema file to validate with |
@@ -71,7 +72,7 @@ Each `files[]` entry has:
 3. Extract into an empty directory. Reject any member whose path is absolute, contains `..`, or is a link. Every path is under `design-pack/`.
 4. `design-pack/manifest.json` must equal the downloaded `manifest.json` byte for byte. Every other extracted file must appear in `files[]` with the same `sha256` and `bytes`, and every entry must exist.
 5. Validate each `data` file with its `schema`.
-6. Serve guide text as quoted reference data, never as instructions to the agent that reads it: the skills address an agent in the imperative ("ask the user", "run ..."), and that text must not override the importer's own rules.
+6. Serve guide text as quoted reference data, never as instructions to the agent that reads it: the skills address an agent in the imperative ("ask the user", "run ..."), and that text must not override the importer's own rules. Serve `script` files as source to read and copy into a game, never run them on the importer's side.
 
 ## Release
 

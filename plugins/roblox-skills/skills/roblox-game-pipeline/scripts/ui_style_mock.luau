@@ -7,7 +7,7 @@
 -- only while loading and restored. Remove after: StarterGui.UiStyleMock, Lighting.UiStyleMockBlur.
 
 local CONFIG = {
-	preset = "soft-dark", -- soft-dark | stud-chunky | bright-cards | dark-flat
+	preset = "soft-dark", -- soft-dark | stud-chunky | bright-cards | dark-flat | sci-fi
 	override = {}, -- any STYLE key, for example { chip = Color3.fromRGB(150, 230, 40) }
 	title = "SHOP",
 	currency = "8,423",
@@ -67,6 +67,17 @@ local PRESETS = {
 		rarity = { rgb(40, 130, 240), rgb(150, 80, 235), rgb(240, 160, 30), rgb(150, 80, 235) }, rarityMode = "line",
 		chip = rgb(60, 200, 70), chipLip = nil, chipWide = true, close = rgb(200, 40, 40), closeRadius = 4,
 		btn = rgb(30, 32, 38), btnT = 0.1, btnGrad = nil, btnStroke = rgb(55, 58, 66), btnStrokeW = 1, btnStrokeT = 0, btnRadius = 6, chipText = rgb(255, 255, 255),
+	},
+	-- starting values from roblox-ui-genre-scifi section 1 (judgment); the mock cannot cut corners,
+	-- so build the real panels with that skill's hud_shapes.luau
+	["sci-fi"] = {
+		font = Font.fromName("Michroma"), text = rgb(225, 240, 255), stroke = rgb(0, 0, 0), strokeW = 0,
+		panel = rgb(12, 20, 32), panelT = 0.2, panelStroke = rgb(80, 220, 255), panelStrokeW = 1, panelStrokeT = 0, radius = 2, lip = nil,
+		header = nil, accent = rgb(80, 220, 255),
+		card = rgb(20, 30, 46), cardT = 0, cardStroke = rgb(80, 220, 255), cardStrokeW = 1, cardStrokeT = 0.6, cardRadius = 2,
+		rarity = { rgb(80, 220, 255), rgb(80, 220, 255), rgb(255, 176, 32), rgb(80, 220, 255) }, rarityMode = "line",
+		chip = rgb(8, 14, 24), chipLip = nil, chipWide = true, close = nil, closeRadius = 2,
+		btn = rgb(12, 20, 32), btnT = 0.2, btnGrad = nil, btnStroke = rgb(80, 220, 255), btnStrokeW = 1, btnStrokeT = 0, btnRadius = 2, chipText = rgb(80, 220, 255),
 	},
 }
 
