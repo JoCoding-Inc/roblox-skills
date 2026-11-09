@@ -69,6 +69,7 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
 - Full-screen backgrounds and fades: `ScreenInsets = None` in their own ScreenGui with no buttons. Set `SafeAreaCompatibility = None` on new ScreenGuis (docs discourage the legacy fullscreen extension).
 - Never hard-code 36 or 58: `GetGuiInset()` returns 0 for about 0.2 s after join and can change without a signal (staff). For the top strip, use a `TopbarSafeInsets` ScreenGui and react to its `AbsoluteSize`, or the property-changed signal of `GuiService.TopbarInset`.
 - Slide-in panels: `ClipToDeviceSafeArea` (default true) clips them at the notch; set it false on that ScreenGui and add an offset, or tween to a placeholder.
+- iOS landscape insets are symmetric (59 pt on Dynamic Island phones) although the cutout is on one side only, at mid-height and about 48 pt deep, so the side without it shows a wide empty margin (field note, 2026-11-09, simulated viewport in Studio, not checked on a phone). Measure the spare as the width of a `ScreenInsets.None` probe minus a `CoreUISafeInsets` probe, divided by 2. Turning the phone moves the cutout to the other side, so let only corner HUD reach into the spare, on both sides, keep the mid-height band clear, and set `ClipToDeviceSafeArea` false on that ScreenGui (judgment).
 
 ## 4. Size and scale
 
