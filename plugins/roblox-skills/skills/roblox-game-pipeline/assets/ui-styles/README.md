@@ -17,7 +17,7 @@ Other looks seen on the 2026-11-03 chart, for words or a live reference: Steal A
 
 Live references: `python3 -I <skill dir>/scripts/ui_refs.py <scratch dir> "Game A" "Game B" --query "shop inventory"` grabs frames from each game's newest gameplay video (last 90 days) and tiles them into `sheet.jpg`. Use it when the user names a game whose UI they like, or to refresh the "Seen in" column. The frames are other games' art: show them, never commit them.
 
-Free first for a game's own icons: store icon pack icons (`roblox-store-art-pack` section 4) or renders of the game's own models. `icons/`: nine 192 px PNG icons with alpha (gem, sword, egg, star, coin, bag, pack, gift, gear) for mockups until the game has its own. Made as one gwanggo sheet (`gpt-image-2.5` high, 3 credits, 2026-11-03) on a flat magenta background, keyed and sliced with Pillow. Make a game's own set the same way: one 3x3 sheet in its locked style, "flat solid pure magenta (#FF00FF) background, wide margins, no magenta inside the icons", then key out the magenta and cut each icon by its largest connected shape.
+Free first for a game's own icons: store icon pack icons (`roblox-store-art-pack` section 4) or renders of the game's own models. `icons/`: nine 192 px PNG icons with alpha (gem, sword, egg, star, coin, bag, pack, gift, gear) for mockups until the game has its own. Made as one gwanggo sheet (`gpt-image-2.5` high, 3 credits, 2026-11-03) on a flat magenta background, keyed and sliced with Pillow. Only when the user asks for generated icons, make a game's own set the same way: one 3x3 sheet in its locked style, "flat solid pure magenta (#FF00FF) background, wide margins, no magenta inside the icons", then key out the magenta and cut each icon by its largest connected shape.
 
 Themed looks (words only, no card; build them on the closest basic style when the game asks for it):
 
@@ -28,6 +28,7 @@ Themed looks (words only, no card; build them on the closest basic style when th
 | Dark ornate | pure black, thin bright frame with corner brackets, one glow color per item | RNG, aura collection, number-heavy idle | Sol's RNG | Dark flat |
 | Cozy wood | wood planks, cream parchment cards, amber price pills | Farming, garden, cooking, shop sims | Grow a Garden | Bright cards |
 | Illustrated | torn paper, hand-drawn ink outline, desaturated with one accent | Horror, survival, co-op | Dandy's World, DOORS, 99 Nights in the Forest | Dark flat (needs hand-drawn 9-slice art) |
+| Sci-fi or military | translucent dark glass, cut corners, thin bright edges, hazard stripes on warnings, segmented wave bars | Tower defense, shooters, mechs, space | not checked on the chart | Dark flat; recipes and a tested script in `roblox-ui-genre-scifi` |
 
 Not carded: glass (frosted translucent panels), a designer trend with no confirmed top game; a native per-element UI blur is on the roadmap for early 2027, so today it needs a screen-wide `BlurEffect` or fake glass.
 

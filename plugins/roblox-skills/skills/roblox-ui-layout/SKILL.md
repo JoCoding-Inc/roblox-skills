@@ -13,7 +13,7 @@ sources:
 
 # UI layout standard (phone, tablet, desktop, console)
 
-One standard for every genre. The genre skills set the look; this one sets where things go and how big they are. Coordinates below are Roblox UI px inside the CoreUI-safe frame (below the top bar, inside notches), which is where a default ScreenGui draws.
+One standard for every genre. The genre skills set the look (pick it first: `roblox-game-pipeline` section 3, step 4, style cards and a free Studio mockup; then `roblox-ui-genre-studs`, `roblox-ui-genre-scifi` or the UI rules in `roblox-engine-2026`); this one sets where things go and how big they are. Coordinates below are Roblox UI px inside the CoreUI-safe frame (below the top bar, inside notches), which is where a default ScreenGui draws.
 
 ## 0. Facts behind the standard
 
@@ -57,6 +57,10 @@ Reach: a button 40% below the top is easy on a phone and almost unreachable on a
 
 See the game: on a phone, measure the share of the centre 50% x 50% box that visible HUD covers at idle (the union of their rects), not only overlaps between elements. A desktop-style bottom cluster plus 2x2 offer cards covered about 40% of it and the owner rejected the HUD; moving groups to the edges and shrinking them got it near 1% (field observation, 2026-11).
 
+Measure the whole HUD too: the union of the visible HUD rects at idle as a share of the full screen, top bar included (count plate-less text by its `TextBounds`, glass plates as solid). One owner rejected a HUD covering 22% of a 1920x1080 screen as "covers too much" and accepted about 7%; the same HUD covered 16.5% of a 667x375 phone because of the touch and text floors in section 4 (field note, 2026-11-08).
+
+A card that opens when the player walks near something (an action or build card) goes beside the play area, never over the spot where the action happens. On phone and tablet, let it take a HUD column's slot and hide that column while the card shows; on desktop it fits under the column. In one game that cut the centre box covered while the card shows from 56% to 9.3% on a phone (field note, 2026-11-08).
+
 Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `Portrait` (default `LandscapeSensor`). In portrait the stick takes the bottom 40% and the top strip may be full: menu buttons go in a bottom row above the stick zone or behind one menu button.
 
 ## 3. Insets
@@ -83,6 +87,7 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
   | Hard floor | `MinTextSize` 9 | docs |
 
 - On phones, keep the HUD buttons at 72 px or smaller; the jump button is 70. Prefer `AutomaticSize` with `TextWrapped` over `TextScaled` (docs): TextScaled ignores the player's text-size setting.
+- Never let wrapped text take its width from a container that takes its size from that text: in one game both collapsed to one letter per line, and `AutomaticSize` on a plate holding rotated skin pieces grew without end (field note, 2026-11-08). Measure the content at its natural width (in an invisible frame with a large Offset size) and set the plate's `Size` from that measurement, divided by the plate's `UIScale` factor.
 
 ## 5. Console
 
@@ -104,6 +109,7 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
    - It copies the StarterGui ScreenGuis into a frame of that device's safe area and draws the reserved zones (red: never; orange: only when that UI is on).
    - It returns buttons inside zones, buttons under 44 px on touch, text under 14 px, and elements crossing the safe edge.
    - Fix every `error`, then capture the phone and desktop previews with `screen_capture`.
-   - It does not apply your runtime `UIScale` or scripts, so for UI that scripts build, check a Play-mode copy.
+   - It does not apply your runtime `UIScale` or scripts, so for UI that scripts build, check a Play-mode copy. Take that copy with every transient state up (contextual cards with their buttons, tutorial bar, prompts, toasts): one phone overlap showed only with a contextual card and the tutorial bar open (field note, 2026-11-09).
 2. Then the Studio Device Emulator at Actual Resolution: an entry-level phone, a tablet, desktop and console (docs). Turn on physical-size scaling to judge taps, and open the on-screen keyboard on every TextBox.
 3. Last, a real phone for thumb reach (`roblox-game-pipeline` verification).
+4. These steps check placement and size, not the look: also run the look check in `roblox-engine-2026` section 2 (UI review, step 4).

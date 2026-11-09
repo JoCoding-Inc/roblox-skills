@@ -28,6 +28,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-ui-typography` | Fonts and text for any genre: built-in and Creator Store fonts (no uploads), display and body pair per genre, phone readability, stroke and text performance, numbers, fonts for Korean and other languages |
 | `roblox-ui-layout` | Any genre: one placement and size standard for phone, tablet, desktop and console, with Roblox's reserved zones in px (top bar, thumbstick, jump, hotbar, chat), insets, scaling, touch and text floors, TV-safe area and a device check script |
 | `roblox-ui-genre-studs` | Simulator/tycoon games only: stud-style UI with outlines, lips, gradients, HUD zones, motion |
+| `roblox-ui-genre-scifi` | Sci-fi, military, tower defense and shooter UI without uploads: cut-corner glass panels, hazard stripes, segmented wave bars (tested script), store frame art vs primitives, look check against the mockup |
 
 ## Install
 

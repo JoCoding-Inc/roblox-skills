@@ -17,7 +17,7 @@ sources:
 
 # UI typography for Roblox games
 
-Fonts are part of the look: pick them in the style board (stage 3 of `roblox-game-pipeline`), next to the palette, not at the end.
+Fonts are part of the look: pick them in the style board (stage 3 of `roblox-game-pipeline`), next to the palette and the UI style card (section 3, step 4, with a free Studio mockup), not at the end.
 
 ## 1. What you can use
 
@@ -73,7 +73,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 
 ## 6. Numbers and damage numbers
 
-- One number formatter for the whole game (K, M, B; truncate, never round up into the next suffix).
+- One number formatter for the whole game (K, M, B; truncate, never round up into the next suffix), world-space numbers included: a floating refund that rounded ("+$7.3T") next to a card and toast that truncated ("$7.2T") read as a wrong refund to the owner (field note, 2026-11-09).
 - Counters that jitter while counting: `OpenTypeFeatures = "tnum"` does not help (tested 2026-11-03: "Unsupported feature: tnum" on BuilderSans, FredokaOne, Montserrat, Roboto). Use a font whose digits are already equal width for counters and timers. Measured equal: Roboto, RobotoCondensed, RobotoMono, BuilderMono, Nunito, SourceSansPro, Teko, Rubik. Proportional (they jitter): BuilderSans, FredokaOne, LuckiestGuy, DenkOne, Montserrat, Oswald, Bangers, Goldman, Arimo. With a proportional display font, right-align the counter in a fixed-width box.
 - Damage numbers: pooled BillboardGui labels with `MaxDistance`, stroke or shadow, rise and fade over about 0.6 s. A crit changes color and jumps to one larger size; never scale text continuously.
 

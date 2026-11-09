@@ -65,6 +65,7 @@ DATA_TOPIC = {"zones": "layout", "tokens": "stud-style", "motion": "motion", "ty
 GUIDES = [
     ("roblox-ui-layout", None, "layout"),
     ("roblox-ui-genre-studs", None, "stud-style"),
+    ("roblox-ui-genre-scifi", None, "ui-styles"),
     ("roblox-ui-typography", None, "typography"),
     ("roblox-fun-effects", None, "effects"),
     ("roblox-character-design", None, "art-direction"),
@@ -77,6 +78,7 @@ GUIDES = [
 # (folder under SKILLS, topic, section_ref): README.md becomes a guide, images become images
 ASSET_DIRS = [
     ("roblox-ui-genre-studs/references", "stud-style", "roblox-ui-genre-studs/SKILL.md#9"),
+    ("roblox-ui-genre-scifi/references", "ui-styles", "roblox-ui-genre-scifi/SKILL.md"),
     ("roblox-game-pipeline/assets/lanes", "art-direction", "roblox-game-pipeline/assets/lanes/README.md"),
     ("roblox-game-pipeline/assets/ui-styles", "ui-styles", "roblox-game-pipeline/assets/ui-styles/README.md"),
     ("roblox-game-pipeline/assets/ui-styles/icons", "ui-styles", "roblox-game-pipeline/assets/ui-styles/README.md"),
