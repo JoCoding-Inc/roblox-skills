@@ -56,6 +56,14 @@ Facts come from the official OpenAPI specs and publishing docs, not memory. Scop
 
 **Localization API quirks (observations, 2026-11-04):** the table PATCH answered 400 "Maximum entries exceeded" at 100 entries although `.../localization-table/limits` reports `maxEntriesPerUpdate` 300; 50 worked. A good PATCH returns `modifiedEntriesAndTranslations: []`, so confirm with entry-count. Adding many languages in one PATCH returned 504 but they were added, and per-language auto-translate toggles returned 200 yet some read back false: always read back and re-send the stragglers.
 
+**Hand-written name and description per language (field notes, 2026-11-09, one game).** Use this when the user rejects Roblox auto translation. Keep `universe-display-info-automatic-translation-settings` off for each language, then send `PATCH /legacy-game-internationalization/v1/name-description/games/{id}` with `{"data":[{"name":"...","description":"...","languageCode":"ja"}]}`.
+- Language codes come from `GET https://locale.roblox.com/v1/locales?displayValueLocale=en_us` (no auth, `locale.language.languageCode`).
+- The response lists `successOperations` and `failedOperations` (spec), and a 200 can still hold a failed language. `errorCode` 20 was the text filter, and that language's description read back null.
+- One PATCH with 14 languages returned 504 with 8 applied. Send one language per PATCH.
+- Read back without a key: `GET https://gameinternationalization.roblox.com/v1/name-description/games/{id}`. The key-based legacy GET returned 404.
+- The filter refused every money word in an Arabic description ("earns money", "profits", "coins", even "Cash") while the same idea passed in 13 other languages. Add the text line by line to find the refused line, then reword or drop it.
+- Keep the brand name the same in every language. In-game strings are a separate job: per-language translations in the localization table.
+
 ## 2. API key for a release pipeline
 
 Create one key per experience, owner = the account or group that owns it, minimal scopes. Give the user this list and nothing broader:
