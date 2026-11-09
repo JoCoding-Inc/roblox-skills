@@ -37,6 +37,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
    - When a task, a gate or the session ends, or the window is no longer needed: stop play (`start_stop_play`), make sure the work is saved (code on disk through Rojo or Script Sync; parts and settings saved with Ctrl+S or published; no MCP tool saves the place, so ask the user to press Ctrl+S when Studio-only edits exist), close it by PID (`kill <pid>`; Windows `taskkill /pid <pid>`), never by name, and confirm with `list_roblox_studios`. A window with unsaved changes shows a save dialog and ignores `kill`: for a scratch place the agent opened, check the PID's command line names that file, then `kill -9`; for a window the user opened, or any place holding the user's unsaved work, ask the user to save and close it.
 9. **Ask for keys and permissions at the moment of need**, with what, why, the exact clicks and how to confirm (`roblox-project-intake` step 1d). Never ask for key values in chat.
 10. **Let a person judge the feel.** When the result is judged in the hands (core action, movement, combat, difficulty, scares, audio, phone controls), stop and ask the user to play it (section 7a) instead of judging from screenshots and building on a guess.
+11. **No agent-built final art.** Outside greybox prototypes and playtests, props, units, characters, icons, logos and hero VFX come from Roblox Cube, Blender, the Creator Store, avatars or an image generator, never from parts the agent assembles (`roblox-dev-workflow` section 1).
 
 ## 1. Stages and gates
 
@@ -174,7 +175,7 @@ List the asset classes (for example machines and furniture, building kit, charac
 | Parts built by script (agent writes `execute_luau` or Rojo model files) | No credits; instant; edit in Studio | Blocky props, machines, furniture, buildings, map structure; the classic blocky lane fully, chunky cartoon only for shapes (no thick outlines) | Organic or detailed shapes; many parts per repeated prop (keep counts low, reuse one model) |
 | Roblox Cube (Studio MCP `generate_mesh`) | No credits; rate limited (1-2 jobs at a time) | Static props, furniture, machines, vehicles; a reference image keeps the look | Rigs; exact modular sizes |
 | gwanggo `generate_game_asset` kind `image` then `3d` | Credits, `dry_run` first | Many props in one locked style (the project's selected concept and palette); GLB within Roblox limits | Rigs |
-| `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) | Organic shapes |
+| `generate_procedural_model` | No credits; 50 per 24 h | Scalable part-built objects (shelves, fences, stairs) for greybox and prototypes only: a part build is never final art (`roblox-dev-workflow` section 1) | Organic shapes; final art |
 | Blender (scripted) | Free, slowest | Rigs and animation, modular kit pieces with exact sizes (walls, floors, trims), voxel animals | Many detailed props fast |
 | Creator Store | Free | Fillers, audio, world props from the pack picked in stage 3 (`roblox-store-art-pack` section 3a), standard UI icons (one voted icon pack, section 4) | Hero assets (quarantine first) |
 
