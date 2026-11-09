@@ -45,6 +45,8 @@ The sources disagree on how glTF and FBX fronts land in Roblox. Before any bulk 
 
 Confirmed 2026-11-02 for FBX with the call below, headless Blender export then the Studio 3D Importer (Scale Unit Studs, Forward Front, Up Top): Blender (x, y, z) arrives in Roblox as (-x, z, y). The Blender front (-Y) faces Roblox Front (-Z), Blender +X lands on Roblox -X, and Blender Z is Roblox up. The mapping is a proper rotation (determinant +1), so nothing is mirrored. The test mesh was a 4-stud cube with a nose on Blender -Y and a post on Blender +X; the imported size was 5, 4, 5 (X, Y, Z) with `PivotOffset` at the Blender origin. Re-run steps 1-3 if you change the export path (glTF, Open Cloud, other axis settings).
 
+Confirmed again 2026-11-09 for an Open Cloud FBX upload (assetType Model, same export call): mesh space is Blender (-x, z, y), the same mapping (field note, EditableMesh vertex readback). A separate test upload costs an asset, so fold the check into the real upload: include front/back-asymmetric pieces and read their vertices back before building on them.
+
 Measuring it without eyeballing: read the vertices from the imported MeshPart (`AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices` and `GetPosition`). Do not use raycasts for this: they hit the collision shape, and with the default `CollisionFidelity` that is a box or hull, not the visible mesh. In Studio MCP `execute_luau`, `datamodel_type` is `Edit` (capital E) and the result must be `return`ed, since `print` output is not shown.
 
 ## 1. Scale, pivot, structure
@@ -70,6 +72,7 @@ Measuring it without eyeballing: read the vertices from the imported MeshPart (`
   | Hero | up to about 10,000 |
 
 - Kit trick: model every kit piece in ONE script with one shared palette material, export ONE file, and upload ONCE (assetType Model). Each object becomes its own MeshPart named after the object.
+- Rings and repeats: a piece that repeats around an axis (ring segments, pillars of a portal) can be one mesh cloned N times and rotated in code. That gives one MeshId, and one texture at full density per piece instead of one atlas shared by all (field note, 2026-11-09).
 - Sets with tiers or variants: the one driver script also validates a per-tier size contract (size range per axis, tris, no floating parts; a violation fails the run) and writes per-asset meta that game code reads, for example a `meta.json` with the grip or contact height (Blender Z is Roblox Y, section 0).
 
 ## 2. Export call
@@ -95,6 +98,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 - Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
 - A bake through an Emission shader writes linear values. Convert sRGB colors with `c ** 2.2` before baking, or colors come out grey or white in Roblox (field observation).
+- Headless bake that worked (field note, 2026-11-09): a Cycles `EMIT` bake of an emission shader mixing an AO node, an edge mask (dot product of a Bevel node's normal and the true normal) and noise for edge wear gave a 1024 map in about 6 s on CPU. `bpy.ops.uv.smart_project` and `uv.pack_islands` run under `-b`. Blender 5.2 (tested here): the compositor tree is `scene.compositing_node_group`, and `Material.use_nodes` warns that it goes away in 6.0.
 - Tint variants (rarity, colorways): white or grey areas in a `SurfaceAppearance` color map plus `SurfaceAppearance.Color` at runtime (`MeshPart.Color` does not tint a textured mesh, tested 2026-11-08, and an SA in a Rojo-built place uploads a texture pack in every Studio session: both in `roblox-pitfalls` section 4), or one palette PNG per variant on the same mesh (`TextureID` swap). Distinct tiers need distinct silhouettes, not tints (section 6).
 
 ## 4. Genre look (chunky cartoon)
@@ -131,7 +135,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   - Load at runtime with `InsertService:LoadAsset(id)` (the asset must belong to the place owner or the group), or insert in Edit with Studio MCP `insert_asset`.
   - Read the MeshIds of an uploaded FBX with `InsertService:LoadAsset(id)` in an Edit-mode `execute_luau`. Every upload makes new ids, so keep one `ids.json` per asset set and regenerate the game's data module from it.
 - Upload under the group that owns the game. Assets owned by another account can render as nothing.
-- Images: upload as Decal and use the returned `imageId`, never the `decalId`.
+- Images: upload as Decal and use the returned `imageId`, never the `decalId`. Open Cloud also takes a PNG or JPEG as `assetType` Image directly (docs `cloud/guides/usage-assets`), and that id worked as a `TextureID` (field note, 2026-11-09).
 
 ## 6. Renders for previews and icons
 
