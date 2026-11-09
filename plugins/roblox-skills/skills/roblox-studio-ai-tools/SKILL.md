@@ -90,7 +90,7 @@ Announced on the DevForum on 2026-11-04. Details below come from Roblox's own bu
 
 ## 2. Tool map (built-in server)
 
-Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance id, place id) and pass the id of your dev place, especially with several windows or agents. Window rules: `roblox-game-pipeline` section 0, rule 8.
+Every call takes a `studio_id`. Call `list_roblox_studios` first (name, instance id, place id) and pass the id of your dev place, especially with several windows or agents. Right after a window closes, a check can still report it as connected (stale registration, field note 2026-11-09): wait a few seconds and list again before connecting to the next window. Window rules: `roblox-game-pipeline` section 0, rule 8.
 
 | Group | Tools | Notes |
 |---|---|---|
