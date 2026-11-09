@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Roblox game-dev skills for Claude Code from JoCoding: idea to release, with live market research, Studio MCP workflow, engine and policy rules, and field-tested pitfalls.",
-    "version": "1.8.0"
+    "version": "1.9.0"
   },
   "plugins": [
     {
       "name": "roblox-skills",
       "source": "./plugins/roblox-skills",
-      "description": "Roblox game dev with an AI agent from idea to live ops: tool check and project intake, live market and keyword research, staged pipeline, engine rules, combat, rounds and teleports, saves, NPCs, feel, fun effects and reveals, character motion, Studio MCP/Assistant, design and launch policy, release automation, Blender export, store art, typography, stud UI and field-tested pitfalls.",
-      "version": "1.8.0",
+      "description": "Roblox game dev with an AI agent from idea to live ops: tool check and project intake, live market and keyword research, staged pipeline, engine rules, combat, rounds and teleports, saves, NPCs, feel, audio, fun effects and reveals, character motion, Studio MCP/Assistant, design and launch policy, release automation, Blender export, store art, typography, stud UI and field-tested pitfalls.",
+      "version": "1.9.0",
       "author": {
         "name": "JoCoding"
       },

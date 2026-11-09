@@ -11,7 +11,8 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-cinematics` | Whether and how to add intros, boss reveals and unlock moments: questions, budgets, shot list, skip and restore rules, testing through Studio MCP |
 | `roblox-data-saves` | Player saves: what to store, DataStore layout, session lock, retries, schema versions and migrations, test cases, limits, deletion rules |
 | `roblox-bots-npcs` | NPCs, enemies, allies and bot fill so a solo player never waits in an empty server: pathfinding, state machines, server cost, tests |
-| `roblox-feel-audio-vfx` | Game feel: feedback map, audio objects and mix, particle and effect budgets, lighting and atmosphere, mobile checklist |
+| `roblox-feel-audio-vfx` | Game feel: feedback map, particle and effect budgets, lighting and atmosphere, mobile checklist |
+| `roblox-audio` | Game audio: event sound map with stable ids, mix and starting volumes, buses and ducking (Audio API), loops and music, Sound vs AudioPlayer, phone budgets, Creator Store sourcing and rights, measuring in Studio |
 | `roblox-fun-effects` | Make effects fun, not only working: fun card, rarity tier ladder, roll and hatch reveal beats, auras and status others see, announcements and clip sharing, mutations, hit stop and finishers, odds and flashing guard rails |
 | `roblox-character-design` | How characters, creatures, enemies, robots and towers look: silhouette at play distance, size against the avatar, menace or cute, role and tier by shape, one style across a roster, parts for animation, crowd and boss budgets, tool bake-off |
 | `roblox-character-motion` | Custom character motions (exercise loops, sitting, interactions, emotes): which authoring path, contact-first solve and bake (tested push-up baker), runtime IK, upload for live servers, measuring contacts |
