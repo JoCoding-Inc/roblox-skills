@@ -155,7 +155,7 @@ Gaps found: no voted free wall pack in most lanes (Synty has rock walls, Beyond 
 | Pack (tested 2026-11-04; re-rank, votes change) | Id | Votes | Contents | Fits |
 |---|---|---|---|---|
 | Simulator Icon Pack (DevJoob) | 99176447965360 | +392/-8 | 125 chunky full-color icons with a dark outline: arrows and rebirth, coins, cash, gems, potions, gifts, stars, menus (shop, gear, calendar, bag, lock, paw), luck, trails, cursors | Simulator, tycoon, idle, obby |
-| Monochrome White UI Icon Pack (SodaBreadle) | 110801640375836 | +29/-1 | 72 white glyphs (gear, cart, lock, weapons, phone, alerts); tint with `ImageColor3`; mixes line and filled glyphs, so use one kind | Dark flat, horror, shooter, realistic |
+| Monochrome White UI Icon Pack (SodaBreadle) | 110801640375836 | +29/-1 | 72 white glyphs (gear, cart, lock, weapons, phone, alerts); tint with `ImageColor3`; mixes line and filled glyphs, so use one kind. No arrow or pointer: one game's tutorial pointer used image 12338397670 ("Arrows Down Icon", DesignWithMarko, another creator; loaded in Studio, field note 2026-11-09), so check its line weight against the pack | Dark flat, horror, shooter, realistic |
 
 - Skip icons with the Roblox logo or the Robux mark (both packs have some), except next to a real Robux price: on in-game currency they read as free Robux.
 - Skip art from another game (for example a decal named "DOORS Coins Icon").
