@@ -52,9 +52,26 @@ Doc map (official, no login; "never guess a URL", a wrong path returns an HTML 4
 
 Do phases in order. Skipping the greybox is the most common failure: art and UI built around a loop nobody has played.
 
-Primitive stand-ins (a plant from three balls in a cylinder pot, box chairs, a block enemy) are greybox only (owner rule, 2026-11-05):
-- From the art pass on, every prop, piece of furniture, unit, enemy and piece of scenery comes from a vetted Creator Store model (`roblox-store-art-pack`), a Blender mesh (`roblox-blender-export`) or Roblox Cube, matched to the game's style. A part build (also `generate_procedural_model`) counts only when it is as detailed as those.
-- None reaches a published build or a capture shown as a finished result. Label greybox captures as greybox.
+**The agent never builds final art from parts** (owner rule, 2026-11-05, tightened 2026-11-09: agent-made art looked too low quality).
+
+The only exception is a prototype or playtest build: a greybox before the art pass, with every capture labelled greybox. Anything shown to the user or a player as a result is a deliverable and follows these rules:
+- **Sources.** Every prop, piece of furniture, unit, creature, set piece and piece of scenery comes from one of these, matched to the game's style:
+  - Roblox Cube.
+  - A Blender mesh. Hand, script, MCP or headless modelling are all fine, as long as it follows `roblox-blender-export` sections 1-4 and passes a side-by-side check at the same camera against a reference anchor: a store model, a Cube result or a concept image of the same class.
+  - A vetted Creator Store model (`roblox-store-art-pack`).
+- **Banned as final art.** Roblox Parts and primitives assembled into objects, such as ball-blob plants, box sofas and block units. `generate_procedural_model` results count as part builds, so they are for prototypes only.
+- **Characters.** Players keep their own avatar. Humanoid NPCs are Roblox avatars or `generate_avatar` (`roblox-character-design`). Never part-built figures.
+- **Structure.** Floors, walls, lanes and terrain may be parts or Terrain. Give them real materials or MaterialVariants chosen for the style, not default flat SmoothPlastic. Everything placed on them is sourced.
+- **Lanes where parts are the look** (classic blocky, stud): only when the user picked that lane. Even then, part builds must match a reference anchor's detail.
+- **UI.**
+  - Layout and code-drawn shapes are construction: panels, strokes, gradients and the chamfers of `roblox-ui-genre-scifi`.
+  - Icons come from a store icon pack or an image generator the user has connected.
+  - Illustrated or ornate frame art comes from the store, a generator or Blender renders.
+- **VFX.**
+  - Beams and particles are composed in the engine. Built-in textures are fine when chosen on purpose, such as the soft beams in `roblox-feel-audio-vfx` section 4.
+  - Hero and skill effects use Blender meshes plus gradient or flipbook textures (`roblox-feel-audio-vfx` section 3).
+  - Default sparkles as the whole look stay rejected.
+- **Logos and wordmarks.** Use an image from a generator, the user's file or an editor (`roblox-store-art-pack` section 6). A code-built text wordmark is a placeholder.
 
 ## 2. Plan (phase 1)
 
@@ -100,7 +117,7 @@ Several rows often fit the same asset. When the choice decides many assets (all 
 | Quick restyle of existing parts | Studio MCP `generate_material` (or Assistant "restyle") | Returns a `MaterialVariant`; apply to parts |
 | Blocky or chunky prop, machine, furniture, building, map structure | Parts built by script (`execute_luau` in Edit mode, or Rojo model files) | No credits, instant, collisions are simple, the user can edit it in Studio. Group as a Model with a PrimaryPart, keep part counts low on repeated props and clone one model. Set the stud or smooth look on purpose, never the new-part default (`roblox-game-pipeline/assets/part-looks/README.md`, with example renders). Weak for organic shapes |
 | Static prop, furniture, vehicle, simple weapon | Studio MCP `generate_mesh` (Roblox Cube) | Textured mesh from text or one reference image. Default 10k tris; see `roblox-pitfalls` section 5 |
-| Parametric or scalable object (shelves, fences, ferris wheel, stack of books) | Studio MCP `generate_procedural_model` | Built from primitive parts; adjustable parameters; low runtime cost. Limit 50 per rolling 24 h. Poll with `wait_job_finished` |
+| Parametric or scalable object (shelves, fences, ferris wheel, stack of books) | Studio MCP `generate_procedural_model` | Built from primitive parts; adjustable parameters; low runtime cost. Limit 50 per rolling 24 h. Poll with `wait_job_finished`. A part build, so prototype and greybox only (section 1) |
 | Static props, pets and pickups in one locked style | Roblox Cube (`generate_mesh`) with one reference image for the style, or Blender for exact shapes and kits. Optional, only if connected: gwanggo MCP `generate_game_asset` kind `image`, then kind `3d` from that image (textured GLB, Roblox limits; `roblox-game-pipeline` section 10) | Static, no rig; import with the 3D Importer; gwanggo costs credits, `dry_run` and ask first |
 | Standard UI icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows) | Free Creator Store icon pack, ranked by votes (`roblox-store-art-pack` section 4) | One family players already know; use image ids, never decal ids; delete the pack from the place |
 | Icons for the game's own items (no store icon fits); seamless textures | Icons: a render of the item's own model (ViewportFrame, or Blender, `roblox-blender-export` section 6). Textures: Studio MCP `generate_material`. Optional, only if connected: gwanggo MCP `generate_game_asset` kind `texture` in the project style, or kind `icon` when the user asks for generated icons. Never draw icons from frames or lines (`roblox-store-art-pack` section 4) | Upload as image; textures go into a `MaterialVariant`; match icons to the store pack |
