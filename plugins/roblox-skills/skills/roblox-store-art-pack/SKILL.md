@@ -88,6 +88,8 @@ Never invent ids.
 
 Probe every image id before relying on it (`roblox-pitfalls` section 4).
 
+Store images also texture the world by id with no upload, for example night window photos tiled on far towers for a lit skyline (field note, 2026-11-08). Most such decals have 0 votes and unknown original authorship: record each in the licenses file and list them for the user to keep or replace before release.
+
 **Model inserts (quarantine first):**
 - Insert into a quarantine folder.
 - Keep meshes, textures and UI art. Delete every script.
@@ -95,6 +97,7 @@ Probe every image id before relying on it (`roblox-pitfalls` section 4).
 - Red-flag names: AntiLag, MainModule, Loader, Handler, Update, Version, HDAdmin, Free, Fix.
 - Verdict for each insert: visual-only / reviewed / quarantine / reject. `insert_asset` keeps scripts and only sets `Sandboxed` on them (observed 2026-11-04), so delete them yourself and recreate the behavior.
 - Assets owned by someone else need user consent for use. Record the source in the licenses file.
+- A 0-vote model that is the only fit may stay in dev after this quarantine, but list it for the user with its id, creator, votes and the closest voted alternative, and get a keep-or-replace answer before release (judgment). Template MeshPart pieces, not unions (`roblox-pitfalls` section 2).
 
 ## 3a. World props from a store pack (the user picks)
 
@@ -139,13 +142,15 @@ Gaps found: no voted free wall pack in most lanes (Synty has rock walls, Beyond 
 
 **Store first.** Standard UI icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows, lock, trophy, potions, paw) come from one free Creator Store icon pack, not from generation. This is the exception to the priority in section 3. Generated icons drift between calls and grow odd details. A popular pack is one family that players already read at a glance. Pass and product icons of generic items (potions, luck, boosts) also come from the pack; only an icon showing the game's own character or creature stays custom.
 
+**Never draw icons** (owner rule, 2026-11-08): no icon built from Frames, lines, `Path2D`, parts or emoji, such as a house from a triangle and a box or an arrow from rotated bars. Those came out crude every time. A missing icon is a store search (step 5), not a drawing. Generated icons are an option only when the user asks for them.
+
 1. Rank packs: `python3 -I <skill dir>/scripts/store_icons.py "simulator icon pack" "icon pack" --type model` sorts free packs by up-votes, prints `hasScripts`, and writes a contact sheet; open it and look.
    - Skip 0-vote re-uploads of a popular pack (same thumbnail, another creator). In our run two of them carried scripts: an icon pack never needs one.
 2. Insert the pick with Studio MCP `insert_asset` under `ServerStorage`, then audit it (section 3). Edit `ROOT` in `scripts/pack_ids.luau` and run it with `execute_luau` in Edit mode. It lists every icon as `Folder/Name = image id`, checks that each one loads, and lays them out in a ScreenGui named `IconSheet` under StarterGui for one screenshot.
 3. Copy the ids you use into one constants module (`Icons.Coin = "rbxassetid://..."`) and delete the pack and the sheet from the place.
 4. Record the pack id, the creator and the ids you used in `assets/LICENSES.md`, and name the pack to the user in one line (section 3: someone else's asset).
 5. A concept the pack lacks: run `store_icons.py "<thing> icon" --type decal` and pick one that matches the pack's outline weight, shading and light direction. Use the printed `image=` id, never the decal id: a decal id in `ImageLabel.Image` loads nothing (tested 2026-11-04). In Studio, `game:GetObjects("rbxassetid://<decalId>")[1].Texture` gives the same image id.
-6. The game's own items that no store icon shows (its pets, tools, products): render the item's own model (a ViewportFrame, or a Blender render, `roblox-blender-export` section 6), or use an image generator the user has connected (for example the RoDesigner MCP, in the project's style: `generate_game_asset` kind `icon`, `roblox-game-pipeline` section 10). Match the pack's canvas, outline weight and highlight.
+6. The game's own items that no store icon shows (its pets, tools, products): render the item's own model (a ViewportFrame, or a Blender render, `roblox-blender-export` section 6). Only when the user asks for generated icons, use an image generator the user has connected (for example the RoDesigner MCP, in the project's style: `generate_game_asset` kind `icon`, `roblox-game-pipeline` section 10). Match the pack's canvas, outline weight and highlight.
 
 | Pack (tested 2026-11-04; re-rank, votes change) | Id | Votes | Contents | Fits |
 |---|---|---|---|---|
@@ -161,7 +166,7 @@ Rules for any mix of icons:
 - 1024 px or less per image. Many icons go on one sprite sheet (8x8 of 128 px).
 - 9-slice needs a slice centre; tune `SliceScale`.
 - Fixed words (the logo) may be images; translatable words stay TextLabels.
-- Generated icons for step 6 (for example RoDesigner kind `icon`, 1:1 in the project's style): downscale to the canvas and check that the outline weight matches the pack.
+- Generated icons for step 6, only when the user asked for them (for example RoDesigner kind `icon`, 1:1 in the project's style): downscale to the canvas and check that the outline weight matches the pack.
 
 ## 5. Game icon and thumbnails
 

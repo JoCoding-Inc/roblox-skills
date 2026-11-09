@@ -2,3 +2,4 @@
 AssetService.PromptCreateAssetAsync  # documented as removed (renamed)
 Lighting.Technology  # documented as unreadable from execute_luau
 ChatWindowConfiguration.TextChannelDisplayMode  # announced 2026-10-22, not in the reference on 2026-11-03; re-check
+AssetService.GetLatestVersionUriAsync  # announced for 2026-11-11 (asset versioning post); exists in Studio 0.746 but not in the reference on 2026-11-09; re-check

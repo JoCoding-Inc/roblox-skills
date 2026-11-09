@@ -2,7 +2,7 @@
 name: roblox-ui-typography
 description: "Use when choosing or fixing fonts and text style in any Roblox game: which fonts exist (built-in and Creator Store, no uploads), a display and body pair per genre, Font API, readability on phones, stroke and shadow, text performance, numbers and damage numbers, and fonts for Korean, Japanese, Chinese, Arabic and Thai."
 when_to_use: "Also when UI text looks generic, blurry, jagged, too small or unreadable over the 3D world; when text flickers on phones; when numbers jitter while counting; when Korean or other non-Latin text renders broken or in the wrong font; when a font name from an old tutorial (Gotham, Arial) no longer works; in roblox-game-pipeline stage 3 (style board) to pick the font pair. Simulator/tycoon stud-style text specifics stay in roblox-ui-genre-studs section 3."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/en-us/reference/engine/datatypes/Font.md and enums/Font.md (families, removed fonts)
   - https://create.roblox.com/docs/en-us/projects/assets.md (fonts cannot be imported; updated 2026-11-02)
@@ -17,7 +17,7 @@ sources:
 
 # UI typography for Roblox games
 
-Fonts are part of the look: pick them in the style board (stage 3 of `roblox-game-pipeline`), next to the palette, not at the end.
+Fonts are part of the look: pick them in the style board (stage 3 of `roblox-game-pipeline`), next to the palette and the UI style card (section 3, step 4, with a free Studio mockup), not at the end.
 
 ## 1. What you can use
 
@@ -52,7 +52,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 ## 3. Readable on a phone
 
 - Sizes (judgment, at 1080p design scale): body 14 or more, key labels and buttons 20 or more; never below the docs floor of `MinTextSize` 9. Phone floors at `UIScale` 1 (14 px body, 18 px labels): `roblox-ui-layout` section 4. Stud-style games use their own larger minimums (`roblox-ui-genre-studs` section 3).
-- Text over the 3D world needs a stroke (`UIStroke` on the label) or a drop shadow (an offset copy of the label; `UIShadow` text mode is still beta, `roblox-engine-2026` section 2); check contrast against the brightest and darkest spot the label can sit on.
+- Text over the 3D world needs a stroke (`UIStroke` on the label) or a drop shadow (an offset copy of the label; `UIShadow` text mode is still beta, `roblox-engine-2026` section 2); check contrast against the brightest and darkest spot the label can sit on. `Color3:GetContrastRatio` returns the WCAG ratio (1 to 21) and `Color3:GetContrastingColor` picks readable text for a background (tested 2026-11-09: white against black gives 21, a near-black navy gets white, a yellow gets black).
 - Avoid Thin, ExtraLight and Light weights below about size 24: since the July 2026 FreeType update (Release 731), thin text and BillboardGui text look jagged on low-DPI screens (staff and community reports).
 - Prefer `AutomaticSize` plus `TextWrapped` over `TextScaled` (the docs recommend it). The player's Text Size setting (`GuiService.PreferredTextSize`) does not scale `TextScaled` text, and `TextScaled` stops at 100. If you use it, add a `UITextSizeConstraint`.
 - Long strings: `TextTruncate` (AtEnd) and check `TextFits` after localization.
@@ -73,7 +73,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 
 ## 6. Numbers and damage numbers
 
-- One number formatter for the whole game (K, M, B; truncate, never round up into the next suffix).
+- One number formatter for the whole game (K, M, B; truncate, never round up into the next suffix), world-space numbers included: a floating refund that rounded ("+$7.3T") next to a card and toast that truncated ("$7.2T") read as a wrong refund to the owner (field note, 2026-11-09).
 - Counters that jitter while counting: `OpenTypeFeatures = "tnum"` does not help (tested 2026-11-03: "Unsupported feature: tnum" on BuilderSans, FredokaOne, Montserrat, Roboto). Use a font whose digits are already equal width for counters and timers. Measured equal: Roboto, RobotoCondensed, RobotoMono, BuilderMono, Nunito, SourceSansPro, Teko, Rubik. Proportional (they jitter): BuilderSans, FredokaOne, LuckiestGuy, DenkOne, Montserrat, Oswald, Bangers, Goldman, Arimo. With a proportional display font, right-align the counter in a fixed-width box.
 - Damage numbers: pooled BillboardGui labels with `MaxDistance`, stroke or shadow, rise and fade over about 0.6 s. A crit changes color and jumps to one larger size; never scale text continuously.
 

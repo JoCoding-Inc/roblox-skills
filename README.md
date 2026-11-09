@@ -13,6 +13,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-bots-npcs` | NPCs, enemies, allies and bot fill so a solo player never waits in an empty server: pathfinding, state machines, server cost, tests |
 | `roblox-feel-audio-vfx` | Game feel: feedback map, audio objects and mix, particle and effect budgets, lighting and atmosphere, mobile checklist |
 | `roblox-fun-effects` | Make effects fun, not only working: fun card, rarity tier ladder, roll and hatch reveal beats, auras and status others see, announcements and clip sharing, mutations, hit stop and finishers, odds and flashing guard rails |
+| `roblox-character-design` | How characters, creatures, enemies, robots and towers look: silhouette at play distance, size against the avatar, menace or cute, role and tier by shape, one style across a roster, parts for animation, crowd and boss budgets, tool bake-off |
 | `roblox-character-motion` | Custom character motions (exercise loops, sitting, interactions, emotes): which authoring path, contact-first solve and bake (tested push-up baker), runtime IK, upload for live servers, measuring contacts |
 | `roblox-project-intake` | Run first: tool check (Studio, Studio MCP and git required; Script Sync or Rojo, Blender MCP, Open Cloud key optional) with step-by-step setup from the live docs, interview about the game, audience and art sources, writes `docs/brief.md` and a project `CLAUDE.md` |
 | `roblox-engine-2026` | Current engine rules: task scheduler, deferred events, Parallel Luau, types, flex layouts and UI styling, Input Action System, streaming, memory budgets, remote security and server-side exploit detection, Server Authority, platform chat change, status board of betas and rollouts |
@@ -27,6 +28,7 @@ Claude Code skills for building Roblox games with an AI agent, from JoCoding. Th
 | `roblox-ui-typography` | Fonts and text for any genre: built-in and Creator Store fonts (no uploads), display and body pair per genre, phone readability, stroke and text performance, numbers, fonts for Korean and other languages |
 | `roblox-ui-layout` | Any genre: one placement and size standard for phone, tablet, desktop and console, with Roblox's reserved zones in px (top bar, thumbstick, jump, hotbar, chat), insets, scaling, touch and text floors, TV-safe area and a device check script |
 | `roblox-ui-genre-studs` | Simulator/tycoon games only: stud-style UI with outlines, lips, gradients, HUD zones, motion |
+| `roblox-ui-genre-scifi` | Sci-fi, military, tower defense and shooter UI without uploads: cut-corner glass panels, hazard stripes, segmented wave bars (tested script), store frame art vs primitives, look check against the mockup |
 
 ## Install
 
