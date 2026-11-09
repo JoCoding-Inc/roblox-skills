@@ -13,7 +13,7 @@ sources:
   - https://create.roblox.com/docs/scripting/sync
   - https://create.roblox.com/docs/cloud/auth/api-keys
   - https://github.com/rojo-rbx/rokit (README, read 2026-11-03)
-  - https://gwanggo.ai/dashboard/mcp (setup steps, read 2026-11-03)
+  - RoDesigner MCP setup values (server `rodesigner`, from its maintainers, 2026-11-08)
   - original (workflow notes from shipping test games with an AI agent)
 ---
 
@@ -37,7 +37,7 @@ Run this at the start of every new project and when a project is opened on a new
 | Toolchain | `rokit --version`, `rojo --version`, `selene --version`, `stylua --version`, `lune --version`, `luau-lsp --version` | Which checks can run locally |
 | Blender | `blender --version`, `claude mcp list` (look for `blender`), then the MCP tool `get_addon_status` | Custom meshes and rigs |
 | Open Cloud | env vars or a `chmod 600` env file with names like `ROBLOX_API_KEY`, `ROBLOX_UNIVERSE_ID`, `ROBLOX_PLACE_ID` (check that they exist, never print values). A key in another project's file belongs to that game: keys are restricted to one experience, so this game gets its own (step 1d). Or the Studio MCP lists `open_cloud_invoke` (no key; MCP Permissions per game, `roblox-studio-ai-tools` section 1a) | Publish, asset upload, Luau Execution |
-| gwanggo MCP | `claude mcp list` (look for `gwanggo`), then call `get_credits`; CLI fallback `command -v gwanggo && gwanggo me` | Images and video: concept art, concept trailer, store art drafts |
+| RoDesigner MCP | `claude mcp list` (look for `rodesigner`), then call `get_credits` | Genre UI kits, KitLint screen checks, images: concept screens, icons, store art drafts |
 | OS | `uname`, Windows vs. macOS paths | Setup commands differ per OS |
 
 Do not install anything global, and do not touch Studio windows of other projects (say which ones are open and leave them alone).
@@ -55,13 +55,13 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 | Lint and test tools (selene, StyLua, luau-lsp, Lune via rokit) | Optional | Local checks before Studio | Checks run only in Studio playtests |
 | Blender + MCP for Blender | Optional | Animated creatures and rigs, exact-shape kits, icon renders | Roblox Cube for static props, Creator Store, user files |
 | Open Cloud access: Studio MCP Permissions (no key), or an API key in an env file for CI | Optional until release | Automated publish, asset upload, passes and products, headless Luau tests | User publishes and uploads by hand in Studio and Creator Hub |
-| gwanggo MCP (Game Studio: images, icons, textures, 3D, video) | Optional; spends credits, every spend asked first | A game project with a locked art style; concept images and a concept trailer before the build (`roblox-game-pipeline` 6b); props and pets as textured GLB, inventory icons, seamless textures, logo and loading art in that style; the web Thumbnail & Icon Kit at launch (pipeline section 10) | Written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
+| RoDesigner MCP (genre UI kits, screen checks, images in the project's style) | Optional; a row only when connected (see below); spends credits, every spend asked first | A genre UI kit as Luau code at a pinned version and KitLint screen checks (kit 0.1.2-rc and later, `roblox-ui-layout` section 6); a game project with a locked art style; concept images before the build (`roblox-game-pipeline` 6b); inventory icons, logo, loading art and thumbnail drafts in that style | The UI skills and `ui_device_check.luau`; written storyboard, Studio screenshots, Blender renders, Studio Texture and Material Generator, user art, or another image tool the user has |
 | Playtest Agent beta (Studio File > Beta Features) | Optional | Studio MCP `subagent` type `playtest` | The agent drives playtests with the input tools |
 
 How to ask:
 - **Required and missing:** say what it is needed for in one line and offer to walk the user through it now. Re-probe after each fix. If the user refuses, record it and stop before stage 7.
 - **Optional and missing:** one message, one line each: "set up now / later / skip". On skip, write `Skipped: <tool> - unavailable: <features> - fallback: <fallback>` under Environment in the brief and do not ask again. When a later task needs a skipped tool, say so at that moment and offer setup or the fallback.
-- **gwanggo missing:** probe it silently and move on: no "set up now / later / skip" line, no `Skipped:` record, and it never blocks the stage 0 gate. The free routes (written storyboards, Studio screenshots, Roblox Cube, Blender) cover every step. Bring it up again only when the user asks for generated images or video.
+- **RoDesigner missing:** probe it silently and move on: no row in the table, no "set up now / later / skip" line, no `Skipped:` record, and it never blocks the stage 0 gate. The free routes (the UI skills and their check scripts, written storyboards, Studio screenshots, Roblox Cube, Blender) cover every step. Bring it up only when the user asks for generated images, a ready UI kit or screen checks.
 - Every question ends with: "If you are not sure how to do this, say so and I will guide you step by step."
 
 ### 1c. Setup guides (re-read the live page first)
@@ -76,7 +76,7 @@ Menus and commands change between Studio releases. Before guiding, fetch the liv
 | Script Sync | Explorer > right-click a service > Script Sync > Sync to (`roblox-studio-ai-tools` section 6) | create.roblox.com/docs/scripting/sync | `InstanceFileSyncService:GetStatus` returns SyncedAsRoot |
 | Rojo and tools | Rokit: install script from the rokit README, `rokit self-install`, then `rokit init` and `rokit add rojo-rbx/rojo` (same for selene, StyLua, Lune); `rojo plugin install` adds the Studio plugin | github.com/rojo-rbx/rokit, rojo.space | `rojo --version`; the Rojo plugin in Studio shows Connected after `rojo serve` |
 | Blender MCP | `uvx mcp-for-blender install-addon`; in Blender turn the add-on on: **Edit > Preferences > Add-ons**, search "MCP for Blender", tick it, Save Preferences; then viewport `N` > MCP for Blender tab > **Connect to MCP server** (after every Blender start); `claude mcp add blender uvx mcp-for-blender`, restart Claude Code (`roblox-blender-export` sections 8-9) | github.com/ahujasid/blender-mcp | `get_addon_status` answers |
-| gwanggo MCP | Account and credits: gwanggo.ai. Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, restart Claude Code, approve the gwanggo sign-in page on first use (browser, no password or key in chat; `/mcp` shows the state). Claude desktop or claude.ai: Settings > Connectors > Add custom connector, name `gwanggo`, paste the URL, Connect. CLI and skills fallback: `npm install -g https://github.com/bill-950207/gwanggo-mcp/archive/refs/heads/master.tar.gz`, `gwanggo auth login` | gwanggo.ai/game/connect (Game Studio agent tools), gwanggo.ai/dashboard/mcp (per-client steps, MCP / CLI / Skills tabs); keys for local configs only at gwanggo.ai/dashboard/api-keys (`GWANGGO_API_KEY`, set by the user) | `get_credits` answers |
+| RoDesigner MCP | Endpoint `<URL>` = `https://gwanggo.ai/api/rodesigner/mcp` (the only place in this file; hosted on gwanggo.ai by the same team). Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 rodesigner <URL>`, restart Claude Code, then `/mcp` > rodesigner > sign in. Codex: `codex mcp add rodesigner --url <URL>`, then `codex mcp login rodesigner`. Cursor: add `{"mcpServers":{"rodesigner":{"url":"<URL>"}}}` to `~/.cursor/mcp.json`. The user signs in in the browser; never a password or key in chat | None yet; call `design_guide` after connecting | `get_credits` answers |
 | Open Cloud key | User creates it in Creator Hub > Credentials with the scopes in `roblox-release-automation` section 2 and saves it to a `chmod 600` env file | create.roblox.com/docs/cloud/auth/api-keys | Variable exists (never print it); one read-only call returns 200 |
 
 Record the final state (tool, version, OK or skipped) in the brief's Environment line.
@@ -95,7 +95,7 @@ Do not ask for these up front. Put each one as a `Needs user:` line on the plan 
 | Group permissions | Group-owned game: publish, upload, products | The group owner gives the account the role permissions (docs `groups`: Universe Publisher to publish, Universe Monetization Manager for passes and products, Development Item Manager to upload, API Key Manager for keys); the key owner is the group. Group settings such as manual join approval were owner-only in a 2026-11 run: hand them to the owner | Upload or publish succeeds |
 | Creator account age check and 2-step verification | Before public release; required to reach under-16 players | Roblox account settings (`roblox-design-and-launch` section 4) | User confirms |
 | Team Create collaborators | When a teammate joins | Add them in Collaborate; they need an age check (`roblox-dev-workflow`) | Teammate can edit |
-| gwanggo sign-in and credits | First generation | Browser sign-in once; a yes to each quoted cost | `get_credits` answers |
+| RoDesigner sign-in and credits | First generation | Browser sign-in once; a yes to each quoted cost | `get_credits` answers |
 
 ### 1e. Studio MCP projects start in a place saved to Roblox
 
@@ -129,7 +129,7 @@ MCP Permissions (`roblox-studio-ai-tools` section 1a) live on a game saved to Ro
 **Round B: look and assets (ask when art is in scope)**
 
 7. Art style: chunky cartoon / low-poly / stylised realistic / blocky Roblox / voxel (low-res or high-res) / user's own references (ask for 2-3 images or links). Show only the lane cards that fit the idea, describe each in one line set in this game, then offer to show the user's own game in the closest looks: a Studio greybox (free) or an image generator the user has connected (`roblox-game-pipeline` rule 3 and section 3).
-8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: parts built by script (blocky props, machines and buildings, free and instant), Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), gwanggo 3D (only if connected: many props in one locked style, credits), Creator Store (fillers, audio), or user-supplied files. If the user is unsure, write "Art source: decide by bake-off" and settle it in `roblox-game-pipeline` section 6a; never leave it out of the brief.
+8. Where should art come from? Offer the routing in `roblox-dev-workflow` section 4: parts built by script (blocky props, machines and buildings, free and instant), Roblox Cube and Assistant generation (fast, static props), Blender (anything that must animate, exact shapes, kits), Creator Store (fillers, audio), or user-supplied files. If the user is unsure, write "Art source: decide by bake-off" and settle it in `roblox-game-pipeline` section 6a; never leave it out of the brief.
 9. Is the user willing to approve anything that spends money or Robux (ads, paid uploads, Hyper3D/Meshy credits)? (D: no spend without asking.)
 
 **Round A2: look, moments and working mode (ask after Round A; the full flow is `roblox-game-pipeline` stages 3-5)**

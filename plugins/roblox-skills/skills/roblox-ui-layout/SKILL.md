@@ -113,3 +113,5 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
 2. Then the Studio Device Emulator at Actual Resolution: an entry-level phone, a tablet, desktop and console (docs). Turn on physical-size scaling to judge taps, and open the on-screen keyboard on every TextBox.
 3. Last, a real phone for thumb reach (`roblox-game-pipeline` verification).
 4. These steps check placement and size, not the look: also run the look check in `roblox-engine-2026` section 2 (UI review, step 4).
+
+Optional, only when RoDesigner is connected or the user asks for automated screen checks (RoDesigner account; price: TODO(RoDesigner launch)): KitLint, the screen checks in the RoDesigner UI kit 0.1.2-rc and later (not affiliated with Roblox). The kit installs it as a ModuleScript named `KitLint` in ReplicatedStorage. In Play, require it and call `lintScreen(<ScreenGui>, { scene = "shop", families = "visual" })`; it returns a kitlint/1 result and a text summary, for UI built with or without the kit. For a phone drawn in a frame, add `device = { kind = "phone", frame = <frame>, size = { 667, 375 } }`. It adds to steps 1-4, it does not replace them.
