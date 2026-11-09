@@ -95,7 +95,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 - Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
 - Studio renders brighter than EEVEE, so judge colors in Studio.
 - A bake through an Emission shader writes linear values. Convert sRGB colors with `c ** 2.2` before baking, or colors come out grey or white in Roblox (field observation).
-- Tint variants (rarity, colorways): white or grey palette areas plus `MeshPart.Color` at runtime, or one palette PNG per variant on the same mesh (`TextureID` swap). Distinct tiers need distinct silhouettes, not tints (section 6).
+- Tint variants (rarity, colorways): white or grey areas in a `SurfaceAppearance` color map plus `SurfaceAppearance.Color` at runtime (`MeshPart.Color` does not tint a textured mesh, tested 2026-11-08, and an SA in a Rojo-built place uploads a texture pack in every Studio session: both in `roblox-pitfalls` section 4), or one palette PNG per variant on the same mesh (`TextureID` swap). Distinct tiers need distinct silhouettes, not tints (section 6).
 
 ## 4. Genre look (chunky cartoon)
 
@@ -124,7 +124,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   - File Transform: World Forward Front, World Up Top.
   - File General: Anchored on (static), Add to Workspace on, Set Pivot to Scene Origin on, Upload to Roblox on.
 - After import, set `CollisionFidelity` explicitly every time, because the importer is inconsistent: Box or Hull for props.
-- Decor gets `CanCollide`, `CanTouch` and `CanQuery` false. A gameplay collider is an invisible primitive with the old dimensions.
+- Decor gets `CanCollide`, `CanTouch` and `CanQuery` false, except decor the camera can enter (walls, ceilings, stair treads): the default camera ignores parts with `CanCollide` false (`roblox-pitfalls` section 4). A gameplay collider is an invisible primitive with the old dimensions.
 - Open Cloud `POST https://apis.roblox.com/assets/v1/assets`:
   - Send multipart `request` JSON (`assetType` Model or Image, `displayName`, `creationContext.creator`) plus `fileContent`, then poll the operation (`GET /assets/v1/operations/{id}` until `done`; 300 per minute). One asset per call, files up to 20 MB, 120 creates per minute. Scopes `asset:read` and `asset:write`. Models accept fbx, gltf, glb, rbxm, rbxmx and become a package; images accept png, jpeg, bmp, tga under 8000x8000 px; audio mp3/ogg/wav/flac up to 7 minutes (100 uploads per month if ID-verified, 10 if not). `creationContext.expectedPrice` makes the call fail instead of charging more than you expect.
   - The result arrives as a package: unanchored, random yaw, no preview. An update adds a version, but placed copies do not update.
@@ -138,7 +138,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 - Contact sheet of every asset (EEVEE, key plus rim light, flat background) for review at phone size before uploading. Make one per batch and label each cell with its asset id.
 - Icon decals: Workbench or EEVEE, `film_transparent=True`, RGBA PNG, square, 512 px.
 - Headless `-b` renders on Apple Silicon (tested Blender 5.2.2, M4 Pro). Engine ids on 5.x: `BLENDER_EEVEE`, `BLENDER_WORKBENCH`, `CYCLES` (`BLENDER_EEVEE_NEXT` raises `TypeError`). Measured: 512 px icon 0.85 s on EEVEE, 0.14 s on Workbench; a 1536x512 three-object sheet 0.3 s on EEVEE, 7.5 s on Cycles (CPU).
-- Review checklist: distinct silhouettes per tier, readable at 128 px, palette consistent across the family, nothing default grey.
+- Review checklist: distinct silhouettes per tier, readable at 128 px, palette consistent across the family, nothing default grey. For characters and units, size the test to play distance (`roblox-character-design` section 1).
 - Critic pass on every batch: a reviewer other than the builder reads the labeled sheet and lists near-identical silhouettes by asset id. Reject them and redo one of each pair with a different form, not a recolor (field observation).
 
 ## 7. Licensing
