@@ -57,6 +57,7 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 - Avoid Thin, ExtraLight and Light weights below about size 24: since the July 2026 FreeType update (Release 731), thin text and BillboardGui text look jagged on low-DPI screens (staff and community reports).
 - Prefer `AutomaticSize` plus `TextWrapped` over `TextScaled` (the docs recommend it). The player's Text Size setting (`GuiService.PreferredTextSize`) does not scale `TextScaled` text, and `TextScaled` stops at 100. If you use it, add a `UITextSizeConstraint`.
 - Long strings: `TextTruncate` (AtEnd) and check `TextFits` after localization.
+- `TextBounds` height is the line box, ascender and descender space included, so it is taller than the visible letters (field note, 2026-11-09). Judge whether text touches a stripe or an edge on a capture, not from `TextBounds`.
 
 ## 4. Stroke, shadow, rich text
 
