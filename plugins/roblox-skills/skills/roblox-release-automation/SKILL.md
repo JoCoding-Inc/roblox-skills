@@ -64,6 +64,12 @@ Facts come from the official OpenAPI specs and publishing docs, not memory. Scop
 - The filter refused every money word in an Arabic description ("earns money", "profits", "coins", even "Cash") while the same idea passed in 13 other languages. Add the text line by line to find the refused line, then reword or drop it.
 - Keep the brand name the same in every language. In-game strings are a separate job: per-language translations in the localization table.
 
+**Hand-written in-game translations (field notes, 2026-11-09, 15 languages, auto translation off).**
+- Send translations with the sources: the table PATCH entries take `translations: [{"locale": "de", "translationText": "..."}]` (spec).
+- Batch size: with 15 locales per entry, batches of 50 entries returned 504 and batches of 10 worked.
+- Read back with `GET .../localization-table/tables/{tableId}/entries?gameId={id}&cursor=...` and count translations per locale. A few entries came back as `CreateOrUpdateTranslationFailed` on the first pass and went through on a resend.
+- Turn on table use with `PATCH /legacy-localization-tables/v1/autolocalization/games/{id}/settings` and `{"shouldUseLocalizationTable": true}` (spec). It returned 200, and there is no GET to read it back.
+
 ## 2. API key for a release pipeline
 
 Create one key per experience, owner = the account or group that owns it, minimal scopes. Give the user this list and nothing broader:
