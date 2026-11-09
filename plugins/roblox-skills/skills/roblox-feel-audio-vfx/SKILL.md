@@ -1,7 +1,7 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: sound effects and music, particles, beams, trails, hit feedback, screen shake, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist."
-when_to_use: "Also when a game feels flat or silent, effects are invisible or too heavy on phones or look thin and cheap next to concept art, audio is too loud, overlaps or loops wrongly, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio."
+when_to_use: "Also when a game feels flat, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
 last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
@@ -21,15 +21,9 @@ Feel is what makes the same loop satisfying. Plan it as part of the loop (stage 
 
 For each frequent action write what the player sees, hears and feels: action, result, reward, error. Example: tap to collect -> pop sound + number rising + currency counter bump. Every repeated action needs feedback in at least two channels (sight + sound). Errors need a different, clear cue (never the same as success). For any effect longer than a short tick (reveals, auras, celebrations, finishers), first fill the fun card in `roblox-fun-effects` section 1: what it rewards, who sees it, how it escalates.
 
-## 2. Audio (docs)
+## 2. Audio
 
-- Objects: `AudioPlayer` plays an asset id, `AudioEmitter` is a virtual speaker in the 3D world, `AudioListener` a virtual microphone, `AudioDeviceOutput` the real output; `Wire`s carry audio between them. Effects (`AudioEqualizer`, `AudioCompressor`, `AudioReverb`, ...) modify a stream without changing the asset.
-- Use positional audio (emitter) for world sounds and non-positional for UI and music.
-- Assets: upload only audio you have rights to, or pick from the Creator Store (100,000+ free effects and tracks). Record source and license in `assets/LICENSES.md`.
-- Plan a small set: UI click, success, error, reward, ambient loop, one music track per mood. Reuse; do not stack ten variants.
-- Mix: music lower than effects, loudest cues are rare cues. Test with the device volume low and on phone speakers.
-- Memory: do not load every sound at join; load per area or on demand (`roblox-store-art-pack` section 7, loading tiers).
-- Provide a mute/volume setting and keep music from restarting on every respawn.
+Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, buses and ducking, loops, Sound vs the Audio API, phone budgets, sourcing and rights, measuring. Give every feedback-map row that makes a sound an event id there.
 
 ## 3. Effects
 
