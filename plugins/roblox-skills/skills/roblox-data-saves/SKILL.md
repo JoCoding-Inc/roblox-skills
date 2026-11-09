@@ -2,7 +2,7 @@
 name: roblox-data-saves
 description: "Use when planning, writing or reviewing Roblox player saves: what to store, DataStore layout, session locking, ProfileStore, retries, periodic and shutdown saves, schema versions, migrations, trading, leaderboards, badges, test cases, storage limits and deletion rules."
 when_to_use: "Also when a design adds currency, inventory, progression, trading, a leaderboard, badges or settings; when data is lost, rolled back or duplicated; before a release that changes the save shape, reorders items, zones or tiers that saves refer to, or recomputes a stored value; when choosing between DataStore, MemoryStore and a module such as ProfileStore."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/cloud-services/data-stores/best-practices
   - https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing (session locking)
@@ -44,7 +44,7 @@ Wally `lm-loleris/profilestore` 1.0.3 (no GitHub releases; last commit 2025-07-3
 | `profile:AddUserId(userId)` then `profile:Reconcile()` | Right-to-erasure link, then fill missing fields from the template |
 | `profile.OnSessionEnd:Connect(...)` | Session lost (other server, shutdown): kick the player |
 | `profile:Save()` | Extra save at critical moments (after a developer product grant). Costs one `UpdateAsync` |
-| `profile:EndSession()` | On `PlayerRemoving`; skipping it keeps making DataStore requests |
+| `profile:EndSession()` | On `PlayerRemoving`; skipping it keeps making DataStore requests. From 2026-11-11 the engine destroys the Player 5 s after `PlayerRemoving` handlers run (`PlayerCharacterDestroyBehavior`, `roblox-engine-2026` section 6): copy leaderstats and other values off the Player before the first yield |
 | `store:MessageAsync(key, msg)` + `profile:MessageHandler(fn)` | Guaranteed delivery to an offline or other-server profile (gifts, trade payouts); 2 `UpdateAsync` per message |
 | `store:GetAsync(key)` / `store:VersionQuery(...)` / `store:RemoveAsync(key)` | Read without a session, roll back a version, erase |
 | `store.Mock` | Same API, isolated in-memory store for Studio and tests |

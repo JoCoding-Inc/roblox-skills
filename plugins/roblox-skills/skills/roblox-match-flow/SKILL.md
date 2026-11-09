@@ -2,7 +2,7 @@
 name: roblox-match-flow
 description: "Use when planning or writing a Roblox game with rounds, matches, lobbies or teams: session shape, the round state machine, teams and spawns, lobby and match places, teleports, matchmaking, server shutdown, match results and tests."
 when_to_use: "Also when a design says rounds, lobby, queue, 1v1, party, private match or teams; when a match needs more players than are present; when players wait in an empty lobby; when a teleport fails, loses data or cannot be tested; before a release that adds a match place. Pair with roblox-bots-npcs, roblox-data-saves, roblox-combat-tools and roblox-pitfalls."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/projects/teleport (and teleport-private-servers)
   - https://create.roblox.com/docs/reference/engine/classes/TeleportService (and TeleportOptions)
@@ -144,7 +144,7 @@ Both places live in one universe. On the match place set Access Control for Plac
 3. Call `TeleportAsync` from the server only (a client button fires a remote; the server checks the player is allowed). Wrap it in `pcall` and retry with a capped backoff (the docs example: 5 tries, 1 s). Also connect `TeleportService.TeleportInitFailed`: it fires when the call succeeded but the player stays, once per player in a group, and hands you a `TeleportOptions` that repeats the same destination.
 4. By `Enum.TeleportResult`: `Flooded` wait long (docs example 15 s); `Failure` retry soon; `IsTeleporting` do not send another; `GameFull`, `GameEnded`, `GameNotFound`, `Unauthorized` do not blind-retry, tell the player.
 5. Rate: the docs give no per-player number, only `Flooded` ("too many requests recently"). Judgment: one teleport module, one in-flight teleport per player, a short cooldown, group players into one call.
-6. Teleports cannot run in Studio. The module logs and simulates in Studio; verify the real hop on a published private test place (`roblox-pitfalls` section 4).
+6. Test the hop in Studio (Test or Team Test runs `TeleportAsync` within one experience since 2026-11-05; reserved-server ids and the private check behave differently there: `roblox-pitfalls` section 4), then verify the real hop on a published private test place.
 
 ## 6. Matchmaking options
 
@@ -179,7 +179,7 @@ Queue pattern (judgment): a lobby server adds each local player as a ticket (use
 ## 9. Testing
 
 - Studio: choose Server & Clients, set up to 8 clients, press F7 to run the loop with real players. Party Simulator fakes parties. `StudioTestService` scripts multi-client runs, joins and disconnects (Studio only). Network Simulator adds latency.
-- Teleports: publish a private test place (separate universe or restricted access) and use separate DataStore names in Studio (`roblox-pitfalls`).
+- Teleports: first in Studio Test or Team Test (`TeleportAsync` only), then on a published private test place (separate universe or restricted access); use separate DataStore names in Studio (`roblox-pitfalls`).
 - Failure paths to run:
 
 | Case | Expected |

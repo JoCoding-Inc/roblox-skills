@@ -2,7 +2,7 @@
 name: roblox-character-motion
 description: "Use when a Roblox character must perform a custom motion: exercise loops (push-ups, squats, lifting), sitting, climbing, carrying, interacting with a machine or prop, emotes or any animation the agent would build by script. Covers which authoring path to use, keeping hands and feet on their contact points, baking, uploading so it works in live servers, and how to verify it."
 when_to_use: "Also when a motion looks wrong (body floats, sinks into the floor, hands miss the bar, arms flail, feet slide), when code uses KeyframeSequenceProvider or builds Keyframes and Poses by script, when an animation plays in Studio but not in the published game, when choosing between Animation Editor, Blender, Animation Capture, IKControl and procedural joints, when a script errors with 'Unable to assign property C0', when a display rig's limbs fall off an anchored root, when a carried item is held only some of the time, or before a feel checkpoint for character motion (roblox-game-pipeline section 7a)."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/reference/engine/classes/KeyframeSequenceProvider.md (temporary ids are Studio only)
   - https://create.roblox.com/docs/reference/engine/classes/AnimationClipProvider.md
@@ -37,9 +37,10 @@ Pair with `roblox-feel-audio-vfx` section 3a (loading, priorities, replication),
 | Contact that must adapt (uneven ground, any avatar size, reaching a moving handle) | `IKControl` at runtime on top of a clip | Corrects contacts per body; see section 4 for measured accuracy |
 | Small layered motion (breathing, bob, aim, lean) | Write `AnimationConstraint.Transform` (or `Motor6D.Transform` on old rigs) each frame in `RunService.PreSimulation` on the client | Cheap; skip when `Animator.EvaluationThrottled`. Joint rules on `AnimationConstraint` rigs: section 5 |
 | Blending many clips by state | Animation Graph (full release 2026-07-15) | Visual graph with parameters; clips still need uploaded ids |
+| Everyday humanoid motion described in words (limp, wave, sit down), or an R6 clip to move to R15 | Prompt to Animation or Motion Rebuilder (Studio Beta 2026-11-05: File > Beta Features > Animation Generation in Assistant; `/generate_animation` or Studio MCP `generate_animation`) | R15 only; about 20-30 s per action; complex sport and swimming moves are weak (DevForum). Prompt tips from the post: name who moves and how they feel, "then" for a sequence, "while" for two at once, put a stop in the same sentence, name the end pose, add "in place" or "loop". Untested by us; contacts still need section 3 and the clip still needs an upload with the user's yes |
 | Not this | Joint angles typed by guess, root anchored in the air | Measured in section 4: body sinks 1.43 studs into the floor |
 
-Not available yet (2026-11): prompt-to-animation (roadmap, not shipped), shared animations across creators (early 2027), root motion (mid 2027).
+Not available yet (2026-11): shared animations across creators (early 2027), root motion (mid 2027). Animation ids follow new uploads only until 2027-03-31: after that an id without `&version=<n>` keeps the version current on that date (asset versioning, `roblox-engine-2026` section 6), so pin versions or use `AssetService:GetLatestVersionUriAsync`.
 
 ## 2. Write a motion spec first
 
