@@ -61,6 +61,13 @@ Measure the whole HUD too: the union of the visible HUD rects at idle as a share
 
 A card that opens when the player walks near something (an action or build card) goes beside the play area, never over the spot where the action happens. On phone and tablet, let it take a HUD column's slot and hide that column while the card shows; on desktop it fits under the column. In one game that cut the centre box covered while the card shows from 56% to 9.3% on a phone (field note, 2026-11-08).
 
+Hiding a HUD side while such a card shows (one tested recipe, field note 2026-11-09):
+- Give each ScreenGui root one invisible full-size layer frame per side and parent that side's elements into it, so the layout code keeps owning their `Position` and `Size`. Slide only the layer.
+- Timing used: hide 0.22 s Quad In, show 0.3 s Back Out, with a small stagger between layers.
+- Set the layer's `Visible` to false when the hide ends, so nothing hidden takes input and a re-layout while hidden cannot pop an element back.
+- Measure the slide distance again on every show.
+- Call show from every close path: the close button, walking away, death, losing the target. With `GuiService.ReducedMotionEnabled`, hide and show at once.
+
 Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `Portrait` (default `LandscapeSensor`). In portrait the stick takes the bottom 40% and the top strip may be full: menu buttons go in a bottom row above the stick zone or behind one menu button.
 
 ## 3. Insets
