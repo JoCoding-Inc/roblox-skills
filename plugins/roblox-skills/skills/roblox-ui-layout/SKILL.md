@@ -2,13 +2,14 @@
 name: roblox-ui-layout
 description: "Use when placing or sizing any HUD, button, panel or menu in a Roblox game for phone, tablet, desktop and console: our one layout standard with Roblox's reserved zones in pixels (top bar, thumbstick, jump button, hotbar, chat, player list), safe insets, Scale vs Offset vs UIScale, touch and text floors, orientation, console TV-safe area and a device check script."
 when_to_use: "Also when a button sits under the thumbstick, jump button or top bar; UI is cramped on phones, lost on PC or huge on a TV; a notch cuts a panel; choosing ScreenInsets or IgnoreGuiInset; enabling portrait; adding gamepad support; before calling any UI done. The genre look (stud chunky) stays in roblox-ui-genre-studs and fonts in roblox-ui-typography; on placement, sizes and floors this skill wins."
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-11
 sources:
   - Roblox client scripts, mirror MaximumADHD/Roblox-Client-Tracker branch roblox at b0b3ae8 (Studio 0.746, 2026-11-03): PlayerModule ControlModule TouchJump.lua, DynamicThumbstick.lua, ClassicThumbstick.lua; CoreScripts BackpackScript, PlayerList, EmotesMenu, TopBar Constants.lua (Studio 0.745 install)
   - https://create.roblox.com/docs (creator-docs main 76167c1, 2026-11-03): ScreenGui, ScreenInsets, SafeAreaCompatibility, GuiService (GetGuiInset, TopbarInset, GetInsetArea, ViewportDisplaySize), UIScale, UISizeConstraint, UITextSizeConstraint, TextLabel.TextScaled, input/mobile, production/publishing/cross-platform, console guidelines, ui/adaptive-design, studio/testing-modes (Device Emulator)
   - DevForum staff posts on experience controls (t/2567355, 2023-08-28; 2024-09-17 and 2024-10-15 live), notched screen support (t/2074324), GuiInset timing (t/2973508), platform-integrated chat (2026-10-21)
   - Roblox FY2025 Form 10-K (DAU by platform); GameAnalytics 2026 Roblox Benchmark Report (device combinations)
-  - original (zone map, sizes marked judgment, ui_device_check.luau tested 2026-11-04 in Studio)
+  - phone HUD sizes measured on 23 in-play phone HUD frames from 20 top games (2026-11-09; frames private, numbers and method only)
+  - original (zone map, sizes marked judgment, ui_device_check.luau tested 2026-11-04 in Studio; its text rule changed 2026-11-11, checked with luau-analyze only)
 ---
 
 # UI layout standard (phone, tablet, desktop, console)
@@ -50,14 +51,24 @@ One standard for every genre. The genre skills set the look (pick it first: `rob
 | Right column, above the jump keep box | offers, secondary buttons | Out of the player list's column on desktop, or disable the player list |
 | Top centre, under the bar | one objective or timer line, toasts | One line, short text |
 | Top strip right (`TopbarSafeInsets` ScreenGui) | small status chips | Only through that ScreenGui; it can be zero wide (portrait) |
-| Bottom centre | hotbar if the game gives Tools, else the main prompt | Never both |
+| Bottom centre | hotbar if the game gives Tools, else the main prompt | Never both. A game bar sits between about x 0.35 and 0.70 of the width (median of 13 phone frames, measured 2026-11-09) |
 | Centre | panels and modals, closed by default | A panel fits the phone safe frame with a scroll; close button 44 px or more inside the safe frame. If it still covers the thumbstick or jump keep box, set `GuiService.TouchControlsEnabled = false` while it is open and restore it on close (field, 667 x 375 phone) |
 
 Reach: a button 40% below the top is easy on a phone and almost unreachable on a tablet (docs). Frequent buttons go near the bottom corners above the keep boxes; rare ones go into a menu on small screens (docs adaptive design).
 
 See the game: on a phone, measure the share of the centre 50% x 50% box that visible HUD covers at idle (the union of their rects), not only overlaps between elements. A desktop-style bottom cluster plus 2x2 offer cards covered about 40% of it and the owner rejected the HUD; moving groups to the edges and shrinking them got it near 1% (field observation, 2026-11).
 
-Measure the whole HUD too: the union of the visible HUD rects at idle as a share of the full screen, top bar included (count plate-less text by its `TextBounds`, glass plates as solid). One owner rejected a HUD covering 22% of a 1920x1080 screen as "covers too much" and accepted about 7%; the same HUD covered 16.5% of a 667x375 phone because of the touch and text floors in section 4 (field note, 2026-11-08).
+Measure the whole HUD too: the union of the visible HUD rects at idle as a share of the full screen, top bar included (count plate-less text by its `TextBounds`, glass plates as solid). One owner rejected a HUD covering 22% of a 1920x1080 screen as "covers too much" and accepted about 7%; the same HUD covered 16.5% of a 667x375 phone because of the phone floors this skill set then (field note, 2026-11-08).
+
+Phone HUD budgets. The top-game numbers are measured on 23 in-play phone HUD frames from 20 top games (2026-11-09); the thresholds are judgment set from them:
+
+| Budget (phone, in-play HUD at idle) | Target | Warn | Fail | Top games |
+|---|---|---|---|---|
+| HUD coverage: union of game UI rects, without Roblox core UI, touch controls, toasts and world labels | 11% | over 16% | over 20% | median 10.6%, p25-p75 7.3-15.9%, max 20.3% |
+| Centre 50% x 50% box covered | 0% | over 2% | over 10% | median 0%, p75 1.4% |
+| Visible menu buttons | 5 (8 in simulators) | over 9 | over 12 | median 5, p75 8.5 |
+
+Horror and RPG HUDs that show vitals or a party list may sit in the warn band (their frames ran 18-20%). Menu buttons beyond 8 go into one "more" drawer button.
 
 A card that opens when the player walks near something (an action or build card) goes beside the play area, never over the spot where the action happens. On phone and tablet, let it take a HUD column's slot and hide that column while the card shows; on desktop it fits under the column. In one game that cut the centre box covered while the card shows from 56% to 9.3% on a phone (field note, 2026-11-08).
 
@@ -83,18 +94,25 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
 - Position with Scale plus `AnchorPoint` into the zone (docs). Size content (buttons, icons, text) in Offset px, because phone px are physically stable; size containers (panels, lists) in Scale with a `UISizeConstraint` min and max.
 - One `UIScale` at the root of each ScreenGui, from `GuiService.ViewportDisplaySize`: Small 1, Medium 1, Large 1.5 (Roblox's own scale). Listen to its change signal.
 - Offer a player "UI size" setting (x1, x1.15, x1.3). Grow a Garden ships one; the factors are community values.
-- A chunky genre may raise Medium (desktop) to 1.25 for its look (judgment, compare screenshots first). Never scale phones down.
-- Floors on phones (sizes at `UIScale` 1):
+- A chunky genre may raise Medium (desktop) to 1.25 for its look (judgment, compare screenshots first). Do not enlarge phone HUDs past the sizes below: a 1080p design scaled with a phone floor (k = max(viewport height / 1080, 0.55)) came out 1.4-1.7x the top-game sizes, covered 23-38% of a 667 x 375 phone, and one owner rejected it as too big to see the game (field note, 2026-11-09).
+- Phone sizes, landscape. Measured on 23 in-play phone HUD frames from 20 top games (2026-11-09). vh = share of the viewport height; px are for a 667 x 375 phone. Offset px taken from this column stay inside the ranges on phones up to 430 px tall.
 
-  | Item | Minimum | Source |
-  |---|---|---|
-  | Any tap target | 44 x 44 px, 8 px apart | Roblox top bar targets (WCAG 2.1 AAA), 8 px top bar padding |
-  | Frequent buttons | 56-60 px | docs: 9 x 9 mm, about 57 px at 160 dpi |
-  | Body text | 14 px | Roblox chat default `TextSize` 14 |
-  | Button labels, key numbers | 18 px | judgment |
-  | Hard floor | `MinTextSize` 9 | docs |
+  | Role | Target | Range | Source |
+  |---|---|---|---|
+  | Menu or HUD button, visible size | 0.09 vh (34 px) | 0.06-0.105 vh | measured: median 0.088, p25-p75 0.058-0.103 |
+  | Its hit area | 44 x 44 px or more | | docs floor: Roblox top bar targets (WCAG 2.1 AAA) |
+  | Touch action button (attack, sprint, ability, use) | 0.17 vh (64 px) | 0.12-0.20 vh, never under 44 px | measured median 0.168; the Roblox jump button measured 0.172 vh; docs: frequent buttons 9 x 9 mm, about 57 px |
+  | HUD label or timer | TextSize 12, bold with a stroke | cap height 0.017-0.028 vh | measured cap height (median 0.022 vh, 8 px); TextSize assumes cap = 0.7 x TextSize, not measured |
+  | Currency number | TextSize about 14, bold with a stroke | cap height 0.022-0.038 vh | same (median cap 0.027 vh, 10 px) |
+  | Currency row height | 0.06 vh (22 px) | 0.04-0.086 vh, tycoon up to 0.12 | measured: median 0.059 |
+  | Gap between buttons | 0.02 vh (8 px) | 0.012-0.046 vh | measured: median 0.021 |
+  | Panel body text | 14 px | | Roblox chat default `TextSize` 14 |
+  | Hard floor | `MinTextSize` 9 | | docs |
 
-- On phones, keep the HUD buttons at 72 px or smaller; the jump button is 70. Prefer `AutomaticSize` with `TextWrapped` over `TextScaled` (docs): TextScaled ignores the player's text-size setting.
+- Split the look from the hit area: make the tappable `GuiButton` transparent and 44 px or more, with the visible icon inside it at the size above. In a packed column, grow the hit areas into the gaps and margins until they meet: there the pitch (centre to centre) sets the hit size along the column, so keep it at 40 px or more (judgment: top games pack 33 px buttons with 8 px gaps, a 41 px pitch).
+- A menu button goes over 0.12 vh only when the HUD shows 2 or fewer (obby HUDs ran 0.147 vh with 1-2 buttons).
+- How far to trust these numbers: tower defense, +1/clicker, arena and RPG had 2 frames each (examples, not norms); boxes were hand-measured to about 0.01 of the viewport (about +-10% on a button); nothing was checked on a real phone.
+- Prefer `AutomaticSize` with `TextWrapped` over `TextScaled` (docs): TextScaled ignores the player's text-size setting.
 - Never let wrapped text take its width from a container that takes its size from that text: in one game both collapsed to one letter per line, and `AutomaticSize` on a plate holding rotated skin pieces grew without end (field note, 2026-11-08). Measure the content at its natural width (in an invisible frame with a large Offset size) and set the plate's `Size` from that measurement, divided by the plate's `UIScale` factor.
 
 ## 5. Console
@@ -115,7 +133,7 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
 
 1. Run `scripts/ui_device_check.luau` with `execute_luau` (Edit) once per device (set `DEVICE`).
    - It copies the StarterGui ScreenGuis into a frame of that device's safe area and draws the reserved zones (red: never; orange: only when that UI is on).
-   - It returns buttons inside zones, buttons under 44 px on touch, text under 14 px, and elements crossing the safe edge.
+   - It returns buttons inside zones, buttons under 44 px on touch, text under 14 px (12 px for bold, stroked text), and elements crossing the safe edge. Then check the phone HUD against the section 2 budgets.
    - Fix every `error`, then capture the phone and desktop previews with `screen_capture`.
    - It does not apply your runtime `UIScale` or scripts, so for UI that scripts build, check a Play-mode copy. Take that copy with every transient state up (contextual cards with their buttons, tutorial bar, prompts, toasts): one phone overlap showed only with a contextual card and the tutorial bar open (field note, 2026-11-09).
 2. Then the Studio Device Emulator at Actual Resolution: an entry-level phone, a tablet, desktop and console (docs). Turn on physical-size scaling to judge taps, and open the on-screen keyboard on every TextBox.

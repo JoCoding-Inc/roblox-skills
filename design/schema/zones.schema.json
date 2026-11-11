@@ -41,6 +41,7 @@
         "insets",
         "scale",
         "floors",
+        "phone_sizes",
         "console",
         "hud",
         "budgets"
@@ -1227,7 +1228,7 @@
             "close_button_min_px",
             "centre_box_share",
             "centre_box_idle_cover_rejected_share",
-            "centre_box_idle_cover_target_share",
+            "bottom_centre_bar_x_share",
             "default_orientation"
           ],
           "properties": {
@@ -1402,7 +1403,7 @@
                 }
               ]
             },
-            "centre_box_idle_cover_target_share": {
+            "bottom_centre_bar_x_share": {
               "allOf": [
                 {
                   "$ref": "#/$defs/leaf"
@@ -1410,9 +1411,14 @@
                 {
                   "properties": {
                     "v": {
-                      "type": "number",
-                      "minimum": 0,
-                      "maximum": 1
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
                     }
                   }
                 }
@@ -1691,9 +1697,7 @@
             "tap_gap_px",
             "frequent_button_px",
             "body_text_px",
-            "label_text_px",
             "min_text_size",
-            "phone_hud_button_max_px",
             "prefer"
           ],
           "properties": {
@@ -1762,37 +1766,7 @@
                 }
               ]
             },
-            "label_text_px": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/leaf"
-                },
-                {
-                  "properties": {
-                    "v": {
-                      "type": "number",
-                      "minimum": 0
-                    }
-                  }
-                }
-              ]
-            },
             "min_text_size": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/leaf"
-                },
-                {
-                  "properties": {
-                    "v": {
-                      "type": "number",
-                      "minimum": 0
-                    }
-                  }
-                }
-              ]
-            },
-            "phone_hud_button_max_px": {
               "allOf": [
                 {
                   "$ref": "#/$defs/leaf"
@@ -1816,6 +1790,267 @@
                   "properties": {
                     "v": {
                       "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "phone_sizes": {
+          "type": "object",
+          "required": [
+            "basis",
+            "menu_button_visible_share",
+            "menu_button_visible_range_share",
+            "menu_button_max_share",
+            "hit_area_min_px",
+            "hit_pitch_min_px",
+            "touch_action_button_share",
+            "touch_action_button_range_share",
+            "hud_text_cap_share",
+            "hud_text_min_px",
+            "currency_text_cap_share",
+            "currency_row_height_share",
+            "button_gap_share",
+            "thin_genres"
+          ],
+          "properties": {
+            "basis": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_button_visible_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_button_visible_range_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "menu_button_max_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "hit_area_min_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "hit_pitch_min_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "touch_action_button_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "touch_action_button_range_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "hud_text_cap_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "hud_text_min_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "currency_text_cap_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "currency_row_height_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "button_gap_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "thin_genres": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -1923,7 +2158,6 @@
             "top_nav_max_chips",
             "top_nav_chip_size_share",
             "quiet_hud_max_buttons",
-            "tap_target_min_design_px_1080",
             "primary_button_design_px_1080",
             "shrink_clamp"
           ],
@@ -2190,21 +2424,6 @@
                 }
               ]
             },
-            "tap_target_min_design_px_1080": {
-              "allOf": [
-                {
-                  "$ref": "#/$defs/leaf"
-                },
-                {
-                  "properties": {
-                    "v": {
-                      "type": "number",
-                      "minimum": 0
-                    }
-                  }
-                }
-              ]
-            },
             "primary_button_design_px_1080": {
               "allOf": [
                 {
@@ -2255,7 +2474,11 @@
           "type": "object",
           "required": [
             "hud_element_max_height_share_desktop",
-            "hud_element_max_px_phone",
+            "phone_hud_cover_target_share",
+            "phone_hud_cover_warn_share",
+            "phone_hud_cover_fail_share",
+            "phone_centre_box_cover_max_share",
+            "phone_menu_buttons_max",
             "visible_strokes_max",
             "ui_shadows_max"
           ],
@@ -2275,7 +2498,71 @@
                 }
               ]
             },
-            "hud_element_max_px_phone": {
+            "phone_hud_cover_target_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_hud_cover_warn_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_hud_cover_fail_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_centre_box_cover_max_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_menu_buttons_max": {
               "allOf": [
                 {
                   "$ref": "#/$defs/leaf"

@@ -102,7 +102,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 
   Warning text: 255,92,92.
 - Robux price goes in ONE label: `utf8.char(0xE002) .. " 249"`.
-- Phone minimums: body text 26 design px or more, titles 40 or more (design px at 1920x1080). On a phone those shrink to about a third, so the px floors in `roblox-ui-layout` section 4 win (14 px body, 18 px labels).
+- Phone minimums: body text 26 design px or more, titles 40 or more (design px at 1920x1080). On a phone those shrink to about a third, so the phone sizes in `roblox-ui-layout` section 4 win (14 px panel body text; bold, stroked HUD text 12 px or more).
 - One number formatter: truncate and never round up into the next suffix (250K, not 0.3M).
 
 ## 4. HUD zones (1080p measurements, all in Scale)
@@ -111,18 +111,18 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 - Treat the screen as a 3x3 grid. The centre 50% x 50% stays empty. Zones inset 2% or more.
 - Roblox's controls fill the left of a 58 px top strip (`roblox-ui-layout` section 1). With the default `ScreenInsets = CoreUISafeInsets` the safe frame starts below it; with `None` or `DeviceSafeInsets`, push top-corner groups below `GuiService.TopbarInset`.
 - **Left:** menu tiles in 1-2 columns, vertically centred.
-  - Tile `UDim2.new(0.065,0,0.115,0)` plus `UIAspectRatioConstraint` 0.97 (about 124 px at 1080p).
+  - Tile `UDim2.new(0.049,0,0.09,0)` plus `UIAspectRatioConstraint` 0.97 (about 97 px at 1080p). 0.09 of the screen height is the median visible menu button of top games on phones (measured 2026-11-09, `roblox-ui-layout` section 4); the old 0.115 sat above their p75.
   - Icon at 0.8 of the face, with the label over the icon foot.
   - At most 6 tiles per side. Badges on at most 2 tiles; badges wobble or pulse color, never size.
 - **Bottom-left:** currency readouts with no plate behind them.
-  - Each row is about 7.5% of screen height, a small icon on the left and a gradient number on the right.
+  - Each row is about 6% of screen height (top-game phone median, measured 2026-11-09), a small icon on the left and a gradient number on the right.
   - A small "+N/s" line goes under the main currency. A bare number with no icon is a defect.
   - On touch, keep this above the joystick zone.
 - **Right:** small square icon buttons (store, daily, codes), plus up to 2 unframed offers. An offer is art on a sunburst at 0.17 of screen height with a green `0,255,8` price.
 - **Top-centre:** one timer or objective, or at most 3 nav chips (13.6% x 7.5% each). Otherwise empty. Event banners are short ("RUN!!").
 - **Quiet HUD:** show only per-second info (main currency, one goal, 4-5 buttons). Reveal secondary currencies and timers when they start to matter.
-- Tap targets: 124 design px or more at 1080p and never under 44 px on a phone. Primary buttons 150-190 at 1080p. Keep the thumbstick and jump keep boxes clear on touch (`roblox-ui-layout` section 1).
-- Under a canvas scale k (screen px = design px x k) a floor is floor / k design px. When shrinking a HUD, clamp each size: `math.max(math.ceil(v * factor), math.ceil(44 / k))`. On small phones the floor wins; say so instead of claiming the full shrink.
+- Hit areas: 44 px or more on a phone, through a transparent button larger than the visible tile when needed (`roblox-ui-layout` section 4). Primary buttons 150-190 at 1080p. Keep the thumbstick and jump keep boxes clear on touch (`roblox-ui-layout` section 1).
+- Under a canvas scale k (screen px = design px x k) a floor is floor / k design px. When shrinking a HUD, clamp each hit area, not the visible size: `math.max(math.ceil(v * factor), math.ceil(44 / k))`. On small phones the floor wins; say so instead of claiming the full shrink.
 - Never auto-claim rewards. Hide zero rewards. An unaffordable item is a grey plate, and tapping it says how much is missing.
 
 ## 5. Motion and polish
@@ -155,7 +155,7 @@ Each of these is a defect:
 - generated or hand-made icons for standard things (cash, coins, gems, shop, rebirth, settings, gifts) that a store icon pack already has;
 - more than 2 fonts, or corner radii outside section 2 (one value per kind from the table; panels 14-30 px, the same on every panel);
 - stat text with a panel behind it;
-- HUD elements over 15% of screen height on desktop or over 72 px on a phone (except panels and offers);
+- HUD elements over 15% of screen height on desktop; on a phone, menu buttons over 0.12 of the viewport height (unless the HUD shows 2 or fewer) or an idle HUD covering more than 20% of the screen (except panels and offers);
 - a giant dark panel, or one with no colored header band, black outline and lighter inner cards (the section 9 panels are dark navy, but framed, banded and full of saturated parts);
 - flat 1990s-style UI in a simulator (plain flat boxes, thin or no outline, no lip, no gradient): use the stud house style of the section 9 screens (owner rule);
 - pills everywhere;
