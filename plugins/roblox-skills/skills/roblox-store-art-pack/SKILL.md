@@ -58,6 +58,7 @@ Skip this section for horror, realistic or night games.
 - **Edges:** every edge is finished, with no bare slab sides; add trim, kerb or bevel.
 - **Relief:** one real height change per area, with the landmark on the high point.
 - **Layout:** break straight outlines and perfect rings and grids.
+- **Backdrop:** derive every backdrop radius (skyline rings, far towers) from the layout constants, never from absolute studs. When one lane length grew from 336 to 480, a far tower stood on the road in front of the enemy gate (field note, 2026-11-11). After any layout number change, capture each lane end, not only the spawn view.
 - **Repetition:** two or more templates with unequal weights, full random yaw, scale 0.8-1.25, clusters and clearings.
 - **Player scale:**
   - The player is about 5 studs; a door is 4 wide x 7 high; ceilings are 10-14; a counter is 3.5-4.
