@@ -2,7 +2,7 @@
 -- zones (roblox-ui-layout section 1). It copies every ScreenGui in StarterGui into a frame the
 -- size of that device's CoreUI-safe area (below the top bar, inside the notch insets), draws the
 -- reserved zones in red, and returns problems: buttons inside a zone, buttons under 44 px on touch
--- devices, text under 14 px, elements outside the safe area.
+-- devices, text under 14 px (12 px for bold, stroked HUD text), elements outside the safe area.
 -- Use: set DEVICE, run with Studio MCP execute_luau (Edit), screen_capture, repeat per device,
 -- then delete StarterGui.UiDeviceCheck. UI that LocalScripts build at runtime is not in StarterGui:
 -- run once in Play, copy PlayerGui's ScreenGuis into StarterGui of a scratch copy, then check.
@@ -17,7 +17,14 @@ local DEVICES = {
 	desktop = { w = 1920, h = 1080, l = 0, r = 0, t = 58, b = 0 },
 	console = { w = 1920, h = 1080, l = 0, r = 0, t = 87, b = 0, tv = true }, -- 58 x 1.5 ten-foot bar
 }
-local MIN_TARGET, MIN_TEXT = 44, 14
+local MIN_TARGET, MIN_TEXT, MIN_HUD_TEXT = 44, 14, 12 -- HUD text may go to 12 px when bold and stroked
+
+local function boldStroked(o)
+	local st = o:FindFirstChildOfClass("UIStroke")
+	local stroked = (st ~= nil and st.Enabled and st.ApplyStrokeMode == Enum.ApplyStrokeMode.Contextual)
+		or o.TextStrokeTransparency < 1
+	return stroked and o.FontFace.Weight.Value >= Enum.FontWeight.Bold.Value
+end
 
 local d = DEVICES[DEVICE]
 local W, H = d.w - d.l - d.r, d.h - d.t - d.b -- CoreUI-safe frame
@@ -186,8 +193,9 @@ for _, holder in safe:GetChildren() do
 		end
 		if (o:IsA("TextLabel") or o:IsA("TextButton") or o:IsA("TextBox")) and o.Text ~= "" and o.TextTransparency < 1 then
 			local px = o.TextScaled and (o.TextBounds.Y / fit) or o.TextSize
-			if px < MIN_TEXT then
-				table.insert(problems, string.format("warn: text %s about %d px, under %d", name, px, MIN_TEXT))
+			local floor = boldStroked(o) and MIN_HUD_TEXT or MIN_TEXT
+			if px < floor then
+				table.insert(problems, string.format("warn: text %s about %d px, under %d", name, px, floor))
 			end
 		end
 		if s.X > 0 and (x1 < 0 or y1 < 0 or x0 > W or y0 > H) then

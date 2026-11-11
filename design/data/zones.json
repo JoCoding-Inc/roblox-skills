@@ -97,7 +97,7 @@
       "close_button_min_px": {"v": 44, "p": "documented"},
       "centre_box_share": {"v": [0.5, 0.5], "p": "opinion", "src": "stays empty at idle"},
       "centre_box_idle_cover_rejected_share": {"v": 0.4, "p": "field", "date": "2026-11", "src": "owner rejected the HUD"},
-      "centre_box_idle_cover_target_share": {"v": 0.01, "p": "field", "date": "2026-11"},
+      "bottom_centre_bar_x_share": {"v": [0.35, 0.7], "p": "measured", "src": "median of 13 phone HUD frames from top games", "date": "2026-11-09"},
       "default_orientation": {"v": "LandscapeSensor", "p": "documented"}
     },
     "insets": {
@@ -121,12 +121,26 @@
     "floors": {
       "tap_target_px": {"v": 44, "p": "documented", "src": "Roblox top bar targets, WCAG 2.1 AAA"},
       "tap_gap_px": {"v": 8, "p": "documented", "src": "top bar padding"},
-      "frequent_button_px": {"v": [56, 60], "p": "documented", "src": "9 x 9 mm at 160 dpi"},
-      "body_text_px": {"v": 14, "p": "measured", "src": "Roblox chat default TextSize"},
-      "label_text_px": {"v": 18, "p": "opinion"},
+      "frequent_button_px": {"v": [56, 60], "p": "documented", "src": "9 x 9 mm at 160 dpi; applies to touch action buttons"},
+      "body_text_px": {"v": 14, "p": "measured", "src": "Roblox chat default TextSize; panel body text"},
       "min_text_size": {"v": 9, "p": "documented"},
-      "phone_hud_button_max_px": {"v": 72, "p": "opinion", "src": "the jump button is 70"},
       "prefer": {"v": "AutomaticSize with TextWrapped over TextScaled", "p": "documented"}
+    },
+    "phone_sizes": {
+      "basis": {"v": "shares of the viewport height; px for a 667x375 phone", "p": "measured", "src": "23 in-play phone HUD frames from 20 top games; frames private, numbers only", "date": "2026-11-09"},
+      "menu_button_visible_share": {"v": 0.09, "p": "measured", "src": "median 0.088, p25-p75 0.058-0.103", "date": "2026-11-09"},
+      "menu_button_visible_range_share": {"v": [0.06, 0.105], "p": "opinion", "src": "set from the measured p25-p75", "date": "2026-11-09"},
+      "menu_button_max_share": {"v": 0.12, "p": "opinion", "src": "unless the HUD shows 2 or fewer menu buttons (obby 0.147)", "date": "2026-11-09"},
+      "hit_area_min_px": {"v": 44, "p": "documented", "src": "Roblox top bar targets, WCAG 2.1 AAA; a transparent button around a smaller visible icon"},
+      "hit_pitch_min_px": {"v": 40, "p": "opinion", "src": "packed columns; top games pack 33 px buttons with 8 px gaps", "date": "2026-11-09"},
+      "touch_action_button_share": {"v": 0.17, "p": "measured", "src": "median 0.168; Roblox jump button measured 0.172", "date": "2026-11-09"},
+      "touch_action_button_range_share": {"v": [0.12, 0.2], "p": "opinion", "src": "never under 44 px", "date": "2026-11-09"},
+      "hud_text_cap_share": {"v": 0.022, "p": "measured", "src": "median, p25-p75 0.017-0.028", "date": "2026-11-09"},
+      "hud_text_min_px": {"v": 12, "p": "opinion", "src": "bold and stroked HUD labels and numbers; TextSize from cap height assumes cap = 0.7 x TextSize (not measured)", "date": "2026-11-09"},
+      "currency_text_cap_share": {"v": 0.027, "p": "measured", "src": "median, p25-p75 0.022-0.038", "date": "2026-11-09"},
+      "currency_row_height_share": {"v": 0.06, "p": "measured", "src": "median 0.059, p25-p75 0.038-0.086, tycoon up to 0.12", "date": "2026-11-09"},
+      "button_gap_share": {"v": 0.02, "p": "measured", "src": "median 0.021, p25-p75 0.012-0.046", "date": "2026-11-09"},
+      "thin_genres": {"v": ["tower_defense", "plus1_clicker", "arena_shooter", "rpg"], "p": "measured", "src": "2 frames each: examples, not norms; nothing checked on a real phone", "date": "2026-11-09"}
     },
     "console": {
       "tv_safe_share": {"v": 0.9, "p": "documented"},
@@ -137,26 +151,29 @@
       "design_resolution_px": {"v": [1920, 1080], "p": "opinion", "src": "design canvas of the hud values"},
       "grid": {"v": [3, 3], "p": "opinion"},
       "zone_inset_min_share": {"v": 0.02, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
-      "menu_tile_size_scale": {"v": [0.065, 0.115], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "menu_tile_size_scale": {"v": [0.049, 0.09], "p": "measured", "src": "height = top-game phone median of the visible menu button; width by aspect 0.97 at 16:9; desktop top games about 0.073 (39 frames, quick pass, 2026-11-11), so 0.09 is the upper end there", "date": "2026-11-09"},
       "menu_tile_aspect": {"v": 0.97, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
-      "menu_tile_px_1080": {"v": 124, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "menu_tile_px_1080": {"v": 97, "p": "measured", "src": "0.09 x 1080", "date": "2026-11-09"},
       "menu_icon_of_face": {"v": 0.8, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
       "menu_max_tiles_per_side": {"v": 6, "p": "opinion"},
       "menu_max_badged_tiles": {"v": 2, "p": "opinion"},
-      "currency_row_height_share": {"v": 0.075, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
+      "currency_row_height_share": {"v": 0.06, "p": "measured", "src": "top-game phone median 0.059; desktop about 0.05 (33 frames, quick pass, 2026-11-11)", "date": "2026-11-09"},
       "offer_height_share": {"v": 0.17, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
       "offer_max": {"v": 2, "p": "opinion"},
       "offer_price_rgb": {"v": [0, 255, 8], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
       "top_nav_max_chips": {"v": 3, "p": "opinion"},
       "top_nav_chip_size_share": {"v": [0.136, 0.075], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
       "quiet_hud_max_buttons": {"v": 5, "p": "opinion"},
-      "tap_target_min_design_px_1080": {"v": 124, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
       "primary_button_design_px_1080": {"v": [150, 190], "p": "opinion"},
-      "shrink_clamp": {"v": "max(ceil(v * factor), ceil(44 / k)) where screen px = design px x k", "p": "opinion"}
+      "shrink_clamp": {"v": "hit areas only, not visible sizes: max(ceil(v * factor), ceil(44 / k)) where screen px = design px x k", "p": "opinion"}
     },
     "budgets": {
       "hud_element_max_height_share_desktop": {"v": 0.15, "p": "opinion", "src": "except panels and offers"},
-      "hud_element_max_px_phone": {"v": 72, "p": "opinion", "src": "except panels and offers"},
+      "phone_hud_cover_target_share": {"v": 0.11, "p": "opinion", "src": "top-game median 0.106 (23 in-play phone HUD frames from 20 top games)", "date": "2026-11-09"},
+      "phone_hud_cover_warn_share": {"v": 0.16, "p": "opinion", "src": "top-game p75 0.159; horror and RPG vitals may sit here", "date": "2026-11-09"},
+      "phone_hud_cover_fail_share": {"v": 0.2, "p": "opinion", "src": "top-game max 0.203", "date": "2026-11-09"},
+      "phone_centre_box_cover_max_share": {"v": 0.02, "p": "opinion", "src": "top-game median 0, p75 0.014", "date": "2026-11-09"},
+      "phone_menu_buttons_max": {"v": 9, "p": "opinion", "src": "the rest in one more drawer; top-game median 5, p75 8.5, simulators 8", "date": "2026-11-09"},
       "visible_strokes_max": {"v": 300, "p": "documented", "src": "staff guidance, under about 300", "date": "2025-09-25"},
       "ui_shadows_max": {"v": 100, "p": "opinion", "src": "about"}
     }
