@@ -107,7 +107,7 @@ Run a bake-off before a roster: the same unit from each available tool, one same
 | Roblox Cube (`generate_mesh`) | No credits; at most 2 jobs at a time (`roblox-pitfalls` section 5) | Clean, a little friendly; static, up to 8 rigid parts; mild words only |
 | Paid image-to-3D service (for example Tripo; Blender MCP `generate_3d` reaches several) | Credits per model (11 per model in one run, 2026-11-08) | More detailed; dense mesh and baked texture need cleanup (`roblox-blender-export` section 9); ask first |
 | Blender, skinned rig from a CC0 base mesh | Free, slow | Bending limbs, creatures that walk (`roblox-blender-export`) |
-| Blender, built from primitives by script | Free | Rejected for robots as "too weird" (field note, 2026-11-08); fine for exact kit pieces |
+| Blender, built from primitives by script | Free | Rejected for robots as "too weird" in one bake-off (field note, 2026-11-08); fine for exact kit pieces. Later, with a written brief and forced review passes, a scripted build hit the concept, footprint, budget and pivots of a top-tier robot where Cube had failed (field note, 2026-11-11; judged on renders, not yet in Studio or by the owner). Its flat look differs from Cube's rounded one: `roblox-blender-export` |
 | Studio `generate_avatar` or Avatar Setup | Studio tools | Humanoid R15 NPCs only; `generate_avatar` gave a realistic human look in our run (`roblox-pitfalls` section 5) |
 | Creator Store model | Free | Quarantine first; rarely matches a roster's style (`roblox-store-art-pack` section 3) |
 
