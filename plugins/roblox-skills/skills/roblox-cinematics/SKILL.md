@@ -154,6 +154,7 @@ Keep 3-6 shots per cinematic. Name every mark. Include what the player's charact
 
 - `execute_luau` returning resets a Scriptable camera to Custom, so screenshots show the default camera. Re-arm the camera inside the same call or play the cinematic from a real LocalScript in a play session (`roblox-pitfalls` section 3, 'Screenshots in Play', gives a binding that survives between calls).
 - Record evidence per shot: one screenshot at the middle of each shot, plus one after the cutscene ends (camera and controls restored).
+- Captures land seconds after the call, so a 4 s intro at real speed was never caught; at 0.25x it was. Give the cutscene timeline a Studio-only time-scale attribute and slow it together with the sim's debug speed for shots (field note, 2026-11-11). Judge real-speed timing by watching it in Play (`roblox-game-pipeline` section 7a).
 - Test the three exits: complete, skip, player dies or leaves mid-cutscene.
 
 ## 7. Done when
