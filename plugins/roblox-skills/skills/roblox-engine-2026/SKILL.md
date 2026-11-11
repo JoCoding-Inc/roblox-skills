@@ -76,7 +76,7 @@ Where this file and an older tutorial disagree, this file follows the current do
 
 ## 4. Security checklist for every remote and prompt
 
-1. Context: is the player alive, close enough, allowed?
+1. Context: is the player alive, close enough, allowed? Check cheap state refusals (wrong slot, nothing carried) before reach, so the refusal names a reason the player can fix instead of "too far" (field note, 2026-11-11).
 2. Type: `typeof(x) == "Instance"` and `IsDescendantOf` the expected container (tables can pose as Instances).
 3. Value: `math.isfinite` (reject NaN/inf), range-check numbers, cap string length and table size, `utf8.len`.
 4. Rate-limit with a token bucket or cooldown per player.
