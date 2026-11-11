@@ -209,7 +209,7 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 - Path 2: during a playtest, set the camera with the render-step camera and hide the HUD (`ScreenGui.Enabled = false`), then `screen_capture` with no camera arguments (recipe: `roblox-pitfalls` section 3, Screenshots in Play).
 - Post-process: crop to the focus point, Lanczos resize, optional outlined title, enforce 3 MB.
 
-**Upload:** in Creator Dashboard (Configurations > Places > Icon / Thumbnails), or the experimental `legacy-game-internationalization` game-icon and game-thumbnails endpoints with an API key (see `roblox-release-automation`, not yet tested). The Open Cloud Assets API does not set the game icon. Never use a .ROBLOSECURITY cookie.
+**Upload:** the Open Cloud Assets API sets the start place's icon and the detail-page thumbnails, and the Thumbnail Personalization API the homepage set (docs 2026-11, not yet tested here; calls in `roblox-release-automation` section 1). Otherwise use Creator Dashboard (Configurations > Places > Icon / Thumbnails). The `legacy-game-internationalization` game-icon and game-thumbnails endpoints set translated images only and refuse the source language. Never use a .ROBLOSECURITY cookie.
 
 ## 6. Logo
 
