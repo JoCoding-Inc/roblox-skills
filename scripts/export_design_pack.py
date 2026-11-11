@@ -76,7 +76,7 @@ GUIDES = [
     ("roblox-audio", None, "audio"),
     ("roblox-engine-2026", ["2"], "ui-engine"),
     ("roblox-game-pipeline", ["3", "6a", "10"], "art-direction"),
-    ("roblox-blender-export", ["2", "3", "4", "6"], "mesh-art"),
+    ("roblox-blender-export", ["1", "2", "3", "4", "6"], "mesh-art"),
 ]
 # (folder under SKILLS, topic, section_ref): README.md becomes a guide, images become images
 ASSET_DIRS = [
