@@ -103,7 +103,7 @@ An animation owned by another account usually fails to load. After upload, repla
 
 ## 7. Verify before showing the user
 
-1. Freeze at `t = 0, 0.25, 0.5, 0.75` of the rep (or every 0.05 s) and assert every contact within 0.05 studs of its surface (`ContactBake.measure`).
+1. A walk moved by game code (walkers on a path) has no rep to freeze: a Studio-only test-clock attribute that dead-reckons the walkers stepped the gait frame by frame at equal time steps while the sim ran at speed 0, which made the walk strips (field note, 2026-11-11). Otherwise: freeze at `t = 0, 0.25, 0.5, 0.75` of the rep (or every 0.05 s) and assert every contact within 0.05 studs of its surface (`ContactBake.measure`).
 2. Screenshot side view and three-quarter view at top and bottom with a fixed camera: in Edit mode use `screen_capture` with `camera_position` (poses are frozen with `StepAnimations`, section 3 step 7); in Play (runtime IK) use the render-step camera in `roblox-pitfalls` section 3 ('Screenshots in Play'). Body colors must differ from the floor; a default rig is black.
 3. Repeat on a 0.9x and a 1.2x height rig, and one wide body, or record the error you accept.
 4. Then let the user watch it in Play (`roblox-game-pipeline` section 7a): numbers prove contact, only a person judges weight and timing.
