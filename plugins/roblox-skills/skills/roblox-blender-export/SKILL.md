@@ -24,6 +24,8 @@ Pair with `roblox-store-art-pack` (map composition) and `roblox-release-automati
 
 Blender or Roblox Cube? Static props, furniture, vehicles and simple weapons are often faster and better looking from Cube (Studio MCP `generate_mesh`, see `roblox-pitfalls` section 5). Anything that must animate (monsters, quadrupeds, spiders) still comes from Blender: Cube returns one static mesh with no rig. A stylized humanoid body can start in Cube and be cut into R15 parts (section 12). Go cheap first: Cube, then Blender edits, and a paid AI 3D service only after asking. Before building any pipeline, put the user's reference image next to your first result and judge silhouette and proportions before detail.
 
+One top-tier robot made both ways (field note, 2026-11-11; Blender judged on EEVEE renders, Cube in Studio): Cube was a lottery on concept and strong on finish (4 of 6 top-tier robots passed review, and 3 retries did not change a failed idea), while a scripted Blender build hit the concept, footprint, triangle budget and exact pivots in 3-7 runs and 6-14 minutes with no upload. Use Blender for hero or top-tier hard-surface pieces, anything that aims, and the redo of a failed Cube concept; use Cube to fill a roster and for rounded or organic shapes. Flat-shaded palette meshes look harder and cleaner than Cube's rounded painted ones, so mixing both in one set is a style decision for the user (for example Blender only for the top rarity, so the style step reads as a tier step).
+
 ## Official rules at a glance (creator-docs, 2026-10-29)
 
 - Geometry: at most **20,000 triangles per mesh**; watertight (no holes or backfaces); quads where possible, no n-gons; no zero-thickness meshes. Avatar items have their own, stricter budgets.
@@ -61,6 +63,9 @@ Measuring it without eyeballing: read the vertices from the imported MeshPart (`
 
   With `location=True` a piece built away from the origin keeps its geometry there and its origin moves to world (0, 0, 0) (Blender 5.2.2 round trip). Build each piece at the origin; lay pieces out only for the contact sheet.
 
+- Parts that turn on their own axis (a turret Head on its yaw axis, a Barrel on its hinge) keep their origin there, so do not apply location to them: build the mesh in world coordinates, subtract the pivot from its vertices, and set `obj.location = pivot` with identity rotation and scale. Parent glow pieces with `parent = part` and an identity `matrix_parent_inverse`. A Blender FBX round trip kept the parents and origins (field note, 2026-11-11); whether the import keeps them as the MeshPart pivot is untested, so check `PivotOffset` after import and write the pivots into the per-asset meta (last bullet).
+- Turning parts: test for clashes before export. A `mathutils.bvhtree.BVHTree` overlap sweep between Base, Head and Barrel over 12 yaws x 3 tilts found a real clash that no render showed (field note, 2026-11-11).
+
 - One object = one MeshPart. Join the pieces that share a material and never move apart.
 - Hard limit: 20,000 tris per mesh. Budgets:
 
@@ -87,7 +92,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 
 - Official Blender FBX checklist: Path Mode **Copy** + **Embed Textures**; Apply Scalings **FBX Unit Scale** (see the Blender FBX scaling guide if size is wrong); Armature > **Add Leaf Bones** off; **Bake Animation** off unless exporting keyframes (walk cycle, facial data). The call above already encodes these and runs without errors on Blender 5.2.2 (tested 2026-11-03, 0.07 s for a 3-piece kit). Keep `colors_type`, `use_triangles`, `bake_space_transform`, `add_leaf_bones`, `bake_anim` and `embed_textures` explicit: their defaults differ.
 - Apply modifiers on export, or the bevels never reach Roblox (measured: 268 tris with `use_mesh_modifiers=True`, 60 without). For glTF, set `export_apply=True`.
-- Keep normals outward. Run a scripted check: inside-out faces are invisible in renders and only show in Studio.
+- Keep normals outward. Run a scripted check per object, because inside-out faces are invisible in renders and only show in Studio: `bmesh.ops.recalc_face_normals`, then assert `bm.calc_volume(signed=True) > 0` and no edge with `is_manifold` false on closed pieces (field note, 2026-11-11).
 
 ## 3. Color
 
@@ -96,6 +101,8 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
   2. **Packed image texture** of 1024 px or less, for grain, logos or decals, UV-unwrapped.
   3. **Vertex colors:** a Blender round trip keeps them with FBX `colors_type='SRGB'`; the section 2 call (`'NONE'`) drops them. For GLB use `export_vertex_color='ACTIVE', export_all_vertex_colors=False`; the default `'MATERIAL'` writes a white `COLOR_0` and puts the real colors in `COLOR_1`. The Roblox side is untested.
 - Texture density: 256 px for a prop of about 5 studs, 512 for 10, 1024 for 20 (official guidance). Roblox accepts up to 4096 for general textures (marketplace avatar items are capped at 2048, makeup at 1K), and PBR maps are budgeted at 256 per 2x2x2 studs up to 1024 for 8x8x8 studs. Our client test of a 2048 colour map on a `MeshPart` stayed grey, so upload colour at 1024 and test larger maps in a Play client first.
+- Palette PNG and swatch UVs from the script (field note, 2026-11-11): create the image with `bpy.data.images.new`, write the sRGB values straight into `img.pixels` (a byte image stores them as given, so hex / 255 saves the exact hex) and save it as PNG. While building, keep each face's color index in `face.material_index`; at the end write each face's UV inside its swatch (the swatch centre, or a planar projection scaled into the swatch's inner box), then set the index back to 0.
+- Glow pieces: separate objects named `<Part>_Glow`, one flat color each. In Roblox they become untextured Neon with `Color` set, because Neon does not glow on a textured MeshPart (`roblox-pitfalls` section 4). In EEVEE with the Standard view transform, emission strength 4 clipped violet to pink-white and about 1.25 kept the hue; Roblox Neon is brighter, so judge the color in Studio (field note, 2026-11-11).
 - Studio renders brighter than EEVEE, so judge colors in Studio.
 - A bake through an Emission shader writes linear values. Convert sRGB colors with `c ** 2.2` before baking, or colors come out grey or white in Roblox (field observation).
 - Headless bake that worked (field note, 2026-11-09): a Cycles `EMIT` bake of an emission shader mixing an AO node, an edge mask (dot product of a Bevel node's normal and the true normal) and noise for edge wear gave a 1024 map in about 6 s on CPU. `bpy.ops.uv.smart_project` and `uv.pack_islands` run under `-b`. Blender 5.2 (tested here): the compositor tree is `scene.compositing_node_group`, and `Material.use_nodes` warns that it goes away in 6.0.
@@ -103,7 +110,7 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 
 ## 4. Genre look (chunky cartoon)
 
-- Flat shading, 6-12 segments around curves, a 1-3 segment bevel on every edge. Never smooth-shade hard edges.
+- Flat shading, 6-12 segments around curves, a 1-3 segment bevel on the edges that show. Never smooth-shade hard edges. Bevels cost triangles: one segment turns a 12-triangle box into 44, and a bevelled 16-segment ring came to about 190, so bevelling every piece took one robot from a 6,000 budget to 9,720 (field note, 2026-11-11). On a budget, bevel only pieces wider than about 1 stud, or run `bmesh.ops.bevel` per piece before joining on edges whose face angle is over 40 degrees. An icosphere at subdivision 2 (80 triangles) showed facets on a 2-stud sphere; 3 (320) read smooth.
 - Visible part breakup: trims, rims, bolts or studs, plank or brick lines in geometry or palette. Avoid single smooth slabs.
 - Voxel creatures (Steal An Egg / Brainrot look; lane card `roblox-game-pipeline/assets/lanes/voxel.jpg`):
   1. Start from a CC0 low-poly source (Poly Pizza, Quaternius, Kenney), or build the body from ellipsoids.
@@ -140,6 +147,8 @@ bpy.ops.export_scene.fbx(filepath=OUT, use_selection=True, object_types={'MESH'}
 ## 6. Renders for previews and icons
 
 - Contact sheet of every asset (EEVEE, key plus rim light, flat background) for review at phone size before uploading. Make one per batch and label each cell with its asset id.
+- To match a Roblox camera, set `sensor_fit = 'VERTICAL'` and the vertical angle: Roblox `FieldOfView` is vertical. `to_track_quat('-Z', 'Y')` breaks on a straight-down view; give a top view rotation (0, 0, 0) (field note, 2026-11-11).
+- A full headless run (build, checks, FBX export and six EEVEE renders) took about 5 s, so several look passes cost less than one Cube job wait (field note, 2026-11-11).
 - Icon decals: Workbench or EEVEE, `film_transparent=True`, RGBA PNG, square, 512 px.
 - Headless `-b` renders on Apple Silicon (tested Blender 5.2.2, M4 Pro). Engine ids on 5.x: `BLENDER_EEVEE`, `BLENDER_WORKBENCH`, `CYCLES` (`BLENDER_EEVEE_NEXT` raises `TypeError`). Measured: 512 px icon 0.85 s on EEVEE, 0.14 s on Workbench; a 1536x512 three-object sheet 0.3 s on EEVEE, 7.5 s on Cycles (CPU).
 - Review checklist: distinct silhouettes per tier, readable at 128 px, palette consistent across the family, nothing default grey. For characters and units, size the test to play distance (`roblox-character-design` section 1).

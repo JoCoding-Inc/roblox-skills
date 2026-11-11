@@ -109,11 +109,11 @@ Portrait only when the game sets `StarterGui.ScreenOrientation` to `Sensor` or `
   | Panel body text | 14 px | | Roblox chat default `TextSize` 14 |
   | Hard floor | `MinTextSize` 9 | | docs |
 
-- Split the look from the hit area: make the tappable `GuiButton` transparent and 44 px or more, with the visible icon inside it at the size above. In a packed column, grow the hit areas into the gaps and margins until they meet: there the pitch (centre to centre) sets the hit size along the column, so keep it at 40 px or more (judgment: top games pack 33 px buttons with 8 px gaps, a 41 px pitch).
+- Split the look from the hit area: make the tappable `GuiButton` transparent and 44 px or more, with the visible icon inside it at the size above. In a packed column, grow the hit areas into the gaps and margins until they meet: there the pitch (centre to centre) sets the hit size along the column, so keep it at 40 px or more (judgment: top games pack 33 px buttons with 8 px gaps, a 41 px pitch). Small status chips with a tooltip work the same way: a 44 px hit area larger than the chip, and the tooltip opens on tap on touch and on hover on desktop (field note, 2026-11-11).
 - A menu button goes over 0.12 vh only when the HUD shows 2 or fewer (obby HUDs ran 0.147 vh with 1-2 buttons).
 - How far to trust these numbers: tower defense, +1/clicker, arena and RPG had 2 frames each (examples, not norms); boxes were hand-measured to about 0.01 of the viewport (about +-10% on a button); nothing was checked on a real phone.
 - Prefer `AutomaticSize` with `TextWrapped` over `TextScaled` (docs): TextScaled ignores the player's text-size setting.
-- Never let wrapped text take its width from a container that takes its size from that text: in one game both collapsed to one letter per line, and `AutomaticSize` on a plate holding rotated skin pieces grew without end (field note, 2026-11-08). Measure the content at its natural width (in an invisible frame with a large Offset size) and set the plate's `Size` from that measurement, divided by the plate's `UIScale` factor.
+- Never let wrapped text take its width from a container that takes its size from that text: in one game both collapsed to one letter per line, and `AutomaticSize` on a plate holding rotated skin pieces grew without end (field note, 2026-11-08). Measure the content at its natural width (in an invisible frame with a large Offset size) and set the plate's `Size` from that measurement, divided by the plate's `UIScale` factor. The same growth hit small chips inside a `UIListLayout` row (field note, 2026-11-11).
 
 ## 5. Console
 

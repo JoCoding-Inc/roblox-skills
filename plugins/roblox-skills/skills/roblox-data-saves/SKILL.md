@@ -74,7 +74,7 @@ Wally `lm-loleris/profilestore` 1.0.3 (no GitHub releases; last commit 2025-07-3
 
 ## 5. Purchases and saves
 
-- Grant the purchase, save it, then return `PurchaseGranted` from `ProcessReceipt` only after the save succeeded; store the receipt id so a retry does not grant twice (`roblox-design-and-launch` section 2).
+- Grant the purchase, save it, then return `PurchaseGranted` from `ProcessReceipt` only after the save succeeded; store the receipt id so a retry does not grant twice (`roblox-design-and-launch` section 2). With ProfileStore, `Profile:Save()` returns nothing: the save has succeeded when the purchase id shows up in `Profile.LastSavedData` (`Profile.OnAfterSave` fires after each save). The ProfileStore docs' `ProcessReceipt` caches purchase ids in `Profile.Data` and waits for them in `LastSavedData` before returning `PurchaseGranted` (madstudioroblox.github.io/ProfileStore/devproducts).
 
 ## 5a. Trading (two players)
 
