@@ -111,14 +111,14 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 - Treat the screen as a 3x3 grid. The centre 50% x 50% stays empty. Zones inset 2% or more.
 - Roblox's controls fill the left of a 58 px top strip (`roblox-ui-layout` section 1). With the default `ScreenInsets = CoreUISafeInsets` the safe frame starts below it; with `None` or `DeviceSafeInsets`, push top-corner groups below `GuiService.TopbarInset`.
 - **Left:** menu tiles in 1-2 columns, vertically centred.
-  - Tile `UDim2.new(0.049,0,0.09,0)` plus `UIAspectRatioConstraint` 0.97 (about 97 px at 1080p). 0.09 of the screen height is the median visible menu button of top games on phones (measured 2026-11-09, `roblox-ui-layout` section 4); the old 0.115 sat above their p75.
+  - Tile `UDim2.new(0.049,0,0.09,0)` plus `UIAspectRatioConstraint` 0.97 (about 97 px at 1080p). 0.09 of the screen height is the median visible menu button of top games on phones (measured 2026-11-09, `roblox-ui-layout` section 4); the old 0.115 sat above their p75. Desktop top games run smaller, about 0.07 (median 0.073 of 39 desktop HUD frames, a quick pass not deduplicated per game, measured 2026-11-11), so 0.09 is the upper end on desktop.
   - Icon at 0.8 of the face, with the label over the icon foot.
   - At most 6 tiles per side. Badges on at most 2 tiles; badges wobble or pulse color, never size.
 - **Bottom-left:** currency readouts with no plate behind them.
-  - Each row is about 6% of screen height (top-game phone median, measured 2026-11-09), a small icon on the left and a gradient number on the right.
+  - Each row is about 6% of screen height (top-game phone median, measured 2026-11-09; desktop about 5%), a small icon on the left and a gradient number on the right.
   - A small "+N/s" line goes under the main currency. A bare number with no icon is a defect.
   - On touch, keep this above the joystick zone.
-- **Right:** small square icon buttons (store, daily, codes), plus up to 2 unframed offers. An offer is art on a sunburst at 0.17 of screen height with a green `0,255,8` price.
+- **Right:** small square icon buttons (store, daily, codes), plus up to 2 unframed offers. An offer is art on a sunburst at 0.17 of screen height with a green `0,255,8` price; on a phone it collapses to an icon button with a price badge (`roblox-ui-layout` section 2).
 - **Top-centre:** one timer or objective, or at most 3 nav chips (13.6% x 7.5% each). Otherwise empty. Event banners are short ("RUN!!").
 - **Quiet HUD:** show only per-second info (main currency, one goal, 4-5 buttons). Reveal secondary currencies and timers when they start to matter.
 - Hit areas: 44 px or more on a phone, through a transparent button larger than the visible tile when needed (`roblox-ui-layout` section 4). Primary buttons 150-190 at 1080p. Keep the thumbstick and jump keep boxes clear on touch (`roblox-ui-layout` section 1).

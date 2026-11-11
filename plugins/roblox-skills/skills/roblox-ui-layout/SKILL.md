@@ -68,7 +68,7 @@ Phone HUD budgets. The top-game numbers are measured on 23 in-play phone HUD fra
 | Centre 50% x 50% box covered | 0% | over 2% | over 10% | median 0%, p75 1.4% |
 | Visible menu buttons | 5 (8 in simulators) | over 9 | over 12 | median 5, p75 8.5 |
 
-Horror and RPG HUDs that show vitals or a party list may sit in the warn band (their frames ran 18-20%). Menu buttons beyond 8 go into one "more" drawer button.
+Horror and RPG HUDs that show vitals or a party list may sit in the warn band (their frames ran 18-20%). Menu buttons beyond 8 go into one "more" drawer button. On a phone, an offer card becomes an icon button of about 0.09 vh with a price badge, and boost or timer chips merge into one stacked chip in the top band (judgment).
 
 A card that opens when the player walks near something (an action or build card) goes beside the play area, never over the spot where the action happens. On phone and tablet, let it take a HUD column's slot and hide that column while the card shows; on desktop it fits under the column. In one game that cut the centre box covered while the card shows from 56% to 9.3% on a phone (field note, 2026-11-08).
 
