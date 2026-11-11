@@ -1,7 +1,6 @@
 ---
 name: roblox-bots-npcs
-description: "Use when a Roblox game needs NPCs, enemies, allies or bots: pathfinding, state machines, spawns, talking NPCs and ProximityPrompt interactions, bot fill so a solo player never plays an empty server, server cost and testing."
-when_to_use: "Also when the planning advice says a mode must be solo-viable, when a match needs more players than are present, when NPCs get stuck, walk through walls, lag the server or ignore MoveTo, and before putting more than a handful of agents in a server."
+description: "Use when a Roblox game needs NPCs, enemies, allies or bots: pathfinding, state machines, spawns, talking NPCs and ProximityPrompt interactions, bot fill so a solo player never plays an empty server, server cost and testing. Also when the planning advice says a mode must be solo-viable, when a match needs more players than are present, when NPCs get stuck, walk through walls, lag the server or ignore MoveTo, and before putting more than a handful of agents in a server."
 last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/characters/pathfinding (navigation mesh, agent parameters, modifiers, visualization)

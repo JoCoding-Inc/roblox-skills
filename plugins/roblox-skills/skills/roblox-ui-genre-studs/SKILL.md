@@ -1,7 +1,6 @@
 ---
 name: roblox-ui-genre-studs
-description: "Use only for simulator/tycoon-style games (Steal a Brainrot, Steal An Egg, +1 Strength, Pet Simulator) whose HUD, shop, panels or world labels must match that chunky stud look: black outlines, lips, FredokaOne, quiet HUD zones. Not for horror, realistic or story games."
-when_to_use: "Also when a simulator/tycoon UI looks generic, AI-made, too big, too dark or off-genre; when a panel overlaps the HUD; before calling such a UI done; before restyling its HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures; when world labels clutter the view. For other genres use the UI rules in `roblox-engine-2026`."
+description: "Use only for simulator/tycoon-style games (Steal a Brainrot, Steal An Egg, +1 Strength, Pet Simulator) whose HUD, shop, panels or world labels must match that chunky stud look: black outlines, lips, FredokaOne, quiet HUD zones. Not for horror, realistic or story games. Also when a simulator/tycoon UI looks generic, AI-made, too big, too dark or off-genre; when a panel overlaps the HUD; before calling such a UI done; before restyling its HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures; when world labels clutter the view. For other genres use the UI rules in `roblox-engine-2026`."
 last_reviewed: 2026-11-04
 sources:
   - https://github.com/S4US/Roqer (apps/desktop/agent/skills/roblox-ui-design, MODERN STUDS theme; AGPL-3.0-or-later; facts re-authored, no text copied)

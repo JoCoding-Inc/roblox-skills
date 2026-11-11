@@ -1,7 +1,6 @@
 ---
 name: roblox-match-flow
-description: "Use when planning or writing a Roblox game with rounds, matches, lobbies or teams: session shape, the round state machine, teams and spawns, lobby and match places, teleports, matchmaking, server shutdown, match results and tests."
-when_to_use: "Also when a design says rounds, lobby, queue, 1v1, party, private match or teams; when a match needs more players than are present; when players wait in an empty lobby; when a teleport fails, loses data or cannot be tested; before a release that adds a match place. Pair with roblox-bots-npcs, roblox-data-saves, roblox-combat-tools and roblox-pitfalls."
+description: "Use when planning or writing a Roblox game with rounds, matches, lobbies or teams: session shape, the round state machine, teams and spawns, lobby and match places, teleports, matchmaking, server shutdown, match results and tests. Also when a design says rounds, lobby, queue, 1v1, party, private match or teams; when a match needs more players than are present; when players wait in an empty lobby; when a teleport fails, loses data or cannot be tested; before a release that adds a match place. Pair with roblox-bots-npcs, roblox-data-saves, roblox-combat-tools and roblox-pitfalls."
 last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/projects/teleport (and teleport-private-servers)

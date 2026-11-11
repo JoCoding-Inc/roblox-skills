@@ -1,7 +1,6 @@
 ---
 name: roblox-market-research
-description: "Use when ideating or judging a Roblox game idea against the live market: what is trending or rising, which genres and themes are crowded, search keyword competition, competitor teardown (players, age, passes, badges), how fast hits decay, and which sites and public APIs hold Roblox charts, stats and keyword data."
-when_to_use: "Also when the user asks 'what do you think of this game idea', 'how about a gym tycoon (or any genre) idea', 'is X a good idea', 'what should I make', 'what is popular on Roblox now', 'is this genre saturated', 'who are the competitors', picks a game name or title keywords, times an update to a season or event, or wants sources for Roblox trends. Run in roblox-game-pipeline stages 1-2, before the brief is fixed."
+description: "Use when ideating or judging a Roblox game idea against the live market: what is trending or rising, which genres and themes are crowded, search keyword competition, competitor teardown (players, age, passes, badges), how fast hits decay, and which sites and public APIs hold Roblox charts, stats and keyword data. Also when the user asks 'what do you think of this game idea', 'how about a gym tycoon (or any genre) idea', 'is X a good idea', 'what should I make', 'what is popular on Roblox now', 'is this genre saturated', 'who are the competitors', picks a game name or title keywords, times an update to a season or event, or wants sources for Roblox trends. Run in roblox-game-pipeline stages 1-2, before the brief is fixed."
 last_reviewed: 2026-11-04
 sources:
   - https://create.roblox.com/docs/discovery

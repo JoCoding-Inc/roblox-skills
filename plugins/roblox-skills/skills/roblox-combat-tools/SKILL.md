@@ -1,7 +1,6 @@
 ---
 name: roblox-combat-tools
-description: "Use when planning, writing or reviewing combat in a Roblox game: melee, guns, projectiles, abilities, Tools and combat input, hit detection, lag tolerance, damage and kill credit, knockback, anti-exploit checks, Server Authority and combat testing."
-when_to_use: "Also when a design adds weapons, enemies that fight back, PvP or PvE damage; when hits feel laggy or miss on phones; when exploiters one-shot players or spam a fire remote; when choosing between Tools, custom input, the Weapons Kit and Server Authority. Pair with roblox-engine-2026, roblox-bots-npcs, roblox-feel-audio-vfx, roblox-match-flow."
+description: "Use when planning, writing or reviewing combat in a Roblox game: melee, guns, projectiles, abilities, Tools and combat input, hit detection, lag tolerance, damage and kill credit, knockback, anti-exploit checks, Server Authority and combat testing. Also when a design adds weapons, enemies that fight back, PvP or PvE damage; when hits feel laggy or miss on phones; when exploiters one-shot players or spam a fire remote; when choosing between Tools, custom input, the Weapons Kit and Server Authority. Pair with roblox-engine-2026, roblox-bots-npcs, roblox-feel-audio-vfx, roblox-match-flow."
 last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/projects/server-authority

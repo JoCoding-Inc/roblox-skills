@@ -1,7 +1,6 @@
 ---
 name: roblox-ui-genre-scifi
-description: "Use for sci-fi, military, mech, space, tower defense and shooter HUDs and menus in Roblox built without uploading images: cut-corner panels, thin accent edges, hazard stripes, translucent dark glass, segmented wave and health bars, corner brackets, palette and fonts, Creator Store 9-slice frame art vs primitives, and a review against the mockup."
-when_to_use: "Also when a non-stud UI looks flat, grey, boxy or cheap; when a dark HUD needs angled panels or hazard details; when the user asks for a futuristic, tech, cyber or military look; before calling such a UI done. Stud chunky (simulator, tycoon) is roblox-ui-genre-studs; placement and sizes are roblox-ui-layout; fonts are roblox-ui-typography."
+description: "Use for sci-fi, military, mech, space, tower defense and shooter HUDs and menus in Roblox built without uploading images: cut-corner panels, thin accent edges, hazard stripes, translucent dark glass, segmented wave and health bars, corner brackets, palette and fonts, Creator Store 9-slice frame art vs primitives, and a review against the mockup. Also when a non-stud UI looks flat, grey, boxy or cheap; when a dark HUD needs angled panels or hazard details; when the user asks for a futuristic, tech, cyber or military look; before calling such a UI done. Stud chunky (simulator, tycoon) is roblox-ui-genre-studs; placement and sizes are roblox-ui-layout; fonts are roblox-ui-typography."
 last_reviewed: 2026-11-08
 sources:
   - https://create.roblox.com/docs/reference/engine/classes/UIGradient (Scale, TileMode, performance notes)
