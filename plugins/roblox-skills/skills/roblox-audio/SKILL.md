@@ -150,6 +150,7 @@ Ducking, two ways:
 - Load in tiers (`roblox-store-art-pack` section 7): UI and core-loop cues at join, the next area's music in the background, boss and rare cues on demand. With `AutoLoad` on, setting `Asset` loads it at once; with it off, the asset loads on the first play (docs).
 - `IsReady` can turn false again under extreme memory pressure (docs). Check it before counting on a long track being loaded.
 - Rapid events: pool 2-3 players per cue and add a 40-80 ms cooldown, so a burst of pickups does not stack 30 voices (judgment).
+- Throttle per cue or per weapon family, never with one bucket for every style. A gatling firing about 100 times a second filled a bucket shared with all shot styles: it dropped 2,118 of 2,279 gatling calls, as intended, and also silenced the shotguns. One bucket per style family fixed it (field note, 2026-11-11).
 - No official limit on simultaneous sounds was found in the docs (searched 2026-11-09). Treat the number of playing voices as a budget and test it on a low-end phone.
 - Music tracks are the longest assets: one per mood, and on demand for later areas (judgment).
 
@@ -168,6 +169,7 @@ The Creator Store holds "more than 100,000 professionally-produced sound effects
 
 - Accounts seen carrying licensed audio in Store search (field note, 2026-11-09): Roblox (user 1), ProSoundEffects (user 7462895450) and APMOfficial (user 7462718749), all verified creators. DistrokidOfficial (user 7135127272) carries DistroKid music, which needs acquiring. The docs do not list which partner accounts count as the licensed catalog, so test every id in the real game (section 8).
 - Search with Studio MCP `search_asset`: `assetType: "Audio"`, `scope: "creator_store"`, `audioMinDuration` / `audioMaxDuration` in seconds, `verifiedCreatorsOnly: true` (tool schema, 2026-11-09). In the Toolbox: Creator Store tab, category Audio (docs).
+- `search_asset` has no creator filter (tool schema, 2026-11-11). To list one account's audio, the unauthenticated `https://apis.roblox.com/toolbox-service/v1/marketplace/3?keyword=...&creatorTargetId=<user id>` (3 = Audio) returned only that creator's assets, and `/toolbox-service/v1/items/details?assetIds=` gives each name and creator (field note, 2026-11-11). Both are undocumented and may change; the documented search is in `roblox-pitfalls` section 2.
 - Store durations are whole seconds, and sub-second SFX show 0 (field note, 2026-11-09). Read `TimeLength` instead (section 8).
 - Open keyword searches return ripped commercial audio (game soundtracks, chart songs) mixed in with licensed audio (field note, 2026-11-09). Never use a rip, even if it plays today: audio that is moderated later is removed from every game that uses it (DevForum staff post t/2980704, 2024).
 
@@ -186,7 +188,10 @@ Records: one line per cue in `assets/LICENSES.md` with the event id, asset id, c
 In Studio (docs):
 - Set `Asset`, wait for `IsReady`, then read `TimeLength` (seconds): the real length.
 - `AudioPlayer:GetWaveformAsync(NumberRange.new(0, length), samples)` returns `samples` numbers from -1 to 1 without playing the asset. It yields, and returns an empty table if the waveform cannot be read. Peak dBFS = 20 * log10(max |value|).
+- `GetWaveformAsync` worked in Edit mode, without a playtest. Ask for about 2,000 samples per second of audio: a few dozen samples for a whole clip under-read the peak (field note, 2026-11-11).
 - `AudioAnalyzer.PeakLevel` and `RmsLevel` measure a live stream (`GetSpectrum` with `SpectrumEnabled`). On the server they are always 0, so read them on the client.
+- A game still on `Sound` and `SoundGroup` cannot feed an `AudioAnalyzer`: a `Wire` connects only the audio objects (docs, Wire). Measure each asset by id with an `AudioPlayer` (the sketch below), then add its playback volume: change in dB = 20 * log10(`Sound.Volume` * `SoundGroup.Volume`) (judgment). Or move the game to the Audio API first (section 5).
+- `Sound.PlaybackLoudness` (0 to 1000, docs) is the only live meter on a `Sound`. It ignores `Sound.Volume`, lags behind playback and under-reads clips shorter than about 100 ms (field note, 2026-11-11), so use it to compare, not to measure.
 - Short SFX: integrated LUFS is meaningless (a short UI click measured -70 LUFS because of the 400 ms gate). Compare peak and the loudest 50 ms RMS instead; compare music by integrated LUFS (field note, 2026-11-09).
 
 Measuring sketch (untested; written from the docs on 2026-11-09):
@@ -202,7 +207,7 @@ end
 if not p.IsReady then
 	warn("not ready: no permission, moderated or wrong id")
 else
-	local wave = p:GetWaveformAsync(NumberRange.new(0, p.TimeLength), 2000)
+	local wave = p:GetWaveformAsync(NumberRange.new(0, p.TimeLength), math.ceil(p.TimeLength * 2000))
 	local peak = 0
 	for _, v in wave do peak = math.max(peak, math.abs(v)) end
 	print(p.TimeLength, peak > 0 and 20 * math.log10(peak) or "no waveform")
