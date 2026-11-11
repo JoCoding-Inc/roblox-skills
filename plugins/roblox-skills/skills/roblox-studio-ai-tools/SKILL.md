@@ -80,6 +80,7 @@ Announced on the DevForum on 2026-11-04. Details below come from Roblox's own bu
   | Data store 403 "API access is not enabled" | Game setting, not MCP | Game Settings > Security > Enable Studio Access to API Services |
   | MemoryStore `InternalError` | Usually `memory-store.*` off | Probe it |
   | "HttpService request denied: domain ... is not in the Assistant HTTP allowlist" | Domain not allowed | User adds it under Connect to the internet |
+  | HTTP from `execute_luau` fails in a place never saved to Roblox | Known issue (Weekly Recap, 2026-11-06): its domains cannot be added to the allow list yet | Save or publish the place to Roblox, then add the domains under Connect to the internet |
   | "lacking capability <capability>" | Only `Network` can be granted | Say so |
   | "MessagingService can only be executed by game server" | No Studio route | Tell the user |
 
