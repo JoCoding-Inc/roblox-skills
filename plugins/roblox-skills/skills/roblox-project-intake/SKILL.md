@@ -1,7 +1,6 @@
 ---
 name: roblox-project-intake
-description: "Use FIRST when a user starts a new Roblox game, prototype, or big feature, or opens a Roblox project the agent has not worked in before. The agent checks the tools (Studio, Studio MCP, git required; Script Sync or Rojo, Blender MCP, Open Cloud key optional), guides setup, interviews the user, and writes a project brief before any design, code or asset work."
-when_to_use: "Also when the request is vague ('make me a Roblox game', 'add a shop'), when Studio MCP or Blender MCP is not connected or the user asks how to set them up, when no CLAUDE.md or docs/brief.md exists in the project, when the user switches genre or target audience, or before choosing between Blender, Roblox Cube, Creator Store and Assistant for art."
+description: "Use FIRST when a user starts a new Roblox game, prototype, or big feature, or opens a Roblox project the agent has not worked in before. The agent checks the tools (Studio, Studio MCP, git required; Script Sync or Rojo, Blender MCP, Open Cloud key optional), guides setup, interviews the user, and writes a project brief before any design, code or asset work. Also when the request is vague ('make me a Roblox game', 'add a shop'), when Studio MCP or Blender MCP is not connected or the user asks how to set them up, when no CLAUDE.md, AGENTS.md or docs/brief.md exists in the project, when the user switches genre or target audience, or before choosing between Blender, Roblox Cube, Creator Store and Assistant for art."
 last_reviewed: 2026-11-03
 sources:
   - https://create.roblox.com/docs/production/game-design/prototyping
@@ -29,7 +28,7 @@ Run this at the start of every new project and when a project is opened on a new
 
 | Probe | Command / tool | Why |
 |---|---|---|
-| Existing project | `ls`, look for `default.project.json`, `wally.toml`, `rokit.toml`, `CLAUDE.md`, `docs/` | Rojo project vs. Studio-only place |
+| Existing project | `ls`, look for `default.project.json`, `wally.toml`, `rokit.toml`, `CLAUDE.md` or `AGENTS.md`, `docs/` | Rojo project vs. Studio-only place |
 | Studio installed | macOS `ls /Applications/RobloxStudio.app`; Windows `%LOCALAPPDATA%\Roblox\Versions` | The MCP server ships inside Studio |
 | Studio MCP | `claude mcp list` (look for `Roblox_Studio` or the official plugin's `plugin:roblox-studio:<os>`, Connected), then call the MCP tool `list_roblox_studios` by name; ask the user whether Assistant > ... > Settings shows an **MCP Permissions** tab (missing: update Roblox Studio and restart it) | Live engine access, which place is open. A server listed but not callable means it was added after this session started |
 | Open Studio windows | `list_roblox_studios` plus memory per process (`ps -axo pid,rss,command \| grep -i "[R]obloxStudio"`) | Many windows slow or crash the machine; with 3 or more, ask the user which to close (`roblox-game-pipeline` rule 8) |
@@ -49,7 +48,7 @@ Show one table with a Status column (OK / missing / not checked), then ask only 
 | Tool | Tier | What it unlocks | If skipped |
 |---|---|---|---|
 | Roblox Studio, latest version, signed in | **Required** | Everything; Studio MCP needs the latest Studio | Nothing can be built |
-| Studio MCP (`Roblox_Studio` connected to Claude Code) | **Required** | Agent reads and edits the open place, playtests, screenshots, console logs, Cube mesh/material/procedural generation, `rbx-*` skills, live docs (`http_get`) | The agent can only write files, the user pastes code and reports results by hand, and "evidence before done" cannot be met. Do not build without it |
+| Studio MCP (`Roblox_Studio` connected to the agent: Claude Code or Codex) | **Required** | Agent reads and edits the open place, playtests, screenshots, console logs, Cube mesh/material/procedural generation, `rbx-*` skills, live docs (`http_get`) | The agent can only write files, the user pastes code and reports results by hand, and "evidence before done" cannot be met. Do not build without it |
 | git, project folder is a repo | **Required** | Per-task commits, review, rollback | One bad edit cannot be undone |
 | Code on disk: Script Sync (built into Studio) or Rojo | Recommended, pick one (D: Script Sync for a Studio-first game, Rojo for a code-heavy one; `roblox-dev-workflow` section 3) | Scripts as files: diffs, lint, subagents on files | Code lives only in the place; export scripts to git regularly |
 | Lint and test tools (selene, StyLua, luau-lsp, Lune via rokit) | Optional | Local checks before Studio | Checks run only in Studio playtests |
@@ -71,12 +70,12 @@ Menus and commands change between Studio releases. Before guiding, fetch the liv
 | Tool | Short path (details in the linked skill) | Live page | Verify |
 |---|---|---|---|
 | Studio | Install from the Creator Hub, sign in, accept the update prompt | create.roblox.com/docs/studio/setup | Studio opens a place while signed in |
-| Studio MCP | Easiest: Claude Code `/plugin` > install **Roblox Studio** (official), then say "Get me set up with Roblox Studio". Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code or `claude mcp add` (`roblox-studio-ai-tools` section 1) | github.com/Roblox/roblox-studio-agent-plugin, create.roblox.com/docs/studio/mcp | Restart Claude Code (servers load at session start; `claude --continue` resumes this conversation), then call `list_roblox_studios` |
+| Studio MCP | Easiest: Claude Code `/plugin` > install **Roblox Studio** (official), then say "Get me set up with Roblox Studio". Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code (or Codex CLI) or `claude mcp add` (Codex: `codex mcp add Roblox_Studio -- <StudioMCP command>`; `roblox-studio-ai-tools` section 1) | github.com/Roblox/roblox-studio-agent-plugin, create.roblox.com/docs/studio/mcp | Restart Claude Code or Codex (servers load at session start; `claude --continue` resumes this conversation), then call `list_roblox_studios` |
 | git | macOS `xcode-select --install`; Windows installer from git-scm.com; `git init` in the project folder | git-scm.com | `git --version` |
 | Script Sync | Explorer > right-click a service > Script Sync > Sync to (`roblox-studio-ai-tools` section 6) | create.roblox.com/docs/scripting/sync | `InstanceFileSyncService:GetStatus` returns SyncedAsRoot |
 | Rojo and tools | Rokit: install script from the rokit README, `rokit self-install`, then `rokit init` and `rokit add rojo-rbx/rojo` (same for selene, StyLua, Lune); `rojo plugin install` adds the Studio plugin | github.com/rojo-rbx/rokit, rojo.space | `rojo --version`; the Rojo plugin in Studio shows Connected after `rojo serve` |
-| Blender MCP | `uvx mcp-for-blender install-addon`; in Blender turn the add-on on: **Edit > Preferences > Add-ons**, search "MCP for Blender", tick it, Save Preferences; then viewport `N` > MCP for Blender tab > **Connect to MCP server** (after every Blender start); `claude mcp add blender uvx mcp-for-blender`, restart Claude Code (`roblox-blender-export` sections 8-9) | github.com/ahujasid/blender-mcp | `get_addon_status` answers |
-| gwanggo MCP | Account and credits: gwanggo.ai. Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, restart Claude Code, approve the gwanggo sign-in page on first use (browser, no password or key in chat; `/mcp` shows the state). Claude desktop or claude.ai: Settings > Connectors > Add custom connector, name `gwanggo`, paste the URL, Connect. CLI and skills fallback: `npm install -g https://github.com/bill-950207/gwanggo-mcp/archive/refs/heads/master.tar.gz`, `gwanggo auth login` | gwanggo.ai/game/connect (Game Studio agent tools), gwanggo.ai/dashboard/mcp (per-client steps, MCP / CLI / Skills tabs); keys for local configs only at gwanggo.ai/dashboard/api-keys (`GWANGGO_API_KEY`, set by the user) | `get_credits` answers |
+| Blender MCP | `uvx mcp-for-blender install-addon`; in Blender turn the add-on on: **Edit > Preferences > Add-ons**, search "MCP for Blender", tick it, Save Preferences; then viewport `N` > MCP for Blender tab > **Connect to MCP server** (after every Blender start); `claude mcp add blender uvx mcp-for-blender` (Codex: `codex mcp add blender -- uvx mcp-for-blender`), restart the agent (`roblox-blender-export` sections 8-9) | github.com/ahujasid/blender-mcp | `get_addon_status` answers |
+| gwanggo MCP | Account and credits: gwanggo.ai. Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp` (Codex: `codex mcp add gwanggo --url https://gwanggo.ai/api/v1/mcp`, then `codex mcp login gwanggo`), restart Claude Code, approve the gwanggo sign-in page on first use (browser, no password or key in chat; `/mcp` shows the state). Claude desktop or claude.ai: Settings > Connectors > Add custom connector, name `gwanggo`, paste the URL, Connect. CLI and skills fallback: `npm install -g https://github.com/bill-950207/gwanggo-mcp/archive/refs/heads/master.tar.gz`, `gwanggo auth login` | gwanggo.ai/game/connect (Game Studio agent tools), gwanggo.ai/dashboard/mcp (per-client steps, MCP / CLI / Skills tabs); keys for local configs only at gwanggo.ai/dashboard/api-keys (`GWANGGO_API_KEY`, set by the user) | `get_credits` answers |
 | Open Cloud key | User creates it in Creator Hub > Credentials with the scopes in `roblox-release-automation` section 2 and saves it to a `chmod 600` env file | create.roblox.com/docs/cloud/auth/api-keys | Variable exists (never print it); one read-only call returns 200 |
 
 Record the final state (tool, version, OK or skipped) in the brief's Environment line.
@@ -158,10 +157,10 @@ After Round A, read `roblox-design-and-launch` section 1a and check the answers 
 
 ## Step 3. Write the brief
 
-Create `docs/brief.md` and a short `CLAUDE.md` pointing to it. The first line of that `CLAUDE.md` is the Roblox marker, so later sessions load these skills from a plain "I'm making a game" or "what about this idea":
+Create `docs/brief.md` and a short project instructions file pointing to it: `CLAUDE.md` for Claude Code, `AGENTS.md` for Codex (Codex reads `AGENTS.md`, not `CLAUDE.md`; for both agents, write both with the same text). Its first line is the Roblox marker, so later sessions load these skills from a plain "I'm making a game" or "what about this idea":
 
 ```
-Roblox game project (Luau, Roblox Studio). Use the roblox-skills plugin: roblox-game-pipeline for planning and building, roblox-market-research for idea and trend questions. Brief: docs/brief.md
+Roblox game project (Luau, Roblox Studio). Use the roblox-* skills: roblox-game-pipeline for planning and building, roblox-market-research for idea and trend questions. Brief: docs/brief.md
 ```
 
 The brief contains:

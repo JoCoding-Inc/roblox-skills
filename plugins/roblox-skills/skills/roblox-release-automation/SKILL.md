@@ -1,7 +1,6 @@
 ---
 name: roblox-release-automation
-description: "Use when shipping a Roblox game or update: splits the release into what an agent can automate through Open Cloud (place publish, server restart, passes, products, place name and description, platform toggles) and what the user must do by hand (create the game, maturity questionnaire, age check, icon and thumbnails, public release), lists the API key scopes each step needs, and what to ask the user when a permission is missing."
-when_to_use: "Also before writing a publish script or CI job, when a publish or API call returns 401/403/404/409/429, when asked to 'just release it', when setting up an API key or MCP Permissions, or when deciding what to hand back to the user. Pair with roblox-launch-benchmarks and roblox-pitfalls."
+description: "Use when shipping a Roblox game or update: splits the release into what an agent can automate through Open Cloud (place publish, server restart, passes, products, place name and description, platform toggles) and what the user must do by hand (create the game, maturity questionnaire, age check, icon and thumbnails, public release), lists the API key scopes each step needs, and what to ask the user when a permission is missing. Also before writing a publish script or CI job, when a publish or API call returns 401/403/404/409/429, when asked to 'just release it', when setting up an API key or MCP Permissions, or when deciding what to hand back to the user. Pair with roblox-launch-benchmarks and roblox-pitfalls."
 last_reviewed: 2026-11-05
 sources:
   - https://github.com/Roblox/creator-docs (commit c8f5276, 2026-10-29): content/en-us/reference/cloud/openapi.json, universes-api/v1.json, game-passes-http-service/v1.json, developer-products-api/v1.json

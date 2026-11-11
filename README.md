@@ -1,6 +1,6 @@
 # roblox-skills
 
-Claude Code skills for building Roblox games with an AI agent, from JoCoding. They cover the whole path from planning interview to release, with what we learned shipping test games.
+Agent skills for building Roblox games with an AI agent, from JoCoding: made and tested in Claude Code, and loadable in Codex. They cover the whole path from planning interview to release, with what we learned shipping test games.
 
 | Skill | Use it for |
 |---|---|
@@ -52,20 +52,30 @@ claude plugin list                          # roblox-skills@roblox-skills enable
 
 Skills load on their own when the task matches their description. To update, run `/plugin marketplace update roblox-skills`.
 
+In Codex, copy the skill folders into `~/.agents/skills/` (all projects) or a project's `.agents/skills/`, then restart Codex:
+
+```bash
+git clone https://github.com/JoCoding-Inc/roblox-skills
+mkdir -p ~/.agents/skills
+cp -R roblox-skills/plugins/roblox-skills/skills/* ~/.agents/skills/
+```
+
+Codex picks a skill from its `description`; to be sure, name it: `$roblox-game-pipeline I'm making a Roblox game`. To update, `git pull` and copy again. The skill format matches the Codex loader (checked against the Codex source, 2026-11-11), but we build and test in Claude Code: setup steps written for Claude Code have a Codex line where one is needed (MCP servers below), and a few workflow notes about subagents and plugins still name Claude Code tools.
+
 ## Starting a game
 
 - Mention Roblox in the first message: "I'm making a Roblox game, what do you think of a gym tycoon?" loads `roblox-game-pipeline` and `roblox-market-research`. Without the word Roblox, a generic brainstorming skill may answer instead.
 - `/roblox-game-pipeline` always works.
-- After the first session, intake writes a project `CLAUDE.md` whose first line marks the folder as a Roblox project, so "I'm making a game" alone is enough there.
+- After the first session, intake writes a project `CLAUDE.md` (Codex: `AGENTS.md`) whose first line marks the folder as a Roblox project, so "I'm making a game" alone is enough there.
 - The first step is a tool check: the agent shows which tools are connected, says what each one unlocks, sets up the required ones with you, and lets you skip optional ones.
 - When the plan is done, the agent asks what to see first: a core-fun prototype to playtest, concept images, a concept trailer, or straight to the full build.
 
 ## Works best with
 
-- Roblox Studio MCP: easiest is the official plugin (`/plugin`, search **Roblox Studio**, then ask "Get me set up with Roblox Studio"). Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). Open Cloud calls through it (`open_cloud_invoke`, no API key) need MCP Permissions per game: Studio Assistant > ... > Settings > MCP Permissions. The old Rust server is archived
+- Roblox Studio MCP: easiest is the official plugin (`/plugin`, search **Roblox Studio**, then ask "Get me set up with Roblox Studio"). Manual: Studio Assistant > ... > Settings > MCP Servers > Enable Studio as MCP server, then Quick connect > Claude Code, or register it by hand. macOS: `claude mcp add Roblox_Studio -s user -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP`; Windows: `claude mcp add Roblox_Studio -s user -- cmd.exe /c "%LOCALAPPDATA%\Roblox\mcp.bat"`. Check with `claude mcp list` (Connected). Codex: Quick connect lists Codex CLI too, or `codex mcp add Roblox_Studio -- /Applications/RobloxStudio.app/Contents/MacOS/StudioMCP` (macOS), then check with `codex mcp list`. Open Cloud calls through it (`open_cloud_invoke`, no API key) need MCP Permissions per game: Studio Assistant > ... > Settings > MCP Permissions. The old Rust server is archived
 - Rojo, Lune, selene, StyLua, luau-lsp, Wally; install them with Rokit
-- Blender MCP (`claude mcp add blender uvx mcp-for-blender`) for custom meshes and rigs. In Blender, turn the add-on on first: Edit > Preferences > Add-ons > MCP for Blender (tick it), then press Connect to MCP server in the viewport `N` panel. Read the safety notes in `roblox-blender-export` section 9
-- Optional: [gwanggo](https://gwanggo.ai) Game Studio MCP (paid credits; every step has a free route): a game project with a locked art style, concept images and a concept trailer, props and pets as textured GLB, icons, textures, logo and loading art; plus the web Thumbnail & Icon Kit. Every credit spend is quoted (`dry_run`) and asked first. Setup: https://gwanggo.ai/game/connect and https://gwanggo.ai/dashboard/mcp (Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, then approve the sign-in page). Without it the agent uses written storyboards, Studio screenshots, Roblox Cube and Blender
+- Blender MCP (`claude mcp add blender uvx mcp-for-blender`; Codex: `codex mcp add blender -- uvx mcp-for-blender`) for custom meshes and rigs. In Blender, turn the add-on on first: Edit > Preferences > Add-ons > MCP for Blender (tick it), then press Connect to MCP server in the viewport `N` panel. Read the safety notes in `roblox-blender-export` section 9
+- Optional: [gwanggo](https://gwanggo.ai) Game Studio MCP (paid credits; every step has a free route): a game project with a locked art style, concept images and a concept trailer, props and pets as textured GLB, icons, textures, logo and loading art; plus the web Thumbnail & Icon Kit. Every credit spend is quoted (`dry_run`) and asked first. Setup: https://gwanggo.ai/game/connect and https://gwanggo.ai/dashboard/mcp (Claude Code: `claude mcp add --transport http --scope user --callback-port 3118 gwanggo https://gwanggo.ai/api/v1/mcp`, then approve the sign-in page; Codex: `codex mcp add gwanggo --url https://gwanggo.ai/api/v1/mcp`, then `codex mcp login gwanggo`). Without it the agent uses written storyboards, Studio screenshots, Roblox Cube and Blender
 
 ## Keeping it current
 

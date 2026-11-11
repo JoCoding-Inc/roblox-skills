@@ -1,7 +1,6 @@
 ---
 name: roblox-design-and-launch
-description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization."
-when_to_use: "Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, when adding analytics events (AnalyticsService economy, funnel, journey or custom events), or when asked what Roblox pays creators."
+description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization. Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, when adding analytics events (AnalyticsService economy, funnel, journey or custom events), or when asked what Roblox pays creators."
 last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/production/roblox-user-base

@@ -1,7 +1,6 @@
 ---
 name: roblox-dev-workflow
-description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud)."
-when_to_use: "Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, how to organise a multi-session build, or how to brief and run parallel agents (worktree lanes, an agent that stalls). Run roblox-project-intake first if docs/brief.md does not exist."
+description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud). Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, how to organise a multi-session build, or how to brief and run parallel agents (worktree lanes, an agent that stalls). Run roblox-project-intake first if docs/brief.md does not exist."
 last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/studio/mcp

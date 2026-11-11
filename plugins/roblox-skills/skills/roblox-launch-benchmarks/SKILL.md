@@ -1,7 +1,6 @@
 ---
 name: roblox-launch-benchmarks
-description: "Use before launching or tuning a Roblox game to set store-page and shop values from what live top-chart games actually do: thumbnails, description length, players per server, game pass count and price points, like ratio, maturity. Gives a pre-launch checklist with benchmark numbers."
-when_to_use: "Also when choosing game pass prices, deciding how many passes or thumbnails to ship, setting max players, writing the description, or when asked whether a value is normal. Re-measure with this skill's scripts/ before quoting numbers older than a month."
+description: "Use before launching or tuning a Roblox game to set store-page and shop values from what live top-chart games actually do: thumbnails, description length, players per server, game pass count and price points, like ratio, maturity. Gives a pre-launch checklist with benchmark numbers. Also when choosing game pass prices, deciding how many passes or thumbnails to ship, setting max players, writing the description, or when asked whether a value is normal. Re-measure with this skill's scripts/ before quoting numbers older than a month."
 last_reviewed: 2026-11-03
 sources:
   - https://apis.roblox.com/explore-api/v1/get-sort-content (Top Playing Now, Top Trending, Up-and-Coming, read 2026-11-01)
