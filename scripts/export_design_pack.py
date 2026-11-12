@@ -95,9 +95,6 @@ SCRIPTS = [
     ("roblox-ui-genre-scifi/scripts/hud_shapes.luau", "ui-styles", "roblox-ui-genre-scifi/SKILL.md#2"),
     ("roblox-ui-mobile/scripts/panel_stage.luau", "layout", "roblox-ui-mobile/SKILL.md#4"),
     ("roblox-ui-layout/scripts/ui_device_check.luau", "layout", "roblox-ui-layout/SKILL.md#6"),
-    ("roblox-feel-audio-vfx/scripts/juice.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3b"),
-    ("roblox-feel-audio-vfx/scripts/vfx.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3b"),
-    ("roblox-feel-audio-vfx/scripts/uifx.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3b"),
 ]
 HEADING = re.compile(r"^## ([0-9]+[a-z]?)\. ")
 # styles.json keeps the Lua keys of PRESETS; units are given here
