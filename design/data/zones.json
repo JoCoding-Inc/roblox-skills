@@ -24,7 +24,8 @@
         "height_px": {"v": 58, "p": "measured", "src": "TopBar Constants.lua"},
         "height_console_px": {"v": 87, "p": "measured", "src": "TopBar Constants.lua, 58 x 1.5 with the new controls"},
         "cell_px": {"v": 44, "p": "measured", "src": "TopBar Constants.lua"},
-        "controls_width_phone_landscape_px": {"v": 350, "p": "measured", "src": "about"},
+        "controls_width_phone_landscape_px": {"v": 350, "p": "measured", "src": "about; upper bound with more unibar items, read GuiService.TopbarInset at runtime"},
+        "controls_width_default_studio_px": {"v": 180, "p": "measured", "src": "Studio, default controls: 164 px plus a 16 px gap (RoDesigner)", "date": "2026-11-11"},
         "controls_align": {"v": "left", "p": "measured", "src": "TopBar Constants.lua"}
       },
       "thumbstick": {
@@ -87,7 +88,7 @@
     },
     "zone_map": {
       "left_menu_height_share": {"v": [0.2, 0.6], "p": "opinion"},
-      "left_menu_max_buttons": {"v": 4, "p": "opinion"},
+      "left_menu_max_buttons": {"v": 4, "p": "opinion", "src": "per left column on a phone, so it stays above the thumbstick keep box; the whole-HUD count is budgets.phone_menu_buttons_*"},
       "bottom_left_readouts_from_bottom_px": {
         "phone": {"v": 110, "p": "opinion", "src": "above the thumbstick keep box"},
         "large_touch": {"v": 200, "p": "opinion", "src": "above the thumbstick keep box"}
@@ -155,7 +156,7 @@
       "menu_tile_aspect": {"v": 0.97, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
       "menu_tile_px_1080": {"v": 97, "p": "measured", "src": "0.09 x 1080", "date": "2026-11-09"},
       "menu_icon_of_face": {"v": 0.8, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
-      "menu_max_tiles_per_side": {"v": 6, "p": "opinion"},
+      "menu_max_tiles_per_side": {"v": 6, "p": "opinion", "src": "stud HUD tiles per side; phones also obey budgets.phone_menu_buttons_*"},
       "menu_max_badged_tiles": {"v": 2, "p": "opinion"},
       "currency_row_height_share": {"v": 0.06, "p": "measured", "src": "top-game phone median 0.059; desktop about 0.05 (33 frames, quick pass, 2026-11-11)", "date": "2026-11-09"},
       "offer_height_share": {"v": 0.17, "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
@@ -163,7 +164,7 @@
       "offer_price_rgb": {"v": [0, 255, 8], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
       "top_nav_max_chips": {"v": 3, "p": "opinion"},
       "top_nav_chip_size_share": {"v": [0.136, 0.075], "p": "opinion", "src": "starting value from community sources, compared with reference frames", "date": "2026-10-26"},
-      "quiet_hud_max_buttons": {"v": 5, "p": "opinion"},
+      "quiet_hud_max_buttons": {"v": 5, "p": "opinion", "src": "stud quiet HUD: buttons shown at once before secondary ones are revealed (roblox-ui-genre-studs section 4)"},
       "primary_button_design_px_1080": {"v": [150, 190], "p": "opinion"},
       "shrink_clamp": {"v": "hit areas only, not visible sizes: max(ceil(v * factor), ceil(44 / k)) where screen px = design px x k", "p": "opinion"}
     },
@@ -173,7 +174,9 @@
       "phone_hud_cover_warn_share": {"v": 0.16, "p": "opinion", "src": "top-game p75 0.159; horror and RPG vitals may sit here", "date": "2026-11-09"},
       "phone_hud_cover_fail_share": {"v": 0.2, "p": "opinion", "src": "top-game max 0.203", "date": "2026-11-09"},
       "phone_centre_box_cover_max_share": {"v": 0.02, "p": "opinion", "src": "top-game median 0, p75 0.014", "date": "2026-11-09"},
-      "phone_menu_buttons_max": {"v": 9, "p": "opinion", "src": "the rest in one more drawer; top-game median 5, p75 8.5, simulators 8", "date": "2026-11-09"},
+      "phone_menu_buttons_target": {"v": 5, "p": "opinion", "src": "8 in simulators; top-game median 5, p75 8.5", "date": "2026-11-09"},
+      "phone_menu_buttons_max": {"v": 9, "p": "opinion", "src": "warn above this; the rest in one more drawer; top-game median 5, p75 8.5, simulators 8", "date": "2026-11-09"},
+      "phone_menu_buttons_fail": {"v": 12, "p": "opinion", "src": "fail above this", "date": "2026-11-09"},
       "visible_strokes_max": {"v": 300, "p": "documented", "src": "staff guidance, under about 300", "date": "2025-09-25"},
       "ui_shadows_max": {"v": 100, "p": "opinion", "src": "about"}
     }

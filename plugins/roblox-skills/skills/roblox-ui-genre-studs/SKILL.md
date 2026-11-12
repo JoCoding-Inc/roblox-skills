@@ -75,7 +75,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
   - Corners: UICorner 14-30.
   - One colored header band per panel (orange, blue or purple).
   - Optional faint 2 px white inner rim.
-- Opening a panel: world BlurEffect plus a UIScale pop.
+- Opening a panel: a dim layer over the game plus a UIScale pop (an owner review asked for the dim, `roblox-ui-layout` section 2); a world BlurEffect is optional.
 
 ## 3. Text
 

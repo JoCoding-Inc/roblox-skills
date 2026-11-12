@@ -43,6 +43,7 @@
         "common_defaults",
         "creator_store_font_ids",
         "sizes_design_px_1080",
+        "sizes_device_px_min",
         "thin_weights_avoid_below_px",
         "text_over_world",
         "visible_strokes_max",
@@ -916,6 +917,76 @@
                     "v": {
                       "type": "number",
                       "minimum": 0
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "sizes_device_px_min": {
+          "type": "object",
+          "required": [
+            "body",
+            "hud_bold_stroked",
+            "comfortable_long_text"
+          ],
+          "properties": {
+            "body": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "hud_bold_stroked": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "comfortable_long_text": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
                     }
                   }
                 }
