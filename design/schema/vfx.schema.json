@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/JoCoding-Inc/roblox-skills/design/schema/vfx.schema.json",
-  "title": "Effects: rarity tier ladder, aura and particle limits, VFX house rules",
+  "title": "Effects: rarity tier ladder, aura and particle limits, feedback tiers, VFX house rules",
   "description": "Derived from the vfx data by scripts/export_design_pack.py --write-schemas: every key present today is required and typed. Unknown keys are allowed everywhere (minor versions add keys); readers ignore them.",
   "type": "object",
   "required": [
@@ -41,6 +41,8 @@
         "particles",
         "camera",
         "budgets",
+        "feedback",
+        "reveal_timing_top_games",
         "rules"
       ],
       "properties": {
@@ -605,6 +607,592 @@
                   "properties": {
                     "v": {
                       "type": "number"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "feedback": {
+          "type": "object",
+          "required": [
+            "tiers",
+            "shake",
+            "fov_offset_clamp_deg",
+            "hit_stop_budget_s_per_s",
+            "flash",
+            "number_cap",
+            "reduced_motion"
+          ],
+          "properties": {
+            "tiers": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "use",
+                  "trauma",
+                  "fov_deg",
+                  "flash_alpha",
+                  "hit_stop_s",
+                  "haptic"
+                ],
+                "properties": {
+                  "name": {
+                    "allOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "properties": {
+                          "v": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "use": {
+                    "allOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "properties": {
+                          "v": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "trauma": {
+                    "allOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "properties": {
+                          "v": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "fov_deg": {
+                    "allOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "properties": {
+                          "v": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "flash_alpha": {
+                    "allOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "properties": {
+                          "v": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "hit_stop_s": {
+                    "allOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "properties": {
+                          "v": {
+                            "type": "number",
+                            "minimum": 0
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "haptic": {
+                    "allOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "properties": {
+                          "v": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "$ref": "#/$defs/node"
+                    }
+                  ]
+                }
+              }
+            },
+            "shake": {
+              "type": "object",
+              "required": [
+                "model",
+                "max_pitch_yaw_deg",
+                "max_roll_deg",
+                "decay_per_s",
+                "measured_peak_deg"
+              ],
+              "properties": {
+                "model": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "max_pitch_yaw_deg": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "max_roll_deg": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "decay_per_s": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "measured_peak_deg": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "trauma_0_3",
+                            "trauma_0_6",
+                            "trauma_0_9"
+                          ],
+                          "properties": {
+                            "trauma_0_3": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "trauma_0_6": {
+                              "type": "number"
+                            },
+                            "trauma_0_9": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "fov_offset_clamp_deg": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "hit_stop_budget_s_per_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "flash": {
+              "type": "object",
+              "required": [
+                "starts_per_second_max",
+                "wcag_flashes_per_second_max",
+                "alpha_max"
+              ],
+              "properties": {
+                "starts_per_second_max": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "wcag_flashes_per_second_max": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "alpha_max": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "number_cap": {
+              "type": "object",
+              "required": [
+                "phone",
+                "desktop"
+              ],
+              "properties": {
+                "phone": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "desktop": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "reduced_motion": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/leaf"
+              },
+              {
+                "$ref": "#/$defs/node"
+              }
+            ]
+          }
+        },
+        "reveal_timing_top_games": {
+          "type": "object",
+          "required": [
+            "hatch_build_up_s",
+            "hatch_flash_s",
+            "hatch_result_hold_s",
+            "hatch_total_s",
+            "top_rarity_title_hold_s",
+            "reward_row_stagger_s",
+            "result_title_hold_s"
+          ],
+          "properties": {
+            "hatch_build_up_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "hatch_flash_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "hatch_result_hold_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "hatch_total_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "top_rarity_title_hold_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "reward_row_stagger_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "result_title_hold_s": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
                     }
                   }
                 }
