@@ -1,7 +1,7 @@
 ---
 name: roblox-design-and-launch
 description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization. Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, when adding analytics events (AnalyticsService economy, funnel, journey or custom events), or when asked what Roblox pays creators."
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-12
 sources:
   - https://create.roblox.com/docs/production/roblox-user-base
   - https://www.gameanalytics.com/reports/2026-roblox-report (vendor report; primary page read 2026-11-03)
@@ -14,6 +14,8 @@ sources:
   - https://create.roblox.com/docs/production/experiments
   - https://create.roblox.com/docs/production/promotion/experience-events
   - https://create.roblox.com/docs/production/promotion/ads-manager
+  - https://create.roblox.com/docs/production/publishing/kids-and-select (account tiers, read 2026-11-11)
+  - https://devforum.roblox.com/t/4705340 and https://devforum.roblox.com/t/4685932 (games held at 16+ by mistake, CCU drops, self-reported, 2026-06)
   - https://devforum.roblox.com/t/introducing-roblox-wallet-and-card-get-paid-faster/4865505
   - https://devforum.roblox.com/t/new-transaction-refunded-webhook-notifies-when-a-purchase-is-cancelled/4890339
   - https://devforum.roblox.com/t/players-can-now-find-in-game-items-outside-your-game/4888425
@@ -72,7 +74,8 @@ Use this when a plan is being shaped. Compare the plan with the table, then give
 | Genre session lengths (ROLearn, Q4 2025-Feb 2026): roleplay 48 min against simulator 26 min; co-op horror and roleplay lead long sessions | V, one source | Genre sets the session you can expect. Do not plan a 60-minute loop for a simulator |
 | Games strong in both retention and monetization "might receive broader distribution"; fix retention first, then monetization raises Home impressions (`discovery-faq`). RFY "intentionally provides more impressions for highly retentive games at the expense of near term monetization" (Q2 2026 letter); RFY weights long-term retention and age cohorts (Q3 2026 letter) | O | Fix retention before tuning spend. Track both together; do not plan around one strong number |
 | Hits decay fast: measured and tracked peaks fall to a small fraction within months (examples and the `history` command in `roblox-market-research` section 6) | M, V | Size servers, economy and live ops for the week-8 audience, not the launch peak. Have D8-28 hooks and weekly drops ready before launch |
-| Platform, Q3 2026: 138M DAU; bookings 1.7B USD (-12% year over year); 18+ is 29% of age-checked DAU (37% in the US); about 40% of the weekly RFY top 100 by impressions were created in the last 3 months; Roblox reports games "created almost entirely with AI" reaching the top 20 | O (Q3 2026 letter) | Plan revenue conservatively. A 16+ idea is not niche. New games break in on retention, and speed alone is not a moat: name one thing the game does that the top clone does not (twist test) |
+| Platform, Q3 2026: 138M DAU; bookings 1.7B USD (-12% year over year); 30M average monthly unique payers (-16%), bookings per payer +5%; 64% of DAU had age-checked (over 80% of ages 13-17); age-checked users are 34% under 13, 37% 13-17, 29% 18+ (18+ is 37% in the US); in the US 18+ users monetize 50%+ above under-18 (Roblox estimate); about 40% of the weekly RFY top 100 by impressions were created in the last 3 months; Roblox reports games "created almost entirely with AI" reaching the top 20 | O (Q3 2026 letter) | Plan revenue conservatively. 18+ is the fastest-growing cohort, but a 16+-only release reaches far fewer players (next row). New games break in on retention, and speed alone is not a moat: name one thing the game does that the top clone does not (twist test) |
+| A 16+-only game reaches only age-checked users aged 16 or older; every account that has not age-checked sits in the Kids or Select tier (docs `kids-and-select`). Estimate: 64% x (29% + about 15% for ages 16-17) = about 28% of DAU, assuming 16-17 is 2 of the 5 years in the 13-17 bucket (Roblox gives no 16+ split). Games held at 16+ by mistake reported CCU drops of 54-82% (DevForum t/4705340 and t/4685932, 2026-06, self-reported) | O, M (estimate), C | Kid-skewed genres (simulator, obby, tycoon) depend on all-ages reach: pass the Kids & Select evaluation early (section 4). A 16+ genre (horror, realistic shooter, mature RP) loses little. In a game kids like, the 18+ spend premium does not make up for losing the under-16 tiers (judgment) |
 | About 3.8% of players spend anything in a year; median payer spends $0.81 a year, top 10% $8.88 | V | Monetization must be useful to the 96% who never pay; free play stays complete |
 
 **Solo-viable checklist (check at planning time):**
