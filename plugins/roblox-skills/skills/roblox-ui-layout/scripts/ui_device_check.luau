@@ -136,10 +136,10 @@ local function check(name: string): string
 	local large = math.min(W, H) > 500 -- the engine's touch-control breakpoint
 	local phone = touch and not large
 
-	-- reserved zones in safe-frame px: { name, x0, y0, x1, y1, severity }
+	-- reserved zones in safe-frame px: { name, x0, y0, x1, y1, severity, true for a thumbstick zone }
 	local zones = {}
-	local function zone(n: string, x0: number, y0: number, x1: number, y1: number, sev: string)
-		table.insert(zones, { n, x0, y0, x1, y1, sev })
+	local function zone(n: string, x0: number, y0: number, x1: number, y1: number, sev: string, stick: boolean?)
+		table.insert(zones, { n, x0, y0, x1, y1, sev, stick })
 	end
 	local sx0, sy0, sx1, sy1 = 0, 0, 0, 0 -- thumbstick start area
 	if touch then
@@ -157,7 +157,7 @@ local function check(name: string): string
 			else
 				sx0, sy0, sx1, sy1 = 0, H / 3, 0.4 * W, H
 			end
-			zone("the resting thumbstick ring (keep it clear; last resort only)", 0, H - (large and 195 or 100), large and 215 or 110, H, "warn")
+			zone("the resting thumbstick ring (keep it clear; last resort only)", 0, H - (large and 195 or 100), large and 215 or 110, H, "warn", true)
 		end
 	end
 	if hasTools() and coreGui(Enum.CoreGuiType.Backpack) then
@@ -219,11 +219,15 @@ local function check(name: string): string
 				mark(painted, tx, ty, tx + bw, ty + bh)
 			end
 
-			if o:IsA("GuiButton") and o.Active and o.Interactable then
+			-- a pass-through button (roblox-ui-mobile section 3) lets the stick start, so it is no stick blocker
+			local pass = o:GetAttribute("PassThrough") == true
+			if o:IsA("GuiButton") and o.Interactable and (o.Active or pass) then
 				buttons += 1
-				mark(buttonCells, x0, y0, x1, y1)
+				if not pass then
+					mark(buttonCells, x0, y0, x1, y1)
+				end
 				for _, z in zones do
-					if x0 < z[4] and x1 > z[2] and y0 < z[5] and y1 > z[3] then
+					if not (pass and z[7]) and x0 < z[4] and x1 > z[2] and y0 < z[5] and y1 > z[3] then
 						table.insert(problems, string.format("%s: button %s is inside %s", z[6], path, z[1]))
 					end
 				end
