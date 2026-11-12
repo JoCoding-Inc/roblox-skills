@@ -7,6 +7,8 @@
 --   painted elements outside the safe frame, backdrops that stop short of the screen edge, buttons and
 --   text of a full-screen ScreenGui under a notch, buttons and text of different ScreenGuis that sit
 --   on top of each other, and the phone HUD budgets (section 2).
+-- Skipped: an element with nothing on the screen (a slid-out HUD layer), named in one note; a painted
+-- full-size backdrop (a panel's dim) is left out of the coverage numbers.
 -- Attributes it reads: PassThrough = true on a button (roblox-ui-mobile section 3), and
 -- KitTransient = true on a short-lived effect, toast or pop-up play target (the name the RoDesigner
 -- kit lint reads): the marked element and its children leave the coverage, overlap and safe-frame
@@ -17,7 +19,8 @@
 --   58 px taller than in Play because Edit draws no top bar.
 -- Run it at idle with every panel closed for the HUD budgets, then again with each panel open.
 -- The simulated device is shared by every Studio window on the machine: the sweep puts the first
--- device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit).
+-- device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit); the off-screen skip and
+-- the backdrop rule were tested in Play on the Studio viewport only, with no device switch.
 local DEVICES = { -- display names of Studio presets; an unknown name is reported, not guessed
 	"Samsung Galaxy A06", -- 800x360, safe 705x280: smallest common phone frame
 	"iPhone 17 Pro", -- 874x402, safe 750x323: Dynamic Island insets
@@ -212,6 +215,7 @@ local function check(name: string): string
 	local buttons = 0
 	local crossing = {}
 	local outside, across = {}, {} -- paths outside the safe frame, and crossing its edge
+	local off, offTop, offList = {}, {}, {} -- elements wholly off the screen (slid-out layers): skipped, named once by their top ancestor
 	local leaves = {} -- buttons and text: { gui, DisplayOrder, path, x0, y0, x1, y1 }
 	local scrim: string? = nil -- a backdrop over the whole screen or the whole of its ScreenGui (a modal is open)
 	local scrimOrder = -math.huge
@@ -230,6 +234,21 @@ local function check(name: string): string
 			if x1 <= x0 or y1 <= y0 then
 				continue
 			end
+			if x1 <= fx or y1 <= fy or x0 >= fx + FW or y0 >= fy + FH then
+				-- nothing of it is on the screen (a HUD layer slid off, a panel parked outside): not a button, not text, not painted
+				off[o] = true
+				if o:IsA("GuiButton") or o.BackgroundTransparency < 1 or isText(o) or ((o:IsA("ImageLabel") or o:IsA("ImageButton")) and (o :: any).Image ~= "") then
+					local top: Instance = o
+					while top.Parent and off[top.Parent] do
+						top = top.Parent
+					end
+					if not offTop[top] then
+						offTop[top] = true
+						table.insert(offList, (top:GetFullName():gsub("^.-Gui%.", "", 1)))
+					end
+				end
+				continue
+			end
 			local path = o:GetFullName():gsub("^.-Gui%.", "", 1)
 			local size = o.AbsoluteSize
 			local hasBack = o.BackgroundTransparency < 1
@@ -237,8 +256,12 @@ local function check(name: string): string
 			local text = isText(o)
 			local brief = transient(o)
 			local lx0, ly0, lx1, ly1 = x0, y0, x1, y1 -- the rect that counts for overlaps
+			-- backdrops: a layer over the whole screen is a scrim; one that fills an inset ScreenGui stops short of it
+			local wholeScreen = (x1 - x0) * (y1 - y0) >= 0.95 * FW * FH
+			local wholeGui = x0 <= gx0 + 1 and y0 <= gy0 + 1 and x1 >= gx1 - 1 and y1 >= gy1 - 1
+			local backdrop = wholeScreen or wholeGui -- also a see-through tap catcher of that size
 			if hasBack or hasImage then
-				if not brief then
+				if not brief and not (backdrop and hasBack) then -- a painted backdrop is not HUD: the coverage numbers show what sits on it
 					mark(painted, x0, y0, x1, y1)
 				end
 			elseif text then -- text with no plate: count its bounds, placed by its alignment
@@ -253,10 +276,6 @@ local function check(name: string): string
 				end
 			end
 
-			-- backdrops: a layer over the whole screen is a scrim; one that fills an inset ScreenGui stops short of it
-			local wholeScreen = (x1 - x0) * (y1 - y0) >= 0.95 * FW * FH
-			local wholeGui = x0 <= gx0 + 1 and y0 <= gy0 + 1 and x1 >= gx1 - 1 and y1 >= gy1 - 1
-			local backdrop = wholeScreen or wholeGui -- also a see-through tap catcher of that size
 			if hasBack and not brief and backdrop then
 				if gui.DisplayOrder >= scrimOrder then
 					scrim, scrimOrder = path, gui.DisplayOrder
@@ -330,6 +349,11 @@ local function check(name: string): string
 		end
 	end
 
+	if #offList > 0 then
+		table.insert(problems, string.format("note: %d element%s wholly off the screen %s skipped (slid out or parked): %s%s", #offList, #offList == 1 and "" or "s",
+			#offList == 1 and "was" or "were", table.concat(offList, ", ", 1, math.min(#offList, 3)), #offList > 3 and ", ..." or ""))
+	end
+
 	-- buttons and text of two different ScreenGuis on top of each other (a quarter of the smaller one or more).
 	-- Layers under a scrim are covered on purpose and are skipped.
 	local overlaps = 0
@@ -359,7 +383,7 @@ local function check(name: string): string
 				table.remove(problems, i)
 			end
 		end
-		table.insert(problems, string.format("note: %s is a full-size backdrop (a panel is open): the HUD budgets are skipped and the coverage numbers include it", scrim))
+		table.insert(problems, string.format("note: %s is a full-size backdrop (a panel is open): the HUD budgets are skipped and the coverage numbers leave the backdrop out", scrim))
 	end
 
 	-- coverage: whole screen, the centre 50% x 50% box, and buttons inside the thumbstick start area
