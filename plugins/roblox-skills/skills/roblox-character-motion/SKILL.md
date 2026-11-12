@@ -84,7 +84,7 @@ beat  t(s)   name            pose
 
 Under the table, say how the beats move: which ones ease, which land fast and hold (the test held each hit 2-3 frames), which hit is the heavy one.
 
-**What the test showed** (RoDesigner motion-sheet experiment, 2026-11-11). Two motions: a blob creature's jump slam (1.6 s) and the sword combo above on an R15 avatar. Seven kinds of reference, one Sonnet builder per kind (14 builds), each scored blind by one Opus judge; the owner also picked best and worst blind. One screening round with one builder per cell: read every ranking as a lead, not a law.
+**What the test showed** (RoDesigner motion-sheet experiment, 2026-11-11). Two motions: a blob creature's jump slam (1.6 s) and the sword combo above on an R15 avatar. Seven kinds of reference, one Sonnet builder per kind (14 builds), each scored blind by one Opus judge; the owner also picked best and worst blind. One screening round with one builder per cell: read every ranking as a lead, not a law. Two blob builds did not finish a clean run (the arcs build was stopped at its time cap, the 16-frame grid build died after its first check), so their blob scores (21 and 29) are the weakest evidence in the table.
 
 | Reference the builder got | Sword combo (max 36) | Blob slam (max 34) |
 |---|---|---|
