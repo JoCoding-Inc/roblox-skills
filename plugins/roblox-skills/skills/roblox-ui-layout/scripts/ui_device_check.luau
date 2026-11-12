@@ -4,7 +4,13 @@
 --   screen and safe-frame size, HUD coverage of the screen and of the centre 50% x 50% box,
 --   buttons inside Roblox's reserved zones (jump button, thumbstick, hotbar, chat, player list),
 --   buttons under 44 px on touch, text under 14 px (12 px for bold, stroked text),
---   painted elements outside the safe frame, and the phone HUD budgets (section 2).
+--   painted elements outside the safe frame, backdrops that stop short of the screen edge, buttons and
+--   text of a full-screen ScreenGui under a notch, buttons and text of different ScreenGuis that sit
+--   on top of each other, and the phone HUD budgets (section 2).
+-- Attributes it reads: PassThrough = true on a button (roblox-ui-mobile section 3), and
+-- KitTransient = true on a short-lived effect, toast or pop-up play target (the name the RoDesigner
+-- kit lint reads): the marked element and its children leave the coverage, overlap and safe-frame
+-- checks; a marked button is still checked against the reserved zones and the 44 px floor.
 -- Run with Studio MCP execute_luau:
 --   Play, datamodel Client: checks PlayerGui (UI that scripts build, real touch controls). Preferred.
 --   Edit: checks StarterGui only; touch zones come from the formulas below, and the safe frame is
@@ -52,6 +58,7 @@ local function probe(name: string, insets: Enum.ScreenInsets): ScreenGui
 end
 local safeProbe = probe("UiSweepSafe", Enum.ScreenInsets.CoreUISafeInsets)
 local fullProbe = probe("UiSweepFull", Enum.ScreenInsets.None)
+local deviceProbe = probe("UiSweepDevice", Enum.ScreenInsets.DeviceSafeInsets)
 
 local function shown(o: Instance): boolean
 	local p: Instance? = o
@@ -95,6 +102,17 @@ local function uiScale(o: Instance): number
 	return s
 end
 
+local function transient(o: Instance): boolean
+	local p: Instance? = o
+	while p and p ~= root do
+		if p:GetAttribute("KitTransient") == true then
+			return true
+		end
+		p = p.Parent
+	end
+	return false
+end
+
 local function boldStroked(o: any): boolean
 	local st = o:FindFirstChildOfClass("UIStroke")
 	local stroked = (st ~= nil and st.Enabled and st.ApplyStrokeMode == Enum.ApplyStrokeMode.Contextual)
@@ -132,6 +150,9 @@ local function check(name: string): string
 	local W, H = safeProbe.AbsoluteSize.X, safeProbe.AbsoluteSize.Y -- CoreUI-safe frame; its origin is (0, 0)
 	local fx, fy = fullProbe.AbsolutePosition.X, fullProbe.AbsolutePosition.Y -- screen corner, in safe-frame px
 	local FW, FH = fullProbe.AbsoluteSize.X, fullProbe.AbsoluteSize.Y
+	-- device-safe area (clear of notches; the top bar is inside it), in safe-frame px
+	local dx0, dy0 = deviceProbe.AbsolutePosition.X, deviceProbe.AbsolutePosition.Y
+	local dx1, dy1 = dx0 + deviceProbe.AbsoluteSize.X, dy0 + deviceProbe.AbsoluteSize.Y
 	local touch = if playing then UserInputService.PreferredInput == Enum.PreferredInput.Touch else info.LandscapeKeyboardHeight > 0
 	local large = math.min(W, H) > 500 -- the engine's touch-control breakpoint
 	local phone = touch and not large
@@ -190,11 +211,17 @@ local function check(name: string): string
 	local problems = {}
 	local buttons = 0
 	local crossing = {}
+	local outside, across = {}, {} -- paths outside the safe frame, and crossing its edge
+	local leaves = {} -- buttons and text: { gui, DisplayOrder, path, x0, y0, x1, y1 }
+	local scrim: string? = nil -- a backdrop over the whole screen or the whole of its ScreenGui (a modal is open)
+	local scrimOrder = -math.huge
 	for _, gui in root:GetChildren() do
-		if not gui:IsA("ScreenGui") or not gui.Enabled or gui == safeProbe or gui == fullProbe or gui.Name == "TouchGui" then
+		if not gui:IsA("ScreenGui") or not gui.Enabled or gui == safeProbe or gui == fullProbe or gui == deviceProbe or gui.Name == "TouchGui" then
 			continue
 		end
 		local inSafe = gui.ScreenInsets == Enum.ScreenInsets.CoreUISafeInsets
+		local gx0, gy0 = gui.AbsolutePosition.X, gui.AbsolutePosition.Y
+		local gx1, gy1 = gx0 + gui.AbsoluteSize.X, gy0 + gui.AbsoluteSize.Y
 		for _, o in gui:GetDescendants() do
 			if not o:IsA("GuiObject") or not shown(o) then
 				continue
@@ -208,21 +235,54 @@ local function check(name: string): string
 			local hasBack = o.BackgroundTransparency < 1
 			local hasImage = (o:IsA("ImageLabel") or o:IsA("ImageButton")) and (o :: any).Image ~= "" and (o :: any).ImageTransparency < 1
 			local text = isText(o)
+			local brief = transient(o)
+			local lx0, ly0, lx1, ly1 = x0, y0, x1, y1 -- the rect that counts for overlaps
 			if hasBack or hasImage then
-				mark(painted, x0, y0, x1, y1)
+				if not brief then
+					mark(painted, x0, y0, x1, y1)
+				end
 			elseif text then -- text with no plate: count its bounds, placed by its alignment
 				local t = o :: any
 				local bw, bh = math.min(t.TextBounds.X, x1 - x0), math.min(t.TextBounds.Y, y1 - y0)
 				local ax = if t.TextXAlignment == Enum.TextXAlignment.Left then 0 elseif t.TextXAlignment == Enum.TextXAlignment.Right then 1 else 0.5
 				local ay = if t.TextYAlignment == Enum.TextYAlignment.Top then 0 elseif t.TextYAlignment == Enum.TextYAlignment.Bottom then 1 else 0.5
 				local tx, ty = x0 + (x1 - x0 - bw) * ax, y0 + (y1 - y0 - bh) * ay
-				mark(painted, tx, ty, tx + bw, ty + bh)
+				lx0, ly0, lx1, ly1 = tx, ty, tx + bw, ty + bh
+				if not brief then
+					mark(painted, lx0, ly0, lx1, ly1)
+				end
+			end
+
+			-- backdrops: a layer over the whole screen is a scrim; one that fills an inset ScreenGui stops short of it
+			local wholeScreen = (x1 - x0) * (y1 - y0) >= 0.95 * FW * FH
+			local wholeGui = x0 <= gx0 + 1 and y0 <= gy0 + 1 and x1 >= gx1 - 1 and y1 >= gy1 - 1
+			local backdrop = wholeScreen or wholeGui -- also a see-through tap catcher of that size
+			if hasBack and not brief and backdrop then
+				if gui.DisplayOrder >= scrimOrder then
+					scrim, scrimOrder = path, gui.DisplayOrder
+				end
+				if not wholeScreen and (gx1 - gx0) * (gy1 - gy0) < 0.98 * FW * FH then
+					table.insert(problems, string.format("warn: backdrop %s fills a %s ScreenGui and stops short of the screen edge (left %d, top %d, right %d, bottom %d px); put full-screen layers in a ScreenGui with ScreenInsets None",
+						path, gui.ScreenInsets.Name, gx0 - fx, gy0 - fy, fx + FW - gx1, fy + FH - gy1))
+				end
 			end
 
 			-- a pass-through button (roblox-ui-mobile section 3) lets the stick start, so it is no stick blocker
 			local pass = o:GetAttribute("PassThrough") == true
-			if o:IsA("GuiButton") and o.Interactable and (o.Active or pass) then
-				buttons += 1
+			local isButton = o:IsA("GuiButton") and o.Interactable and (o.Active or pass)
+			if isButton and backdrop then
+				-- a tap catcher behind a panel is no HUD button, but it does stop the stick while it is up
+				mark(buttonCells, x0, y0, x1, y1)
+				isButton = false
+				text = false
+			end
+			if isButton then
+				-- a button drawn inside a bigger button (a small X in a 44 px hit area) is one target: the outer one
+				local outer = o:FindFirstAncestorWhichIsA("GuiButton")
+				local nested = outer ~= nil and outer.Interactable and outer.Active
+				if not nested then
+					buttons += 1
+				end
 				if not pass then
 					mark(buttonCells, x0, y0, x1, y1)
 				end
@@ -231,8 +291,14 @@ local function check(name: string): string
 						table.insert(problems, string.format("%s: button %s is inside %s", z[6], path, z[1]))
 					end
 				end
-				if touch and math.min(size.X, size.Y) < MIN_TARGET then
+				if touch and not nested and math.min(size.X, size.Y) < MIN_TARGET then
 					table.insert(problems, string.format("warn: button %s is %dx%d px, under %d", path, size.X, size.Y, MIN_TARGET))
+				end
+			end
+			if (isButton or text) and not brief then
+				table.insert(leaves, { gui, gui.DisplayOrder, path, lx0, ly0, lx1, ly1 })
+				if gui.ScreenInsets == Enum.ScreenInsets.None and (lx0 < dx0 - 1 or ly0 < dy0 - 1 or lx1 > dx1 + 1 or ly1 > dy1 + 1) then
+					table.insert(problems, string.format("warn: %s is in a ScreenInsets None ScreenGui and reaches outside the device safe area (a notch or rounded corner can cover it)", path))
 				end
 			end
 			if text then
@@ -243,18 +309,57 @@ local function check(name: string): string
 					table.insert(problems, string.format("warn: text %s is about %d px, under %d", path, px, floor))
 				end
 			end
-			if inSafe and (hasBack or hasImage or text) and not crossing[o.Parent] then
+			if inSafe and not brief and (hasBack or hasImage or text) and not crossing[o.Parent] then
 				if x1 < 0 or y1 < 0 or x0 > W or y0 > H then
 					crossing[o] = true
-					table.insert(problems, string.format("warn: %s is outside the safe frame", path))
+					table.insert(outside, path)
 				elseif x0 < -1 or y0 < -1 or x1 > W + 1 or y1 > H + 1 then
 					crossing[o] = true
-					table.insert(problems, string.format("warn: %s crosses the safe-frame edge", path))
+					table.insert(across, path)
 				end
 			elseif crossing[o.Parent] then
 				crossing[o] = true
 			end
 		end
+	end
+	for _, group in { { outside, "outside the safe frame" }, { across, "across the safe-frame edge" } } do
+		local list = group[1] :: { string }
+		if #list > 0 then
+			table.insert(problems, string.format("warn: %d element%s %s: %s%s", #list, #list == 1 and "" or "s", group[2] :: string,
+				table.concat(list, ", ", 1, math.min(#list, 3)), #list > 3 and ", ..." or ""))
+		end
+	end
+
+	-- buttons and text of two different ScreenGuis on top of each other (a quarter of the smaller one or more).
+	-- Layers under a scrim are covered on purpose and are skipped.
+	local overlaps = 0
+	for i = 1, #leaves do
+		local a = leaves[i]
+		for j = i + 1, #leaves do
+			local b = leaves[j]
+			if a[1] ~= b[1] and (not scrim or (a[2] >= scrimOrder and b[2] >= scrimOrder)) then
+				local w = math.min(a[6], b[6]) - math.max(a[4], b[4])
+				local h = math.min(a[7], b[7]) - math.max(a[5], b[5])
+				local small = math.min((a[6] - a[4]) * (a[7] - a[5]), (b[6] - b[4]) * (b[7] - b[5]))
+				if w > 0 and h > 0 and small > 0 and w * h >= 0.25 * small then
+					overlaps += 1
+					if overlaps <= 6 then
+						table.insert(problems, string.format("warn: %s (ScreenGui %s) and %s (ScreenGui %s) overlap by %dx%d px", a[3], a[1].Name, b[3], b[1].Name, w, h))
+					end
+				end
+			end
+		end
+	end
+	if overlaps > 6 then
+		table.insert(problems, string.format("warn: %d more overlaps between ScreenGuis", overlaps - 6))
+	end
+	if scrim then -- a modal covers the chat window and the player list on purpose
+		for i = #problems, 1, -1 do
+			if string.find(problems[i], "the chat window", 1, true) or string.find(problems[i], "the player list", 1, true) then
+				table.remove(problems, i)
+			end
+		end
+		table.insert(problems, string.format("note: %s is a full-size backdrop (a panel is open): the HUD budgets are skipped and the coverage numbers include it", scrim))
 	end
 
 	-- coverage: whole screen, the centre 50% x 50% box, and buttons inside the thumbstick start area
@@ -282,12 +387,12 @@ local function check(name: string): string
 		end
 	end
 	local hud, mid = 100 * all / (cols * rows), 100 * centre / math.max(centreAll, 1)
-	local stick = if startAll > 0 then 100 * startButtons / startAll else 0
+	local stick = if startAll > 0 and not scrim then 100 * startButtons / startAll else 0
 	if stick > 0 then
 		table.insert(problems, string.format("%s: buttons cover %.0f%% of the thumbstick start area, where a touch on a button cannot start the stick (roblox-ui-layout section 1: warn over 17%%, error over 33%%)",
 			if stick > 33 then "error" elseif stick > 17 then "warn" else "note", stick))
 	end
-	if phone then -- phone HUD budgets (roblox-ui-layout section 2); they assume idle play with panels closed
+	if phone and not scrim then -- phone HUD budgets (roblox-ui-layout section 2); they assume idle play with panels closed
 		if hud > 16 then
 			table.insert(problems, string.format("%s: HUD covers %.1f%% of the screen (target 11, warn over 16, fail over 20)", hud > 20 and "error" or "warn", hud))
 		end
@@ -316,6 +421,7 @@ for _, name in DEVICES do
 end
 safeProbe:Destroy()
 fullProbe:Destroy()
+deviceProbe:Destroy()
 if okBefore and before and before ~= "" then
 	pcall(function()
 		svc:SetDeviceAsync(before)
