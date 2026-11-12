@@ -274,6 +274,7 @@
                 "height_console_px",
                 "cell_px",
                 "controls_width_phone_landscape_px",
+                "controls_width_default_studio_px",
                 "controls_align"
               ],
               "properties": {
@@ -323,6 +324,21 @@
                   ]
                 },
                 "controls_width_phone_landscape_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "controls_width_default_studio_px": {
                   "allOf": [
                     {
                       "$ref": "#/$defs/leaf"
@@ -2478,7 +2494,9 @@
             "phone_hud_cover_warn_share",
             "phone_hud_cover_fail_share",
             "phone_centre_box_cover_max_share",
+            "phone_menu_buttons_target",
             "phone_menu_buttons_max",
+            "phone_menu_buttons_fail",
             "visible_strokes_max",
             "ui_shadows_max"
           ],
@@ -2562,6 +2580,20 @@
                 }
               ]
             },
+            "phone_menu_buttons_target": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
             "phone_menu_buttons_max": {
               "allOf": [
                 {
@@ -2572,6 +2604,20 @@
                     "v": {
                       "type": "number",
                       "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_menu_buttons_fail": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
                     }
                   }
                 }
