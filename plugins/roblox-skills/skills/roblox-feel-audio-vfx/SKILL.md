@@ -44,7 +44,7 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 - Hit feedback: flash/highlight + sound + small camera shake or knockback; damage numbers short and readable.
 - Screen shake: small amplitude, short, with an off switch in settings (`roblox-fun-effects` section 10: "Reduce effects" also removes camera kicks; `roblox-fun-effects` section 8 sizes the kick and hit stop; section 3b has the shake model).
 - Camera rules (field observation): only the object the camera follows (normally the player character) and the player's own actions shake or re-aim it; contacts from other objects (extra projectiles, NPCs, spawned copies) never do, or the screen swings until players feel dizzy. Shakes combine by max, never by sum: keep one amplitude, set it to the larger of the current and the new value, and clamp it.
-- Animations: key poses readable at phone distance; 3-5 core animations first (idle, move, action, hit, reward).
+- Animations: key poses readable at phone distance; 3-5 core animations first (idle, move, action, hit, reward). Attack and skill motions start from a motion sheet: a row of key poses plus a beat table (`roblox-character-motion` section 2a).
 
 ## 3a. Playing animations in game (docs)
 
