@@ -1,7 +1,7 @@
 ---
 name: roblox-game-pipeline
 description: "Use FIRST for any new Roblox game, game idea or big feature to run the staged production workflow: tool check, vision, live-market and platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, first proof (core-fun prototype, concept images or a concept trailer), build loop with evidence, verify, release. For Roblox games this replaces generic brainstorming. Also when the user says 'make a game', 'what do you think of this idea', 'what should I make', 'what is trending' or 'let's start a project'; asks how autonomous the agent should be or whether to use subagents; wants a prototype, concept art or a trailer before building; when a step is judged by feel and the user should play it; when small decisions (cinematic, style, intro, music, loading screen) come up late; when the user asks 'is it all done?'; when work stalls without a working mode. Run roblox-project-intake inside stage 0-1 and roblox-market-research in stages 1-2."
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-12
 sources:
   - superpowers plugin 7.0.0 skills: brainstorming, writing-plans, executing-plans, subagent-driven-development, verification-before-completion, finishing-a-development-branch (read 2026-11-03; rules adapted, not copied)
   - roblox-project-intake, roblox-market-research, roblox-design-and-launch (section 1a), roblox-dev-workflow, roblox-cinematics, roblox-store-art-pack
@@ -265,7 +265,7 @@ Do not ask the user to find what a test can find (errors, overlaps, saves, purch
 
 ## 8. Verify and release (stages 8-9)
 
-- Evidence list in `docs/verification.md`: client and build, the player path walked (section 7), phone-size and PC screenshots, console clean, failure paths, cinematic exits, save and rejoin, and each other live path from section 0, rule 5 run or listed as unverified.
+- Evidence list in `docs/verification.md`: client and build, the player path walked (section 7), phone screenshots from the Device Simulator and PC screenshots, console clean, failure paths, cinematic exits, save and rejoin, and each other live path from section 0, rule 5 run or listed as unverified.
 - A final user session (section 7a, last row) on PC and on a real phone, recorded in `docs/playtests.md`.
 - Review the whole branch once with a fresh-context reviewer.
 - Release follows the gates in `roblox-release-automation` section 4a. The agent never publishes or merges without the user's explicit yes, and hands back the manual steps (maturity questionnaire, age check, icon and thumbnail upload).

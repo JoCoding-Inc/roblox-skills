@@ -1,7 +1,7 @@
 ---
 name: roblox-ui-genre-studs
 description: "Use only for simulator/tycoon-style games (Steal a Brainrot, Steal An Egg, +1 Strength, Pet Simulator) whose HUD, shop, panels or world labels must match that chunky stud look: black outlines, lips, FredokaOne, quiet HUD zones. Not for horror, realistic or story games. Also when a simulator/tycoon UI looks generic, AI-made, too big, too dark or off-genre; when a panel overlaps the HUD; before calling such a UI done; before restyling its HUD, shop, rebirth, store, daily or codes panels; when picking stud/sunburst textures; when world labels clutter the view. For other genres use the UI rules in `roblox-engine-2026`."
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-12
 sources:
   - https://github.com/S4US/Roqer (apps/desktop/agent/skills/roblox-ui-design, MODERN STUDS theme; AGPL-3.0-or-later; facts re-authored, no text copied)
   - https://github.com/hujhfrgrwg/HatchOrSnatch (.claude/skills/roblox-ui-maker LESSONS/STYLE/ROBLOX_FACTS; no license, facts only)
@@ -106,7 +106,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 
 ## 4. HUD zones (1080p measurements, all in Scale)
 
-- These are desktop proportions. On phones the safe frame is about 667x317 px: apply the keep boxes and floors of `roblox-ui-layout` (sections 1, 2 and 4) and run its `scripts/ui_device_check.luau` per device.
+- These are desktop proportions. On phones the safe frame is about 667x317 px: apply the keep boxes and floors of `roblox-ui-layout` (sections 1, 2 and 4), judge them on a phone in the Device Simulator, and run its `scripts/ui_device_check.luau` per device (section 6).
 - Treat the screen as a 3x3 grid. The centre 50% x 50% stays empty. Zones inset 2% or more.
 - Roblox's controls fill the left of a 58 px top strip (`roblox-ui-layout` section 1). With the default `ScreenInsets = CoreUISafeInsets` the safe frame starts below it; with `None` or `DeviceSafeInsets`, push top-corner groups below `GuiService.TopbarInset`.
 - **Left:** menu tiles in 1-2 columns, vertically centred.

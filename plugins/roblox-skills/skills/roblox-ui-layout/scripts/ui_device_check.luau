@@ -1,10 +1,12 @@
--- Preview the game's UI at one device size inside Studio and check it against Roblox's reserved
--- zones (roblox-ui-layout section 1). It copies every ScreenGui in StarterGui into a frame the
--- size of that device's CoreUI-safe area (below the top bar, inside the notch insets), draws the
--- reserved zones in red, and returns problems: buttons inside a zone, buttons under 44 px on touch
--- devices, text under 14 px (12 px for bold, stroked HUD text), elements outside the safe area.
--- Use: set DEVICE, run with Studio MCP execute_luau (Edit), screen_capture, repeat per device,
--- then delete StarterGui.UiDeviceCheck. UI that LocalScripts build at runtime is not in StarterGui:
+-- Numeric zone lint at one device size: checks the game's UI against Roblox's reserved zones
+-- (roblox-ui-layout section 1). It copies every ScreenGui in StarterGui into a frame the size of
+-- that device's CoreUI-safe area (below the top bar, inside the notch insets), draws the reserved
+-- zones in red, and returns problems: buttons inside a zone, buttons under 44 px on touch devices,
+-- text under 14 px (12 px for bold, stroked HUD text), elements outside the safe area.
+-- The drawn frame is a debug overlay, not a phone or tablet view: never review placement, measure
+-- proportions or capture it as device evidence. Look at devices in the Studio Device Simulator
+-- (roblox-ui-layout section 6, step 1). Use: set DEVICE, run with Studio MCP execute_luau (Edit),
+-- read the returned list, repeat per device, then delete StarterGui.UiDeviceCheck. UI that LocalScripts build at runtime is not in StarterGui:
 -- run once in Play, copy PlayerGui's ScreenGuis into StarterGui of a scratch copy, then check.
 local DEVICE = "phone" -- phone, phone_notch, phone_portrait, tablet, desktop, console
 
