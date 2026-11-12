@@ -1,7 +1,7 @@
 ---
 name: roblox-dev-workflow
 description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud). Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, how to organise a multi-session build, or how to brief and run parallel agents (worktree lanes, an agent that stalls). Run roblox-project-intake first if docs/brief.md does not exist."
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-12
 sources:
   - https://create.roblox.com/docs/studio/mcp
   - https://create.roblox.com/docs/assistant/guide
@@ -44,7 +44,7 @@ Doc map (official, no login; "never guess a URL", a wrong path returns an HTML 4
 | 2 Greybox prototype | Playable loop with primitives and placeholder UI | A tester can finish one loop in under 5 minutes and say if it is fun |
 | 3 Systems | Data, economy, progression, saving, remotes | Bot scenarios pass; server owns all state |
 | 4 Art pass | Meshes, materials, lighting, VFX, audio | Contact sheet reviewed; budgets met; assets owned by the right account; no primitive stand-in left |
-| 5 UI/UX pass | HUD, menus, onboarding, mobile layouts | `roblox-ui-layout` `ui_device_check.luau` has no errors on phone, tablet, desktop (and console if shipped); gamepad focus works |
+| 5 UI/UX pass | HUD, menus, onboarding, mobile layouts | Device Simulator captures on a phone and a tablet (`roblox-ui-layout` section 6, never lines drawn on a desktop capture); `ui_device_check.luau` has no errors on phone, tablet, desktop (and console if shipped); gamepad focus works |
 | 6 Test | Bot scenarios, Studio playtest, device and network simulation, private test place | Test checklist green; known issues listed for testers |
 | 7 Publish | Maturity questionnaire, icon, thumbnails, description, publish | Live place loads every asset; rollback version noted |
 | 8 Live ops | Analytics review, updates, events, monetization tuning | Weekly review of retention, funnel and crash data |
@@ -146,7 +146,7 @@ Repeat per feature, small steps:
 3. In Studio through MCP: `get_studio_state`, then `execute_luau` probes in Edit mode; `start_stop_play`; read `get_console_output`. Lint does not catch runtime-only errors in UI code (for example a renamed theme key): Play after UI changes and read the console.
 4. Run a bot scenario for the behaviour (the `playtest` subagent, or your own scripted scenario returning PASS/FAIL lines). See `roblox-pitfalls` section 3. For a layout or loop task a passing scenario does not replace walking the player path with real input (`roblox-game-pipeline` section 7).
 4b. For every economy or save feature add a failure path, not only the happy path: try to buy without enough currency, then buy normally, then reset or rejoin, and check the balance, the granted upgrade and persistence against the intended rules. A clean console does not catch a wrong charge or a missing save.
-5. `screen_capture` from the dev window left in the background (never bring Studio to the front: `roblox-pitfalls` section 3); check layout per device with `roblox-ui-layout` section 6, then the Device Simulator (Assistant skill `rbx-device-simulator-lua`).
+5. `screen_capture` from the dev window left in the background (never bring Studio to the front: `roblox-pitfalls` section 3); check phone and tablet layout only in the Device Simulator (`roblox-ui-layout` section 6; built-in skill `rbx-device-simulator-lua`), never from lines drawn on a desktop capture.
 6. Commit. One feature per commit.
 
 When two agents or windows are involved, always pass the right `studio_id` and list instances with `list_roblox_studios` first. Within one project only one agent at a time drives the shared Studio place or Blender scene; the others do file-only work or headless Blender, or work in their own Blender instance (`roblox-game-pipeline` section 5, `roblox-blender-export` section 8).

@@ -1,7 +1,7 @@
 ---
 name: roblox-cinematics
 description: "Use when deciding whether and how a Roblox game gets cinematics: intro, boss reveal, tutorial beats, level-up or unlock moments, ending. Covers the planning questions, a shot list, the three production methods, skip and safety rules, budgets and testing. Also in the planning interview (roblox-game-pipeline stage 4) before any camera code, when a user asks for a cutscene, intro or trailer-style moment, when a cutscene feels too long or blocks play, or when a cutscene breaks on phone, in a server with several players, or in an MCP screenshot. Pair with roblox-pitfalls and roblox-store-art-pack (loading budget)."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-12
 sources:
   - roblox-pitfalls (execute_luau resets Scriptable camera; anchored NPC poses)
   - DevForum community threads on Scriptable camera cutscenes (opinion, not Roblox docs)
@@ -145,7 +145,7 @@ Keep 3-6 shots per cinematic. Name every mark. Include what the player's charact
 5. **Streaming:** with `StreamingEnabled`, call `Player:RequestStreamAroundAsync(position)` for the cutscene area before the first shot, or shots show unloaded geometry.
 6. **Client authority:** the server sends one event ("play cinematic X to player P") and tracks "seen X" in the save; the client plays it. Do not let the client decide that a reward was earned.
 7. **Overlap:** one cinematic owner at a time; a new one cancels the old one cleanly.
-8. **Mobile:** test on a phone-size emulator; letterbox bars must not cover the Roblox top-left buttons or the Skip button.
+8. **Mobile:** test on a phone in the Studio Device Simulator (`roblox-ui-layout` section 6); letterbox bars must not cover the Roblox top-left buttons or the Skip button.
 9. **Performance:** no new heavy effects only for the cutscene; check frame time on a low-end phone profile.
 10. **Accessibility:** short text lines, readable size, no flashing, shake can be turned off.
 11. **Localization:** captions go through the localization table.
