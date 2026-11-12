@@ -1,7 +1,7 @@
 ---
 name: roblox-character-motion
-description: "Use when a Roblox character must perform a custom motion: exercise loops (push-ups, squats, lifting), sitting, climbing, carrying, interacting with a machine or prop, emotes or any animation the agent would build by script. Covers which authoring path to use, keeping hands and feet on their contact points, baking, uploading so it works in live servers, and how to verify it. Also when a motion looks wrong (body floats, sinks into the floor, hands miss the bar, arms flail, feet slide), when code uses KeyframeSequenceProvider or builds Keyframes and Poses by script, when an animation plays in Studio but not in the published game, when choosing between Animation Editor, Blender, Animation Capture, IKControl and procedural joints, when a script errors with 'Unable to assign property C0', when a display rig's limbs fall off an anchored root, when a carried item is held only some of the time, or before a feel checkpoint for character motion (roblox-game-pipeline section 7a)."
-last_reviewed: 2026-11-09
+description: "Use when a Roblox character must perform a custom motion: exercise loops (push-ups, squats, lifting), sitting, climbing, carrying, interacting with a machine or prop, emotes, attack and skill motions for characters and creatures, or any animation the agent would build by script. Covers which authoring path to use, the motion sheet to make first (a row of key poses plus a beat table), keeping hands and feet on their contact points, baking, uploading so it works in live servers, and how to verify it. Also when a motion looks wrong (body floats, sinks into the floor, hands miss the bar, arms flail, feet slide), when code uses KeyframeSequenceProvider or builds Keyframes and Poses by script, when an animation plays in Studio but not in the published game, when choosing between Animation Editor, Blender, Animation Capture, IKControl and procedural joints, when a script errors with 'Unable to assign property C0', when a display rig's limbs fall off an anchored root, when a carried item is held only some of the time, when an attack or skill animation looks stiff or its hit lands on the wrong frame, or before a feel checkpoint for character motion (roblox-game-pipeline section 7a)."
+last_reviewed: 2026-11-12
 sources:
   - https://create.roblox.com/docs/reference/engine/classes/KeyframeSequenceProvider.md (temporary ids are Studio only)
   - https://create.roblox.com/docs/reference/engine/classes/AnimationClipProvider.md
@@ -16,6 +16,7 @@ sources:
   - https://devforum.roblox.com/t/creator-roadmap-2026-fall-update/4880208
   - original Studio tests 2026-11-03 (push-up loop, default R15 rig, scaled rigs)
   - original field notes (2026-10 to 2026-11)
+  - RoDesigner motion sheet format experiment 2026-11-11 (2 motions, 7 reference formats, one builder per format, blind owner pick plus an Opus judge score)
 ---
 
 # Character motion
@@ -37,6 +38,7 @@ Pair with `roblox-feel-audio-vfx` section 3a (loading, priorities, replication),
 | Small layered motion (breathing, bob, aim, lean) | Write `AnimationConstraint.Transform` (or `Motor6D.Transform` on old rigs) each frame in `RunService.PreSimulation` on the client | Cheap; skip when `Animator.EvaluationThrottled`. Joint rules on `AnimationConstraint` rigs: section 5 |
 | Blending many clips by state | Animation Graph (full release 2026-07-15) | Visual graph with parameters; clips still need uploaded ids |
 | Everyday humanoid motion described in words (limp, wave, sit down), or an R6 clip to move to R15 | Prompt to Animation or Motion Rebuilder (Studio Beta 2026-11-05: File > Beta Features > Animation Generation in Assistant; `/generate_animation` or Studio MCP `generate_animation`) | R15 only; about 20-30 s per action; complex sport and swimming moves are weak (DevForum). Prompt tips from the post: name who moves and how they feel, "then" for a sequence, "while" for two at once, put a stop in the same sentence, name the end pose, add "in place" or "loop". Untested by us; contacts still need section 3 and the clip still needs an upload with the user's yes |
+| Attack, skill, death or creature motion judged by its look | Motion sheet first (section 2a: a row of key poses plus a beat table), then whichever path above fits the body | The sheet is the target and the check; it does not replace the upload or the contact rules |
 | Not this | Joint angles typed by guess, root anchored in the air | Measured in section 4: body sinks 1.43 studs into the floor |
 
 Not available yet (2026-11): shared animations across creators (early 2027), root motion (mid 2027). Animation ids follow new uploads only until 2027-03-31: after that an id without `&version=<n>` keeps the version current on that date (asset versioning, `roblox-engine-2026` section 6), so pin versions or use `AssetService:GetLatestVersionUriAsync`.
@@ -54,6 +56,61 @@ Timing: 1.2 s per rep, eased down and up, first key = last key, Looped
 ```
 
 The contact list and the pivot are what make it read right. "Arms bend 90 degrees" is not a spec: the elbow angle follows from the contacts.
+
+## 2a. Motion sheet first (attacks, skills, creatures)
+
+A motion judged by how it looks (attack combo, skill, slam, death, a creature's hop) gets a motion sheet before any key or pose code. Two parts, and the second is never skipped:
+
+| Part | What | What it carries |
+|---|---|---|
+| Pose strip | ONE row of key poses of the same character (5-6 in the test), in time order left to right, plain background, one shared ground line. Key poses, not even frames | The look: silhouettes, weight shift, where the weapon is at each beat |
+| Beat table | One line per beat: time in seconds and beat name, with the HIT beats named. Add pose words per beat when there is no strip | The timing, which an image cannot give |
+
+The beat table of the tested sword combo (1.80 s, plays once, in place; pose words shortened here):
+
+```
+beat  t(s)   name            pose
+1     0.00   guard           sword low at the right hip, knees slightly bent
+2     0.15   wind-up 1       sword above the right shoulder, weight on the back foot
+3     0.30   HIT 1           diagonal slash to the lower left, weight on the front foot
+4     0.50   wind-up 2       sword stays low on the left, back foot steps level
+5     0.65   HIT 2           backhand slash left to right at chest height
+6     0.85   coil            crouch, sword pulled back behind the right hip
+7     1.05   spin            half-way through the turn, still low, sword out at the waist
+8     1.25   HIT 3           full turn done, sword passing the front, front knee bent deep
+9     1.50   follow-through  sword ends low and out to the left, rising
+10    1.80   recover         back to guard
+```
+
+Under the table, say how the beats move: which ones ease, which land fast and hold (the test held each hit 2-3 frames), which hit is the heavy one.
+
+**What the test showed** (RoDesigner motion-sheet experiment, 2026-11-11). Two motions: a blob creature's jump slam (1.6 s) and the sword combo above on an R15 avatar. Seven kinds of reference, one Sonnet builder per kind (14 builds), each scored blind by one Opus judge; the owner also picked best and worst blind. One screening round with one builder per cell: read every ranking as a lead, not a law. Two blob builds did not finish a clean run (the arcs build was stopped at its time cap, the 16-frame grid build died after its first check), so their blob scores (21 and 29) are the weakest evidence in the table.
+
+| Reference the builder got | Sword combo (max 36) | Blob slam (max 34) |
+|---|---|---|
+| Pose strip + beat table (names and times) | 29, joint top; the owner's best | 29 |
+| Text only: beat table with pose words | 29, joint top; the owner's worst | 33, top |
+| Pose strip with time labels and the HIT pose framed + table | 28 | 28 |
+| Side row and front row + table | 25 | 30 |
+| Pose strip with drawn motion arcs + table | 24 | 21 |
+| 4x4 grid of 16 even frames + table | 17 | 29 |
+| Image only, no beat table | 10, last | 16, last |
+
+Read it as:
+- **The beat table carries the timing.** The image without one was last on both motions, and the results that landed on the beat times ranked top.
+- **The strip carries the look on a jointed body.** Text alone tied the judge's top score on the sword combo and was the owner's worst by eye (it had a one-frame pop and a follow-through turned the wrong way).
+- **A blob moved by scale does not need the image.** Text alone scored highest and the owner saw no difference between the seven.
+- **Keep the strip plain.** Labels, a second view and arcs did not beat it. The 16-frame grid was worse on the sword combo: loose frame order, a wrong start pose, and every cell stands on its own ground line, so jump height is lost. In-between frames are the engine's job.
+
+**Make the strip.** Render the character itself in a neutral pose and give that render to the image tool as the reference, with the move's name and the key poses listed in order: "same character in every pose, one row, side view, plain background" (16:9 in the test, about 1 credit a sheet; quote the cost and get the user's yes first). Without the character render the sheet drew a different character. Add time labels afterwards by compositing; the image model drew poses only. No dedicated motion-sheet tool existed on 2026-11-12: an agent can use the RoDesigner MCP's image generation with its own character render today, a dedicated tool when the MCP lists one, another image tool the user has connected, or stills of the user's own reference. Never feed a frame of someone else's game to a generator.
+
+**Check the strip before building from it.** Seen in the test: "side view" came back three-quarter, a "front row" was not a true front view, proportions drifted between poses. Check the pose count and order against the beat list, the same character and the same hand on the weapon in every pose, first and last pose equal for a loop, one ground line across the row when height matters. Tell the builder to match the poses, not the drawing's proportions or camera.
+
+**Build from it.**
+1. Write the motion as a function of time, `pose(rig, t)`, that sets each joint's `Transform` (jointed body) or the body's size and position (blob: height against width with the volume kept), and give the builder a rig card first: part and joint names, axes, rest pose, sizes. This is how every test build was made.
+2. Step it: capture the result from a fixed side camera at each beat time, lay the frames in a row under the strip, compare beat by beat and revise (at most twice in the test). The step that made the difference: an agent cannot see its motion any other way. Time-driven effects (trails, particles) cannot be frame-stepped; add them after the poses pass.
+3. Defects the result strips showed: hits 2-4 frames off the beat, an ending that never returns to the start pose, a one-frame pop, a turn in the wrong direction (a side camera hides it, so check a turn from above too), the weapon hidden behind the body at a hit, a detached prop floating for 8-10 frames.
+4. Not tested: turning the pose function into a `KeyframeSequence` or an uploaded animation (sample `pose(rig, t)` at the beat times into keys, then section 6, judgment), an animation event on the HIT beat in a live game (`roblox-feel-audio-vfx` section 3a), weapon trails, a custom segmented rig, a stronger builder model.
 
 ## 3. Contact-first method (tested)
 
@@ -106,6 +163,7 @@ An animation owned by another account usually fails to load. After upload, repla
 1. A walk moved by game code (walkers on a path) has no rep to freeze: a Studio-only test-clock attribute that dead-reckons the walkers stepped the gait frame by frame at equal time steps while the sim ran at speed 0, which made the walk strips (field note, 2026-11-11). Otherwise: freeze at `t = 0, 0.25, 0.5, 0.75` of the rep (or every 0.05 s) and assert every contact within 0.05 studs of its surface (`ContactBake.measure`).
 2. Screenshot side view and three-quarter view at top and bottom with a fixed camera: in Edit mode use `screen_capture` with `camera_position` (poses are frozen with `StepAnimations`, section 3 step 7); in Play (runtime IK) use the render-step camera in `roblox-pitfalls` section 3 ('Screenshots in Play'). Body colors must differ from the floor; a default rig is black.
 3. Repeat on a 0.9x and a 1.2x height rig, and one wide body, or record the error you accept.
-4. Then let the user watch it in Play (`roblox-game-pipeline` section 7a): numbers prove contact, only a person judges weight and timing.
+4. A motion built from a sheet (section 2a): capture it from the sheet's camera side at each time in the beat table, lay the frames in one row under the pose image and compare pose by pose (silhouette, height off the ground, weapon position, which beat is the HIT). Fix the pose that differs most, then capture again.
+5. Then let the user watch it in Play (`roblox-game-pipeline` section 7a): numbers prove contact, only a person judges weight and timing.
 
 Defects to look for: body sliding along the floor, feet or hands inside surfaces, elbows or knees bending the wrong way, a pop at the loop seam (first key differs from the last), arms or head overridden by idle or fall, motion faster than the rep reward.
