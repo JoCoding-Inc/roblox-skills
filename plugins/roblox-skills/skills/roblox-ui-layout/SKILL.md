@@ -189,6 +189,7 @@ Every change: Samsung Galaxy A06, iPhone 17 Pro and iPad 10th Generation. Before
    - The sweep waits 1 s after each device switch. UI built per device class when it is shown (a toast, a card) keeps the old class's layout after a live switch, so show that state again on each device before trusting its numbers (field note, 2026-11-12).
    - Pasting the file on every run is costly. Put it in the place as a ModuleScript (dev only: `UiDeviceCheck` is on the release gate's leftover list) and run `return require(game:GetService("ReplicatedStorage"):FindFirstChild("UiDeviceCheck"):Clone())`; requiring a clone runs the sweep again (tested 2026-11-12).
    - In Edit it checks StarterGui only, with formula zones and a frame 58 px too tall (no top bar): a first pass, not the result.
+   - The RoDesigner kit lint follows three of these rules from 0.1.17 (kit-v0.1.17-rc): it reads `SweepIgnore = true` as a skip of the whole subtree (counted in its ESCAPE_MARKS), it counts FredokaOne, LuckiestGuy and Bangers as bold from the same list as the sweep, and it treats an element wholly past the device safe-area cut as hidden while a control cut across that edge gets an OFFSCREEN warning.
    - Clicks: in the simulator `user_mouse_input` is emulated touch and misses by the left notch inset when given an `instance_path` (`roblox-ui-mobile` section 7).
 3. Last, a real phone for thumb reach (`roblox-game-pipeline` verification).
 4. These steps check placement and size, not the look: also run the look check in `roblox-engine-2026` section 2 (UI review, step 4).
