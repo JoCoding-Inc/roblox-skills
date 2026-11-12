@@ -53,6 +53,10 @@
             "daily_users_share",
             "phone_dpi_px",
             "phone_safe_frame_px",
+            "phone_notch_safe_frame_px",
+            "small_tablet_safe_frame_px",
+            "test_presets_every_change",
+            "test_presets_before_done",
             "docs_notched_phone_safe_frame_px",
             "touch_controls_large_when_short_side_over_px",
             "core_ui_small_when_height_under_px",
@@ -158,6 +162,80 @@
                       },
                       "minItems": 2,
                       "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "phone_notch_safe_frame_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "small_tablet_safe_frame_px": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "test_presets_every_change": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "test_presets_before_done": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
                     }
                   }
                 }
@@ -385,7 +463,13 @@
                 "phone",
                 "large_touch",
                 "start_area_landscape_share",
-                "start_area_portrait_share"
+                "start_area_portrait_share",
+                "start_area_blocked_by",
+                "start_area_buttons",
+                "start_area_frames_with_buttons_top_games_share",
+                "start_area_ui_cover_top_games_share",
+                "start_area_button_cover_warn_share",
+                "start_area_button_cover_fail_share"
               ],
               "properties": {
                 "phone": {
@@ -597,6 +681,101 @@
                           },
                           "minItems": 2,
                           "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "start_area_blocked_by": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "start_area_buttons": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "start_area_frames_with_buttons_top_games_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "start_area_ui_cover_top_games_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "start_area_button_cover_warn_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "start_area_button_cover_fail_share": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1
                         }
                       }
                     }
@@ -1242,6 +1421,10 @@
             "action_button_size_of_jump",
             "top_centre_max_lines",
             "close_button_min_px",
+            "close_button_visible_height_share",
+            "panel_size_share_phone",
+            "panel_grid_columns_phone",
+            "panel_hud_stays_share",
             "centre_box_share",
             "centre_box_idle_cover_rejected_share",
             "bottom_centre_bar_x_share",
@@ -1377,6 +1560,71 @@
                     "v": {
                       "type": "number",
                       "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "close_button_visible_height_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "panel_size_share_phone": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number"
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "panel_grid_columns_phone": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "panel_hud_stays_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
                     }
                   }
                 }

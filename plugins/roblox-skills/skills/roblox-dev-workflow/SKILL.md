@@ -44,7 +44,7 @@ Doc map (official, no login; "never guess a URL", a wrong path returns an HTML 4
 | 2 Greybox prototype | Playable loop with primitives and placeholder UI | A tester can finish one loop in under 5 minutes and say if it is fun |
 | 3 Systems | Data, economy, progression, saving, remotes | Bot scenarios pass; server owns all state |
 | 4 Art pass | Meshes, materials, lighting, VFX, audio | Contact sheet reviewed; budgets met; assets owned by the right account; no primitive stand-in left |
-| 5 UI/UX pass | HUD, menus, onboarding, mobile layouts | Device Simulator captures on a phone and a tablet (`roblox-ui-layout` section 6, never lines drawn on a desktop capture); `ui_device_check.luau` has no errors on phone, tablet, desktop (and console if shipped); gamepad focus works |
+| 5 UI/UX pass | HUD, menus, onboarding, mobile layouts | Device Simulator captures on a phone and a tablet (`roblox-ui-layout` section 6, never lines drawn on a desktop capture); the `ui_device_check.luau` sweep has no errors on its phone, tablet and desktop presets (test devices and phone-first order: `roblox-ui-mobile`; console by eye if shipped); gamepad focus works |
 | 6 Test | Bot scenarios, Studio playtest, device and network simulation, private test place | Test checklist green; known issues listed for testers |
 | 7 Publish | Maturity questionnaire, icon, thumbnails, description, publish | Live place loads every asset; rollback version noted |
 | 8 Live ops | Analytics review, updates, events, monetization tuning | Weekly review of retention, funnel and crash data |

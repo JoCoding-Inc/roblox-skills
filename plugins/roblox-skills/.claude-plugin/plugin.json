@@ -1,7 +1,7 @@
 {
   "name": "roblox-skills",
-  "description": "Roblox game dev with an AI agent from idea to live ops: tool check and project intake, live market and keyword research, staged pipeline, engine rules, combat, rounds and teleports, saves, NPCs, feel, audio, fun effects and reveals, character design and motion, Studio MCP/Assistant, design and launch policy, release automation, Blender export, store art, typography, UI layout per device, stud and sci-fi UI and field-tested pitfalls.",
-  "version": "1.10.0",
+  "description": "Roblox game dev with an AI agent from idea to live ops: tool check and project intake, live market and keyword research, staged pipeline, engine rules, combat, rounds and teleports, saves, NPCs, feel, audio, fun effects and reveals, character design and motion, Studio MCP/Assistant, design and launch policy, release automation, Blender export, store art, typography, UI layout per device, mobile-first UI, stud and sci-fi UI and field-tested pitfalls.",
+  "version": "1.11.0",
   "author": {
     "name": "JoCoding"
   },

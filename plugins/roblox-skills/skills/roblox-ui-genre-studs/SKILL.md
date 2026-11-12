@@ -75,7 +75,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
   - Corners: UICorner 14-30.
   - One colored header band per panel (orange, blue or purple).
   - Optional faint 2 px white inner rim.
-- Opening a panel: a dim layer over the game plus a UIScale pop (an owner review asked for the dim, `roblox-ui-layout` section 2); a world BlurEffect is optional.
+- Opening a panel: a dim layer over the game plus a UIScale pop (an owner review asked for the dim, `roblox-ui-layout` section 2); a world BlurEffect is optional. What top phone games do, panel sizes per device and a tested open and close module: `roblox-ui-mobile` section 4.
 
 ## 3. Text
 
@@ -106,7 +106,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 
 ## 4. HUD zones (1080p measurements, all in Scale)
 
-- These are desktop proportions. On phones the safe frame is about 667x317 px: apply the keep boxes and floors of `roblox-ui-layout` (sections 1, 2 and 4), judge them on a phone in the Device Simulator, and run its `scripts/ui_device_check.luau` per device (section 6).
+- These are desktop proportions. On the smallest common phone the safe frame is 705x280 px (Galaxy A06 preset): apply the keep boxes and floors of `roblox-ui-layout` (sections 1, 2 and 4), build phone first (`roblox-ui-mobile`), judge on phones in the Device Simulator, and run the `scripts/ui_device_check.luau` sweep (`roblox-ui-layout` section 6).
 - Treat the screen as a 3x3 grid. The centre 50% x 50% stays empty. Zones inset 2% or more.
 - Roblox's controls fill the left of a 58 px top strip (`roblox-ui-layout` section 1). With the default `ScreenInsets = CoreUISafeInsets` the safe frame starts below it; with `None` or `DeviceSafeInsets`, push top-corner groups below `GuiService.TopbarInset`.
 - **Left:** menu tiles in 1-2 columns, vertically centred.

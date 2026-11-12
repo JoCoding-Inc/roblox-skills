@@ -66,6 +66,7 @@ DATA_TOPIC = {"zones": "layout", "tokens": "stud-style", "motion": "motion", "ty
 # (skill, sections or None for the whole skill, topic)
 GUIDES = [
     ("roblox-ui-layout", None, "layout"),
+    ("roblox-ui-mobile", None, "layout"),
     ("roblox-ui-genre-studs", None, "stud-style"),
     ("roblox-ui-genre-scifi", None, "ui-styles"),
     ("roblox-ui-typography", None, "typography"),
@@ -92,6 +93,8 @@ IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
 # (file under SKILLS, topic, section_ref): Luau a packed guide section depends on
 SCRIPTS = [
     ("roblox-ui-genre-scifi/scripts/hud_shapes.luau", "ui-styles", "roblox-ui-genre-scifi/SKILL.md#2"),
+    ("roblox-ui-mobile/scripts/panel_stage.luau", "layout", "roblox-ui-mobile/SKILL.md#4"),
+    ("roblox-ui-layout/scripts/ui_device_check.luau", "layout", "roblox-ui-layout/SKILL.md#6"),
 ]
 HEADING = re.compile(r"^## ([0-9]+[a-z]?)\. ")
 # styles.json keeps the Lua keys of PRESETS; units are given here

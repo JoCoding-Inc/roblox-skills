@@ -32,7 +32,7 @@ jobs:
       - name: Warn when a mirrored skill changes without design/data
         run: |
           changed=$(git diff --name-only HEAD^1 HEAD)
-          if echo "$changed" | grep -qE '^plugins/roblox-skills/skills/roblox-(ui-layout|ui-genre-studs|ui-typography|fun-effects|feel-audio-vfx|store-art-pack)/SKILL\.md$' \
+          if echo "$changed" | grep -qE '^plugins/roblox-skills/skills/roblox-(ui-layout|ui-mobile|ui-genre-studs|ui-typography|fun-effects|feel-audio-vfx|store-art-pack)/SKILL\.md$' \
             && ! echo "$changed" | grep -q '^design/data/'; then
             echo "::warning::A skill mirrored in design/data changed but design/data did not. Update the data file if a value changed."
           fi

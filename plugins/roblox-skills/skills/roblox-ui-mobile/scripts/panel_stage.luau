@@ -1,31 +1,41 @@
 --!strict
--- PanelStage: opens one panel at a time the way phone players expect (roblox-ui-mobile section 5).
--- On open: the game dims behind a scrim, HUD layers slide off their own edge, the touch controls
--- hide, the panel pops in. On close everything comes back. A tap on the scrim closes the panel.
+-- PanelStage: opens one panel at a time on a small screen (roblox-ui-mobile section 4).
+-- A modal panel (shop, settings, confirm): the game dims or blurs behind it, the HUD layers the
+-- panel would cover slide off their own edge, the touch controls hide, the panel pops in. A tap
+-- outside closes it. A sheet (modal = false; a unit card beside play) only moves the HUD layers it
+-- covers: no backdrop, the touch controls stay. Close brings everything back.
 -- While the on-screen keyboard is up, the panel moves up so the focused TextBox stays visible.
 -- Client ModuleScript. Tested in the Studio 0.747 Device Simulator on Samsung Galaxy A06,
--- iPhone 17 Pro, iPad 10th Generation and Average Windows (2026-11-12).
+-- iPhone 17 Pro, Amazon Fire HD 10 (2023), iPad 10th Generation and Average Windows (2026-11-12).
 --
--- local stage = PanelStage.new(playerGui)
+-- local stage = PanelStage.new(playerGui)   -- or .new(playerGui, 5): scrim under a HUD of order 10
 -- stage:addLayer(hud.Left, "left")      -- a full-size transparent Frame holding that side's HUD
 -- stage:addLayer(hud.Right, "right")
--- stage:open(shopPanel, { keep = { hud.Top } })   -- keep: layers that stay on screen
--- stage:open(otherPanel)                          -- while one is open: swaps the panel only
+-- stage:addLayer(hud.Top, "top")
+-- stage:open(shopPanel)                               -- dim, covered layers slide off
+-- stage:open(shopPanel, { backdrop = "blur" })        -- world blur plus a light dim
+-- stage:open(unitCard, { modal = false })             -- play continues beside it
+-- stage:open(otherPanel)                              -- while one is open: swaps, no flicker
 -- stage:close()
 local GuiService = game:GetService("GuiService")
+local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 export type Side = "left" | "right" | "top" | "bottom"
 export type OpenOptions = {
-	dim: number?, -- scrim darkness 0-1, default 0.5
-	keep: { GuiObject }?, -- layers that stay on screen
-	dismissOnScrim: boolean?, -- default true
-	hideTouchControls: boolean?, -- default true
+	modal: boolean?, -- default true; false = a sheet beside play
+	backdrop: ("dim" | "blur" | "none")?, -- modal only, default "dim"
+	dim: number?, -- scrim darkness 0-1: default 0.5 for "dim", 0.25 for "blur", 0 for "none"
+	blur: number?, -- BlurEffect.Size for "blur", default 16
+	hide: ("overlap" | "all" | "none")?, -- HUD layers that slide off, default "overlap" (those the panel covers)
+	keep: { GuiObject }?, -- layers that never slide
+	dismissOnScrim: boolean?, -- modal only, default true
 }
-type Layer = { frame: GuiObject, side: Side, home: UDim2 }
+type Layer = { frame: GuiObject, side: Side, home: UDim2, out: boolean }
 
-local OPEN_TIME, CLOSE_TIME, SLIDE_OUT, SLIDE_IN = 0.25, 0.12, 0.18, 0.25
+local OPEN_TIME, CLOSE_TIME, SLIDE_OUT, SLIDE_IN, FADE = 0.2, 0.12, 0.18, 0.25, 0.2
+local GAP = 8 -- px a HUD element must keep from the panel to stay on screen
 local DIRECTION: { [Side]: Vector2 } = {
 	left = Vector2.new(-1, 0),
 	right = Vector2.new(1, 0),
@@ -36,15 +46,17 @@ local DIRECTION: { [Side]: Vector2 } = {
 local PanelStage = {}
 PanelStage.__index = PanelStage
 
-function PanelStage.new(playerGui: Instance)
+-- order: the scrim's DisplayOrder, default 50. Panels live in a ScreenGui above it. HUD below it
+-- is dimmed with the game and takes no taps while a modal panel is open; HUD above it stays bright
+-- and tappable, so a menu button can switch panels.
+function PanelStage.new(playerGui: Instance, order: number?)
 	local self = setmetatable({}, PanelStage)
-	-- The scrim has its own ScreenGui with no insets, so it also covers the notch margins and
-	-- the top bar strip. Panels live in a ScreenGui with a higher DisplayOrder than this one.
+	-- its own ScreenGui with no insets, so it also covers the notch margins and the top bar strip
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "PanelScrim"
 	gui.ResetOnSpawn = false
 	gui.ScreenInsets = Enum.ScreenInsets.None
-	gui.DisplayOrder = 50
+	gui.DisplayOrder = order or 50
 	gui.Enabled = false
 	local scrim = Instance.new("TextButton") -- a button, so taps reach neither the HUD nor the world
 	scrim.Name = "Scrim"
@@ -56,11 +68,17 @@ function PanelStage.new(playerGui: Instance)
 	scrim.BorderSizePixel = 0
 	scrim.Parent = gui
 	gui.Parent = playerGui
+	local blur = Instance.new("BlurEffect") -- blurs the 3D world only; UI stays sharp
+	blur.Name = "PanelStageBlur"
+	blur.Size = 0
+	blur.Enabled = false
+	blur.Parent = Lighting
 	self.gui = gui
 	self.scrim = scrim
+	self.blur = blur
 	self.layers = {} :: { Layer }
 	self.panel = nil :: GuiObject?
-	self.hidden = {} :: { Layer }
+	self.modal = false
 	self.touchWas = true
 	self.dismiss = true
 	self.home = nil :: UDim2? -- the open panel's position before the keyboard moved it
@@ -97,7 +115,7 @@ function PanelStage:_followKeyboard()
 end
 
 function PanelStage:addLayer(frame: GuiObject, side: Side)
-	table.insert(self.layers, { frame = frame, side = side, home = frame.Position })
+	table.insert(self.layers, { frame = frame, side = side, home = frame.Position, out = false })
 end
 
 local function instant(): boolean
@@ -140,6 +158,24 @@ local function travel(layer: Layer): UDim2
 	return layer.home + UDim2.fromOffset(d.X, d.Y)
 end
 
+-- true when a visible child of the layer, at the layer's home position, comes within GAP of the panel
+local function covered(layer: Layer, panel: GuiObject): boolean
+	local frame = layer.frame
+	local shift = Vector2.new(frame.Position.X.Offset - layer.home.X.Offset, frame.Position.Y.Offset - layer.home.Y.Offset)
+	local p0 = panel.AbsolutePosition - Vector2.new(GAP, GAP)
+	local p1 = panel.AbsolutePosition + panel.AbsoluteSize + Vector2.new(GAP, GAP)
+	for _, child in frame:GetChildren() do
+		if child:IsA("GuiObject") and child.Visible then
+			local c0 = child.AbsolutePosition - shift
+			local c1 = c0 + child.AbsoluteSize
+			if c0.X < p1.X and c1.X > p0.X and c0.Y < p1.Y and c1.Y > p0.Y then
+				return true
+			end
+		end
+	end
+	return false
+end
+
 local function scaleOf(panel: GuiObject): UIScale
 	local s = panel:FindFirstChildOfClass("UIScale")
 	if not s then
@@ -150,54 +186,106 @@ local function scaleOf(panel: GuiObject): UIScale
 	return s
 end
 
-function PanelStage:open(panel: GuiObject, options: OpenOptions?)
-	local opts: OpenOptions = options or {}
-	local scale = scaleOf(panel)
-	if self.panel then -- swap panels: the scrim and the hidden layers stay as they are
-		if self.panel ~= panel then
-			if self.home then
-				self.panel.Position = self.home
-				self.home = nil
-			end
-			self.panel.Visible = false
-		end
-		self.panel = panel
-		self.dismiss = opts.dismissOnScrim ~= false
-		scale.Scale = 1
-		panel.Visible = true
-		return
-	end
-	self.panel = panel
-	self.dismiss = opts.dismissOnScrim ~= false
-	self.gui.Enabled = true
-	tween(self.scrim, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, { BackgroundTransparency = 1 - (opts.dim or 0.5) })
-
-	local keep = opts.keep or {}
-	self.hidden = {}
-	for _, layer in self.layers do
-		if not table.find(keep, layer.frame) then
-			table.insert(self.hidden, layer)
+function PanelStage:_setHidden(want: { [GuiObject]: boolean })
+	for _, layer in self.layers :: { Layer } do
+		if want[layer.frame] and not layer.out then
+			layer.out = true
 			local t = tween(layer.frame, SLIDE_OUT, Enum.EasingStyle.Quad, Enum.EasingDirection.In, { Position = travel(layer) })
 			if t then
 				t.Completed:Once(function()
-					if self.panel then -- still open: a hidden layer takes no input
+					if layer.out then -- still hidden: a hidden layer takes no input
 						layer.frame.Visible = false
 					end
 				end)
 			else
 				layer.frame.Visible = false
 			end
+		elseif not want[layer.frame] and layer.out then
+			layer.out = false
+			layer.frame.Visible = true
+			tween(layer.frame, SLIDE_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, { Position = layer.home })
 		end
 	end
+end
 
-	if opts.hideTouchControls ~= false then
-		self.touchWas = GuiService.TouchControlsEnabled
-		GuiService.TouchControlsEnabled = false
+function PanelStage:_setBackdrop(modal: boolean, dim: number, blur: number)
+	if modal then
+		self.gui.Enabled = true
+		if not self.modal then
+			self.touchWas = GuiService.TouchControlsEnabled
+			GuiService.TouchControlsEnabled = false -- the scrim takes every touch, so the controls would be dead
+		end
+	elseif self.modal then
+		GuiService.TouchControlsEnabled = self.touchWas
 	end
+	self.modal = modal
+	local fade = tween(self.scrim, FADE, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, { BackgroundTransparency = 1 - dim })
+	if not modal then
+		if fade then
+			fade.Completed:Once(function()
+				if not self.modal then
+					self.gui.Enabled = false
+				end
+			end)
+		else
+			self.gui.Enabled = false
+		end
+	end
+	if blur > 0 then
+		self.blur.Enabled = true
+	end
+	local soften = tween(self.blur, FADE, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, { Size = blur })
+	if blur == 0 then
+		if soften then
+			soften.Completed:Once(function()
+				if self.blur.Size == 0 then
+					self.blur.Enabled = false
+				end
+			end)
+		else
+			self.blur.Enabled = false
+		end
+	end
+end
 
-	scale.Scale = if instant() then 1 else 0.9
-	panel.Visible = true
-	tween(scale, OPEN_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out, { Scale = 1 })
+function PanelStage:open(panel: GuiObject, options: OpenOptions?)
+	local opts: OpenOptions = options or {}
+	local swap = self.panel ~= nil
+	local old = self.panel
+	if old and old ~= panel then
+		if self.home then
+			old.Position = self.home
+			self.home = nil
+		end
+		old.Visible = false
+	end
+	self.panel = panel
+	local modal = opts.modal ~= false
+	local backdrop = if modal then (opts.backdrop or "dim") else "none"
+	self.dismiss = modal and opts.dismissOnScrim ~= false
+	self:_setBackdrop(
+		modal,
+		if not modal then 0 else opts.dim or (if backdrop == "dim" then 0.5 elseif backdrop == "blur" then 0.25 else 0),
+		if backdrop == "blur" then opts.blur or 16 else 0
+	)
+
+	local scale = scaleOf(panel)
+	scale.Scale = 1
+	panel.Visible = true -- AbsoluteSize below is the panel's final rect
+	local hide = opts.hide or "overlap"
+	local keep = opts.keep or {}
+	local want = {}
+	for _, layer in self.layers :: { Layer } do
+		if not table.find(keep, layer.frame) and (hide == "all" or (hide == "overlap" and covered(layer, panel))) then
+			want[layer.frame] = true
+		end
+	end
+	self:_setHidden(want)
+
+	if not swap and not instant() then
+		scale.Scale = 0.9
+		tween(scale, OPEN_TIME, Enum.EasingStyle.Back, Enum.EasingDirection.Out, { Scale = 1 })
+	end
 end
 
 function PanelStage:close(now: boolean?)
@@ -221,24 +309,8 @@ function PanelStage:close(now: boolean?)
 	else
 		panel.Visible = false
 	end
-
-	local fade = tween(self.scrim, 0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.In, { BackgroundTransparency = 1 })
-	if fade then
-		fade.Completed:Once(function()
-			if not self.panel then
-				self.gui.Enabled = false
-			end
-		end)
-	else
-		self.gui.Enabled = false
-	end
-
-	for _, layer in self.hidden do
-		layer.frame.Visible = true
-		tween(layer.frame, SLIDE_IN, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, { Position = layer.home })
-	end
-	self.hidden = {}
-	GuiService.TouchControlsEnabled = self.touchWas
+	self:_setBackdrop(false, 0, 0)
+	self:_setHidden({})
 end
 
 return PanelStage
