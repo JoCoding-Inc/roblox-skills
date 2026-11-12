@@ -84,6 +84,6 @@ Local build: `python3 -I scripts/export_design_pack.py --out dist --version 0.0.
 
 ## Editing
 
-- When a skill value mirrored here changes (`roblox-ui-layout`, `roblox-ui-genre-studs`, `roblox-ui-typography`, `roblox-fun-effects`, `roblox-feel-audio-vfx`, `roblox-store-art-pack`), change the data file in the same PR; the PR check warns when only the skill changed.
+- When a skill value mirrored here changes (`roblox-ui-layout`, `roblox-ui-mobile`, `roblox-ui-genre-studs`, `roblox-ui-typography`, `roblox-fun-effects`, `roblox-feel-audio-vfx`, `roblox-store-art-pack`), change the data file in the same PR; the PR check warns when only the skill changed.
 - After a data change, run `--write-schemas` and read the schema diff: a removed or retyped key is a schema major bump.
 - Security: a PR from an outside contributor that touches `design/**` or a mirrored skill needs a maintainer's review for instructions aimed at agents (for example "ignore previous instructions", hidden links, commands), not only for content, because the pack becomes tool output that agents read.

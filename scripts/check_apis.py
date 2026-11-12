@@ -57,7 +57,7 @@ if ign.exists():
             ignore.add(line)
 
 # Members inherited from these bases are not on the subclass page.
-BASES = ["BasePart", "PVInstance", "Instance", "GuiObject", "GuiBase2d", "LayerCollector", "Light", "Model", "LuaSourceContainer", "ValueBase"]
+BASES = ["BasePart", "PVInstance", "Instance", "Object", "GuiObject", "GuiBase2d", "LayerCollector", "Light", "Model", "LuaSourceContainer", "ValueBase"]
 
 def find(body, name, member):
     return re.search(rf"^#+ .*\b{re.escape(name)}[.:]{re.escape(member)}\b.*$|^\| `{re.escape(member)}`", body, re.M)
