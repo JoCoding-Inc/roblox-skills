@@ -15,7 +15,7 @@
       "phone_safe_frame_px": {"v": [705, 280], "p": "measured", "src": "Samsung Galaxy A06 preset (800x360) in Play, Studio 0.747 Device Simulator; every Android phone preset is 360 px tall; smallest common phone frame", "date": "2026-11-12"},
       "phone_notch_safe_frame_px": {"v": [750, 323], "p": "measured", "src": "iPhone 17 Pro preset (874x402) in Play, 62 px insets each side", "date": "2026-11-12"},
       "small_tablet_safe_frame_px": {"v": [959, 541], "p": "measured", "src": "Amazon Fire HD 10 (2023) preset (960x600) in Play; large touch controls", "date": "2026-11-12"},
-      "test_presets_every_change": {"v": ["Samsung Galaxy A06", "iPhone 17 Pro"], "p": "opinion", "src": "Studio Device Simulator preset names; roblox-ui-mobile section 1", "date": "2026-11-12"},
+      "test_presets_every_change": {"v": ["Samsung Galaxy A06", "iPhone 17 Pro", "iPad 10th Generation"], "p": "opinion", "src": "Studio Device Simulator preset names; roblox-ui-mobile section 1", "date": "2026-11-12"},
       "test_presets_before_done": {"v": ["Samsung Galaxy A06", "iPhone 17 Pro", "Amazon Fire HD 10 (2023)", "iPad 10th Generation", "Average Windows", "HD 1080"], "p": "opinion", "src": "the list ui_device_check.luau sweeps", "date": "2026-11-12"},
       "docs_notched_phone_safe_frame_px": {"v": [733, 313], "p": "documented"},
       "touch_controls_large_when_short_side_over_px": {"v": 500, "p": "measured", "src": "engine scripts"},

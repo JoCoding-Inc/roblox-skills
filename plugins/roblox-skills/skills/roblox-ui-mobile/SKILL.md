@@ -31,7 +31,8 @@ Most players hold a phone, so the phone layout is the design and tablet and desk
 - Phone screens worldwide (same source, portrait px): 414x896 12.7%, 360x800 8.6%, 384x832 7.2%, 390x844 5.3%. 360x800 is first in the Philippines (16.6%), Indonesia (8.7%) and India (15.7%). 375x667 (the iPhone 6 to 8 size) is 1.4% worldwide and 2.6% in the US. Nothing in the worldwide top 20 is narrower than 360.
 - The two best-selling Android phones of 2025 were the Galaxy A16 5G and the Galaxy A06 (Counterpoint, 5th and 6th overall). Both are Studio presets.
 - Tablets: Apple 47.7%, Samsung 26.8%, Amazon 9.0% worldwide; Amazon is 21.8% in the US. Desktop screens: 1920x1080 27.8%, 1536x864 9.2%, 1366x768 7.5%.
-- Reading (judgment): the typical player holds an entry Android phone, which gives Roblox its smallest frame (section 1), and most spend comes from iPhone-heavy markets. Test both ends on every change.
+- One game's own mix (field note relayed from its Open Cloud analytics, 2026-11-05 to 11-10, 929 daily-user days, ad-driven traffic; not re-read here): Android phone 31%, iPhone 26%, iPad 21%, Android tablet 6%, Windows 14%, Mac 2% of daily users; playtime phone 59%, tablet 11%, computer 30%. Tablets were over a quarter of its players, which web traffic shares do not show.
+- Reading (judgment): the typical player holds an entry Android phone, which gives Roblox its smallest frame (section 1), most spend comes from iPhone-heavy markets, and tablets are a large third group. Test all three on every change.
 
 ## 1. Test devices
 
@@ -51,8 +52,8 @@ When to use which (judgment, from section 0):
 
 | When | Devices | Why |
 |---|---|---|
-| Every UI change | Samsung Galaxy A06, iPhone 17 Pro | The smallest common frame and the largest Android class; the notched iPhone frame where the spend is |
-| Before calling a UI done | plus Amazon Fire HD 10 (2023), iPad 10th Generation, Average Windows, HD 1080 | Large touch controls on a small tablet, the Medium display class, a small laptop, the most common desktop. This is the default list of the sweep script (section 7) |
+| Every UI change | Samsung Galaxy A06, iPhone 17 Pro, iPad 10th Generation | The smallest common frame and the largest Android class; the notched iPhone frame where the spend is; a tablet with large touch controls (tablets were 27% of one game's daily users, section 0) |
+| Before calling a UI done | plus Amazon Fire HD 10 (2023), Average Windows, HD 1080 | Large touch controls on a small tablet frame, a small laptop, the most common desktop. With the three above this is the default list of the sweep script (section 7) |
 | Before a release | plus iPhone 16 Pro Max and one real phone | The largest phone frame; thumb reach and the real keyboard |
 
 - Every Android phone preset is 360 px tall (Galaxy A06 800 px wide, A16 and S25 Ultra 780, S22 Ultra 772), so the Android frame is 280 px high at any price. The A16 and S25 Ultra frame is 685x280: leave 20 px of slack in any row that just fits 705.

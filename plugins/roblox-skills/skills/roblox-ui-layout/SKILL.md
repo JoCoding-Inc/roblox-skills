@@ -142,7 +142,7 @@ Phone details from the docs (read 2026-11-12):
 | Average Windows | 1366 x 768 | 1365 x 710 | small laptop, chat and player list |
 | HD 1080 | 1920 x 1080 | 1919 x 1021 | the most common desktop |
 
-Every change: the first two. Before done: all six (the sweep script's list). Before release: add iPhone 16 Pro Max (956 x 440) and a real phone. Why these, and why not an old small preset such as iPhone 7: `roblox-ui-mobile` sections 0-1. Portrait only if the game allows it; console only if it ships there (section 5, the Xbox preset, by eye).
+Every change: Samsung Galaxy A06, iPhone 17 Pro and iPad 10th Generation. Before done: all six (the sweep script's list). Before release: add iPhone 16 Pro Max (956 x 440) and a real phone. Why these, and why not an old small preset such as iPhone 7: `roblox-ui-mobile` sections 0-1. Portrait only if the game allows it; console only if it ships there (section 5, the Xbox preset, by eye).
 
 **Hard rule: phone and tablet layout is judged only in a Studio Device Simulator viewport**, either a preset device or a custom device of the exact size. Never draw a device outline, safe-area lines or zone boxes over the desktop viewport or a desktop capture to estimate a phone or tablet's proportions, sizes, coverage or placement, and never report such a picture as a phone or tablet check. Desktop captures judge desktop only. Every phone or tablet number in a review (HUD coverage, centre box, button size, overlap) comes from a simulator capture or from `AbsolutePosition`/`AbsoluteSize` read while the simulator holds that device.
 
