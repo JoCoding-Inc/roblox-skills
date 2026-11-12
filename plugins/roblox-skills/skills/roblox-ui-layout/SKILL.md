@@ -105,7 +105,7 @@ Phone details from the docs (read 2026-11-12):
 - One `UIScale` at the root of each ScreenGui, from `GuiService.ViewportDisplaySize`: Small 1, Medium 1, Large 1.5 (Roblox's own scale). Listen to its change signal.
 - Offer a player "UI size" setting (x1, x1.15, x1.3). Grow a Garden ships one; the factors are community values.
 - A chunky genre may raise Medium (desktop) to 1.25 for its look (judgment, compare screenshots first). Do not enlarge phone HUDs past the sizes below: a 1080p design scaled with a phone floor (k = max(viewport height / 1080, 0.55)) came out 1.4-1.7x the top-game sizes, covered 23-38% of a 667 x 375 phone, and one owner rejected it as too big to see the game (field note, 2026-11-09).
-- Phone sizes, landscape. Measured on 23 in-play phone HUD frames from 20 top games (2026-11-09). vh = share of the viewport height; px are for a 667 x 375 phone, the size the frames were normalised to. On the 360 px tall Android class multiply vh by 360 (0.09 vh is 32 px); judge on the Galaxy A06 preset (section 6). Offset px taken from this column stay inside the ranges on phones from 360 to 430 px tall.
+- Phone sizes, landscape. Measured on 23 in-play phone HUD frames from 20 top games (2026-11-09). vh = share of the viewport height; px are vh x 375, a 667 x 375 phone. On the 360 px tall Android class multiply vh by 360 (0.09 vh is 32 px); judge on the Galaxy A06 preset (section 6). Offset px taken from this column stay inside the ranges on phones from 360 to 430 px tall.
 
   | Role | Target | Range | Source |
   |---|---|---|---|
