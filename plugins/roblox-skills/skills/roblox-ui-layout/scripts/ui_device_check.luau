@@ -7,8 +7,11 @@
 --   painted elements outside the safe frame, backdrops that stop short of the screen edge, buttons and
 --   text of a full-screen ScreenGui under a notch, buttons and text of different ScreenGuis that sit
 --   on top of each other, and the phone HUD budgets (section 2).
--- Skipped: an element with nothing on the screen (a slid-out HUD layer), named in one note; a painted
+-- Skipped: an element with nothing drawn on the screen (a slid-out HUD layer; the engine cuts a ScreenGui's
+-- content at the device safe area unless its ScreenInsets is None), named in one note; a painted
 -- full-size backdrop (a panel's dim) is left out of the coverage numbers.
+-- SweepIgnore = true on an element: it and its children leave every check. Only for Studio-only debug UI.
+-- KitRole = "target" on a clicker's centre tap target: it leaves the centre-box number, not the coverage.
 -- Attributes it reads: PassThrough = true on a button (roblox-ui-mobile section 3), and
 -- KitTransient = true on a short-lived effect, toast or pop-up play target (the name the RoDesigner
 -- kit lint reads): the marked element and its children leave the coverage, overlap and safe-frame
@@ -19,8 +22,10 @@
 --   58 px taller than in Play because Edit draws no top bar.
 -- Run it at idle with every panel closed for the HUD budgets, then again with each panel open.
 -- The simulated device is shared by every Studio window on the machine: the sweep puts the first
--- device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit); the off-screen skip and
--- the backdrop rule were tested in Play on the Studio viewport only, with no device switch.
+-- device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit); the off-screen skip, the
+-- device cut, the backdrop rule and the marks were tested in Play on the Studio viewport and on the Galaxy
+-- A06 preset; a game session ran the off-screen skip and the backdrop rule on iPhone 17 Pro, iPad 10th
+-- Generation and HD 1080 as well.
 local DEVICES = { -- display names of Studio presets; an unknown name is reported, not guessed
 	"Samsung Galaxy A06", -- 800x360, safe 705x280: smallest common phone frame
 	"iPhone 17 Pro", -- 874x402, safe 750x323: Dynamic Island insets
@@ -116,11 +121,40 @@ local function transient(o: Instance): boolean
 	return false
 end
 
+-- KitRole = "target" (the RoDesigner kit lint's mark for a clicker's centre tap target), on the element or an ancestor
+local function playTarget(o: Instance): boolean
+	local p: Instance? = o
+	while p and p ~= root do
+		if p:GetAttribute("KitRole") == "target" then
+			return true
+		end
+		p = p.Parent
+	end
+	return false
+end
+
+local function ignored(o: Instance): boolean
+	local p: Instance? = o
+	while p and p ~= root do
+		if p:GetAttribute("SweepIgnore") == true then
+			return true
+		end
+		p = p.Parent
+	end
+	return false
+end
+
+-- display families with one weight that is drawn heavy: their FontFace.Weight reads Regular
+local HEAVY = { FredokaOne = true, LuckiestGuy = true, Bangers = true }
+
 local function boldStroked(o: any): boolean
 	local st = o:FindFirstChildOfClass("UIStroke")
 	local stroked = (st ~= nil and st.Enabled and st.ApplyStrokeMode == Enum.ApplyStrokeMode.Contextual)
 		or o.TextStrokeTransparency < 1
-	return stroked and o.FontFace.Weight.Value >= Enum.FontWeight.Bold.Value
+	local face = o.FontFace
+	local family = string.match(face.Family, "([%w_]+)%.json$")
+	local heavy = face.Weight.Value >= Enum.FontWeight.Bold.Value or (family ~= nil and HEAVY[family] == true)
+	return stroked and heavy
 end
 
 local function isText(o: Instance): boolean
@@ -200,6 +234,7 @@ local function check(name: string): string
 	-- raster of the whole screen: 1 = painted game UI, 2 = button
 	local cols, rows = math.ceil(FW / CELL), math.ceil(FH / CELL)
 	local painted = table.create(cols * rows, false)
+	local paintedCentre = table.create(cols * rows, false) -- the same without play targets: what the centre box counts
 	local buttonCells = table.create(cols * rows, false)
 	local function mark(grid, x0: number, y0: number, x1: number, y1: number)
 		local c0, c1 = math.max(0, math.floor((x0 - fx) / CELL)), math.min(cols - 1, math.ceil((x1 - fx) / CELL) - 1)
@@ -224,18 +259,25 @@ local function check(name: string): string
 			continue
 		end
 		local inSafe = gui.ScreenInsets == Enum.ScreenInsets.CoreUISafeInsets
+		-- the engine cuts a ScreenGui's content at the device safe area unless its ScreenInsets is None (docs)
+		local clipDevice = gui.ClipToDeviceSafeArea and gui.ScreenInsets ~= Enum.ScreenInsets.None
 		local gx0, gy0 = gui.AbsolutePosition.X, gui.AbsolutePosition.Y
 		local gx1, gy1 = gx0 + gui.AbsoluteSize.X, gy0 + gui.AbsoluteSize.Y
 		for _, o in gui:GetDescendants() do
-			if not o:IsA("GuiObject") or not shown(o) then
+			if not o:IsA("GuiObject") or not shown(o) or ignored(o) then
 				continue
 			end
 			local x0, y0, x1, y1 = clipped(o)
 			if x1 <= x0 or y1 <= y0 then
 				continue
 			end
-			if x1 <= fx or y1 <= fy or x0 >= fx + FW or y0 >= fy + FH then
-				-- nothing of it is on the screen (a HUD layer slid off, a panel parked outside): not a button, not text, not painted
+			local rx0, ry0, rx1, ry1 = x0, y0, x1, y1 -- before the device cut: where the layout put it
+			if clipDevice then
+				x0, y0, x1, y1 = math.max(x0, dx0), math.max(y0, dy0), math.min(x1, dx1), math.min(y1, dy1)
+			end
+			if x1 <= x0 or y1 <= y0 or x1 <= fx or y1 <= fy or x0 >= fx + FW or y0 >= fy + FH then
+				-- nothing of it is drawn (a HUD layer slid off, a panel parked outside, in the notch strip or past the
+				-- screen edge): not a button, not text, not painted
 				off[o] = true
 				if o:IsA("GuiButton") or o.BackgroundTransparency < 1 or isText(o) or ((o:IsA("ImageLabel") or o:IsA("ImageButton")) and (o :: any).Image ~= "") then
 					local top: Instance = o
@@ -255,6 +297,7 @@ local function check(name: string): string
 			local hasImage = (o:IsA("ImageLabel") or o:IsA("ImageButton")) and (o :: any).Image ~= "" and (o :: any).ImageTransparency < 1
 			local text = isText(o)
 			local brief = transient(o)
+			local target = playTarget(o)
 			local lx0, ly0, lx1, ly1 = x0, y0, x1, y1 -- the rect that counts for overlaps
 			-- backdrops: a layer over the whole screen is a scrim; one that fills an inset ScreenGui stops short of it
 			local wholeScreen = (x1 - x0) * (y1 - y0) >= 0.95 * FW * FH
@@ -263,6 +306,9 @@ local function check(name: string): string
 			if hasBack or hasImage then
 				if not brief and not (backdrop and hasBack) then -- a painted backdrop is not HUD: the coverage numbers show what sits on it
 					mark(painted, x0, y0, x1, y1)
+					if not target then
+						mark(paintedCentre, x0, y0, x1, y1)
+					end
 				end
 			elseif text then -- text with no plate: count its bounds, placed by its alignment
 				local t = o :: any
@@ -273,6 +319,9 @@ local function check(name: string): string
 				lx0, ly0, lx1, ly1 = tx, ty, tx + bw, ty + bh
 				if not brief then
 					mark(painted, lx0, ly0, lx1, ly1)
+					if not target then
+						mark(paintedCentre, lx0, ly0, lx1, ly1)
+					end
 				end
 			end
 
@@ -329,10 +378,10 @@ local function check(name: string): string
 				end
 			end
 			if inSafe and not brief and (hasBack or hasImage or text) and not crossing[o.Parent] then
-				if x1 < 0 or y1 < 0 or x0 > W or y0 > H then
+				if rx1 < 0 or ry1 < 0 or rx0 > W or ry0 > H then
 					crossing[o] = true
 					table.insert(outside, path)
-				elseif x0 < -1 or y0 < -1 or x1 > W + 1 or y1 > H + 1 then
+				elseif rx0 < -1 or ry0 < -1 or rx1 > W + 1 or ry1 > H + 1 then
 					crossing[o] = true
 					table.insert(across, path)
 				end
@@ -350,7 +399,7 @@ local function check(name: string): string
 	end
 
 	if #offList > 0 then
-		table.insert(problems, string.format("note: %d element%s wholly off the screen %s skipped (slid out or parked): %s%s", #offList, #offList == 1 and "" or "s",
+		table.insert(problems, string.format("note: %d element%s with nothing drawn on the screen %s skipped (slid out or parked): %s%s", #offList, #offList == 1 and "" or "s",
 			#offList == 1 and "was" or "were", table.concat(offList, ", ", 1, math.min(#offList, 3)), #offList > 3 and ", ..." or ""))
 	end
 
@@ -398,7 +447,7 @@ local function check(name: string): string
 			end
 			if c >= cols / 4 and c < cols * 3 / 4 and r >= rows / 4 and r < rows * 3 / 4 then
 				centreAll += 1
-				if painted[i] then
+				if paintedCentre[i] then
 					centre += 1
 				end
 			end
@@ -428,9 +477,10 @@ local function check(name: string): string
 		end
 	end
 	table.sort(problems)
-	return string.format("%s: screen %dx%d, safe frame %dx%d, %s, %s, HUD %.1f%% of the screen, centre box %.1f%%, %d buttons\n  %s",
+	return string.format("%s: screen %dx%d, safe frame %dx%d, %s, %s, %s %.1f%% of the screen, centre box %.1f%%, %d buttons\n  %s",
 		name, FW, FH, W, H, GuiService.ViewportDisplaySize.Name,
-		if touch then (large and "large touch controls" or "small touch controls") else "no touch controls", hud, mid, buttons,
+		if touch then (large and "large touch controls" or "small touch controls") else "no touch controls",
+		if scrim then "panel open (HUD budgets not applied): UI" else "HUD", hud, mid, buttons,
 		#problems == 0 and "no problems" or table.concat(problems, "\n  "))
 end
 
