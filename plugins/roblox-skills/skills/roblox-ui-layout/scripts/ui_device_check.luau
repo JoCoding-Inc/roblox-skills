@@ -3,6 +3,7 @@
 -- switches the simulator, reads AbsolutePosition and AbsoluteSize of the live UI, and returns:
 --   screen and safe-frame size, HUD coverage of the screen and of the centre 50% x 50% box,
 --   buttons inside Roblox's reserved zones (jump button, thumbstick, hotbar, chat, player list),
+--   (the chat zone is the live chat window when it has been opened, else its measured default box),
 --   buttons under 44 px on touch, text under 14 px (12 px for bold, stroked text),
 --   painted elements outside the safe frame, backdrops that stop short of the screen edge, buttons and
 --   text of a full-screen ScreenGui under a notch, buttons and text of different ScreenGuis that sit
@@ -43,6 +44,7 @@ local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
+local TextChatService = game:GetService("TextChatService")
 local svc = game:GetService("StudioDeviceSimulatorService")
 
 local playing = RunService:IsRunning() and Players.LocalPlayer ~= nil
@@ -223,8 +225,31 @@ local function check(name: string): string
 		zone("the hotbar", W / 2 - hw / 2, H - 110, W / 2 + hw / 2, H, "warn")
 	end
 	if not touch and not phone then
-		if coreGui(Enum.CoreGuiType.Chat) then
-			zone("the chat window (approx)", 0, 0, 0.3 * W, 0.25 * H + 24, "warn")
+		local win = TextChatService:FindFirstChildOfClass("ChatWindowConfiguration")
+		if coreGui(Enum.CoreGuiType.Chat) and not (win and not win.Enabled) then
+			-- default chat window, measured (section 1): 8 px in, 12 px under the top bar, min(0.4 W, 475) wide,
+			-- a message list 0.25 H tall and a 45 px input bar under it
+			local cx0, cy0, cx1, cy1 = 8, 12, 8 + math.min(0.4 * W, 475), 12 + 0.25 * H + 45
+			local label = "the chat window"
+			if playing and win then
+				if win.AbsoluteSize.X > 0 then -- the live window, once it has been opened (it keeps its last size after closing)
+					cx0, cy0 = win.AbsolutePosition.X, win.AbsolutePosition.Y
+					cx1, cy1 = cx0 + win.AbsoluteSize.X, cy0 + win.AbsoluteSize.Y
+					local bar = TextChatService:FindFirstChildOfClass("ChatInputBarConfiguration")
+					if bar and bar.Enabled and bar.AbsoluteSize.X > 0 then
+						cx0, cy0 = math.min(cx0, bar.AbsolutePosition.X), math.min(cy0, bar.AbsolutePosition.Y)
+						cx1 = math.max(cx1, bar.AbsolutePosition.X + bar.AbsoluteSize.X)
+						cy1 = math.max(cy1, bar.AbsolutePosition.Y + bar.AbsoluteSize.Y)
+					end
+				end
+				local ok, active = pcall(function()
+					return StarterGui:GetCore("ChatActive")
+				end)
+				if ok and active == false then
+					label = "the chat window (closed now; this is where it opens)"
+				end
+			end
+			zone(label, cx0, cy0, cx1, cy1, "warn")
 		end
 		if coreGui(Enum.CoreGuiType.PlayerList) then
 			zone("the player list (approx)", W - 214, 4, W - 4, 0.5 * H, "warn")

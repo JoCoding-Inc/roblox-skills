@@ -78,7 +78,10 @@
       },
       "chat": {
         "phone": {"v": "hidden at start; opens top-left under the bar", "p": "measured"},
-        "desktop_share": {"v": [0.3, 0.25], "p": "opinion", "src": "about, unconfirmed"},
+        "desktop_share": {"v": [0.4, 0.25], "p": "measured", "src": "width share of the frame, capped by desktop_width_max_px; message list height share of the safe frame"},
+        "desktop_offset_px": {"v": [8, 12], "p": "measured", "src": "from the left edge, under the top bar"},
+        "desktop_width_max_px": {"v": 475, "p": "measured"},
+        "desktop_input_bar_px": {"v": 45, "p": "measured", "src": "under the message list; Studio 0.747, default ChatWindowConfiguration, 2026-11-13"},
         "console": {"v": "disable chat", "p": "documented"}
       },
       "player_list": {
