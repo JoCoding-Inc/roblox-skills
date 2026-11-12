@@ -1,9 +1,9 @@
 {
   "type": "vfx",
   "schema_version": "1.0.0",
-  "title": "Effects: rarity tier ladder, aura and particle limits, VFX house rules",
+  "title": "Effects: rarity tier ladder, aura and particle limits, feedback tiers, VFX house rules",
   "scope": "every genre with rewards, rolls or effects",
-  "sources": ["roblox-fun-effects/SKILL.md#3,5", "roblox-feel-audio-vfx/SKILL.md#3,5"],
+  "sources": ["roblox-fun-effects/SKILL.md#3,4,5,9", "roblox-feel-audio-vfx/SKILL.md#3,3b,5"],
   "data": {
     "tiers": [
       {
@@ -72,6 +72,74 @@
     "budgets": {
       "first_release_unique_sounds_max": {"v": 20, "p": "opinion"},
       "feedback_channels_per_frequent_action": {"v": 2, "p": "opinion"}
+    },
+    "feedback": {
+      "tiers": [
+        {
+          "name": {"v": "light", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "use": {"v": "ordinary hit", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "trauma": {"v": 0.3, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "fov_deg": {"v": 0, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "flash_alpha": {"v": 0, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "hit_stop_s": {"v": 0, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "haptic": {"v": "UIClick", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"}
+        },
+        {
+          "name": {"v": "medium", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "use": {"v": "crit", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "trauma": {"v": 0.45, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "fov_deg": {"v": 2, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "flash_alpha": {"v": 0, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "hit_stop_s": {"v": 0.05, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "haptic": {"v": "GameplayCollision", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"}
+        },
+        {
+          "name": {"v": "heavy", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "use": {"v": "kill", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "trauma": {"v": 0.6, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "fov_deg": {"v": 4, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "flash_alpha": {"v": 0.16, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "hit_stop_s": {"v": 0.08, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "haptic": {"v": "GameplayCollision", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"}
+        },
+        {
+          "name": {"v": "huge", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "use": {"v": "boss kill, top-tier reveal", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "trauma": {"v": 0.9, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "fov_deg": {"v": 7, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "flash_alpha": {"v": 0.35, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "hit_stop_s": {"v": 0.16, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+          "haptic": {"v": "GameplayExplosion", "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"}
+        }
+      ],
+      "shake": {
+        "model": {"v": "shake = trauma squared; trauma 0 to 1, linear decay; smoothed noise; rotation only in 3D", "p": "documented", "src": "Eiserloh, Juicing Your Cameras With Math, GDC 2016 slides", "date": "2026-11-12"},
+        "max_pitch_yaw_deg": {"v": 3, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+        "max_roll_deg": {"v": 3, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+        "decay_per_s": {"v": 1.5, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+        "measured_peak_deg": {"v": {"trauma_0_3": [0.1, 0.3], "trauma_0_6": 1.0, "trauma_0_9": 1.6}, "p": "measured", "src": "look-vector angle against Camera.Focus per frame, Studio, 70 FOV", "date": "2026-11-12"}
+      },
+      "fov_offset_clamp_deg": {"v": 10, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+      "hit_stop_budget_s_per_s": {"v": 0.25, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+      "flash": {
+        "starts_per_second_max": {"v": 2, "p": "opinion", "src": "kept under the WCAG 2.3.1 limit of three flashes in any one-second period", "date": "2026-11-12"},
+        "wcag_flashes_per_second_max": {"v": 3, "p": "documented", "src": "WCAG 2.3.1 Three Flashes or Below Threshold", "date": "2026-11-12"},
+        "alpha_max": {"v": 0.5, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"}
+      },
+      "number_cap": {
+        "phone": {"v": 7, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"},
+        "desktop": {"v": 12, "p": "opinion", "src": "test place tuned by eye in Studio, owner accepted the direction", "date": "2026-11-12"}
+      },
+      "reduced_motion": {"v": "GuiService.ReducedMotionEnabled or the game's own switch: no shake, kick, FOV, blur, pops, flights or confetti; sound, colour, numbers and vibration stay", "p": "opinion", "date": "2026-11-12"}
+    },
+    "reveal_timing_top_games": {
+      "hatch_build_up_s": {"v": [0.37, 1.3], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "5 clips / 2 games, median 0.77"},
+      "hatch_flash_s": {"v": [0.15, 0.25], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "4 clips / 2 games"},
+      "hatch_result_hold_s": {"v": [0.5, 1.4], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "5 clips / 2 games, median 1.1"},
+      "hatch_total_s": {"v": [2.5, 4.3], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "3 clips / 1 game"},
+      "top_rarity_title_hold_s": {"v": [3, 4.5], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "2 clips / 1 game"},
+      "reward_row_stagger_s": {"v": [0.25, 0.8], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "3 clips / 3 games"},
+      "result_title_hold_s": {"v": [2, 3], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "4 clips / 4 games"}
     },
     "rules": {
       "vfx_source": {"v": "VFX are Blender meshes plus gradient or flipbook textures. No block tiles and no default sparkles (the Sparkles object or the built-in rbxasset://textures/particles textures).", "p": "opinion", "src": "owner rule", "date": "2026-11-05"},

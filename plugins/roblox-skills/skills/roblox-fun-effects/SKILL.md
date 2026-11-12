@@ -1,7 +1,7 @@
 ---
 name: roblox-fun-effects
 description: "Use when adding or reviewing any animation, particle effect, aura, trail, title, roll or egg-hatch reveal, rarity look, mutation or variant, level-up or rebirth celebration, emote, finisher or kill effect, or rare-drop announcement in a Roblox game. Decides what the effect rewards, who sees it, how it escalates and how it pays off in a clip, so it adds fun instead of only working. Also when an effect 'works but feels like nothing', a roll or reveal is boring or too long, when planning rarity tiers, cosmetics or auras, when players should be able to show off, when asked for 'more juice' or 'make it satisfying', or in roblox-game-pipeline stage 4 (Feel cards). Pair with roblox-feel-audio-vfx (how to build it and phone budgets), roblox-cinematics (long scenes), roblox-design-and-launch section 2 (paid random odds)."
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-12
 sources:
   - https://create.roblox.com/docs/en-us/production/game-design/design-for-roblox.md (fun first; players want their avatars seen)
   - https://create.roblox.com/docs/en-us/production/game-design/ui-ux-design.md (feedback)
@@ -68,11 +68,13 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 | 0 Press | under 0.1 s | click sound, button squash; same for every tier |
 | 1 Anticipate | 0.3-3 s by tier | container shakes or charges, pitch rises, light grows; tier color may leak in the last 0.3 s |
 | 2 Hold | 0.1-0.25 s (tier 4+) | brief freeze or silence (`ParticleEmitter.TimeScale` to 0, duck the music) |
-| 3 Burst | 0.2-0.6 s | one `ParticleEmitter:Emit(n)`, small FOV kick (+4 to +8 for 0.15 s), flash only at tier 5+ |
+| 3 Burst | 0.2-0.6 s | one `ParticleEmitter:Emit(n)`, small FOV kick (+4 to +8 for 0.15 s), a white flash of 0.15-0.25 s whose opacity grows with the tier (0.14 at the lowest to 0.5 at the top in our test place, judgment), rings, rays and a spray behind the result |
 | 4 Show | 1-2.5 s | name, tier color, "1 in N", model spin, NEW badge, what it does; one primary button |
 | 5 Settle | 0.3-0.5 s | stats count up, index fills, equip offered only if better |
 | 6 Share | tier 5+ | clip and share buttons, server toast (section 6); never blocks the next roll |
 
+- Timing in top games, read from tagged clips (RoDesigner motion library, 2026-11-12; clips at 4 to 15 fps, so 0.07-0.25 s of error): egg hatch build-up before the flash median 0.77 s, range 0.37-1.3 (5 clips, 2 games); full-screen flash 0.15-0.25 s (4 clips, 2 games), white in 6 of the 7 hatch and roll clips that flash; hold on the result median 1.1 s, range 0.5-1.4 (5 clips, 2 games); a whole ordinary hatch 2.5-4.3 s until the HUD is back (3 clips, 1 game); a top-rarity title held 3 to 4.5 s (2 clips, 1 game). The HUD is hidden during the hatch in both phone clips that show it. Shake, hit stop, flash opacity and sound are not recorded in the tags.
+- A worked build of the beats (`roblox-feel-audio-vfx` section 3b scripts; judgment, accepted by the owner in Studio, 2026-11-12): the container wobbles harder and drifts, ticks speed up and rise in pitch, thin rings close inward, the stage zooms from 1 to 1.16, and the tier colour leaks only in the last third; the top two tiers darken the screen and hold 0.45 s with a blur; the burst is a flash, two rings, a spray, rays and a card that pops with a shine; from the third tier a title stamps in, and the top tier's title runs a colour gradient. After the UI closes the world reacts where other players can see it: a ground ring from the second tier, a light pillar and an aura (3 s plus 1 s per tier rank) from the third, a toast for the top two tiers, fireworks for the top one. A spinning reel of tier names during the build is a tease by nature: free rolls only (section 10).
 - The server rolls and saves before beat 0; leaving mid-reveal never loses the item. The client plays the presentation from the result id, driven by the tier table, not one script per tier. The server refuses the next roll until the minimum reveal time has passed, or a script skips the reveal and farms (`roblox-engine-2026` section 4, item 13).
 - When the client must not learn the result early (a timed or shared reveal), the server rolls and saves at the open, sends a `revealAt` time on `workspace:GetServerTimeNow()`, refuses the next action until then, and sends the result at that time. The client schedules the roulette against `GetServerTimeNow()` and lands when the result event arrives; teasers in the wait never fake a near miss (section 10) (field note, 2026-11-11).
 - Show the result at a showcase size, not its gameplay size. At its in-world slot size a result was about 100 px tall from a 50-stud default camera and got lost under its own name plate; one game used a fixed showcase height that grows with the tier, 6.5 to 10 studs (field note, 2026-11-11). On a 667 x 375 phone a world plate above the floating result ran under the top bar from the usual camera, so put the plate beside the result on phones (field note, 2026-11-11; reserved zones in `roblox-ui-layout` section 1).
@@ -118,6 +120,7 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 
 - **Hit stop** is presentation on the client: freeze the attacker's and victim's animations (`AnimationTrack:AdjustSpeed(0)`, then restore) and the hit effect (`TimeScale` 0), not the world. Stronger hit, longer stop, with a cap: light 0.04-0.07 s, heavy 0.08-0.14 s, kill 0.15-0.25 s, never over 0.3 s. Use little in fast group fights.
 - Pair it with a 0.1 s flash, a 1-2 degree camera kick, a number pop and slight pitch variation; raise pitch and size on combos.
+- Layer by importance: a hit, a crit, a kill and a boss kill each add channels, not just size. The per-moment table and the scripts are in `roblox-feel-audio-vfx` section 3b. Frequent kills use the heavy range above (0.08 s in the test place) and keep the kill range for bosses.
 - Budget hit feedback per target per second, not per hit. A white `Highlight` flash tuned for towers with short range (0.09 s, at most every 0.12 s, fill 0.15) left enemies white most of the time once every tower could hit them along the whole path; a soft blink at most 3 times per second per enemy fixed it (field note, 2026-11-11).
 - **Finisher or kill effect:** plays only after the server confirms the kill, 2.5 s or less, the killer keeps control (or loses it for 0.5 s at most), cosmetic only. Sell it directly (a pass or bundle) or by crate with odds. Damage and timing rules stay in `roblox-combat-tools`.
 - Taunt emotes after a kill: optional and mutable.
@@ -127,6 +130,9 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 - 3-6 s, skippable, never blocks the shop or the next action, no camera takeover (`roblox-cinematics` section 2).
 - Show what changed (count-up about 0.45 s), one burst, one sound. Rebirth shows what is kept and the new multiplier; nearby players get a small toast.
 - At most one big celebration per about 30 s; otherwise a small tick.
+- A level-up that reads as an event (test place, judgment): light pillar and ground ring at the player, an aura for about 2.5 s, a cheer emote, the level stamped in under the top bar, then the stat lines one by one about 0.3 s apart, confetti and one fanfare.
+- Reward popup: the chest or source reacts in the world first, then the screen dims, a title stamps in, cards drop in face down about 0.12 s apart, flip one by one about 0.55 s apart with a ring, a spray and a rising note each, and the claim button appears last and breathes; on claim the cards shrink and coins fly to the counter. Top games space reward rows or cards 0.25-0.8 s apart and hold a one-off result title 2-3 s (RoDesigner motion library, 3 and 4 clips, 2026-11-12).
+- Small rewards all the time carry the feel between the big ones: pickups that bob, spin and sparkle before they are taken; a note that climbs with each pickup or coin in a run; one merged "+N" at the counter every 0.25 s instead of one per coin; a combo count that grows and warms, with a named streak on quick kills and a short "fever" state at a threshold (judgment).
 - Phones: `HapticEffect` with `Enum.HapticEffectType.UIClick` for taps and `Enum.HapticEffectType.GameplayCollision` for impacts, subtle and behind a setting.
 
 ## 10. Guard rails

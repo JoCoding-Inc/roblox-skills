@@ -1,13 +1,16 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
-last_reviewed: 2026-11-04
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback with ready client scripts (camera, world and screen effects), in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+last_reviewed: 2026-11-12
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
   - https://create.roblox.com/docs/effects/particle-emitters (Rate limits, fill rate)
   - https://create.roblox.com/docs/environment/lighting and /atmosphere
   - https://create.roblox.com/docs/reference/engine/classes/Animator.md and AnimationTrack.md, enums/AnimationPriority.md
   - https://create.roblox.com/docs/animation/events and /characters/emotes
+  - https://create.roblox.com/docs/reference/engine/classes/HapticEffect.md and GuiService.ReducedMotionEnabled (creator-docs 7cbffff, 2026-11-10)
+  - Squirrel Eiserloh, "Math for Game Programmers: Juicing Your Cameras With Math", GDC 2016 slides (read 2026-11-12)
+  - https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html and Xbox Accessibility Guidelines 117 and 118 (read 2026-11-12)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
 ---
@@ -39,7 +42,7 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 - Draw where the server acts: a drop, hit spark or pickup appears at the position the server uses. One game's server walked enemies on the road centre line while clients drew them fanned out, so coins fell on the centre line away from the visible death, and the owner saw it on a phone (field note, 2026-11-09). Compute such positions with one shared pure function that server and client both call.
 - A hit or aura that reads as finished is a stack: a flipbook or mesh shape, a white-hot additive core grading to the effect color, an alpha smoke layer, sparks, debris and a camera kick (rules below). Quality comes from texture art and layering, not particle count (judgment from 2026 artist breakdowns). Free textures to start from: Creator Store "VFX PACK" (Euphoric Games Community, 112672322113504, +970/-30) and "Rei's Particle Pack" (10198615035, +990/-10), both free models without scripts (read 2026-11-05; contents not reviewed by us: insert, audit per `roblox-store-art-pack` section 3 and look before use).
 - Hit feedback: flash/highlight + sound + small camera shake or knockback; damage numbers short and readable.
-- Screen shake: small amplitude, short, with an off switch in settings (`roblox-fun-effects` section 10: "Reduce effects" also removes camera kicks; `roblox-fun-effects` section 8 sizes the kick and hit stop).
+- Screen shake: small amplitude, short, with an off switch in settings (`roblox-fun-effects` section 10: "Reduce effects" also removes camera kicks; `roblox-fun-effects` section 8 sizes the kick and hit stop; section 3b has the shake model and a script).
 - Camera rules (field observation): only the object the camera follows (normally the player character) and the player's own actions shake or re-aim it; contacts from other objects (extra projectiles, NPCs, spawned copies) never do, or the screen swings until players feel dizzy. Shakes combine by max, never by sum: keep one amplitude, set it to the larger of the current and the new value, and clamp it.
 - Animations: key poses readable at phone distance; 3-5 core animations first (idle, move, action, hit, reward).
 
@@ -53,6 +56,49 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 - Ownership: for a group-owned game, publish animations with the group in the Animation Editor's Creator field (docs). An animation owned by someone else commonly fails to load in the game (C).
 - Custom motions (exercise loops, sitting, climbing, interactions) and any animation built by script: `roblox-character-motion`. Ids from `KeyframeSequenceProvider:RegisterKeyframeSequence` work only in Studio; upload the clip for live servers.
 - Code that finds or edits R15 joints: Avatar Joint Upgrade replaces `Motor6D` with `AnimationConstraint` (`roblox-engine-2026` section 3).
+
+## 3b. Feedback kit (scripts)
+
+Three client ModuleScripts in `scripts/`, tuned together in one playable test place. The owner judged two versions in Studio (field note, 2026-11-12): one burst, one number and one shake per hit read as "simple"; the layered version below was accepted as the direction. Nothing was checked on a phone, and every number is judgment unless it carries another label.
+
+| Script | Gives |
+|---|---|
+| `scripts/juice.luau` | camera shake, roll kick, FOV punch and held FOV, hit stop, screen flash, edge tint, colour grade, bloom and blur pulses, vibration, UI pop, count-up, fly-to-counter, behind one settings table |
+| `scripts/vfx.luau` | world recipes: layered impact in 4 tiers, ground ring, dome, light pillar, slash arc, limb trail, highlight flash, afterimage, aura, dust, fireworks, loot that pops out and flies to the player |
+| `scripts/uifx.luau` | screen recipes with no image assets: breathing and shine on buttons, ring, spray, confetti, coin rain, glow, rays, floating "+N", stamp slam, rainbow text, toast, letterbox, speed lines, card flip |
+
+One event fires several layers across channels. What the test place fires per moment (starting values; trauma is the 0-1 shake input):
+
+| Moment | World | Camera and screen | UI | Sound and vibration |
+|---|---|---|---|---|
+| Hit | white highlight flash 0.1 s, impact tier 1, squash and tilt that springs back in 0.5 s, slash arc, hand trail | trauma 0.3 | number on an arc, health bar with a late white "ghost" bar, combo count that grows and warms | hit sound, half a semitone up per combo hit; tap |
+| Crit | impact tier 2 | hit stop 0.05 s, trauma 0.45, FOV +2, roll kick 1.5 degrees | bigger yellow number | crit sound; hit |
+| Kill | impact tier 3, ground ring, debris, coins and orbs that pop out, bounce and fly to the player | hit stop 0.08 s, trauma 0.6, FOV +4, flash 0.16, kick 2 degrees | one "+N" per 0.25 s at the counter, count-up, counter pop, streak banner on the 2nd kill in 4 s | kill pop, coin tick one semitone up per coin; hit |
+| Boss kill | dome, wide ground ring, impact tier 4, fireworks | letterbox, blur and FOV -7 during a 0.16 s stop, then trauma 0.9, FOV +7, flash 0.35, bloom, kick 4 degrees | banner slam, coin rain, confetti | layered boom; big |
+| Pickup | bob, spin and sparkle while idle; impact tier 2 and a ground ring on pickup | none | "+N", counter | chime two semitones up per pickup in a run; tap |
+| Level up | light pillar, ground ring, aura 2.6 s, cheer emote | edge tint, bloom, FOV +3 | banner slam, stat lines 0.28 s apart, confetti | fanfare; notify |
+| Dash | dust, four afterimages | held FOV +12 for 0.22 s, speed lines | button pop | whoosh; tap |
+| Hurt | red highlight flash | red edge, desaturate, blur, trauma 0.6, kick 3 degrees; low health: an edge pulse every 0.95 s | health bar pop | hurt sound; hit |
+
+Reveals and reward popups: `roblox-fun-effects` sections 4 and 9.
+
+Rules the scripts encode:
+
+- **Shake.** One trauma value from 0 to 1, shake = trauma squared, linear decay, smoothed noise instead of random numbers, and in 3D rotate the camera only (Eiserloh, "Juicing Your Cameras With Math", GDC 2016, slides read 2026-11-12). The script applies it after the camera update (`RenderPriority.Camera + 1`) and combines by max (the camera rule above). Measured in Studio at 70 FOV: about 0.1-0.3 degrees for trauma 0.3, 1 degree for 0.6, 1.6 degrees for 0.9; one degree is about 1.4% of the screen height. A `Scriptable` camera must set its `CFrame` every frame before that step, or the offsets add up.
+- **FOV has one owner.** The script reads the resting FOV only while no punch or held offset runs, and other code changes it through `Juice.setBaseFov`. Two game sessions report that a kick still running when another script read "the base" became the new base (field notes, 2026-11-12, not re-tested here).
+- **Hit stop has a budget:** at most 0.25 s of freeze in any second; a longer request is cut. Tracks frozen by overlapping stops are restored once. One tower-defence session ended at no stop for ordinary kills because a lane of small enemies stuttered (field note, 2026-11-12, not re-tested here).
+- **Flashes.** Full-screen brightness changes stay under three per second: "no more than three general flashes and / or no more than three red flashes within any one-second period" (WCAG 2.3.1); Xbox Accessibility Guideline 118 counts a 10% luminance change as a flash and fails flashing over about 20% of the screen (both read 2026-11-12). The script allows 2 starts per second across flash and edge tint, caps a flash at 0.5 opacity and drops the rest, so a pulse that repeats (low health) keeps its period near 1 s.
+- **Motion options.** Xbox Accessibility Guideline 117 asks for a way to turn off camera shake, bob and motion blur (read 2026-11-12); `GuiService.ReducedMotionEnabled` is the Roblox Reduce Motion setting (docs). `Juice.motionOn()` gates shake, kicks, FOV, blur, pops, flights and confetti; sound, colour, numbers and vibration stay. `Juice.settings` gives each channel its own switch.
+- **Vibration.** `HapticEffect` runs on Android and iOS phones that support haptics, PlayStation and Xbox gamepads and Quest Touch; `Type` is `UIClick`, `UINotification`, `GameplayCollision`, `GameplayExplosion` or `Custom` with `SetWaveformKeys` (`FloatCurveKey` time in ms, value 0 to 1); the docs sample parents it to Workspace and plays it on the client; `HapticService` is the older API (docs, read 2026-11-10). The calls ran without errors in Studio, where nothing can be felt: tune strength on a real phone (not done).
+- **Screen layers.** Flash, edge tint, letterbox, coin rain and speed lines live in a `ScreenInsets = None` ScreenGui (`roblox-ui-layout` section 3). Mark effect elements `KitTransient` so the device sweep leaves them out of the HUD budgets.
+- **Textures.** `Vfx.TEX` points at built-in textures so the kit runs with no uploads. That is a prototype state: the house rule above still holds, so swap in the game's own star, soft glow, smoke, ring and soft-edged band textures before release. `rbxasset://textures/gradient.png` (the beam band) was checked in Studio only.
+- **Cost.** Each call creates a few instances and cleans them up; that suits the local player's own effects. Pool and cap effects of other players and crowds (section 3).
+
+Checking effects from an agent:
+
+- `screen_capture` came back 1-2 s after the call, so a 0.3 s effect is gone. Read state per frame instead (camera angle against `Camera.Focus`, `FieldOfView`, instance counts) with a render-step probe, call the recipe with a long duration for the capture, or capture a beat that holds (a reveal's show beat) (field note, 2026-11-12).
+- Keep an "all effects off" switch in dev builds and play the same 30 s with it off and on. A channel nobody misses is noise (judgment).
+- A tween on a `NumberValue` that was never parented left the value at its start; drive such values from `RenderStepped` with `TweenService:GetValue` (field note, 2026-11-12; cause not isolated).
 
 ## 4. Lighting and atmosphere (docs)
 
@@ -81,6 +127,8 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 | Emitter `Rate` low, bursts short, mobile cap known | yes |
 | Action animations at `Action` priority or higher; tracks cached, not reloaded per use; NPC animations play from the server | yes |
 | Screen shake has an off switch, combines by max, and only the object the camera follows (normally the player character) or the player's own actions move the camera | yes |
+| Full-screen flashes and edge pulses start at most twice a second; Reduce Motion and the game's own switches are honoured (section 3b) | yes |
+| The same 30 s played with all effects off, then on: every channel is missed when off | yes |
 | Test on a low-end phone profile: FPS stable during the busiest effect moment | yes |
 | Mute and volume settings exist; music loops without gaps | yes |
 | Mood readable in the first screenshot (matches the style lane) | yes |
