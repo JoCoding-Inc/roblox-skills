@@ -7,9 +7,9 @@
   "data": {
     "devices": {
       "daily_users_share": {
-        "mobile": {"v": 0.83, "p": "documented", "src": "Roblox FY2025 10-K"},
-        "desktop": {"v": 0.14, "p": "documented", "src": "Roblox FY2025 10-K"},
-        "console": {"v": 0.03, "p": "documented", "src": "Roblox FY2025 10-K"}
+        "mobile": {"v": 0.80, "p": "opinion", "src": "press figure for 2024 (PocketGamer.biz); Roblox's 2025-26 filings give no split; docs: the majority of sessions and users are on mobile", "date": "2024"},
+        "desktop": {"v": 0.17, "p": "opinion", "src": "press figure for 2024 (PocketGamer.biz)", "date": "2024"},
+        "console": {"v": 0.03, "p": "opinion", "src": "press figure for 2024 (PocketGamer.biz)", "date": "2024"}
       },
       "phone_dpi_px": {"v": 160, "p": "documented", "src": "about, staff", "date": "2018"},
       "phone_safe_frame_px": {"v": [667, 317], "p": "measured", "src": "667x375 phone minus top bar"},

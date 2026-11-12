@@ -1,7 +1,7 @@
 ---
 name: roblox-engine-2026
 description: "Use when writing or reviewing Roblox game code and UI in 2026: task scheduler, deferred events, Parallel Luau, native codegen, strict types, StreamingEnabled settings, flex layouts and UI styling, Input Action System, mobile/console rules, performance budgets, remote security, server-side exploit detection, Server Authority, platform-integrated chat, and a status board of betas, rollouts and planned features. Also when code uses wait/spawn/delay or PhysicsService collision groups, when a UI breaks on phone or console, when memory or crash rates are high, when adding remotes, ProximityPrompts or purchases, when exploiters speed-hack or farm currency, when code touches Motor6D joints or rotated UI, when scenery vanishes at a distance on phones or low graphics, when a client stalls waiting for a remote at join or an item is lost as a player leaves, before raising a region, stage or tier count, or when an old tutorial's pattern might be outdated."
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-12
 sources:
   - https://create.roblox.com/docs/scripting (scheduler, events/deferred, multithreading, locations, security, transparent-batching)
   - https://create.roblox.com/docs/luau (type-checking, native-code-gen)
@@ -41,6 +41,7 @@ Where this file and an older tutorial disagree, this file follows the current do
 
 ## 2. UI
 
+- **Phone first:** most Roblox sessions and users are on mobile, mostly lower-spec phones (docs; `roblox-ui-layout` section 0). Design every screen at phone size first and judge it in Studio's Device Simulator (`roblox-ui-layout` section 6, scriptable through `StudioDeviceSimulatorService`), then desktop and console. Phone lines drawn over a desktop capture are not a phone check.
 - **Style first:** pick the UI style from the four basic cards in `roblox-game-pipeline/assets/ui-styles/` (`roblox-game-pipeline` section 3, step 4, with a free Studio mockup; README has build notes and phone risks per style); stud chunky goes to `roblox-ui-genre-studs`, sci-fi and military looks to `roblox-ui-genre-scifi`.
 - **Icons:** icons come from the Creator Store by default (one icon pack, `roblox-store-art-pack` section 4); generated icons are an option only when the user asks. Never build an icon from Frames, lines, `Path2D`, parts or emoji, such as a house from a triangle and a box or an arrow from rotated bars: they come out crude (owner rule, 2026-11-08).
 - **Layers, not flat boxes:** a panel or button built from one Frame, one color and a default font reads as 2015-era UI. Current hits stack 3-5 layers per element: 9-slice or sprite art, a gradient, a stroke, a shadow or glow, and an icon (judgment from 2026 artist posts and top-game stills).
