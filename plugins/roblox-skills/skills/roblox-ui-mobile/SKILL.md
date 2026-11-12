@@ -119,6 +119,53 @@ layer:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
 place()
 ```
 
+**Pass-through buttons (drag moves, tap fires).** When a column has to run into the start area or over the ring, a button can let the stick through instead of blocking it. Tested on the Galaxy A06 preset (emulated touch) and Average Windows (mouse), 2026-11-12: a tap fired once, a drag that began on the button moved the character and did not fire, a hidden button and a button under a modal scrim did not fire, a mouse click fired once.
+
+```luau
+-- drag = thumbstick, tap = button. Mark it so ui_device_check.luau does not count it as a stick blocker.
+local TAP_TIME, TAP_MOVE = 0.3, 10 -- seconds and px (judgment)
+local function shown(o: Instance?): boolean
+	while o and not o:IsA("ScreenGui") do
+		if o:IsA("GuiObject") and not o.Visible then
+			return false
+		end
+		o = o.Parent
+	end
+	return o ~= nil and (o :: ScreenGui).Enabled
+end
+local function passThrough(button: GuiButton, onTap: () -> ())
+	button:SetAttribute("PassThrough", true)
+	local function sync() -- on touch the button stops taking input, so the stick gets the touch
+		button.Active = UserInputService.PreferredInput ~= Enum.PreferredInput.Touch
+	end
+	sync()
+	UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(sync)
+	button.Activated:Connect(onTap) -- mouse and gamepad; never fires while Active is false
+	local began: InputObject?, at: Vector3, t0: number
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed or input.UserInputType ~= Enum.UserInputType.Touch or button.Active then
+			return -- processed: an active GUI above (a panel, a scrim) took the touch
+		end
+		local p, s, pos = button.AbsolutePosition, button.AbsoluteSize, input.Position
+		if shown(button) and pos.X >= p.X and pos.X <= p.X + s.X and pos.Y >= p.Y and pos.Y <= p.Y + s.Y then
+			began, at, t0 = input, pos, os.clock()
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input == began then
+			began = nil
+			if os.clock() - t0 <= TAP_TIME and (input.Position - at).Magnitude <= TAP_MOVE then
+				onTap()
+			end
+		end
+	end)
+end
+```
+
+- Why this shape: a button with `Active` false gets no `Activated` and no `InputBegan` of its own, so the tap is found in `UserInputService.InputBegan` by its rect. `GetGuiObjectsAtPosition` also returns hidden objects, so check visibility yourself. `InputObject.Position` is in the same px as `AbsolutePosition` in a default ScreenGui.
+- Cost: the stick's dead zone is 2 px, so a tap that slides 3 to 10 px also nudges the character for the length of the tap. Use it for menu openers, not for a button the player taps while standing on a narrow ledge. The 0.3 s limit was not timed: the MCP tap itself takes about 0.4 s.
+- A column that cannot fit above the ring keep box (five 48 px rows need 240 px; a 280 px frame has 180 px above the box): show 3 rows and put the rest behind one "more" button, or split into two columns, or make the rows that reach the start area pass-through. Pass-through buttons do not count toward the start-area share and may sit over the ring.
+
 **One layer per side.** Parent each side's HUD into one invisible full-size frame (Left, Right, Top). Layout code keeps owning each element; a panel moves a whole side by moving its layer (section 4).
 
 ## 4. Opening a panel
@@ -168,6 +215,8 @@ Sizes that reproduce the measured shares (tested; the caps are judgment, since t
 | Side sheet | 150 px wide, 0.7 of the frame height, 8 px from the edge | 150x196 | 150x226 | 150x378 and up |
 
 With the grid panel open on a phone the left menu column stays, and the top currency row and the right action buttons slide off, so the balance goes in the panel header.
+
+These caps describe grid panels on phones. A list panel (quests, daily rewards) and any panel on a tablet have no measured norm here yet, so a larger list panel on a tablet is not a violation.
 
 ## 5. Text entry and the keyboard
 

@@ -469,7 +469,8 @@
                 "start_area_frames_with_buttons_top_games_share",
                 "start_area_ui_cover_top_games_share",
                 "start_area_button_cover_warn_share",
-                "start_area_button_cover_fail_share"
+                "start_area_button_cover_fail_share",
+                "pass_through_attribute"
               ],
               "properties": {
                 "phone": {
@@ -776,6 +777,20 @@
                           "type": "number",
                           "minimum": 0,
                           "maximum": 1
+                        }
+                      }
+                    }
+                  ]
+                },
+                "pass_through_attribute": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
                         }
                       }
                     }
