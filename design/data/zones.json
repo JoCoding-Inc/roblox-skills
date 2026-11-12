@@ -129,6 +129,11 @@
         "medium": {"v": 1.0, "p": "measured", "src": "UIBlox tokens"},
         "large": {"v": 1.5, "p": "measured", "src": "UIBlox tokens"}
       },
+      "ui_scale_large_touch": {"v": 1.7, "p": "opinion", "src": "touch device with a safe-frame short side over 500 px (tablets); the engine steps its touch controls by 1.7 and top games keep the phone share of the screen; range 1.4-1.9; roblox-ui-mobile section 6", "date": "2026-11-12"},
+      "tablet_menu_button_height_share": {"v": 0.08, "p": "measured", "src": "median of 10 tablet HUD frames from 9 games, mostly arena and shooter (weak); phone 0.095 on 45 frames from 29 games", "date": "2026-11-12"},
+      "tablet_panel_size_share": {"v": [0.59, 0.46], "p": "measured", "src": "median width x height share of the screen, 20 framed tablet panels from 8 games", "date": "2026-11-12"},
+      "list_panel_rows_first_view": {"v": 3, "p": "measured", "src": "median of 24 row-list panels from 16 games (phone 6 from 3 games: 3 to 4)", "date": "2026-11-12"},
+      "list_row_height_share_phone": {"v": 0.143, "p": "measured", "src": "share of the screen height, 6 phone row-list panels from 3 games (weak); PC 0.118", "date": "2026-11-12"},
       "player_ui_size_options": {"v": [1.0, 1.15, 1.3], "p": "opinion", "src": "community values"},
       "chunky_genre_medium_max": {"v": 1.25, "p": "opinion"},
       "content_units": {"v": "Offset px", "p": "documented"},
