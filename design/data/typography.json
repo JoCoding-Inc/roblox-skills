@@ -72,7 +72,7 @@
     },
     "sizes_device_px_min": {
       "body": {"v": 14, "p": "opinion", "src": "Roblox chat default TextSize 14; roblox-ui-layout section 4"},
-      "hud_bold_stroked": {"v": 12, "p": "opinion", "src": "bold, stroked HUD labels and numbers; roblox-ui-layout section 4"},
+      "hud_bold_stroked": {"v": 12, "p": "opinion", "src": "bold HUD labels and numbers with a stroke or on an opaque plate (the key name is kept); roblox-ui-layout section 4"},
       "comfortable_long_text": {"v": [18, 20], "p": "opinion", "src": "staff call TextSize 20 or more readable on any device (DevForum t/1515743, 2021)"}
     },
     "thin_weights_avoid_below_px": {"v": 24, "p": "field", "src": "below about size 24; jagged since the July 2026 FreeType update, staff and community reports"},

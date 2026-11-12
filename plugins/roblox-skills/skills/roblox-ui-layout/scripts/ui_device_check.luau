@@ -4,7 +4,7 @@
 --   screen and safe-frame size, HUD coverage of the screen and of the centre 50% x 50% box,
 --   buttons inside Roblox's reserved zones (jump button, thumbstick, hotbar, chat, player list),
 --   (the chat zone is the live chat window when it has been opened, else its measured default box),
---   buttons under 44 px on touch, text under 14 px (12 px for bold, stroked text),
+--   buttons under 44 px on touch, text under 14 px (12 px for bold text with a stroke or on an opaque plate),
 --   painted elements outside the safe frame, backdrops that stop short of the screen edge, buttons and
 --   text of a full-screen ScreenGui under a notch, buttons and text of different ScreenGuis that sit
 --   on top of each other, and the phone HUD budgets (section 2).
@@ -35,7 +35,8 @@ local DEVICES = { -- display names of Studio presets; an unknown name is reporte
 	"Average Windows", -- 1366x768 laptop
 	"HD 1080", -- 1920x1080 desktop
 }
-local MIN_TARGET, MIN_TEXT, MIN_HUD_TEXT = 44, 14, 12 -- HUD text may go to 12 px when bold and stroked
+local MIN_TARGET, MIN_TEXT, MIN_HUD_TEXT = 44, 14, 12 -- HUD text may go to 12 px when bold, with a stroke or on a plate
+local PLATE_MAX_TRANSPARENCY = 0.25 -- a background or image this opaque or more counts as a plate (judgment)
 local CELL = 4 -- px per raster cell for the coverage numbers
 local SETTLE = 1 -- seconds to wait after a device switch (scripts re-layout, touch controls resize)
 
@@ -149,14 +150,39 @@ end
 -- display families with one weight that is drawn heavy: their FontFace.Weight reads Regular
 local HEAVY = { FredokaOne = true, LuckiestGuy = true, Bangers = true }
 
-local function boldStroked(o: any): boolean
-	local st = o:FindFirstChildOfClass("UIStroke")
-	local stroked = (st ~= nil and st.Enabled and st.ApplyStrokeMode == Enum.ApplyStrokeMode.Contextual)
-		or o.TextStrokeTransparency < 1
+-- an opaque layer behind the label: its own background, or the background or image of an ancestor that holds its centre
+local function onPlate(o: GuiObject): boolean
+	local cx, cy = o.AbsolutePosition.X + o.AbsoluteSize.X / 2, o.AbsolutePosition.Y + o.AbsoluteSize.Y / 2
+	local p: Instance? = o
+	while p and p ~= root do
+		if p:IsA("GuiObject") then
+			local px, py = p.AbsolutePosition.X, p.AbsolutePosition.Y
+			if cx >= px and cy >= py and cx <= px + p.AbsoluteSize.X and cy <= py + p.AbsoluteSize.Y then
+				if p.BackgroundTransparency <= PLATE_MAX_TRANSPARENCY then
+					return true
+				end
+				if (p:IsA("ImageLabel") or p:IsA("ImageButton")) and (p :: any).Image ~= "" and (p :: any).ImageTransparency <= PLATE_MAX_TRANSPARENCY then
+					return true
+				end
+			end
+		end
+		p = p.Parent
+	end
+	return false
+end
+
+-- the 12 px floor: weight makes text this small legible, a stroke or a plate gives it contrast (roblox-ui-layout section 4)
+local function smallTextOk(o: any): boolean
 	local face = o.FontFace
 	local family = string.match(face.Family, "([%w_]+)%.json$")
 	local heavy = face.Weight.Value >= Enum.FontWeight.Bold.Value or (family ~= nil and HEAVY[family] == true)
-	return stroked and heavy
+	if not heavy then
+		return false
+	end
+	local st = o:FindFirstChildOfClass("UIStroke")
+	local stroked = (st ~= nil and st.Enabled and st.ApplyStrokeMode == Enum.ApplyStrokeMode.Contextual)
+		or o.TextStrokeTransparency < 1
+	return stroked or onPlate(o)
 end
 
 local function isText(o: Instance): boolean
@@ -397,7 +423,7 @@ local function check(name: string): string
 			if text then
 				local t = o :: any
 				local px = if t.TextScaled then t.TextBounds.Y else t.TextSize * uiScale(o)
-				local floor = boldStroked(o) and MIN_HUD_TEXT or MIN_TEXT
+				local floor = smallTextOk(o) and MIN_HUD_TEXT or MIN_TEXT
 				if px < floor - 0.5 then
 					table.insert(problems, string.format("warn: text %s is about %d px, under %d", path, px, floor))
 				end
