@@ -8,7 +8,7 @@ sources:
   - creator docs performance-optimization/test-on-hardware, studio/device-simulator, input/mobile, reference BlurEffect (read 2026-11-12); Roblox built-in Studio MCP skill rbx-device-simulator-lua
   - StatCounter Global Stats, October 2026 (mobile OS, phone, tablet and desktop screen resolution, vendors; web page views, top 20 rows per chart)
   - Roblox FY2025 Form 10-K and Q3 2026 Form 10-Q (users and revenue by region); Counterpoint Research, best-selling smartphones of 2025; Roblox help article 203625474 (mobile system requirements, updated 2026-11-05)
-  - RoDesigner research library, 2026-11-12, 84 phone frames with an open panel from 28 top games and 45 phone HUD frames from 29 top games (frames private; numbers and method only)
+  - RoDesigner research library, 2026-11-12, 84 phone frames with an open panel from 28 top games, 45 phone HUD frames from 29 top games, 50 tablet frames from 17 games and 24 row-list panels from 16 games (frames private; numbers and method only)
   - original (test set, recipes and thresholds marked judgment)
 ---
 
@@ -67,7 +67,7 @@ When to use which (judgment, from section 0):
 2. Fix the HUD budget before placing anything: 5 menu buttons (8 in a simulator), HUD coverage near 11% of the screen, nothing in the centre box (`roblox-ui-layout` section 2).
 3. Size content (buttons, icons, text) in Offset px from `roblox-ui-layout` section 4. Size containers in Scale with a `UISizeConstraint` maximum, so they stop growing on tablet and desktop (section 6).
 4. Switch to iPhone 17 Pro: the frame is 45 px wider and 43 px taller, with 62 px of notch margin on each side. Nothing should depend on reaching the screen edge.
-5. Switch to a tablet: the touch controls grow by 1.7x. Anything placed at a fixed px distance from the corner now sits under the jump button (section 3).
+5. Switch to a tablet: the touch controls grow by 1.7x, and the HUD and panels follow with the tablet scale (section 6). Anything placed at a fixed px distance from the corner now sits under the jump button (section 3).
 6. Switch to desktop: touch-only buttons hide, the chat window and the player list take the top corners, panels keep their px size.
 7. Run the device sweep (section 7), then look at a capture of every state on every device.
 
@@ -92,10 +92,11 @@ Rule (judgment from those numbers and the test above):
 - A button in the start area must be safe to hit by mistake: it opens a menu or a prompt and never spends, consumes or confirms on one tap.
 - The sweep script reports the share of the start area under buttons: a note under 17%, a warning over 17%, an error over 33%.
 
-**Action buttons come from the jump button, not from the corner.** The jump button is 70 px at 25 px from the right and 20 px from the bottom on phones, and 120 px at 50 px and 90 px on tablets. Read its rect and place attack, sprint or ability buttons beside it. Tested on Galaxy A06, iPhone 17 Pro, iPhone 16 Pro Max, Fire HD 10 and iPad 10th (no overlap on any):
+**Action buttons come from the jump button, not from the corner.** The jump button is 70 px at 25 px from the right and 20 px from the bottom on phones, and 120 px at 50 px and 90 px on tablets. Read its rect and place attack, sprint or ability buttons beside it. Tested on Galaxy A06, iPhone 17 Pro, iPhone 16 Pro Max, Fire HD 10 and iPad 10th, the tablets at scale 1 and 1.7 (no overlap on any):
 
 ```luau
--- layer: the full-size HUD frame that holds the buttons. attack sits left of the jump button, dash above it
+-- layer: the full-size HUD frame that holds the buttons. attack sits left of the jump button, dash above it.
+-- rootScale: the UIScale at the root of this ScreenGui (section 6); 1 on phones, 1.7 on tablets
 local touchGui = playerGui:WaitForChild("TouchGui", 10) -- exists on touch devices only
 local jump = touchGui and touchGui:FindFirstChild("JumpButton", true)
 local function place()
@@ -104,7 +105,8 @@ local function place()
 	if not (touch and jump) then
 		return
 	end
-	local p, s = jump.AbsolutePosition - layer.AbsolutePosition, jump.AbsoluteSize
+	local k = rootScale.Scale -- an Offset unit inside the scaled HUD is k px
+	local p, s = (jump.AbsolutePosition - layer.AbsolutePosition) / k, jump.AbsoluteSize / k
 	local size, gap = math.floor(s.X * 0.9), math.floor(s.X * 0.12)
 	attack.Size, dash.Size = UDim2.fromOffset(size, size), UDim2.fromOffset(size, size)
 	attack.Position = UDim2.fromOffset(p.X - size - gap, p.Y + s.Y - size)
@@ -116,6 +118,7 @@ if jump then
 end
 UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(place)
 layer:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
+rootScale:GetPropertyChangedSignal("Scale"):Connect(place)
 place()
 ```
 
@@ -175,6 +178,8 @@ What top phone games do (84 frames with an open panel, 28 games, 2026-11-12; siz
 | Topic | Measured | Use |
 |---|---|---|
 | Size | Median 0.45 of the screen width x 0.72 of its height; shop and inventory grids 0.45 x 0.72 (0.20-0.78 x 0.44-0.86). No framed panel covers 90% of both axes | A grid panel about 0.6 of the safe frame wide and nearly its full height; a small modal 0.45 wide and as tall as its content. On a phone 0.72 of the screen height is about 0.9 of the safe frame |
+| Row lists (quests, daily rewards, codes) | 24 / 16 panels with a row list, but phone only 6 / 3 (weak): 3 rows in the first view (phone 3 to 4, a cut last row included); row height 14% of the screen height on phones (51 px at 360), 12% on PC; the panel 0.38 x 0.80 of the screen on phones, 0.41 x 0.65 on PC; rows fill about 90% of the panel width | A list panel is narrower and taller than a grid panel: about 0.5 of the safe frame wide, nearly its full height, 52 px rows, 3 to 4 visible |
+| On tablets | 20 / 8 framed panels: 0.59 x 0.46 of the screen (0.20-0.98 x 0.19-0.62), centred 16 of 20; close button 5.5% of the screen height | Wider and shorter in share than on phones: cap the height (table below) |
 | Position | Centred 43 / 16 of 58 / 22. Side sheets (unit or tool cards): left 4 / 3, right 5 / 4, 0.18-0.23 of the screen wide. Full-screen menus without a frame 10 / 4 | Centre it. A card the player uses while playing is a side sheet |
 | Behind it | Untouched 30 / 17, blur 26 / 9, opaque full screen 8 / 4, dim 5 / 5, dim plus blur 2 / 2, unclear 11 / 8. A 24% dim was not visible by eye, so some untouched frames may hide a light dim; no typical dim strength could be measured | Dim or blur, your choice (judgment: it separates a panel from a busy world; one owner's review asked for it). `BlurEffect` blurs the 3D world only and "may render differently on low-end devices" (docs), so pair a blur with a light dim |
 | HUD | Stays whole 52 / 26, partly 27 / 9, all hidden 3 / 2. The currency stays visible in all 19 shop frames (8 games). In every blur frame the HUD is sharp, above the blur | Keep the HUD the panel does not cover. Move away only what it covers. Keep the balance on screen: in the panel header when the top row is covered |
@@ -206,17 +211,18 @@ stage:open(unitCard, { modal = false }) -- a sheet: no backdrop, touch controls 
 - Put the scrim's `DisplayOrder` under the HUD's, as above, and the HUD that stays is bright and tappable, so a menu button switches panels in one tap. With the scrim above the HUD (the default, 50) the remaining HUD dims with the game and takes no taps.
 - `GuiService.ReducedMotionEnabled` makes every change instant.
 
-Sizes that reproduce the measured shares (tested; the caps are judgment, since the sample has no tablet or desktop frames):
+Sizes that reproduce the measured shares (tested in the simulator; the caps are judgment). Tablet columns are with the tablet scale of section 6, where the cap is in scaled units: 300 units is 510 px.
 
-| Panel | Size | Galaxy A06 | iPhone 17 Pro | Fire HD 10 and larger |
-|---|---|---|---|---|
-| Grid (shop, inventory) | `UDim2.new(0.6, 0, 1, -16)`, `UISizeConstraint.MaxSize` 560x400 | 423x264: 0.53 x 0.73 of the screen, 4 columns of 84 px cells, 2.1 rows | 450x307: 0.51 x 0.76, 4 columns, 2.5 rows | 560x400: 0.58 x 0.67 on the Fire, 0.47 x 0.49 on the iPad, 0.29 x 0.37 at 1080p |
-| Small modal (settings, confirm) | `UDim2.new(0.45, 0, 0, 190)`, min width 300, max 420 | 317x190 | 337x190 | 420x190 |
-| Side sheet | 150 px wide, 0.7 of the frame height, 8 px from the edge | 150x196 | 150x226 | 150x378 and up |
+| Panel | Size | Galaxy A06 | iPhone 17 Pro | iPad 10th (scale 1.7) | Fire HD 10 (scale 1.7) | Average Windows |
+|---|---|---|---|---|---|---|
+| Grid (shop, inventory) | `UDim2.new(0.6, 0, 1, -16)`, `UISizeConstraint.MaxSize` 560x400, 560x300 on tablets | 423x264: 0.53 x 0.73 of the screen, 4 columns of 84 px cells, 2.1 rows | 450x307: 0.51 x 0.76, 4 columns, 2.5 rows | 707x510: 0.60 x 0.62, 4 columns, 2.5 rows | 575x510: 0.60 x 0.85, 3 columns | 560x400: 0.41 x 0.52, 5 columns |
+| List (quests, daily) | `UDim2.new(0.5, 0, 1, -16)`, max 480x400, 480x300 on tablets; rows 52 units tall, 6 apart | 352x264: 0.44 x 0.73, 3.7 rows, a row is 14% of the screen height | 375x307: 0.43 x 0.76, 4.4 rows | 589x510: 0.50 x 0.62, 4.3 rows of 88 px | 479x510: 0.50 x 0.85, 4.3 rows | 480x400: 0.35 x 0.52, 6 rows |
+| Small modal (settings, confirm) | `UDim2.new(0.45, 0, 0, 190)`, min width 300, max 420 | 317x190 | 337x190 | 530x323 | 510x323 | 420x190 |
+| Side sheet | 150 units wide, 0.7 of the frame height, 8 from the edge | 150x196 | 150x226 | not run at scale | not run at scale | 150x497 |
 
 With the grid panel open on a phone the left menu column stays, and the top currency row and the right action buttons slide off, so the balance goes in the panel header.
 
-These caps describe grid panels on phones. A list panel (quests, daily rewards) and any panel on a tablet have no measured norm here yet, so a larger list panel on a tablet is not a violation.
+The tablet and list numbers rest on few frames (tablet panels 20 frames from 8 games, phone row lists 6 from 3), so treat these caps as a starting point: a panel that reads well outside them is not a violation.
 
 ## 5. Text entry and the keyboard
 
@@ -227,8 +233,43 @@ These caps describe grid panels on phones. A list panel (quests, daily rewards) 
 
 ## 6. Tablet and desktop
 
-- Same layout, more room. Keep content in the same Offset px; let positions follow Scale and anchors; cap panels with `UISizeConstraint` (section 4).
-- Tablet: the jump button is 120 px at 50 px from the right and 90 px from the bottom, the stick ring is 148 px, the keyboard takes 302-413 px. Action buttons follow the jump button (section 3). A button 40% down the left edge is easy on a phone and a stretch on a tablet (docs, `roblox-ui-layout` section 2).
+Same layout on every device; positions follow Scale and anchors, panels are capped with `UISizeConstraint` (section 4). What changes is one scale factor on tablets.
+
+**Tablets keep the phone's share of the screen, not its px.** Top games, tablet against phone (tablet HUD 10 frames from 9 games, mostly arena and shooter, 1 simulator: weak; phone 45 / 29; shares are plus or minus half a point):
+
+| | Tablet | Phone |
+|---|---|---|
+| Menu button height, share of the screen height | 8.0% (3.6-11.5) | 9.5% |
+| Touch action button | 11.2% (8 / 7) | 16.1% (24 / 15) |
+| HUD text height | 2.2% | 2.5% |
+| Bottom margin, share of the height | 1.4% | 1.2% |
+| Side margins, share of the width | 0.7% and 0.5% (flush to the edge) | 5.2% and 4.9% (the notch inset) |
+| Framed panel | 0.59 x 0.46 of the screen (20 / 8) | 0.45 x 0.71 (58 / 22) |
+
+- In px that is about 1.7 to 1.9 times the phone size for menu buttons and 1.4 to 1.6 for action buttons (derived from the shares and an 820 px tall screen, never measured in px). The engine steps its own touch controls by 1.7: the jump button goes from 70 to 120 px, the stick ring from 74 to 148.
+- An unscaled HUD is physically phone-sized on a tablet (both presets are about 131 px per inch) and reads as small: a 34 px menu button beside the 120 px jump button (one game's field note, 2026-11-12).
+- Rule (judgment, from the weak sample and the engine's step): on a touch device whose safe frame's short side is over 500 px, scale the HUD and the panels by 1.7 (1.4 to 1.9 is inside what top games show). `ViewportDisplaySize` cannot pick this: it is Small on a Fire HD 10 and Medium on an iPad.
+
+```luau
+-- one UIScale parented to each ScreenGui (HUD, panels); the ScreenGui's own AbsoluteSize does not change
+local function deviceScale(): number
+	local frame = hud.AbsoluteSize
+	local largeTouch = UserInputService.PreferredInput == Enum.PreferredInput.Touch and math.min(frame.X, frame.Y) > 500
+	return if largeTouch then 1.7 else 1
+end
+local function apply()
+	local k = deviceScale()
+	hudScale.Scale, panelScale.Scale = k, k
+	shop.UISizeConstraint.MaxSize = Vector2.new(560, if k > 1 then 300 else 400) -- tablet panels are shorter in share
+end
+hud:GetPropertyChangedSignal("AbsoluteSize"):Connect(apply)
+UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(apply)
+apply()
+```
+
+- Tested on Fire HD 10 and iPad 10th presets (2026-11-12): full-size layers still fill the frame, a 44 unit hit area is 74 px (its 34 unit icon 58 px: 7% of the iPad's height, 10% of the Fire's), action buttons sit beside the jump button with no overlap, `PanelStage` slides, swaps and follows the keyboard correctly.
+- Inside a scaled ScreenGui one Offset unit is 1.7 px. Any px you compute from `AbsolutePosition` or `AbsoluteSize` must be divided by the scale before you write it back as an Offset (the action-button code in section 3 does; `PanelStage` does it for its slides and keyboard lift).
+- Tablet facts: the jump button is 120 px at 50 px from the right and 90 px from the bottom, the keyboard takes 302-413 px. Tablet HUD in top games sits flush to the side edges. A button 40% down the left edge is easy on a phone and a stretch on a tablet (docs, `roblox-ui-layout` section 2).
 - Desktop: no touch controls. Hide touch-only buttons through `UserInputService.PreferredInput`; show the key on the button instead. The chat window and the player list take the top-left and top-right corners (the sweep warns). A 560x400 panel is 0.29 x 0.37 of a 1080p screen: raise it with the root `UIScale` rule in `roblox-ui-layout` section 4 if the style wants it bigger (judgment).
 
 ## 7. Verify

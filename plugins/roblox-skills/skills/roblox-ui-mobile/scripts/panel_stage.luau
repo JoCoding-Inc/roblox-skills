@@ -5,6 +5,7 @@
 -- outside closes it. A sheet (modal = false; a unit card beside play) only moves the HUD layers it
 -- covers: no backdrop, the touch controls stay. Close brings everything back.
 -- While the on-screen keyboard is up, the panel moves up so the focused TextBox stays visible.
+-- Works under a root UIScale (the tablet scale of section 6).
 -- Client ModuleScript. Tested in the Studio 0.747 Device Simulator on Samsung Galaxy A06,
 -- iPhone 17 Pro, Amazon Fire HD 10 (2023), iPad 10th Generation and Average Windows (2026-11-12).
 --
@@ -45,6 +46,21 @@ local DIRECTION: { [Side]: Vector2 } = {
 
 local PanelStage = {}
 PanelStage.__index = PanelStage
+
+-- product of the UIScale factors above an object (a tablet scale at the ScreenGui root):
+-- one Offset unit inside it is that many px on screen
+local function scaleAbove(o: Instance): number
+	local s = 1
+	local p = o.Parent
+	while p do
+		local u = p:FindFirstChildOfClass("UIScale")
+		if u then
+			s *= u.Scale
+		end
+		p = p.Parent
+	end
+	return s
+end
 
 -- order: the scrim's DisplayOrder, default 50. Panels live in a ScreenGui above it. HUD below it
 -- is dimmed with the game and takes no taps while a modal panel is open; HUD above it stays bright
@@ -106,7 +122,7 @@ function PanelStage:_followKeyboard()
 		if over > 0 then
 			self.home = self.home or panel.Position
 			local lift = math.min(over, panel.AbsolutePosition.Y) -- never push the panel off the top
-			panel.Position = panel.Position - UDim2.fromOffset(0, lift)
+			panel.Position = panel.Position - UDim2.fromOffset(0, lift / scaleAbove(panel))
 		end
 	elseif self.home then
 		panel.Position = self.home
@@ -154,14 +170,14 @@ local function travel(layer: Layer): UDim2
 		end
 	end
 	-- 80 px more: on a notched phone the layer starts inside the notch margin
-	local d = DIRECTION[layer.side] * (reach + 80)
+	local d = DIRECTION[layer.side] * ((reach + 80) / scaleAbove(frame))
 	return layer.home + UDim2.fromOffset(d.X, d.Y)
 end
 
 -- true when a visible child of the layer, at the layer's home position, comes within GAP of the panel
 local function covered(layer: Layer, panel: GuiObject): boolean
 	local frame = layer.frame
-	local shift = Vector2.new(frame.Position.X.Offset - layer.home.X.Offset, frame.Position.Y.Offset - layer.home.Y.Offset)
+	local shift = Vector2.new(frame.Position.X.Offset - layer.home.X.Offset, frame.Position.Y.Offset - layer.home.Y.Offset) * scaleAbove(frame)
 	local p0 = panel.AbsolutePosition - Vector2.new(GAP, GAP)
 	local p1 = panel.AbsolutePosition + panel.AbsoluteSize + Vector2.new(GAP, GAP)
 	for _, child in frame:GetChildren() do

@@ -1826,6 +1826,11 @@
           "type": "object",
           "required": [
             "ui_scale_by_display_size",
+            "ui_scale_large_touch",
+            "tablet_menu_button_height_share",
+            "tablet_panel_size_share",
+            "list_panel_rows_first_view",
+            "list_row_height_share_phone",
             "player_ui_size_options",
             "chunky_genre_medium_max",
             "content_units",
@@ -1896,6 +1901,86 @@
                   }
                 ]
               }
+            },
+            "ui_scale_large_touch": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  }
+                }
+              ]
+            },
+            "tablet_menu_button_height_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  }
+                }
+              ]
+            },
+            "tablet_panel_size_share": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1
+                      },
+                      "minItems": 2,
+                      "maxItems": 2
+                    }
+                  }
+                }
+              ]
+            },
+            "list_panel_rows_first_view": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
+            },
+            "list_row_height_share_phone": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "number"
+                    }
+                  }
+                }
+              ]
             },
             "player_ui_size_options": {
               "allOf": [
