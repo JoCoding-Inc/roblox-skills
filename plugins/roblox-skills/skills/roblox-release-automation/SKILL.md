@@ -122,7 +122,7 @@ Before blocking, state exactly what is missing, which scope or account step fixe
 3. User confirms the manual items (questionnaire, icon, thumbnails, audience) are done in Creator Hub.
 4. Publish to the live place; print "published version N" and store it.
 5. Restart older servers (`:restartServers`), optionally after a `publishMessage` notice.
-6. Verify in a live client: assets load, a real purchase grants, save and rejoin work.
+6. Verify in a live client: assets load (a new image upload can need a universe grant, `roblox-pitfalls` section 4), a real purchase grants, save and rejoin work.
 7. Watch errors and funnel for the first day; roll back by re-publishing the stored previous build if a blocker appears.
 
 **First public release (once).** Before the user sets Audience to Public, check and report: group join approval off when rewards are group-gated (`roblox-design-and-launch` section 6, item 6b), RTBF templates (`roblox-data-saves` section 7), managed pricing on every item, one real cheap purchase on a live server, and every setting the agent PATCHed read back with a GET (a 2xx is not proof). After the flip, read `visibility` back. To back out, the user sets Audience back to Playtest; one game did this the same day and read back `PRIVATE` (2026-11), and revoking then releasing again does not count toward the daily first-release limit (docs `publish-games-and-places`).
