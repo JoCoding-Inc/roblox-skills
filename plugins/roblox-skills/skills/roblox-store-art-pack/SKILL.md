@@ -1,7 +1,7 @@
 ---
 name: roblox-store-art-pack
 description: "Use for any genre when picking and quarantining Creator Store models, picking UI icons (button, currency, shop, rebirth) from a Creator Store icon pack, offering popular world-prop packs (trees, rocks, fences) for the user to pick, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only. Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI or an agent-made icon looks odd, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
-last_reviewed: 2026-11-04
+last_reviewed: 2026-11-13
 sources:
   - https://github.com/blauwtje/roblox-kit (map-building/reference/daylight-look.md, ui-images; MIT)
   - https://github.com/brain-xiang/grok-studio (skills/thumbnail-and-icon; MIT)
@@ -14,6 +14,7 @@ sources:
   - https://create.roblox.com/docs/players/loading-screens
   - https://create.roblox.com/docs/performance-optimization/improve (load times)
   - https://create.roblox.com/docs/projects/teleport (custom teleport screens)
+  - RoDesigner image model comparison, 2026-11-13 (one game, 28 thumbnails, three image models, two style references; images private, numbers and method only)
   - original (76 chart games' icons and first thumbnails, 2026-11-02, hand-tallied from contact sheets)
   - original (reference frames of Steal An Egg / Steal a Brainrot, 2026-10-26)
 ---
@@ -210,6 +211,11 @@ Read it as: one bold subject, 2 dominant hues, saturated but not neon-flat, cent
 **Making them:**
 - Path 1: a Blender diorama of the game's own assets. 35-50 mm lens for thumbnails, 50-85 mm for the icon, key plus rim light.
 - Path 2: during a playtest, set the camera with the render-step camera and hide the HUD (`ScreenGui.Enabled = false`), then `screen_capture` with no camera arguments (recipe: `roblox-pitfalls` section 3, Screenshots in Play).
+- Path 3, generated key art: only with an image tool the user has connected and a quoted cost (rules in `roblox-game-pipeline` section 10; for example RoDesigner `generate_game_asset` kinds `thumbnail` and `loading_screen`, 10 credits each in a dry run on 2026-11-13). What decided the result in one test (RoDesigner, 2026-11-13: one game, 28 thumbnails, three image models):
+  - **The style reference sets colour and layout more than the model does.** With an earlier thumbnail as the reference, two of the three models took its colour scheme in every image, and on one concept 3 of 4 runs repeated its composition. With a HUD-free in-game view as the reference, the same model followed the game's look, drew the game's own units and made new compositions. So pass a HUD-free in-game capture or the project's concept image (RoDesigner uses the project's concept image when `image_url` is left out). Pass an earlier thumbnail only when a near copy is wanted. To vary a set, change the subject and the moment in the request, not the reference.
+  - **Title text: pass the finished logo as an image** (RoDesigner `logo_url`) instead of asking for the words. All 28 reproduced it letter for letter with no invented text. Still check every letter.
+  - **Ask for the final size.** A 1088x608 render upscaled 1.76 times had soft, haloed edges at 100%; a 1920x1072 render cropped to 1920x1080 was crisp. RoDesigner renders key art that way since 2026-11-13 (its dry run shows `render_size`). A "high" quality setting changed only what shows at 100% (one image compared), so medium is enough for a thumbnail (judgment).
+  - Compare the candidates shrunk to about 480 px wide: the models differed most in how large the focal subject stayed.
 - Post-process: crop to the focus point, Lanczos resize, optional outlined title, enforce 3 MB.
 
 **Upload:** the Open Cloud Assets API sets the start place's icon and the detail-page thumbnails, and the Thumbnail Personalization API the homepage set (docs 2026-11, not yet tested here; calls in `roblox-release-automation` section 1). Otherwise use Creator Dashboard (Configurations > Places > Icon / Thumbnails). The `legacy-game-internationalization` game-icon and game-thumbnails endpoints set translated images only and refuse the source language. Never use a .ROBLOSECURITY cookie.
@@ -275,6 +281,7 @@ Measure instead of guessing (docs): time it with a stopwatch from Play to a visi
 - Show the logo, one short tip and a progress indicator tied to real loading. A uniform tween that stalls near the end reads as fake.
 - Match the game's art style and the thumbnail the player clicked (inference: the first frame should confirm they entered the game they chose). Plain "Loading..." text with a spinner is the commonly criticised default.
 - A theme-matched progress bar beats a plain spinner: the owner's "+1 BAT" loading screen (image: `roblox-game-pipeline/assets/examples/loading-screen-baseball.jpg`) shows a large sticker-style logo over a blurred copy of the game's own field, a green bar with a baseball as the knob that rolls to 100%, and a one-line flavor text ("Play ball!") instead of "Loading". Keep the logo clear of the top-left corner, where Roblox's menu and chat buttons sit over the screen.
+- Generated key art: the style reference and size rules of section 5 (Making them, Path 3) apply here too.
 - Full-screen key art with `ScaleType.Crop` shows a different part on each screen shape: a wide phone (844x390) shows less height than 16:9. Check both and keep the subject clear of the bar and the logo. In one game a character sat under the bar on phones until the art was regenerated zoomed out (field observation, 2026-11).
 - Add a timeout that closes the screen if loading hangs, and keep the screen under a few seconds on a typical phone. Do not put ads or claims on it.
 - Test on a throttled network and a low-end phone (Device and Network Simulator) for the worst-case time, and check the screen on phone, tablet and console safe areas.
