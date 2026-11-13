@@ -179,10 +179,16 @@ local function smallTextOk(o: any): boolean
 	if not heavy then
 		return false
 	end
-	local st = o:FindFirstChildOfClass("UIStroke")
-	local stroked = (st ~= nil and st.Enabled and st.ApplyStrokeMode == Enum.ApplyStrokeMode.Contextual)
-		or o.TextStrokeTransparency < 1
-	return stroked or onPlate(o)
+	-- a stroke counts only when it can be seen (the same floor as the RoDesigner kit lint)
+	if o.TextStrokeTransparency < 0.9 then
+		return true
+	end
+	for _, st in o:GetChildren() do
+		if st:IsA("UIStroke") and st.Enabled and st.ApplyStrokeMode == Enum.ApplyStrokeMode.Contextual and st.Thickness > 0 and st.Transparency < 0.9 then
+			return true
+		end
+	end
+	return onPlate(o)
 end
 
 local function isText(o: Instance): boolean
