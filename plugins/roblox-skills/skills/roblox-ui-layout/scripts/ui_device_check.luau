@@ -25,8 +25,8 @@
 --   Edit: checks StarterGui only; touch zones come from the formulas below, and the safe frame is
 --   58 px taller than in Play because Edit draws no top bar.
 -- Run it at idle with every panel closed for the HUD budgets, then again with each panel open.
--- The simulated device is shared by every Studio window on the machine: the sweep puts the first
--- device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit); the off-screen skip, the
+-- The simulated device can carry over to other Studio windows on the machine (seen once; not measured
+-- between two open windows): the sweep puts the first device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit); the off-screen skip, the
 -- device cut, the backdrop rule and the marks were tested in Play on the Studio viewport and on the Galaxy
 -- A06 preset; a game session ran the off-screen skip and the backdrop rule on iPhone 17 Pro, iPad 10th
 -- Generation and HD 1080 as well.
