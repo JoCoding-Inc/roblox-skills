@@ -8,7 +8,7 @@ sources:
   - Studio MCP `subagent` tool: this build (0.745) listed explore, screen_capture, unit_test
   - original (Roblox-specific constraints from shipping test games with an AI agent)
   - original field notes (2026-10 to 2026-11)
-  - RoDesigner `generate_game_asset` kind `gameplay_screen` (prod dry runs on 2026-11-13: three device sizes, `concept_only`, 10 credits; inputs read in the service source the same day)
+  - RoDesigner `generate_game_asset` kind `gameplay_screen` (prod dry runs on 2026-11-13: three device sizes, `concept_only`, 10 credits; inputs and the first field-test changes read in the service source the same day)
 ---
 
 # Roblox game pipeline: the staged game-development workflow
@@ -211,9 +211,9 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 - Poll each task with `get_task`, show the images, and call `select_concept` with the one the user picks: this locks the style for every later asset and video.
 - Save copies to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). They steer direction; they are not shipped art.
 - The gameplay-screen still, with RoDesigner connected: `generate_game_asset` kind `gameplay_screen` draws a preview that reads as a screenshot of the running game on a device, with the HUD you list (10 credits in a dry run on 2026-11-13; quote the live number). Use it to agree one screen (battle, lobby, boss, an open shop) with the user before building it. One owner turned down painterly key art for that job and accepted only images that read as real play with a HUD (field note relayed by RoDesigner, 2026-11-13). The free route still comes first: a Studio greybox or a kit mock.
-  - `device` sets the frame: `phone` (default) 1744x800, `tablet` 1728x1200, `desktop` 1920x1080. On phone and tablet it draws Roblox's thumbstick ring and jump button.
-  - `hud` lists what the screen shows: `counters` (label and value), `buttons` with `buttons_side`, `actions` (the buttons around the jump button), `bars`, `toasts` and one `panel` (title, tabs, items, button). Leave `hud` out for a world view with no UI and no touch controls. List only texts the game will have, then check the image: every listed text present and spelled right, no word or number that nobody listed.
-  - Best style reference (`image_url`): a HUD-free Studio capture of the game's own place, greybox included, so the preview keeps the real world. `layout_reference` takes a `find_references` id with `has_layout`: its measured boxes place the HUD (roles and numbers only, never the frame).
+  - `device` sets the frame: `phone` (default) 1744x800, `tablet` 1728x1200, `desktop` 1920x1080. On phone and tablet it draws Roblox's thumbstick ring and jump button, except while a `panel` is open.
+  - `hud` lists what the screen shows: `counters` (label and value), `buttons` with `buttons_side`, `actions` (the buttons around the jump button), `bars`, `toasts` and one `panel` (title, tabs, items, button; `closable: false` for no close X). A counter, button or action can carry an `icon` (one plain word, never drawn as text). Leave `hud` out for a world view with no UI and no touch controls. List only texts the game will have, then check the image: every listed text present and spelled right, no word or number that nobody listed.
+  - Best style reference (`image_url`): a HUD-free Studio capture of the game's own place, greybox included, so the preview keeps the real world. A reference that shows a HUD leaks that HUD into the preview, and a widget nobody listed is a defect. `layout_reference` (a `find_references` id with `has_layout`) is a weak hint: in 3 of 3 test images the model kept its own HUD positions (RoDesigner, 2026-11-13), so compare the preview with the reference by eye.
   - It is a concept, not a measurement (the result carries `concept_only: true`). No size or position in it is measured, so the built screen is still judged by the kit lint, the device sweep (`roblox-ui-layout` section 6) and `compare_layout` against one anchor.
 
 **C. Concept trailer.** Free: a written storyboard (one line per shot) with greybox stills. With a video tool (gwanggo below):
