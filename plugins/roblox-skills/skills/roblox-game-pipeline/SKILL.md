@@ -1,13 +1,14 @@
 ---
 name: roblox-game-pipeline
 description: "Use FIRST for any new Roblox game, game idea or big feature to run the staged production workflow: tool check, vision, live-market and platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, first proof (core-fun prototype, concept images or a concept trailer), build loop with evidence, verify, release. For Roblox games this replaces generic brainstorming. Also when the user says 'make a game', 'what do you think of this idea', 'what should I make', 'what is trending' or 'let's start a project'; asks how autonomous the agent should be or whether to use subagents; wants a prototype, concept art or a trailer before building; when a step is judged by feel and the user should play it; when small decisions (cinematic, style, intro, music, loading screen) come up late; when the user asks 'is it all done?'; when work stalls without a working mode. Run roblox-project-intake inside stage 0-1 and roblox-market-research in stages 1-2."
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-13
 sources:
   - superpowers plugin 7.0.0 skills: brainstorming, writing-plans, executing-plans, subagent-driven-development, verification-before-completion, finishing-a-development-branch (read 2026-11-03; rules adapted, not copied)
   - roblox-project-intake, roblox-market-research, roblox-design-and-launch (section 1a), roblox-dev-workflow, roblox-cinematics, roblox-store-art-pack
   - Studio MCP `subagent` tool: this build (0.745) listed explore, screen_capture, unit_test
   - original (Roblox-specific constraints from shipping test games with an AI agent)
   - original field notes (2026-10 to 2026-11)
+  - RoDesigner `generate_game_asset` kind `gameplay_screen` (prod dry runs on 2026-11-13: three device sizes, `concept_only`, 10 credits; inputs read in the service source the same day)
 ---
 
 # Roblox game pipeline: the staged game-development workflow
@@ -190,7 +191,7 @@ When the plan is approved, ask once, several picks allowed: "Before the full bui
 | Option | You get | Needs | Cost |
 |---|---|---|---|
 | A. Core-fun prototype (D) | A playable greybox of the most-repeated action, its feedback, the first reward and one upgrade | Studio MCP | 1-3 plan tasks, no credits |
-| B. Concept images | 3-6 stills: key art, one gameplay screen, the clip-worthy moment, the hero character or creature | Greybox screenshots, or an image tool the user has connected (for example gwanggo MCP) | Free with greybox; credits per image when paid, quoted first |
+| B. Concept images | 3-6 stills: key art, one gameplay screen, the clip-worthy moment, the hero character or creature | Greybox screenshots, or an image tool the user has connected (for example gwanggo or RoDesigner MCP) | Free with greybox; credits per image when paid, quoted first |
 | C. Concept trailer | 15-30 s video made from B's stills: 3-5 shots, captions, title card | A written storyboard, or a video tool the user has connected (for example gwanggo MCP) | Free as a storyboard; more than B when paid, quoted first |
 | D. Straight to the full build | Stage 7 as planned | - | - |
 
@@ -209,12 +210,17 @@ Pick A first when the core action is the risk; B or C first when the pitch or th
 - `generate_concepts` with `dry_run: true` first, show the credits, wait for yes, then run it (count 3; key art, gameplay scene, world overview, character lineup). Put the style lane, palette and "Roblox game, blocky avatar proportions" in `extra_direction`. Never name other live games or their characters.
 - Poll each task with `get_task`, show the images, and call `select_concept` with the one the user picks: this locks the style for every later asset and video.
 - Save copies to `assets/concept/` with `assets/concept/README.md` (prompt, model, credits, date). They steer direction; they are not shipped art.
+- The gameplay-screen still, with RoDesigner connected: `generate_game_asset` kind `gameplay_screen` draws a preview that reads as a screenshot of the running game on a device, with the HUD you list (10 credits in a dry run on 2026-11-13; quote the live number). Use it to agree one screen (battle, lobby, boss, an open shop) with the user before building it. One owner turned down painterly key art for that job and accepted only images that read as real play with a HUD (field note relayed by RoDesigner, 2026-11-13). The free route still comes first: a Studio greybox or a kit mock.
+  - `device` sets the frame: `phone` (default) 1744x800, `tablet` 1728x1200, `desktop` 1920x1080. On phone and tablet it draws Roblox's thumbstick ring and jump button.
+  - `hud` lists what the screen shows: `counters` (label and value), `buttons` with `buttons_side`, `actions` (the buttons around the jump button), `bars`, `toasts` and one `panel` (title, tabs, items, button). Leave `hud` out for a world view with no UI. List only texts the game will have, then check the image: every listed text present and spelled right, no word or number that nobody listed.
+  - Best style reference (`image_url`): a HUD-free Studio capture of the game's own place, greybox included, so the preview keeps the real world. `layout_reference` takes a `find_references` id with `has_layout`: its measured boxes place the HUD (roles and numbers only, never the frame).
+  - It is a concept, not a measurement (the result carries `concept_only: true`). No size or position in it is measured, so the built screen is still judged by the kit lint, the device sweep (`roblox-ui-layout` section 6) and `compare_layout` against one anchor.
 
 **C. Concept trailer.** Free: a written storyboard (one line per shot) with greybox stills. With a video tool (gwanggo below):
 - Shot list first (format in `roblox-cinematics` section 4): hook = the clip-worthy moment, then the core action, the progression payoff, the twist or friends, title card; 3-6 s per shot.
 - `generate_gameplay_video` makes one clip from the selected concept (needs `select_concept`; credits per second, `dry_run` first; default 5 s, 16:9). Pass each shot's motion as `prompt`. For shots that start from another concept image, use `generate_video` with that image as the start frame, and compare frame 0 of the clip with that image: some models dropped the start frame and still charged until a gwanggo fix on 2026-11-04. Make the first 1-2 shots, show them, then the rest (one trailer was stopped after 2 shots as "too different from the game"). 9:16 for Shorts or TikTok tests (the `gwanggo-social-video` skill plans these if installed).
 - Join the clips with `ffmpeg -f concat -safe 0 -i shots.txt -c copy trailer.mp4` when ffmpeg exists (re-encode if the clips differ); otherwise hand over the clips in order.
-- Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness). gwanggo's own tool description says the same.
+- Concept images and trailers do not show the real game. Never use them as store thumbnails, the store video or Roblox ads; those show real gameplay (`roblox-store-art-pack`, truthfulness). gwanggo's own tool description says the same. A generated screen preview (B) is a concept image too, however much it reads as a screenshot: never upload it as a thumbnail, icon or ad and never show it to anyone as real gameplay.
 
 Say which route was used (free storyboard and greybox, gwanggo, or another tool the user connected).
 
@@ -325,7 +331,7 @@ Use this for every choice of how something looks or moves, after the bundled exa
 
 How:
 1. One image per option, same scene, same camera and framing; only the choice changes, so the comparison is fair. The scene comes from this game (its setting, core action, characters from the brief), not a generic one. Label each option A, B, C.
-2. With gwanggo: before the style lock use `generate_image`; after it use `generate_game_asset` kind `image` so examples match the locked style. Explore with a cheap model (1-3 credits per image in `list_models`); use high quality only for the final pick.
+2. With gwanggo: before the style lock use `generate_image`; after it use `generate_game_asset` kind `image` so examples match the locked style. Explore with a cheap model (1-3 credits per image in `list_models`); use high quality only for the final pick. With RoDesigner, a whole screen with its HUD is kind `gameplay_screen` (section 6b B): keep `device`, `hud` and the description the same for every option and change only the choice (`ui_style`, or the style reference).
 3. Quote the total first (count x cost) and wait for yes. Clips cost much more than stills: offer them only for motion choices.
 4. Show them on one labeled sheet: save the files as `A-<name>.png` and so on in a scratch folder and run `python3 -I <skill dir>/scripts/style_board.py sheet.png --dir <folder>`, then send the sheet.
 5. Record the pick in the brief or ledger, copy the chosen image to `assets/refs/`, and log prompt, model and credits. With gwanggo, a pick can feed the next step: a chosen character image goes to `generate_game_asset` kind `3d`.
