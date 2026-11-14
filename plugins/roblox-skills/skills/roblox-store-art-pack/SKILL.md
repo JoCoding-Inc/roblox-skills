@@ -1,7 +1,7 @@
 ---
 name: roblox-store-art-pack
 description: "Use for any genre when picking and quarantining Creator Store models, picking UI icons (button, currency, shop, rebirth) from a Creator Store icon pack, offering popular world-prop packs (trees, rocks, fences) for the user to pick, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only. Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI or an agent-made icon looks odd, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 sources:
   - https://github.com/blauwtje/roblox-kit (map-building/reference/daylight-look.md, ui-images; MIT)
   - https://github.com/brain-xiang/grok-studio (skills/thumbnail-and-icon; MIT)
@@ -170,7 +170,7 @@ Rules for any mix of icons:
 - 1024 px or less per image. Many icons go on one sprite sheet (8x8 of 128 px).
 - 9-slice needs a slice centre; tune `SliceScale`.
 - Fixed words (the logo) may be images; translatable words stay TextLabels.
-- Generated icons for step 6 (for example gwanggo kind `icon`, 1:1 in the project's locked style): downscale to the canvas and check that the outline weight matches the pack.
+- Generated icons for step 6 (for example gwanggo kind `icon`, 1:1 in the project's locked style): downscale to the canvas and check that the outline weight matches the pack. With RoDesigner, ask for the set as one sheet (kind `ui_icon_sheet`, up to 9 icons, one `family` name) instead of single icons, so the set shares outline and shading.
 
 ## 5. Game icon and thumbnails
 

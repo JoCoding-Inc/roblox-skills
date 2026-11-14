@@ -1,14 +1,14 @@
 ---
 name: roblox-game-pipeline
 description: "Use FIRST for any new Roblox game, game idea or big feature to run the staged production workflow: tool check, vision, live-market and platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, first proof (core-fun prototype, concept images or a concept trailer), build loop with evidence, verify, release. For Roblox games this replaces generic brainstorming. Also when the user says 'make a game', 'what do you think of this idea', 'what should I make', 'what is trending' or 'let's start a project'; asks how autonomous the agent should be or whether to use subagents; wants a prototype, concept art or a trailer before building; when a step is judged by feel and the user should play it; when small decisions (cinematic, style, intro, music, loading screen) come up late; when the user asks 'is it all done?'; when work stalls without a working mode. Run roblox-project-intake inside stage 0-1 and roblox-market-research in stages 1-2."
-last_reviewed: 2026-11-13
+last_reviewed: 2026-11-14
 sources:
   - superpowers plugin 7.0.0 skills: brainstorming, writing-plans, executing-plans, subagent-driven-development, verification-before-completion, finishing-a-development-branch (read 2026-11-03; rules adapted, not copied)
   - roblox-project-intake, roblox-market-research, roblox-design-and-launch (section 1a), roblox-dev-workflow, roblox-cinematics, roblox-store-art-pack
   - Studio MCP `subagent` tool: this build (0.745) listed explore, screen_capture, unit_test
   - original (Roblox-specific constraints from shipping test games with an AI agent)
   - original field notes (2026-10 to 2026-11)
-  - RoDesigner `generate_game_asset` kind `gameplay_screen` (prod dry runs on 2026-11-13: three device sizes, `concept_only`, 10 credits; inputs and the first field-test changes read in the service source the same day)
+  - RoDesigner `generate_game_asset` kind `gameplay_screen` (prod dry runs on 2026-11-13: three device sizes, `concept_only`, 10 credits; inputs and the first field-test changes read in the service source the same day); kind `image` render sizes (prod dry runs on 2026-11-14) and field patterns from one game's 9 generations (relayed by RoDesigner, 2026-11-14)
 ---
 
 # Roblox game pipeline: the staged game-development workflow
@@ -335,6 +335,12 @@ How:
 3. Quote the total first (count x cost) and wait for yes. Clips cost much more than stills: offer them only for motion choices.
 4. Show them on one labeled sheet: save the files as `A-<name>.png` and so on in a scratch folder and run `python3 -I <skill dir>/scripts/style_board.py sheet.png --dir <folder>`, then send the sheet.
 5. Record the pick in the brief or ledger, copy the chosen image to `assets/refs/`, and log prompt, model and credits. With gwanggo, a pick can feed the next step: a chosen character image goes to `generate_game_asset` kind `3d`.
+
+With RoDesigner connected, three patterns held in one game (9 generations, 2026-11-14, relayed by RoDesigner; quote the cost from a dry run first):
+- **Sheet from a target.** Decide the look on one target image first (a concept or a screen preview), then pass that image as `image_url` to kind `image` and ask for the turnaround or model sheet. A 4-view boss sheet and a 3x4 mob sheet kept the design across views.
+- **VFX sprite sources.** Kind `image` with the sprite on pure black (why: `roblox-feel-audio-vfx` section 3). Two sprites side by side in one 16:9 image held in 4 of 4 runs, so one generation gives two sources.
+- **Reward and item icons.** Kind `ui_icon_sheet` with one `family` name: a 3x2 sheet came back with 6 of 6 icons passing its check, in one outline and shading.
+- Kind `image` renders 1424x1424 at `aspect_ratio` 1:1 (default), 1648x1248 at 4:3, 1248x1648 at 3:4, 1920x1072 at 16:9 and 1072x1920 at 9:16 (the dry run shows `render_size`). Pick the ratio by how the sheet will be sliced.
 
 Free route (offer it first): a quick greybox mock in Studio captured with `screen_capture` per option, live-game thumbnails of the same genre as references (`roblox-launch-benchmarks` `scripts/art_fetch.py`; references only, never copied), or a short written description per option.
 
