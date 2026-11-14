@@ -1,7 +1,7 @@
 ---
 name: roblox-engine-2026
 description: "Use when writing or reviewing Roblox game code and UI in 2026: task scheduler, deferred events, Parallel Luau, native codegen, strict types, StreamingEnabled settings, flex layouts and UI styling, Input Action System, mobile/console rules, performance budgets, remote security, server-side exploit detection, Server Authority, platform-integrated chat, and a status board of betas, rollouts and planned features. Also when code uses wait/spawn/delay or PhysicsService collision groups, when a UI breaks on phone or console, when memory or crash rates are high, when adding remotes, ProximityPrompts or purchases, when exploiters speed-hack or farm currency, when code touches Motor6D joints or rotated UI, when scenery vanishes at a distance on phones or low graphics, when a client stalls waiting for a remote at join or an item is lost as a player leaves, before raising a region, stage or tier count, or when an old tutorial's pattern might be outdated."
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-14
 sources:
   - https://create.roblox.com/docs/scripting (scheduler, events/deferred, multithreading, locations, security, transparent-batching)
   - https://create.roblox.com/docs/luau (type-checking, native-code-gen)
@@ -11,6 +11,7 @@ sources:
   - https://create.roblox.com/docs/performance-optimization
   - https://create.roblox.com/docs/chat/platform-integrated-chat
   - https://create.roblox.com/docs/projects/teleport
+  - https://devforum.roblox.com/t/studio-beta-luau-modularity-export-values-and-cyclic-requires/4988432 (staff post 2026-11-12, read 2026-11-14)
   - original field notes (2026-10 to 2026-11)
 ---
 
@@ -36,7 +37,7 @@ Where this file and an older tutorial disagree, this file follows the current do
 - **Still beta (do not ship without a fallback):** script capabilities (`Sandboxed`), `InputActionLabel`, persistent Friends/Global leaderboards (open beta since 2026-08-26, one active board; the post title says "Full Release" but the post and docs say beta), video upload.
 - **Collision summaries (Studio-tested 2026-11-01; the public roadmap still lists them for early 2027, so confirm in a published test place before relying on them live):** `part:BindToCollisionSummaries(function(summaries) ... end)` returns an `RBXScriptConnection`; once per frame after the physics step it passes every contact of that part (`Time`, `Part0`, `Part1`, `Point`, `Normal`, `RelativeVelocity`, `Area`). Use it for impact sparks, sounds and hit location instead of `Touched` plus velocity guesses. Impact speed = `s.RelativeVelocity:Dot(s.Normal)` (positive on a hit); a landing part also reports follow-up rebound contacts in the next frames, so filter by a speed threshold. Do not call it inside a `Touched` handler.
 - **Animation Graph Editor (full release 2026-07, DevForum staff post):** node-based blend trees and animation logic built in Studio that run in live games (`create.roblox.com/docs/animation/graph-editor`). The Luau-expression state machines below are still beta.
-- **Luau betas (Studio Beta Features, do not ship):** `if local x = expr then` and `if const` (also as expressions, narrows types), and State Machines with Luau Expressions for animation graphs.
+- **Luau betas (Studio Beta Features, do not ship):** `if local x = expr then` and `if const` (also as expressions, narrows types), and State Machines with Luau Expressions for animation graphs. Since 2026-11-12 also exported values and cyclic requires: `export function`, `export local` and `export const` at the top level of a module replace the returned table (no top-level `return` in the same module; the exports are frozen once the module has loaded), and modules may require each other when every module in the cycle uses `export` and reads the other's fields inside functions that run after loading. Shipped modules keep returning a table until this leaves beta.
 - `Player.UserId` is still the global id; `Player.User` exists but scoped ids have not rolled out. The broad rollout slipped (staff update of 2026-09-01), and the 2026-11-09 Ban Lists post says ban lists ship before Scoped User IDs, so not before 2027-01-29.
 
 ## 2. UI
