@@ -17,13 +17,16 @@
 -- KitTransient = true on a short-lived effect, toast or pop-up play target (the name the RoDesigner
 -- kit lint reads): the marked element and its children leave the coverage, overlap and safe-frame
 -- checks; a marked button is still checked against the reserved zones and the 44 px floor.
+-- Inside a KitTransient effect the 44 px and text floors judge the full size: every UIScale on or
+-- under the outermost marked element counts as 1 (a pop or a shrink caught mid-tween). KitMinScale =
+-- a number in (0, 1] on that element judges full size x that number (an effect that shrinks on purpose).
 -- Run with Studio MCP execute_luau:
 --   Play, datamodel Client: checks PlayerGui (UI that scripts build, real touch controls). Preferred.
 --   Edit: checks StarterGui only; touch zones come from the formulas below, and the safe frame is
 --   58 px taller than in Play because Edit draws no top bar.
 -- Run it at idle with every panel closed for the HUD budgets, then again with each panel open.
--- The simulated device is shared by every Studio window on the machine: the sweep puts the first
--- device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit); the off-screen skip, the
+-- The simulated device can carry over to other Studio windows on the machine (seen once; not measured
+-- between two open windows): the sweep puts the first device back when it ends. Tested 2026-11-12 in Studio 0.747 (Play and Edit); the off-screen skip, the
 -- device cut, the backdrop rule and the marks were tested in Play on the Studio viewport and on the Galaxy
 -- A06 preset; a game session ran the off-screen skip and the backdrop rule on iPhone 17 Pro, iPad 10th
 -- Generation and HD 1080 as well.
@@ -122,6 +125,26 @@ local function transient(o: Instance): boolean
 		p = p.Parent
 	end
 	return false
+end
+
+-- the outermost KitTransient element over o, the UIScale product on or under it (the effect's own
+-- animation) and its KitMinScale (1 when absent or not in (0, 1])
+local function effect(o: Instance): (Instance?, number, number)
+	local top: Instance? = nil
+	local s, inner, min = 1, 1, 1
+	local p: Instance? = o
+	while p and p ~= root do
+		local u = p:FindFirstChildOfClass("UIScale")
+		if u then
+			s *= u.Scale
+		end
+		if p:GetAttribute("KitTransient") == true then
+			local m = p:GetAttribute("KitMinScale")
+			top, inner, min = p, s, if typeof(m) == "number" and m > 0 and m <= 1 then m else 1
+		end
+		p = p.Parent
+	end
+	return top, inner, min
 end
 
 -- KitRole = "target" (the RoDesigner kit lint's mark for a clicker's centre tap target), on the element or an ancestor
@@ -308,6 +331,7 @@ local function check(name: string): string
 	local crossing = {}
 	local outside, across = {}, {} -- paths outside the safe frame, and crossing its edge
 	local off, offTop, offList = {}, {}, {} -- elements wholly off the screen (slid-out layers): skipped, named once by their top ancestor
+	local scaledTop, scaledList = {}, {} -- KitTransient effects sampled away from scale 1 or with a KitMinScale: floors judged at full size
 	local leaves = {} -- buttons and text: { gui, DisplayOrder, path, x0, y0, x1, y1 }
 	local scrim: string? = nil -- a backdrop over the whole screen or the whole of its ScreenGui (a modal is open)
 	local scrimOrder = -math.huge
@@ -354,6 +378,15 @@ local function check(name: string): string
 			local hasImage = (o:IsA("ImageLabel") or o:IsA("ImageButton")) and (o :: any).Image ~= "" and (o :: any).ImageTransparency < 1
 			local text = isText(o)
 			local brief = transient(o)
+			local fxTop, fxScale, fxMin = effect(o)
+			local full = if fxScale > 0 then fxMin / fxScale else 1 -- sampled px x full = the px the floors judge
+			local function fxNote()
+				if fxTop and math.abs(full - 1) > 0.005 and not scaledTop[fxTop] then
+					scaledTop[fxTop] = true
+					table.insert(scaledList, string.format("%s (sampled at scale %.2f%s)", (fxTop:GetFullName():gsub("^.-Gui%.", "", 1)), fxScale,
+						fxMin < 1 and string.format(", KitMinScale %.2f", fxMin) or ""))
+				end
+			end
 			local target = playTarget(o)
 			local lx0, ly0, lx1, ly1 = x0, y0, x1, y1 -- the rect that counts for overlaps
 			-- backdrops: a layer over the whole screen is a scrim; one that fills an inset ScreenGui stops short of it
@@ -416,8 +449,12 @@ local function check(name: string): string
 						table.insert(problems, string.format("%s: button %s is inside %s", z[6], path, z[1]))
 					end
 				end
-				if touch and not nested and math.min(size.X, size.Y) < MIN_TARGET then
-					table.insert(problems, string.format("warn: button %s is %dx%d px, under %d", path, size.X, size.Y, MIN_TARGET))
+				if touch and not nested then
+					fxNote()
+					if math.min(size.X, size.Y) * full < MIN_TARGET - 0.01 then
+						table.insert(problems, string.format("warn: button %s is %dx%d px%s, under %d", path, size.X * full + 0.5, size.Y * full + 0.5,
+							math.abs(full - 1) > 0.005 and " at the size the floors judge (KitTransient note)" or "", MIN_TARGET))
+					end
 				end
 			end
 			if (isButton or text) and not brief then
@@ -428,10 +465,12 @@ local function check(name: string): string
 			end
 			if text then
 				local t = o :: any
-				local px = if t.TextScaled then t.TextBounds.Y else t.TextSize * uiScale(o)
+				local px = (if t.TextScaled then t.TextBounds.Y else t.TextSize * uiScale(o)) * full
 				local floor = smallTextOk(o) and MIN_HUD_TEXT or MIN_TEXT
+				fxNote()
 				if px < floor - 0.5 then
-					table.insert(problems, string.format("warn: text %s is about %d px, under %d", path, px, floor))
+					table.insert(problems, string.format("warn: text %s is about %d px%s, under %d", path, px,
+						math.abs(full - 1) > 0.005 and " at the size the floors judge (KitTransient note)" or "", floor))
 				end
 			end
 			if inSafe and not brief and (hasBack or hasImage or text) and not crossing[o.Parent] then
@@ -455,6 +494,10 @@ local function check(name: string): string
 		end
 	end
 
+	if #scaledList > 0 then
+		table.insert(problems, string.format("note: %d KitTransient effect%s had the 44 px and text floors judged at full size (x KitMinScale when set), not at the sampled size: %s%s",
+			#scaledList, #scaledList == 1 and "" or "s", table.concat(scaledList, ", ", 1, math.min(#scaledList, 3)), #scaledList > 3 and ", ..." or ""))
+	end
 	if #offList > 0 then
 		table.insert(problems, string.format("note: %d element%s with nothing drawn on the screen %s skipped (slid out or parked): %s%s", #offList, #offList == 1 and "" or "s",
 			#offList == 1 and "was" or "were", table.concat(offList, ", ", 1, math.min(#offList, 3)), #offList > 3 and ", ..." or ""))
