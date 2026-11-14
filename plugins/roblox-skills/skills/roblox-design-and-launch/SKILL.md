@@ -1,7 +1,7 @@
 ---
 name: roblox-design-and-launch
 description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization. Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, when adding analytics events (AnalyticsService economy, funnel, journey or custom events), or when asked what Roblox pays creators."
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-14
 sources:
   - https://create.roblox.com/docs/production/roblox-user-base
   - https://www.gameanalytics.com/reports/2026-roblox-report (vendor report; primary page read 2026-11-03)
@@ -21,6 +21,7 @@ sources:
   - https://devforum.roblox.com/t/players-can-now-find-in-game-items-outside-your-game/4888425
   - https://devforum.roblox.com/t/upcoming-friends-list-api-access-changes-for-australian-users-under-16/4850358
   - https://devforum.roblox.com/t/experiments-catch-experiment-regressions-faster-with-early-harm-detection/4907734
+  - https://devforum.roblox.com/t/experiments-measure-impact-with-custom-and-rewarded-ad-earning-metrics/4988305 (staff post 2026-11-12; docs page production/experiments read 2026-11-14)
   - https://devforum.roblox.com/t/making-publishing-easier-our-vision-and-whats-coming/4865780
   - https://devforum.roblox.com/t/rdc26-what-we-announced/4865880 (announced, not shipped)
   - https://about.roblox.com/newsroom/2026/07/moments-new-homepage-unlocks-gaming-for-all
@@ -133,6 +134,7 @@ Design rules: never block the core loop behind a purchase; do not give Premium o
 - Configs: up to 1,000 active configs, 100 conditions; read with `ConfigService:GetConfigAsync`/`GetConfigForPlayerAsync`; publish takes 15-60 s. Experiments run 14-60 days, 2 variants plus control, metrics D1, D7, playtime, ARPU, ARPPU, payer conversion.
 - Instrument before launch: the minimum event set in section 3a.
 - **Experiment guard rails (O):** Early Harm Detection watches the first 24 h and flags critical harm at -10% playtime, -20% ARPU or -20% payer conversion; it needs 10,000 enrolled users. A sample-ratio-mismatch (SRM) banner means stop and restart. Under about 1,000 DAU an experiment rarely reaches significance, so ship clear wins and watch the dashboard instead. `GetConfigAsync` does not apply experiment variants; use `GetConfigForPlayerAsync`.
+- **Experiment metric sets (O, 2026-11-12):** chosen when the experiment is created. Default; Rewarded Video Earnings (ad opt-in rate, impressions, ad earnings and total earnings per user next to the default metrics; Roblox sets the goal metric); Custom (the default metrics plus up to three of your own, built from custom, economy and funnel events; any of them can be the goal metric). A custom metric can only use events that already have data, and the metrics cannot be changed after the experiment starts: log the events first (section 3a) and do not change how the code sends them while it runs. Experiment numbers add up over the whole run and count each player once, Analytics pages are daily, so the two differ.
 - Creator Hub has benchmark sets (Similar experiences / Genre) and retention by acquisition source; benchmarks do not affect ranking. Do not compare play-through rate across 2026-10-12: a measurement change raised impressions and slightly lowered PTR (Roblox says RFY was unchanged).
 - **Experiments** (A/B tests) and **Configs** (remote values) ship balance and UI changes safely. Open Cloud exposes both for automation (configs API is beta, experiments API experimental, so expect changes; configs publish is limited to 10 per minute).
 - `RecommendationService` lets you build in-game recommendation carousels (register items, log one impression per item per session, log quality actions, fetch).
