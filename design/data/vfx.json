@@ -1,9 +1,9 @@
 {
   "type": "vfx",
   "schema_version": "1.0.0",
-  "title": "Effects: rarity tier ladder, aura and particle limits, feedback tiers, VFX house rules",
+  "title": "Effects: rarity tier ladder, aura and particle limits, feedback tiers, skill and attack effect rules, VFX house rules",
   "scope": "every genre with rewards, rolls or effects",
-  "sources": ["roblox-fun-effects/SKILL.md#3,4,5,9", "roblox-feel-audio-vfx/SKILL.md#3,3b,5"],
+  "sources": ["roblox-fun-effects/SKILL.md#3,4,5,9", "roblox-feel-audio-vfx/SKILL.md#3,3b,3c,5"],
   "data": {
     "tiers": [
       {
@@ -140,6 +140,63 @@
       "top_rarity_title_hold_s": {"v": [3, 4.5], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "2 clips / 1 game"},
       "reward_row_stagger_s": {"v": [0.25, 0.8], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "3 clips / 3 games"},
       "result_title_hold_s": {"v": [2, 3], "p": "measured", "src": "RoDesigner motion library, read from clip tags at 4 to 15 fps", "date": "2026-11-12", "n": "4 clips / 4 games"}
+    },
+    "skill_vfx": {
+      "rules": {
+        "hue": {"v": "one hue family per skill: white-hot, a body colour, a deep colour, neutral grey smoke; one accent hue for 1-3 frames at most", "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "value_ladder": {"v": "a dark soft layer under every ribbon, a body layer, a hot edge", "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "dark_underlayer_light_emission": {"v": 0, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "dark_underlayer_alpha": {"v": 0.45, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "body_light_emission": {"v": 0.35, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "body_brightness": {"v": 1.7, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "hot_edge_light_emission": {"v": 1, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "hot_edge_brightness": {"v": 3, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "white_core_s": {"v": [0.04, 0.07], "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "largest_layer_character_heights": {"v": 2, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "full_screen_layer": {"v": false, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "ribbon_life_s": {"v": 0.24, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "bright_layer_max_s": {"v": 0.35, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "aftermath_s": {"v": [0.6, 1.0], "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "scale_in_out": {"v": "every layer sweeps or grows in and fades out; only the core pops", "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "cut_planes": {"v": "build cut directions in the camera's view plane, or add a second arc tilted against the first; a flat beam vanishes edge-on", "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "stage": {"v": "dark floor, dusk light; on a bright floor keep the dark underlayers and dim the world at the charge and the burst", "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "bloom_threshold": {"v": 1.2, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "additive_warm_beam_light_emission": {"v": [0.55, 0.65], "p": "measured", "src": "RoDesigner demo builds, Studio 0.747", "date": "2026-11-15"}
+      },
+      "screen_response": {
+        "hit_light_range_studs": {"v": 13, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "hit_light_s": {"v": 0.13, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "burst_light_range_studs": {"v": 30, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "burst_light_s": {"v": 0.34, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "fov_kick_deg": {"v": 3.2, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "fov_kick_s": {"v": 0.26, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "charge_color_correction_brightness": {"v": -0.04, "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"},
+        "shake": {"v": "on the burst only; use the feedback shake model and tiers (rotation, trauma), with their flash, hit-stop and reduced-motion rules", "p": "opinion", "src": "skill effect demo tuned by eye on a dark stage, owner accepted it on video; relayed by RoDesigner", "date": "2026-11-15"}
+      },
+      "density": {
+        "clip": {
+          "arc_life_s": {"v": [0.04, 0.08], "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "arcs_visible": {"v": [4, 6], "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "volume_character_heights": {"v": 3.4, "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "layer_kinds_at_peak": {"v": [4, 6], "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "layer_order": {"v": "flash and rays at frame 0, crescents at +1 to +4 frames, smoke at +3, stars at +10 (50 fps)", "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "smoke_until_s": {"v": 0.6, "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "stars_per_hit": {"v": [2, 4], "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "stars_delay_s": {"v": [0.2, 0.4], "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"},
+          "accent": {"v": "one deep-coloured flat crescent for 2-3 frames", "p": "measured", "src": "one public VFX showcase clip read frame by frame at 50 fps by RoDesigner; one sample, a lead", "date": "2026-11-15", "n": "1 clip"}
+        },
+        "target": {
+          "thin_arc_life_s": {"v": [0.05, 0.1], "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"},
+          "arcs_visible": {"v": [4, 6], "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"},
+          "volume_character_heights": {"v": [2, 3], "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"},
+          "layer_kinds_per_hit_min": {"v": 5, "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"},
+          "layer_stagger_frames": {"v": [1, 3], "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"},
+          "dark_step": {"v": "a dark smoke layer, and 1-2 frames of dark rays at the big hit", "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"},
+          "accent": {"v": "one accent shape for 1-3 frames per big hit", "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"},
+          "aftermath": {"v": "small per hit, large on the burst", "p": "opinion", "src": "target set from the one clip; the accepted demo is below it, not a tested result", "date": "2026-11-15"}
+        },
+        "caveat": {"v": "more elements without the hue, dark-step and small-volume rules is clutter", "p": "opinion", "date": "2026-11-15"}
+      }
     },
     "rules": {
       "vfx_source": {"v": "VFX are Blender meshes plus gradient or flipbook textures. No block tiles and no default sparkles (the Sparkles object or the built-in rbxasset://textures/particles textures).", "p": "opinion", "src": "owner rule", "date": "2026-11-05"},
