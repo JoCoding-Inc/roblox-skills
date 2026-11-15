@@ -1,7 +1,7 @@
 ---
 name: roblox-fun-effects
 description: "Use when adding or reviewing any animation, particle effect, aura, trail, title, roll or egg-hatch reveal, rarity look, mutation or variant, level-up or rebirth celebration, emote, finisher or kill effect, or rare-drop announcement in a Roblox game. Decides what the effect rewards, who sees it, how it escalates and how it pays off in a clip, so it adds fun instead of only working. Also when an effect 'works but feels like nothing', a roll or reveal is boring or too long, when planning rarity tiers, cosmetics or auras, when players should be able to show off, when asked for 'more juice' or 'make it satisfying', or in roblox-game-pipeline stage 4 (Feel cards). Pair with roblox-feel-audio-vfx (how to build it and phone budgets), roblox-cinematics (long scenes), roblox-design-and-launch section 2 (paid random odds)."
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-15
 sources:
   - https://create.roblox.com/docs/en-us/production/game-design/design-for-roblox.md (fun first; players want their avatars seen)
   - https://create.roblox.com/docs/en-us/production/game-design/ui-ux-design.md (feedback)
@@ -123,6 +123,7 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 - Layer by importance: a hit, a crit, a kill and a boss kill each add channels, not just size. The per-moment table is in `roblox-feel-audio-vfx` section 3b. Frequent kills use the heavy range above (0.08 s in the test place) and keep the kill range for bosses.
 - Budget hit feedback per target per second, not per hit. A white `Highlight` flash tuned for towers with short range (0.09 s, at most every 0.12 s, fill 0.15) left enemies white most of the time once every tower could hit them along the whole path; a soft blink at most 3 times per second per enemy fixed it (field note, 2026-11-11).
 - **Finisher or kill effect:** plays only after the server confirms the kill, 2.5 s or less, the killer keeps control (or loses it for 0.5 s at most), cosmetic only. Sell it directly (a pass or bundle) or by crate with odds. Damage and timing rules stay in `roblox-combat-tools`.
+- A skill or attack effect looks rich through density, not size or length: many short-lived layers stacked in a small volume, a different picture on every frame. Method, rules and density targets: `roblox-feel-audio-vfx` section 3c.
 - Taunt emotes after a kill: optional and mutable.
 
 ## 9. Celebrations (level-up, rebirth, unlock)

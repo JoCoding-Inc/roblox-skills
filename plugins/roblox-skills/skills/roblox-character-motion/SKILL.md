@@ -1,7 +1,7 @@
 ---
 name: roblox-character-motion
 description: "Use when a Roblox character must perform a custom motion: exercise loops (push-ups, squats, lifting), sitting, climbing, carrying, interacting with a machine or prop, emotes, attack and skill motions for characters and creatures, or any animation the agent would build by script. Covers which authoring path to use, the motion sheet to make first (a row of key poses plus a beat table), keeping hands and feet on their contact points, baking, uploading so it works in live servers, and how to verify it. Also when a motion looks wrong (body floats, sinks into the floor, hands miss the bar, arms flail, feet slide), when code uses KeyframeSequenceProvider or builds Keyframes and Poses by script, when an animation plays in Studio but not in the published game, when choosing between Animation Editor, Blender, Animation Capture, IKControl and procedural joints, when a script errors with 'Unable to assign property C0', when a display rig's limbs fall off an anchored root, when a carried item is held only some of the time, when an attack or skill animation looks stiff or its hit lands on the wrong frame, or before a feel checkpoint for character motion (roblox-game-pipeline section 7a)."
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-15
 sources:
   - https://create.roblox.com/docs/reference/engine/classes/KeyframeSequenceProvider.md (temporary ids are Studio only)
   - https://create.roblox.com/docs/reference/engine/classes/AnimationClipProvider.md
@@ -17,6 +17,7 @@ sources:
   - original Studio tests 2026-11-03 (push-up loop, default R15 rig, scaled rigs)
   - original field notes (2026-10 to 2026-11)
   - RoDesigner motion sheet format experiment 2026-11-11 (2 motions, 7 reference formats, one builder per format, blind owner pick plus an Opus judge score)
+  - RoDesigner skill effect demo, 2026-11-15 (a sword flurry on a code-posed block dummy, judged by the owner on video; relayed by RoDesigner)
 ---
 
 # Character motion
@@ -38,7 +39,7 @@ Pair with `roblox-feel-audio-vfx` section 3a (loading, priorities, replication),
 | Small layered motion (breathing, bob, aim, lean) | Write `AnimationConstraint.Transform` (or `Motor6D.Transform` on old rigs) each frame in `RunService.PreSimulation` on the client | Cheap; skip when `Animator.EvaluationThrottled`. Joint rules on `AnimationConstraint` rigs: section 5 |
 | Blending many clips by state | Animation Graph (full release 2026-07-15) | Visual graph with parameters; clips still need uploaded ids |
 | Everyday humanoid motion described in words (limp, wave, sit down), or an R6 clip to move to R15 | Prompt to Animation or Motion Rebuilder (Studio Beta 2026-11-05: File > Beta Features > Animation Generation in Assistant; `/generate_animation` or Studio MCP `generate_animation`) | R15 only; about 20-30 s per action; complex sport and swimming moves are weak (DevForum). Prompt tips from the post: name who moves and how they feel, "then" for a sequence, "while" for two at once, put a stop in the same sentence, name the end pose, add "in place" or "loop". Untested by us; contacts still need section 3 and the clip still needs an upload with the user's yes |
-| Attack, skill, death or creature motion judged by its look | Motion sheet first (section 2a: a row of key poses plus a beat table), then whichever path above fits the body | The sheet is the target and the check; it does not replace the upload or the contact rules |
+| Attack, skill, death or creature motion judged by its look | Motion sheet first (section 2a: a row of key poses plus a beat table; attack rules in section 2b), then whichever path above fits the body | The sheet is the target and the check; it does not replace the upload or the contact rules |
 | Not this | Joint angles typed by guess, root anchored in the air | Measured in section 4: body sinks 1.43 studs into the floor |
 
 Not available yet (2026-11): shared animations across creators (early 2027), root motion (mid 2027). Animation ids follow new uploads only until 2027-03-31: after that an id without `&version=<n>` keeps the version current on that date (asset versioning, `roblox-engine-2026` section 6), so pin versions or use `AssetService:GetLatestVersionUriAsync`.
@@ -111,6 +112,27 @@ Read it as:
 2. Step it: capture the result from a fixed side camera at each beat time, lay the frames in a row under the strip, compare beat by beat and revise (at most twice in the test). The step that made the difference: an agent cannot see its motion any other way. Time-driven effects (trails, particles) cannot be frame-stepped; add them after the poses pass.
 3. Defects the result strips showed: hits 2-4 frames off the beat, an ending that never returns to the start pose, a one-frame pop, a turn in the wrong direction (a side camera hides it, so check a turn from above too), the weapon hidden behind the body at a hit, a detached prop floating for 8-10 frames.
 4. Not tested: turning the pose function into a `KeyframeSequence` or an uploaded animation (sample `pose(rig, t)` at the beat times into keys, then section 6, judgment), an animation event on the HIT beat in a live game (`roblox-feel-audio-vfx` section 3a), weapon trails, a custom segmented rig, a stronger builder model.
+
+## 2b. Attack motion rules (what fixed a stiff doll)
+
+One demo (2026-11-15, relayed by RoDesigner): a sword flurry on a jointed block dummy with R15 proportions. The first version moved only the arm and read as a stiff doll; the same timeline with the body rules below was accepted by the owner on video. The values are that demo's, tuned by eye on slow-motion captures; not tried on a real avatar or as a baked clip.
+
+| Rule | Value in the demo |
+|---|---|
+| The body goes first | hips and chest start turning about 0.065 s before the swing and are most of the way round when the arm starts; the hips turn about half as far as the chest |
+| Blade lag, then whip | the blade trails the arm by 0.6 rad at the start of a cut and passes it by 0.45 rad at the end |
+| The elbow opens mid-swing | the hand is 1.7 studs from the shoulder at both ends of a swing and about 2.3 through the middle (arm length 2.35 on that rig) |
+| Counterweight | the free arm goes back when the sword crosses the body and forward when it opens; both hands on the hilt for a charge |
+| Weight | wind-up and charge sink onto the back foot; down cuts drop the hips 0.2-0.3 studs and lean the chest in |
+| Step | on the big hit the front foot lunges 1.45 studs with a 0.45 stud lift and lands as the stroke starts; the back leg straightens |
+| Follow-through and hold | the blade carries on past the cut; the body settles lower for 0.34 s and holds through the burst (0.4 s) |
+| Return | the recovery (0.42 s) ends in exactly the start pose; a small breathing bob while standing |
+| Stroke order | each stroke starts where the last one ended, with no arm teleport between strokes |
+| Fast flurries | at 0.11 s per cut keep the body swing small (chest within 0.35 rad each way), or it reads as shaking |
+
+- A code-posed rig is a workable way to author and check such a motion before baking: arms and legs solved by two-bone IK to hand and foot targets, so elbows and knees bend by themselves and the feet stay planted. The motion is `pose(rig, t)` on the beat table (section 2a), stepped in slow motion from a fixed front camera and a pure side camera.
+- On a real avatar with baked clips, write each clip from the same beat table and take the effect times from the table, not from the clip length. A second demo time-warped baked clips so that their contact frames landed on the beats.
+- The effects on those beats: `roblox-feel-audio-vfx` section 3c.
 
 ## 3. Contact-first method (tested)
 

@@ -1,7 +1,7 @@
 ---
 name: roblox-feel-audio-vfx
 description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
   - https://create.roblox.com/docs/effects/particle-emitters (Rate limits, fill rate, `LightEmission` 1 hides the dark regions of a texture)
@@ -11,6 +11,8 @@ sources:
   - https://create.roblox.com/docs/reference/engine/classes/HapticEffect.md and GuiService.ReducedMotionEnabled (creator-docs 7cbffff, 2026-11-10)
   - Squirrel Eiserloh, "Math for Game Programmers: Juicing Your Cameras With Math", GDC 2016 slides (read 2026-11-12)
   - https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html and Xbox Accessibility Guidelines 117 and 118 (read 2026-11-12)
+  - RoDesigner skill effect demos, 2026-11-15 (two builds of one sword skill in Studio 0.747, one judged by the owner on video; engine probes of beams, Neon and TimeScale) and one public VFX showcase clip read frame by frame at 50 fps (numbers and method only); relayed by RoDesigner
+  - https://create.roblox.com/docs/reference/engine/classes/Beam, enums/TextureMode and classes/ParticleEmitter (TextureLength per mode, TimeScale 0 to 1, flipbook and shape enums; read 2026-11-15)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
 ---
@@ -107,6 +109,64 @@ Checking effects from an agent:
 - `screen_capture` came back 1-2 s after the call, so a 0.3 s effect is gone. Read state per frame instead (camera angle against `Camera.Focus`, `FieldOfView`, instance counts) with a render-step probe, run the effect with a long duration for the capture, or capture a beat that holds (a reveal's show beat) (field note, 2026-11-12).
 - Keep an "all effects off" switch in dev builds and play the same 30 s with it off and on. A channel nobody misses is noise (judgment).
 - A tween on a `NumberValue` that was never parented left the value at its start; drive such values from `RenderStepped` with `TweenService:GetValue` (field note, 2026-11-12; cause not isolated).
+
+## 3c. Skill and attack effects (slash, flurry, burst)
+
+How to build a skill effect that reads at game speed. Evidence (2026-11-15, relayed by RoDesigner): two demos of one sword skill built by two agents (a flurry of cuts that ends in a ground burst, about 2.4 s), one of them accepted by the owner on video for its effect animation and its method; and one public VFX showcase clip read frame by frame at 50 fps, the source of the density numbers. One clip is a lead, not a norm. The demo values were tuned by eye on a dark stage; nothing ran on a phone or in a game.
+
+Method:
+
+1. **One clock for every layer.** Schedule all layers on one virtual clock: events at a time, curves over a span, one step per frame, and no chains of `task.wait`. Multiply `ParticleEmitter.TimeScale` and `Beam.TextureSpeed` by the clock's scale, so the same code runs at 0.1x for a capture and at 1x in play. `TimeScale` takes 0 to 1 (docs), so the clock slows an effect and never runs it faster than 1x. Measured: `TimeScale` 0.25 stretched a 1 s particle to about 4 s, and the beam and light curves of a 0.25x run matched the 1x run within one 60 Hz frame.
+2. **Beat table first.** Write the times before any layer: wind-up, each hit, charge, burst, recover. Motion and effects read the same table, so a hit, its ribbon, its sparks and its light land on one frame (`roblox-character-motion` sections 2a and 2b).
+3. **Check in slow motion.** Capture one cast at about 0.1x from a fixed front camera and a pure side camera, lay the frames in a row at the beat times, fix the worst frame and capture again. An agent cannot judge a 0.07 s swing at 1x (section 3b, "Checking effects from an agent").
+4. **Build order:** stage and light, the motion with no effects, the slash ribbons, the burst, smoke and stars, then the screen response. Add one layer per round and look at it alone.
+
+Rules that made the accepted demo read; each one is a check on a capture:
+
+| Rule | Value in the demo | Why |
+|---|---|---|
+| One hue family per skill | white-hot, a body colour, a deep colour and neutral grey smoke; one accent hue for 1-3 frames at most | five hues at once read as noise |
+| Value ladder with a dark step | a dark soft layer under every ribbon (`LightEmission` 0, alpha 0.45), the body (`LightEmission` 0.35, `Brightness` 1.7), a hot edge (`LightEmission` 1, `Brightness` 3) | bright reads bright only next to dark; a fully additive stack washes out |
+| The white core is short | 2-3 frames (0.04-0.07 s), then gone | a long white-out hides everything else |
+| Nothing covers the character | smoke low and behind (`ZOffset` -3), the largest layer about 2 character heights, no full-screen layer | the pose and the hit must stay visible |
+| Bright layers are short, the aftermath is long | ribbons 0.24 s, burst layers under 0.35 s; smoke, embers and star pops for 0.6-1 s after | a bright layer that stays 1.5 s smears the next hit |
+| Every layer scales in and out | sweep, grow, fade; only the core pops | a layer that starts at full size looks pasted on |
+| Cut planes face the camera | cut directions built in the camera's view plane, or a second arc tilted against the first so one of them reads from any side | a flat beam ribbon vanishes edge-on (measured, below) |
+| The world answers | a `PointLight` pulse per hit (range 13, 0.13 s) and on the burst (range 30, 0.34 s), a camera shake on the burst, FOV +3.2 degrees for 0.26 s, a small world dim during the charge (`ColorCorrectionEffect.Brightness` -0.04) | an effect with no light on the ground looks detached |
+| Stage contrast | dark floor, dusk light, `BloomEffect.Threshold` about 1.2 so only layers with `Brightness` above 1 bloom | on a bright daylight floor additive layers have nothing to stand out from: keep the dark underlayers and dim the world at the charge and the burst |
+
+- The demo shook the camera by position (0.36 studs, decaying over 0.22 s). In a game use the shake model and tiers of section 3b (rotation only, trauma, the big hit only) with its flash, hit-stop and reduced-motion rules.
+- The dark step does not undo the night-sky note of section 3: there dark layers hung in front of a dark sky; here a dark layer sits right under a bright ribbon over a lit floor (judgment). Check it on a capture of your own stage.
+
+Density: what makes an effect look rich. It is not longer or bigger: it is many short-lived elements stacked in a small volume, with a different picture on every frame.
+
+| Property | The clip (one sample) | Target (judgment) |
+|---|---|---|
+| Lifetime of one arc | 2-4 frames at 50 fps (0.04-0.08 s) | keep the main ribbons (0.24 s) and add thin arcs of 0.05-0.1 s |
+| Arcs visible at once | 4-6, a new one almost every frame | 4-6 through the flurry |
+| Volume | a ball about 3.4 character heights wide around the hit point, arcs at every angle | secondary arcs inside a ball 2-3 character heights wide at the hit point, on random planes |
+| Layer kinds in one frame at the peak | 4-6 of: core flash, needle rays, crescents, lightning strands, sparks, smoke, stars, ground ring | 5 or more at each hit |
+| Order inside one hit | flash and rays at frame 0, crescents at +1 to +4 frames, smoke at +3, stars at +10 | stagger each hit's layers by 1-3 frames |
+| Value range | white, yellow, orange, amber-brown smoke, thin black rays in the first 2 frames | a dark smoke layer, and 1-2 frames of dark rays at the big hit |
+| Accent | one deep red-orange flat crescent for 2-3 frames | one accent shape for 1-3 frames per big hit |
+| Aftermath | smoke to +0.6 s, 2-4 stars per hit at +0.2-0.4 s | small per hit, large on the burst |
+
+- The accepted demo sits below these targets (1-2 arcs at once, one every 0.11 s, 2-3 layer kinds per frame). The targets are the next step, not a tested result.
+- More elements without the rules above is clutter: keep one hue family, the dark step and the small volume.
+- Cost: the second demo peaked at 42 live particles, 13 emitters with live particles, 108 drawn beams and 4 `PointLight`s in one cast (counted by its client each frame), every emitter with `Enabled` false and `Emit` bursts only. Not checked on a phone: the budgets of section 5 still decide, and other players' casts get a cheaper version (section 3b, Cost).
+
+Engine notes (measured in Studio 0.747 by the demo builds on 2026-11-15 unless marked docs):
+
+- A flipbook played once: `FlipbookLayout` Grid4x4, `FlipbookMode` OneShot, then `Emit(1)` with a speed of about 0.01.
+- A converging charge: an emitter with `Shape` Sphere, `ShapeStyle` Surface and `ShapeInOut` Inward, so particles start on the sphere and fly in.
+- An arc ribbon is a chain of curved flat Beams (`FaceCamera` false) along the arc, each attachment's X axis along the tangent, with `CurveSize0 = CurveSize1 = 4/3 x tan(angle / 4) x R` for a beam that spans `angle` of a circle of radius R (the quarter-arc constant of section 3 is this at 90 degrees). One demo used 12 beams per arc.
+- A beam texture is laid along the beam. With `TextureMode` Stretch the texture repeats `TextureLength` times over each beam (docs), and a soft band texture then made every beam of a multi-beam arc a bright block with dark joints. Wrap with a `TextureLength` of 0.02, or no texture, gave an even band; with Wrap the repeats are the beam's length divided by `TextureLength` (docs).
+- A flat beam spreads its width along its attachments' Y axis and vanishes exactly edge-on; a higher `Brightness` did not bring it back.
+- Fully additive warm beams (`LightEmission` 1) on a dark ground washed to cream; `LightEmission` 0.55-0.65 kept gold and orange saturated.
+- A beam at `Brightness` 3 was visibly brighter than at 1 but bloomed weakly; particles with `LightEmission` 1 and `Brightness` 4 bloomed with a halo.
+- An untextured `Neon` MeshPart crescent glowed strongly with bloom; a textured one rendered faint and did not glow (the same finding as section 3).
+
+The attack motion under the effect (the body leads the arm, the blade lags and whips, each stroke starts where the last ended): `roblox-character-motion` section 2b.
 
 ## 4. Lighting and atmosphere (docs)
 
