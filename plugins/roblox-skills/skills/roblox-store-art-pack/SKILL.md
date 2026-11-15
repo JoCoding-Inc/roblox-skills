@@ -170,7 +170,7 @@ Rules for any mix of icons:
 
 - Same canvas (128 px, drawn at 2x), same outline weight, highlight and light direction, flat colors, no text inside.
 - 1024 px or less per image. Many icons go on one sprite sheet (8x8 of 128 px).
-- 9-slice needs a slice centre; tune `SliceScale`.
+- 9-slice needs a slice centre; tune `SliceScale`. The RoDesigner kit lint (0.1.29, relayed 2026-11-16) warns with SLICE_CRUSHED when the left plus right borders, or top plus bottom, times `SliceScale` and any `UIScale` come out larger than the drawn size; it reads an uploaded image's native size from a `KitImageSize` attribute (a Vector2) and does not judge an image whose size it does not know.
 - Fixed words (the logo) may be images; translatable words stay TextLabels.
 - Generated icons for step 6 (for example gwanggo kind `icon`, 1:1 in the project's locked style): downscale to the canvas and check that the outline weight matches the pack. With RoDesigner, ask for the set as one sheet (kind `ui_icon_sheet`, up to 9 icons, one `family` name) instead of single icons, so the set shares outline and shading.
 

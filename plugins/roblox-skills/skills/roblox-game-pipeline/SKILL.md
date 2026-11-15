@@ -298,7 +298,7 @@ Rules:
 - Paid calls, in order (judgment):
   1. List what the project already has (`get_project_assets`) and reuse it before paying for a new one.
   2. Write the planned asset and its exact parameters to the ledger before the call, and the task id right after it.
-  3. A call that timed out or returned no id has an unknown outcome: it may have run and charged. Read back (`get_project_assets`, `get_task`, `get_credits`) before any retry, and never send the same request again blind.
+  3. A call that timed out or returned no id has an unknown outcome: it may have run and charged. RoDesigner's `generate_game_asset` takes an optional `request_id` (8-64 characters of letters, digits, `_`, `.` and `-`; a UUID works): give every paid call a fresh one, and after a timeout resend the same call with the same id. The same id with the same arguments returns the first task and charges nothing (`replayed: true`); with other arguments it is refused; after a failed task use a new id (relayed by RoDesigner, 2026-11-16; we checked only that a dry run accepts the parameter). Without such an id, read back (`get_project_assets`, `get_task`, `get_credits`) before any retry, and never send the same request again blind.
   4. Submit in small batches, so one bad prompt or style costs a few assets, not the set.
   5. Out of credits: stop every paid call and report how many planned assets are still unbuilt.
 - Write the gwanggo project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
@@ -346,6 +346,7 @@ With RoDesigner connected, three patterns held in one game (9 generations, 2026-
 - **Sheet from a target.** Decide the look on one target image first (a concept or a screen preview), then pass that image as `image_url` to kind `image` and ask for the turnaround or model sheet. A 4-view boss sheet and a 3x4 mob sheet kept the design across views.
 - **VFX sprite sources.** Kind `image` with the sprite on pure black (why: `roblox-feel-audio-vfx` section 3). Two sprites side by side in one 16:9 image held in 4 of 4 runs, so one generation gives two sources.
 - **Reward and item icons.** Kind `ui_icon_sheet` with one `family` name: a 3x2 sheet came back with 6 of 6 icons passing its check, in one outline and shading.
+- **Name the colours when a reference is attached.** With `image_url` on kind `image`, `icon` or `ui_icon` the result keeps the reference's colours, and the dry run warns for free about reference colours the description does not mention. State the subject's colours and rule the rest out ("only crimson, orange, yellow and white; no blue, green or purple"); the service's review fails a result where colours nobody asked for cover a large area (relayed by RoDesigner, 2026-11-16).
 - Kind `image` renders 1424x1424 at `aspect_ratio` 1:1 (default), 1648x1248 at 4:3, 1248x1648 at 3:4, 1920x1072 at 16:9 and 1072x1920 at 9:16 (the dry run shows `render_size`). Pick the ratio by how the sheet will be sliced.
 
 Free route (offer it first): a quick greybox mock in Studio captured with `screen_capture` per option, live-game thumbnails of the same genre as references (`roblox-launch-benchmarks` `scripts/art_fetch.py`; references only, never copied), or a short written description per option.

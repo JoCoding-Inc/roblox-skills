@@ -2,7 +2,7 @@
 -- PanelStage: opens one panel at a time on a small screen (roblox-ui-mobile section 4).
 -- A modal panel (shop, settings, confirm): the game dims or blurs behind it, the HUD layers the
 -- panel would cover slide off their own edge, the touch controls hide, the panel pops in. A tap
--- outside closes it. A sheet (modal = false; a unit card beside play) only moves the HUD layers it
+-- outside closes it, except a confirm or purchase panel (kind = "confirm" / "purchase"), which waits for its own buttons. A sheet (modal = false; a unit card beside play) only moves the HUD layers it
 -- covers: no backdrop, the touch controls stay. Close brings everything back.
 -- While the on-screen keyboard is up, the panel moves up so the focused TextBox stays visible.
 -- Works under a root UIScale (the tablet scale of section 6).
@@ -18,6 +18,8 @@
 -- stage:open(unitCard, { modal = false })             -- play continues beside it
 -- stage:open(otherPanel)                              -- while one is open: swaps, no flicker
 -- stage:close()
+-- stage:open(buyPanel, { kind = "purchase" })         -- confirm / purchase: a tap outside does not close it
+-- stage:destroy()                                     -- removes the scrim ScreenGui and the BlurEffect it made in Lighting
 local GuiService = game:GetService("GuiService")
 local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
@@ -31,7 +33,8 @@ export type OpenOptions = {
 	blur: number?, -- BlurEffect.Size for "blur", default 16
 	hide: ("overlap" | "all" | "none")?, -- HUD layers that slide off, default "overlap" (those the panel covers)
 	keep: { GuiObject }?, -- layers that never slide
-	dismissOnScrim: boolean?, -- modal only, default true
+	kind: ("info" | "shop" | "inventory" | "confirm" | "purchase")?, -- what the panel is for; sets the dismissOnScrim default
+	dismissOnScrim: boolean?, -- modal only; default true, false for kind "confirm" and "purchase" (an explicit choice must not be lost to a stray tap)
 }
 type Layer = { frame: GuiObject, side: Side, home: UDim2, out: boolean }
 
@@ -98,7 +101,7 @@ function PanelStage.new(playerGui: Instance, order: number?)
 	self.touchWas = true
 	self.dismiss = true
 	self.home = nil :: UDim2? -- the open panel's position before the keyboard moved it
-	UserInputService:GetPropertyChangedSignal("OnScreenKeyboardVisible"):Connect(function()
+	self.keyboardConn = UserInputService:GetPropertyChangedSignal("OnScreenKeyboardVisible"):Connect(function()
 		self:_followKeyboard()
 	end)
 	scrim.Activated:Connect(function()
@@ -278,13 +281,20 @@ function PanelStage:open(panel: GuiObject, options: OpenOptions?)
 	self.panel = panel
 	local modal = opts.modal ~= false
 	local backdrop = if modal then (opts.backdrop or "dim") else "none"
-	self.dismiss = modal and opts.dismissOnScrim ~= false
+	local dismiss = opts.dismissOnScrim
+	if dismiss == nil then
+		dismiss = opts.kind ~= "confirm" and opts.kind ~= "purchase"
+	end
+	self.dismiss = modal and dismiss
 	self:_setBackdrop(
 		modal,
 		if not modal then 0 else opts.dim or (if backdrop == "dim" then 0.5 elseif backdrop == "blur" then 0.25 else 0),
 		if backdrop == "blur" then opts.blur or 16 else 0
 	)
 
+	-- the panel body sinks taps: a non-Active Frame lets a tap through (measured, Studio 0.747, touch and mouse), so a tap on an empty
+	-- part of the panel reached the scrim button below and closed it
+	panel.Active = true
 	local scale = scaleOf(panel)
 	scale.Scale = 1
 	panel.Visible = true -- AbsoluteSize below is the panel's final rect
@@ -327,6 +337,14 @@ function PanelStage:close(now: boolean?)
 	end
 	self:_setBackdrop(false, 0, 0)
 	self:_setHidden({})
+end
+
+-- removes what new() made (the scrim ScreenGui, the BlurEffect in Lighting, the keyboard connection); restores the touch controls
+function PanelStage:destroy()
+	self:close(true)
+	self.keyboardConn:Disconnect()
+	self.gui:Destroy()
+	self.blur:Destroy()
 end
 
 return PanelStage
