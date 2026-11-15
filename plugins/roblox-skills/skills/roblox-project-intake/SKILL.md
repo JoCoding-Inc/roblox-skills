@@ -18,7 +18,7 @@ sources:
 
 # Project intake (do this before building)
 
-The agent works much better with five minutes of questions than with an hour of guessing. Run this once per project, store the answers in `docs/brief.md`, and re-open it when scope changes. Never ask what a probe can answer, and never ask more than 6 questions at a time. If the user says "just decide", pick the defaults marked (D) and write them into the brief so they can be corrected.
+The agent works much better with five minutes of questions than with an hour of guessing. Run this once per project, store the answers in `docs/brief.md`, and re-open it when scope changes. Never ask what a probe can answer, and never ask more than 6 questions at a time. The same test holds during the build: ask only when the answer changes what gets built, nothing in the brief or ledger settles it, and the agent cannot find it out itself; otherwise take the default and write it down. If the user says "just decide", pick the defaults marked (D) and write them into the brief so they can be corrected.
 
 ## Step 1. Tool check (probe first, then ask only about the gaps)
 

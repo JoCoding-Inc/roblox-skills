@@ -24,7 +24,7 @@ The superpowers plugin (if installed) gives generic habits: ask before building,
    2. Give 2-4 options in words, written for this game ("chunky cartoon gym: lime dumbbells, sunburst sky, thick black outlines").
    3. Ask: "Do you want example images of your own game in these options?" Offer the free route first (a greybox or UI mock in Studio, section 10a). An image generator the user has connected (gwanggo, another tool) is one more option, with its cost quoted first.
    4. Record the pick.
-4. **Write decisions down** in `docs/brief.md` (what and why) and `docs/ledger.md` (rulings during work, format `Ruling: <what> - <why> - <cost if wrong>`). A decision not written will be lost when the session is compacted.
+4. **Write decisions down** in `docs/brief.md` (what and why) and `docs/ledger.md` (rulings during work, format `Ruling: <what> - <why> - <cost if wrong>`). A decision not written will be lost when the session is compacted. Start each entry with the date and who decided (the user, or a default the agent picked); the latest entry on a topic wins. Give each generated or imported asset a status there (planned, generating, generated, inserted, verified, failed, or blockout for a stand-in), and re-read the ledger at the start of a session and after a compaction.
 5. **Evidence before "done":** a task is done when its check ran and the output was read (playtest screenshot, console log, test result). Never claim success from intention.
    - A done task is not a done game. When the user asks "is it done?" or "how much is left?", answer for the whole playable game with a four-row table: verified in Play (with its evidence), unverified (with the reason), missing loop pieces, needs the user's decision.
    - Name every live path not yet run as unverified: DataStore save and rejoin, a real purchase, 2 players, a real phone, low graphics quality, assets rendering in the published place.
@@ -295,6 +295,12 @@ One of several image, 3D and video options; each moment below lists the free rou
 
 Rules:
 - Use it only when the user has it connected or asks for generated images or video; never as the first suggestion and never a batch up front. State the cost in one line. Every paid call runs with `dry_run: true` first (or `list_models` costs), and the user says yes to the exact credits.
+- Paid calls, in order (judgment):
+  1. List what the project already has (`get_project_assets`) and reuse it before paying for a new one.
+  2. Write the planned asset and its exact parameters to the ledger before the call, and the task id right after it.
+  3. A call that timed out or returned no id has an unknown outcome: it may have run and charged. Read back (`get_project_assets`, `get_task`, `get_credits`) before any retry, and never send the same request again blind.
+  4. Submit in small batches, so one bad prompt or style costs a few assets, not the set.
+  5. Out of credits: stop every paid call and report how many planned assets are still unbuilt.
 - Write the gwanggo project id into `docs/brief.md` (Environment) so later sessions reuse the same project and style lock. Check `list_game_projects` first and reuse a matching project instead of making duplicates.
 - Order matters (checked 2026-11-03): `generate_concepts` fails until `plan_game` has saved a brief; `generate_gameplay_video` fails until `select_concept`; assets made before a palette and a selected concept come back with "not color-locked" and "not style-locked" warnings. So: brief with `art_direction.palette` (or `update_game_project` style palette) -> concepts -> select -> assets and video.
 - Cost scale from `list_models` and `dry_run` on 2026-11-03 (quote the live number, not these): image 1-8 credits, icon 3, 3D 4-47 (tripo-h31 text 8, image 12), video 1-25 credits per second (a 5 s 720p clip is often 10-45).

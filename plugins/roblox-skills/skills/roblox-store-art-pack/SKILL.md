@@ -64,6 +64,7 @@ Skip this section for horror, realistic or night games.
 - **Repetition:** two or more templates with unequal weights, full random yaw, scale 0.8-1.25, clusters and clearings.
 - **Player scale:**
   - The player is about 5 studs; a door is 4 wide x 7 high; ceilings are 10-14; a counter is 3.5-4.
+  - Sizing from a reference frame: fix one object of known size in studs first (the avatar, a door), then derive every other size from its ratio to that object in the same frame. Do not guess sizes one by one (`roblox-character-design` section 3 does this for units).
   - Paths are 6 studs wide or more. Snap structures to a 4/2 stud grid.
 - **Simulator layout:**
   - One connected ground. The hub holds the sell/collect pad, shop, egg/lucky altar and rebirth.

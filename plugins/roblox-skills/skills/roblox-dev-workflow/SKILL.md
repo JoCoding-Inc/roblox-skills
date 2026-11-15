@@ -149,7 +149,7 @@ Repeat per feature, small steps:
 5. `screen_capture` from the dev window left in the background (never bring Studio to the front: `roblox-pitfalls` section 3); check phone and tablet layout only in the Device Simulator (`roblox-ui-layout` section 6; built-in skill `rbx-device-simulator-lua`), never from lines drawn on a desktop capture.
 6. Commit. One feature per commit.
 
-When two agents or windows are involved, always pass the right `studio_id` and list instances with `list_roblox_studios` first. Within one project only one agent at a time drives the shared Studio place or Blender scene; the others do file-only work or headless Blender, or work in their own Blender instance (`roblox-game-pipeline` section 5, `roblox-blender-export` section 8).
+When two agents or windows are involved, always pass the right `studio_id` and list instances with `list_roblox_studios` first. Before each paid batch, upload or insert, and after an MCP reconnect, read `game.GameId`, `game.PlaceId` and `game.Name` in Edit and compare them with the brief: a window that reconnected can be another place. A local file that was never saved to Roblox read `GameId` 0 (field note; the docs say an unpublished place's `PlaceId` is its template's id), so check `GameId`. Within one project only one agent at a time drives the shared Studio place or Blender scene; the others do file-only work or headless Blender, or work in their own Blender instance (`roblox-game-pipeline` section 5, `roblox-blender-export` section 8).
 
 Parallel work lanes (several agents building at once; whether to delegate at all: `roblox-game-pipeline` section 5):
 

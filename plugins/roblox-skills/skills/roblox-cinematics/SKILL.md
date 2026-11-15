@@ -139,7 +139,7 @@ Keep 3-6 shots per cinematic. Name every mark. Include what the player's charact
 ## 5. Rules (checklist)
 
 1. **Skip:** a visible Skip button (touch size, 44 px or more), gamepad and keyboard binding. Skip restores everything exactly as the end of the cutscene would.
-2. **Restore:** save camera type, subject and FOV before; restore after, also on skip, error and player death.
+2. **Restore:** save camera type, subject and FOV before; restore after, also on skip, error and player death. Restore only what the cinematic changed, and remove only what it created (`roblox-feel-audio-vfx` section 3b, ownership rule).
 3. **Input:** lock movement controls during the cutscene inside the cinematic module (section 3a), never in the caller; unlock on every exit, death included.
 4. **Safety:** make the player invulnerable or anchored while the camera is away from the character; unanchor after, on every exit, and save the old state once in one place like the camera (first save wins). Anchored roots ignore `Humanoid:MoveTo` (`roblox-pitfalls`).
 5. **Streaming:** with `StreamingEnabled`, call `Player:RequestStreamAroundAsync(position)` for the cutscene area before the first shot, or shots show unloaded geometry.
