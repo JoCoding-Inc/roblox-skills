@@ -1,7 +1,7 @@
 ---
 name: roblox-design-and-launch
 description: "Use for Roblox game design and release decisions: core loops, prototyping, onboarding and UX, economy balance, monetization (passes, developer products, subscriptions, ads, Creator Rewards, DevEx), content maturity and age rules, generative-AI rules, icon/thumbnail/description, analytics and experiments, localization. Also when planning or reviewing a game idea against how Roblox players behave (solo-playable, session length, friends, devices, max players), before adding any purchase or chat/AI feature, before the first public publish, when choosing the target audience or maturity label, when a game needs a retention or funnel review, when adding analytics events (AnalyticsService economy, funnel, journey or custom events), or when asked what Roblox pays creators."
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-15
 sources:
   - https://create.roblox.com/docs/production/roblox-user-base
   - https://www.gameanalytics.com/reports/2026-roblox-report (vendor report; primary page read 2026-11-03)
@@ -22,6 +22,7 @@ sources:
   - https://devforum.roblox.com/t/upcoming-friends-list-api-access-changes-for-australian-users-under-16/4850358
   - https://devforum.roblox.com/t/experiments-catch-experiment-regressions-faster-with-early-harm-detection/4907734
   - https://devforum.roblox.com/t/experiments-measure-impact-with-custom-and-rewarded-ad-earning-metrics/4988305 (staff post 2026-11-12; docs page production/experiments read 2026-11-14)
+  - https://devforum.roblox.com/t/beta-translate-text-in-your-in-game-images-automatically/4984692 (staff post 2026-11-09, read 2026-11-15)
   - https://devforum.roblox.com/t/making-publishing-easier-our-vision-and-whats-coming/4865780
   - https://devforum.roblox.com/t/rdc26-what-we-announced/4865880 (announced, not shipped)
   - https://about.roblox.com/newsroom/2026/07/moments-new-homepage-unlocks-gaming-for-all
@@ -233,6 +234,7 @@ Who does what (agent vs user), API key scopes and missing-permission handling: `
    - Source language first: it defaults to the creator account's language (docs), and text is assumed to be in it. A Korean-locale account with English strings got no translations at all (2026-11). Check with no auth: `GET https://gameinternationalization.roblox.com/v1/source-language/games/{universeId}`.
    - Settings (Creator Hub > Audience > Localization; docs `automatic-translations`): per supported language **Experience Strings & Products** on (**Experience Information** for the name and description); Settings tab: text capture from experience UI on and **Use Translated Content** on. Never press **Clear unmodified auto-captured entries**: it deletes those entries and their translations (docs `remove-content`).
    - Which languages: every one the auto-translation quota allows (initial and monthly, per character and per language, shown on the Languages tab). Rank by Creator Hub > Analytics > Demographics (country, top languages) and the target audience, not third-party country shares. Check that the main country of a language does not block Roblox before adding or skipping it: Turkey blocked it from 2024-08-07 until 2026-06-18 (Turkiye Today), and Russia has blocked it since 2025-12-03 (Interfax; talks on lifting it in 2026-06). When the user rejects auto translation, keep it off for the name and description and write them per language (`roblox-release-automation` section 1). Analytics: log events after success, not on attempt; custom events max 100 names; data rolls off after 90 days.
+   - Text inside images (beta, staff post 2026-11-09): automatic image translation redraws the text of in-game images in the player's language, for French, German, Indonesian, Italian, Korean, Portuguese and Spanish only; icons and thumbnails are not covered. It is off by default: on the Localization page enable it per language (Languages tab), turn on Automatic Image Capture and Use Translated Content for images (Settings tab). Images are captured as players meet them, so translations can take a few days; review them on the Translate page's Images tab, and set `AutoLocalize` false on an image that must stay as it is. Translated images cannot be uploaded by hand yet (planned for early 2027 per the post). Text kept in a `TextLabel` over the image stays the safer build, since it covers every language (judgment). Not tested by us.
    - Test a locale in Studio with Test > Player Emulator > Enable Test Profile > Locale (docs `studio/testing-modes`). `PlayerEmulatorService` was nil from MCP `execute_luau` (field note, 2026-11-09). What worked for an agent instead:
      - put the exported table CSV in a scratch Rojo project (Rojo builds a `.csv` into a LocalizationTable) under LocalizationService;
      - in Edit, set the table's `SourceLocaleId` to another locale ("fr") and copy the target language's column into the `en` and `en-us` values;

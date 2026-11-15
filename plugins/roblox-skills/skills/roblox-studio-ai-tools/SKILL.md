@@ -1,10 +1,11 @@
 ---
 name: roblox-studio-ai-tools
 description: "Use when connecting Claude Code to Roblox Studio (official Roblox Studio plugin or the built-in Studio MCP server), choosing among its tools or built-in rbx-* skills, using Studio Assistant (Planning Mode, /generate_mesh, /generate_procedural_model, skills, bring-your-own-key), generating materials/meshes/procedural models, or running Luau headlessly through Open Cloud. Also on 'Roblox_Studio MCP not connected', a tool name that no longer exists (run_code, insert_model, run_script_in_play_mode), a migration from the old studio-rust-mcp-server, multiple Studio windows, an MCP client that should call Open Cloud (open_cloud_invoke, MCP Permissions, import from Blender), MCP key or mouse input that misses its target, writing Assistant skills, or CI that needs to run Luau against a place."
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-15
 sources:
   - Studio MCP built-in skills rbx-permissions and rbx-open-cloud-usage, and the open_cloud_invoke tool description (Studio build of 2026-11-05)
   - https://devforum.roblox.com/t/4975849 (Studio MCP Server Updates: Open Cloud access and asset import, posted 2026-11-04, read 2026-11-05)
+  - https://devforum.roblox.com/t/team-test-output-and-remote-logs/4989734 (staff post 2026-11-13, read 2026-11-15)
   - https://github.com/Roblox/roblox-studio-agent-plugin (README, read 2026-11-03)
   - Studio MCP list_skills output (Studio build of 2026-11-03)
   - Studio MCP tool schemas for user_keyboard_input, user_mouse_input, screen_capture and start_stop_play (read 2026-11-03)
@@ -194,3 +195,4 @@ For CI and automated checks without Studio (stable API, official reference is th
 - `/generate_texture` has a Quality mode (Studio Beta, Oct 12-18): slower, better textures; use it for hero assets, the default mode for bulk props.
 - Prompt-to-avatar character generation and live-server inspection during Team Test are Studio Betas (Oct 26-30 listing, not re-read).
 - Server-log stack traces deep-link into Studio (Oct 19-23).
+- Team Test client logs (staff post, 2026-11-13): in a Team Test the Output window can show collaborators' client output (context filter > Sources, each line prefixed with the name; nobody is shown until you pick). `LogService:GetLogHistoryAsync(player.User)` returns a collaborator's recent client log, up to 512 messages in the format of `GetLogHistory`, and `User.fromId(0)` gives the Team Test server's log; the post names Studio MCP agents as a use. It works from the client datamodel, in a Team Test only (not in solo play or a live game), yields and can error: wrap it in `pcall`. Not in the engine reference on 2026-11-15 and not tested by us (needs a Team Create place and a collaborator).
