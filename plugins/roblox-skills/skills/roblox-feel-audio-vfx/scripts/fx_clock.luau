@@ -1,19 +1,27 @@
 --!nonstrict
--- fx_clock: one shared clock for every layer of an effect (roblox-feel-audio-vfx sections 3c and 3d).
+-- fx_clock: one shared clock for every layer of an effect (roblox-feel-audio-vfx sections 3c, 3d and 3e).
 -- Every layer is scheduled on clock time: events (at), curves over a span (span), per-step callbacks (every)
 -- and emission streams (stream). Emitter TimeScale and Beam TextureSpeed follow the clock scale, so the same
 -- effect runs at 1x in play, at 0.1x for a capture, and freezes (scale 0) on a beat for a still frame.
 -- Client only. Each effect builds its instances under one Model in workspace.FxRuntime and removes them on stop.
 --
--- Part of a set: fx_clock, fx_textures, fire_slash, hit_impact, level_up_aura, fx_capture. Copy all six as
--- ModuleScripts with these names into one folder (for example ReplicatedStorage.Fx) and require them from a
--- LocalScript. Ran in Studio 0.747 Play on 2026-11-17 (desktop view and the Samsung Galaxy A06 Device
--- Simulator preset); not checked in a published game or on a real phone; frame cost not measured.
+-- Used by the three effects of section 3d (fire_slash, hit_impact, level_up_aura) and by the cutscene elements
+-- of section 3e (cine_camera ... skill_cutscene). Copy the files as ModuleScripts with these names into one
+-- folder (for example ReplicatedStorage.Fx) and require them from a LocalScript. Ran in Studio 0.747 and 0.748
+-- Play (2026-11-17 and 2026-11-18; desktop view and the Samsung Galaxy A06 Device Simulator preset); not checked
+-- in a published game or on a real phone; frame cost not measured.
 --
 -- local clock = FxClock.new("MyFx", 1.0)            -- name, duration in clock seconds
 -- clock:at(0.1, function() emitter:Emit(8) end)     -- an event at a time
 -- clock:span(0, 0.2, function(u, t) light.Brightness = 4 * (1 - u) end) -- a curve over a span
--- clock:play()                                       -- runs on RenderStepped, cleans up at the duration
+-- clock:play()                                       -- runs on PreRender, cleans up at the duration
+--
+-- Windows (added for section 3e, 2026-11-18): clock:sub(name, t0, len) is a window of a clock with local times
+-- and its own Model (destroyed at t0 + len), so an element module can run alone or inside one cutscene clock;
+-- FxClock.attach(name, duration, opts) gives (sub, root, own) for a module's play(opts) (opts.clock and opts.at
+-- embed it; without them it owns a new clock). Events may schedule new events, spans or steps (lazy builds).
+-- The driver is RunService.PreRender (it replaced RenderStepped in this version). New parts get Smooth top and
+-- bottom surfaces.
 
 local RunService = game:GetService("RunService")
 
@@ -72,6 +80,8 @@ function FxClock:part(props: { [string]: any }): BasePart
 	p.CastShadow = false
 	p.Transparency = 1
 	p.Locked = true
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
 	for k, v in props do
 		(p :: any)[k] = v
 	end
@@ -204,13 +214,22 @@ end
 
 function FxClock:_advance(newT: number, dt: number)
 	self.t = newT
-	for _, ev in self.events do
-		if not ev.done and ev.t <= newT then
-			ev.done = true
-			ev.fn()
+	-- Events may schedule new events, spans or steps (lazy builds): rescan until nothing due is left.
+	local fired = true
+	while fired do
+		fired = false
+		for _, ev in self.events do
+			if not ev.done and ev.t <= newT then
+				ev.done = true
+				ev.fn()
+				fired = true
+				break
+			end
 		end
 	end
-	for _, sp in self.spans do
+	local i = 1
+	while i <= #self.spans do
+		local sp = self.spans[i]
 		if not sp.done and newT >= sp.t0 then
 			local u = math.clamp((newT - sp.t0) / math.max(sp.t1 - sp.t0, 1e-6), 0, 1)
 			sp.fn(u, newT)
@@ -218,9 +237,12 @@ function FxClock:_advance(newT: number, dt: number)
 				sp.done = true
 			end
 		end
+		i += 1
 	end
-	for _, fn in self.steps do
-		fn(newT, dt)
+	i = 1
+	while i <= #self.steps do
+		self.steps[i](newT, dt)
+		i += 1
 	end
 end
 
@@ -256,7 +278,8 @@ end
 function FxClock:play()
 	FxClock.active[self] = true
 	self:_advance(0, 0)
-	self.conn = RunService.RenderStepped:Connect(function(dt)
+	-- PreRender replaces RenderStepped (docs); the clock steps before the frame is drawn.
+	self.conn = RunService.PreRender:Connect(function(dt)
 		self:step(dt)
 	end)
 	return self
@@ -395,6 +418,93 @@ function FxClock:ribbon(n: number, props: { [string]: any })
 		end
 	end
 	return ribbon
+end
+
+-- Windows (sub-clocks) ------------------------------------------------------------------------------------
+
+local Sub = {}
+
+function Sub.now(self): number
+	return self.root.t - self.t0
+end
+
+function Sub.at(self, t: number, fn: () -> ())
+	self.root:at(self.t0 + t, function()
+		if not self.done then
+			fn()
+		end
+	end)
+end
+
+function Sub.span(self, a: number, b: number, fn: (u: number, t: number) -> ())
+	self.root:span(self.t0 + a, self.t0 + b, function(u, t)
+		if not self.done then
+			fn(u, t - self.t0)
+		end
+	end)
+end
+
+function Sub.every(self, fn: (t: number, dt: number) -> ())
+	self.root:every(function(t, dt)
+		if not self.done and t >= self.t0 and t <= self.t0 + self.len then
+			fn(t - self.t0, dt)
+		end
+	end)
+end
+
+function Sub.onCleanup(self, fn: () -> ())
+	table.insert(self.cleanups, fn)
+end
+
+function Sub._finish(self)
+	if self.done then
+		return
+	end
+	self.done = true
+	for _, fn in self.cleanups do
+		pcall(fn)
+	end
+	self.model:Destroy()
+end
+
+function FxClock:sub(name: string, t0: number, len: number)
+	local root = self.root or self
+	local s = { root = root, t0 = (self.t0 or 0) + t0, len = len, name = name, cleanups = {}, done = false }
+	setmetatable(s, {
+		__index = function(_, k)
+			local m = Sub[k]
+			if m ~= nil then
+				return m
+			end
+			m = FxClock[k]
+			if m ~= nil and type(m) == "function" then
+				return m
+			end
+			return root[k] -- scale, emitters, beams
+		end,
+	})
+	local model = Instance.new("Model")
+	model.Name = "Fx_" .. name
+	model.Parent = (self :: any).model
+	s.model = model
+	s.host = FxClock.part(s, { Name = "Host", Size = Vector3.new(0.2, 0.2, 0.2), CFrame = CFrame.new() })
+	root:at(s.t0 + len, function()
+		Sub._finish(s)
+	end)
+	root:onCleanup(function()
+		Sub._finish(s)
+	end)
+	return s
+end
+
+-- For an element's play(target, opts): embed in opts.clock at opts.at, or own a new clock (caller plays it).
+function FxClock.attach(name: string, duration: number, opts)
+	opts = opts or {}
+	if opts.clock then
+		return opts.clock:sub(name, opts.at or 0, duration), opts.clock.root or opts.clock, false
+	end
+	local root = FxClock.new(name, duration)
+	return root:sub(name, 0, duration), root, true
 end
 
 return FxClock

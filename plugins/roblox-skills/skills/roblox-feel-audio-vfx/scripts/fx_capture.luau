@@ -15,6 +15,13 @@
 --   cap.step()                                            -- runs on to the next beat; repeat per beat
 -- Lay the frames in one row in beat order (one strip per cast) and read it against the checks in section 3d.
 -- Effect play() functions must build their clock inside the call: the breakpoints are read when a clock is made.
+--
+-- Background capture (section 3e, 2026-11-18): run(tag, play, times, { hold = s, scale = 0.25, marker = true })
+-- holds each beat for `hold` real seconds and draws a 9-square binary frame marker at the bottom left (mark(i)),
+-- so an OS-level capture loop of the Studio window can tell which beat a snapshot shows (a background window can
+-- redraw late and show an older frame). Without opt.marker no marker is drawn (the stepping above).
+-- count() also counts Highlights and the visible GuiObjects of the cutscene ScreenGui "CineScreen"; the mouse
+-- icon is hidden during a run (it drew into the viewport crop).
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -23,6 +30,47 @@ local FxClock = require(script.Parent.fx_clock)
 local FxTextures = require(script.Parent.fx_textures)
 
 local FxCapture = {}
+
+-- Frame marker for background capture: 9 squares of 8 px on a black bar at the bottom-left of the screen,
+-- square 0 always white, squares 1-8 the bits of idx (white = 1); idx 0 means "running, not a beat".
+-- mark(nil) hides it. Drawn above every other ScreenGui. A capture loop saves a snapshot only when two snaps in a
+-- row show the wanted index.
+local markerGui = nil
+local markerCells = {}
+function FxCapture.mark(idx: number?)
+	local pg = Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+	if not markerGui or not markerGui.Parent then
+		markerGui = Instance.new("ScreenGui")
+		markerGui.Name = "CapMarker"
+		markerGui.IgnoreGuiInset = true
+		markerGui.ScreenInsets = Enum.ScreenInsets.None
+		markerGui.DisplayOrder = 1000000
+		markerGui.ResetOnSpawn = false
+		local bar = Instance.new("Frame")
+		bar.BackgroundColor3 = Color3.new(0, 0, 0)
+		bar.BorderSizePixel = 0
+		bar.Size = UDim2.fromOffset(9 * 10 + 4, 14)
+		bar.Position = UDim2.new(0, 0, 1, -14)
+		bar.Parent = markerGui
+		for k = 0, 8 do
+			local c = Instance.new("Frame")
+			c.BorderSizePixel = 0
+			c.Size = UDim2.fromOffset(8, 8)
+			c.Position = UDim2.fromOffset(3 + k * 10, 3)
+			c.Parent = bar
+			markerCells[k] = c
+		end
+		markerGui.Parent = pg
+	end
+	markerGui.Enabled = idx ~= nil
+	if idx then
+		markerCells[0].BackgroundColor3 = Color3.new(1, 1, 1)
+		for k = 1, 8 do
+			local on = bit32.band(idx, bit32.lshift(1, k - 1)) ~= 0
+			markerCells[k].BackgroundColor3 = if on then Color3.new(1, 1, 1) else Color3.new(0, 0, 0)
+		end
+	end
+end
 
 -- Fixed camera from a focus point and an offset (about 22 studs away was used for the strips).
 function FxCapture.cameraAt(focus: Vector3, offset: Vector3): CFrame
@@ -53,9 +101,9 @@ function FxCapture.camera(cf: CFrame?)
 end
 
 -- Live counts per frame while effects run (peak is kept).
-FxCapture.peak = { emitters = 0, beams = 0, lights = 0, parts = 0 }
+FxCapture.peak = { emitters = 0, beams = 0, lights = 0, parts = 0, highlights = 0, guis = 0 }
 function FxCapture.count()
-	local c = { emitters = 0, beams = 0, lights = 0, parts = 0 }
+	local c = { emitters = 0, beams = 0, lights = 0, parts = 0, highlights = 0, guis = 0 }
 	local rt = workspace:FindFirstChild("FxRuntime")
 	if rt then
 		for _, d in rt:GetDescendants() do
@@ -63,10 +111,21 @@ function FxCapture.count()
 				c.emitters += 1
 			elseif d:IsA("Beam") and d.Enabled then
 				c.beams += 1
-			elseif d:IsA("PointLight") then
+			elseif d:IsA("Light") then
 				c.lights += 1
-			elseif d:IsA("BasePart") then
+			elseif d:IsA("BasePart") and d.Name ~= "Host" then
 				c.parts += 1
+			elseif d:IsA("Highlight") then
+				c.highlights += 1
+			end
+		end
+	end
+	local pg = Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+	local sg = pg and pg:FindFirstChild("CineScreen")
+	if sg then
+		for _, d in sg:GetDescendants() do
+			if d:IsA("GuiObject") and d.Visible then
+				c.guis += 1
 			end
 		end
 	end
@@ -78,12 +137,14 @@ end
 
 -- Freeze-frame run. play: a function that starts the effect and returns its clock. times: beat times in clock
 -- seconds. opt.hold: real seconds per frozen frame (default 1). opt.scale: clock speed between beats (0..1,
--- default 0.25). opt.camera: a CFrame for the fixed camera.
+-- default 0.25). opt.camera: a CFrame for the fixed camera. opt.marker: draw the frame marker (mark).
 function FxCapture.run(tag: string, play: () -> any, times: { number }, opt)
 	opt = opt or {}
+	local mark = if opt.marker then FxCapture.mark else function(_: number?) end
 	local hold = opt.hold or 1.0
 	local scale = opt.scale or 0.25
-	FxCapture.peak = { emitters = 0, beams = 0, lights = 0, parts = 0 }
+	FxCapture.peak = { emitters = 0, beams = 0, lights = 0, parts = 0, highlights = 0, guis = 0 }
+	game:GetService("UserInputService").MouseIconEnabled = false -- the cursor drew into the viewport crop
 	if opt.camera then
 		FxCapture.camera(opt.camera)
 	end
@@ -91,11 +152,14 @@ function FxCapture.run(tag: string, play: () -> any, times: { number }, opt)
 	FxClock.breakpoints = times
 	FxClock.onBreak = function(clock, t, i)
 		FxCapture.count()
+		mark((opt.first or 1) + i - 1)
 		print(string.format("FXCAP|%s|%d|%.3f|%d", tag, i, t, DateTime.now().UnixTimestampMillis))
 		task.delay(hold, function()
+			mark(0) -- "running": a background snap taken now is not a beat frame
 			clock:setScale(if i >= #times then 1 else scale)
 		end)
 	end
+	mark(0)
 	local ok, clock = pcall(play)
 	FxClock.defaultScale = 1
 	FxClock.breakpoints = nil
@@ -107,8 +171,10 @@ function FxCapture.run(tag: string, play: () -> any, times: { number }, opt)
 		FxCapture.count()
 	end)
 	clock:onCleanup(function()
+		mark(nil)
+		game:GetService("UserInputService").MouseIconEnabled = true
 		local pk = FxCapture.peak
-		print(string.format("FXDONE|%s|peak emitters=%d beams=%d lights=%d parts=%d", tag, pk.emitters, pk.beams, pk.lights, pk.parts))
+		print(string.format("FXDONE|%s|peak emitters=%d beams=%d lights=%d parts=%d highlights=%d guis=%d", tag, pk.emitters, pk.beams, pk.lights, pk.parts, pk.highlights, pk.guis))
 	end)
 	return clock
 end
