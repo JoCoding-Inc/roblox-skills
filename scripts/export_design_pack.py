@@ -73,7 +73,7 @@ GUIDES = [
     ("roblox-fun-effects", None, "effects"),
     ("roblox-character-design", None, "art-direction"),
     ("roblox-store-art-pack", None, "store-art"),
-    ("roblox-feel-audio-vfx", ["1", "3", "3b", "3c", "4", "5"], "effects"),
+    ("roblox-feel-audio-vfx", ["1", "3", "3b", "3c", "3d", "4", "5"], "effects"),
     ("roblox-character-motion", ["2b"], "effects"),
     ("roblox-audio", None, "audio"),
     ("roblox-engine-2026", ["2"], "ui-engine"),
@@ -89,6 +89,7 @@ ASSET_DIRS = [
     ("roblox-game-pipeline/assets/ui-styles/icons", "ui-styles", "roblox-game-pipeline/assets/ui-styles/README.md"),
     ("roblox-game-pipeline/assets/part-looks", "art-direction", "roblox-game-pipeline/assets/part-looks/README.md"),
     ("roblox-game-pipeline/assets/examples", "store-art", "roblox-store-art-pack/SKILL.md#7"),
+    ("roblox-feel-audio-vfx/assets/vfx-examples", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
 ]
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
 # (file under SKILLS, topic, section_ref): Luau a packed guide section depends on
@@ -96,6 +97,12 @@ SCRIPTS = [
     ("roblox-ui-genre-scifi/scripts/hud_shapes.luau", "ui-styles", "roblox-ui-genre-scifi/SKILL.md#2"),
     ("roblox-ui-mobile/scripts/panel_stage.luau", "layout", "roblox-ui-mobile/SKILL.md#4"),
     ("roblox-ui-layout/scripts/ui_device_check.luau", "layout", "roblox-ui-layout/SKILL.md#6"),
+    ("roblox-feel-audio-vfx/scripts/fx_clock.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
+    ("roblox-feel-audio-vfx/scripts/fx_textures.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
+    ("roblox-feel-audio-vfx/scripts/fire_slash.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
+    ("roblox-feel-audio-vfx/scripts/hit_impact.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
+    ("roblox-feel-audio-vfx/scripts/level_up_aura.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
+    ("roblox-feel-audio-vfx/scripts/fx_capture.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
 ]
 HEADING = re.compile(r"^## ([0-9]+[a-z]?)\. ")
 # styles.json keeps the Lua keys of PRESETS; units are given here

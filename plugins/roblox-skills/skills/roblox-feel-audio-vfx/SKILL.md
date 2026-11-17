@@ -1,7 +1,7 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
-last_reviewed: 2026-11-15
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+last_reviewed: 2026-11-17
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
   - https://create.roblox.com/docs/effects/particle-emitters (Rate limits, fill rate, `LightEmission` 1 hides the dark regions of a texture)
@@ -13,6 +13,7 @@ sources:
   - https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html and Xbox Accessibility Guidelines 117 and 118 (read 2026-11-12)
   - RoDesigner skill effect demos, 2026-11-15 (two builds of one sword skill in Studio 0.747, one judged by the owner on video; engine probes of beams, Neon and TimeScale) and one public VFX showcase clip read frame by frame at 50 fps (numbers and method only); relayed by RoDesigner
   - https://create.roblox.com/docs/reference/engine/classes/Beam, enums/TextureMode and classes/ParticleEmitter (TextureLength per mode, TimeScale 0 to 1, flipbook and shape enums; read 2026-11-15)
+  - RoDesigner VFX demo, 2026-11-17 (fire slash, hit impact, level-up aura in Studio 0.747 Play on a daylight floor, approved by the owner in Studio; ported to scripts/ and re-captured the same day); texture ids from the Roblox docs VFX tutorials and https://devforum.roblox.com/t/2-free-realistic-flipbook-particle-explosions/3035597; asset owners from economy.roblox.com/v2/assets/<id>/details (read 2026-11-17)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
 ---
@@ -32,12 +33,12 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 ## 3. Effects
 
 - `ParticleEmitter`: one emitter makes up to 400 particles per second (100 on mobile) according to the docs; keep `Rate` low and `Lifetime` short. Particle size costs GPU fill rate, so many large overlapping particles hurt phones.
-- Flipbooks (`ParticleEmitter.FlipbookLayout` 2x2, 4x4, 8x8 or `Custom` with `FlipbookSizeX`/`FlipbookSizeY`) cost texture memory, and clients switch them off when low on memory (docs), so an effect must still read without its flipbook. `ParticleEmitter.TimeScale` (0-1) slows or freezes an effect for a hit stop.
-- Size particles for the real camera distance: 1-1.5 stud stars all but vanished 40-100 studs away, while 1.8-3 studs by tier read (field observation, 2026-11-04). Check in a screenshot from the player's camera, not up close.
+- Flipbooks (`ParticleEmitter.FlipbookLayout` 2x2, 4x4, 8x8 or `Custom` with `FlipbookSizeX`/`FlipbookSizeY`) cost texture memory, and clients switch them off when low on memory (docs), so an effect must still read without its flipbook. `ParticleEmitter.TimeScale` (0-1) slows or freezes an effect for a hit stop; at 0 it held particles still for a late screen capture (section 3d, measured 2026-11-17).
+- Size particles for the real camera distance: 1-1.5 stud stars all but vanished 40-100 studs away, while 1.8-3 studs by tier read (field observation, 2026-11-04); 0.9-stud star pops still showed at about 22 studs (section 3d capture, 2026-11-17), so a size floor holds for one distance only. Check in a screenshot from the player's camera, not up close.
 - `ParticleEmitter.Size` is the width of each particle's square texture (docs). A shockwave ring texture ended about 1.05 x Size across, measured top-down against an 80-stud road (field note, 2026-11-11), so a splash ring of radius r needs an end Size of about 2r.
 - The built-in `rbxasset://textures/particles/*` textures plus thin Trails read as a wireframe of lines on a dark sky next to concept art. A release-quality burst needs custom glow, star, streak and sparkle (flipbook) textures, dense emission along the shape, additive layers (`LightEmission` 1, `LightInfluence` 0) and a moderate `Bloom`. Dark semi-transparent layers over a night sky render brown and muddy; use fewer, brighter additive ones (field observations, 2026-11-04).
 - Generated glow and energy sprites for additive use: ask for the sprite on pure black, not on a transparent background. With `LightEmission` 1 the dark regions of a texture disappear (docs), so the black needs no keying, and the soft falloff stays. A transparent background comes back as a cut-out: in one test image about 69% of the pixels were fully clear, the body almost opaque and the halo under alpha 32 of 255, so the glow lost its falloff (relayed by RoDesigner, 2026-11-14). Ask for transparency only for solid sprites with normal blend.
-- House rule (owner): VFX are Blender meshes (`roblox-blender-export`) plus gradient or flipbook textures. No block tiles and no default sparkles (the `Sparkles` object or the built-in particle textures). A glowing Blender mesh without a `SurfaceAppearance` (field note, 2026-11-09): model the emissive shapes as their own geometry in flat `Neon` colors (Neon on a textured MeshPart does not glow, `roblox-pitfalls` section 4), layer a dark non-Neon shade mesh for the dark parts, and put textures only on lit surfaces. When a brief forbids uploads, a portal vortex that worked without them (field note, 2026-11-09) used flat curved Beams as spiral arms around a centre: `CurveSize0` and `CurveSize1` bend a beam into a Bezier curve (docs), `FaceCamera` is false, and the built-in glow texture is stretched along each arm (section 4, "Night glow without lights").
+- House rule (owner): VFX are Blender meshes (`roblox-blender-export`) plus gradient or flipbook textures. No block tiles and no default sparkles (the `Sparkles` object or the built-in particle textures) in a release: built-in `rbxasset://` textures are prototype only, labelled as greybox, and public docs ids are a test stage (stages and ids: section 3d). The owner also approved an effect form of beams and particles with no mesh (section 3d; approved 2026-11-17). A glowing Blender mesh without a `SurfaceAppearance` (field note, 2026-11-09): model the emissive shapes as their own geometry in flat `Neon` colors (Neon on a textured MeshPart does not glow, `roblox-pitfalls` section 4), layer a dark non-Neon shade mesh for the dark parts, and put textures only on lit surfaces. When a brief forbids uploads, a portal vortex that worked without them (field note, 2026-11-09) used flat curved Beams as spiral arms around a centre: `CurveSize0` and `CurveSize1` bend a beam into a Bezier curve (docs), `FaceCamera` is false, and the built-in glow texture is stretched along each arm (section 4, "Night glow without lights"; a prototype by the stages above).
 - Beams, trails, lights, highlights: use sparingly; each light source and highlight has a cost.
 - **A `Highlight` skips transparent parts.** It drew no outline and no fill on parts with any `Transparency` above 0: hologram parts at 0.06 lost the whole rim and tint (toggled live in Studio, field note 2026-11-11). The docs do not say so; a Roblox staff reply says highlights on transparent parts have not worked for years, and posters there report that parts inside a model with a Humanoid still get them (DevForum t/4678843, 2026-08-20). Keep highlighted parts at `Transparency` 0 and make a hologram from a dark `Neon` colour plus the Highlight fill. Check a Highlight against a plain background before trusting a capture: a bright portal behind the model passed for a rim.
 - **Curved Beams.** A Beam is a cubic Bezier: P1 sits `CurveSize0` studs along +X of `Attachment0`, P2 sits `CurveSize1` studs along -X of `Attachment1` (docs, effects/beams). For a circle of radius R from four quarter-arc beams, point each attachment's X axis along the direction of travel and set both sizes to +0.5523 R, the usual Bezier quarter-circle constant (4/3 x (sqrt 2 - 1)); a negative `CurveSize1` drew a hook at each joint (field note, 2026-11-11).
@@ -103,7 +104,7 @@ Rules:
 - **Vibration.** `HapticEffect` runs on Android and iOS phones that support haptics, PlayStation and Xbox gamepads and Quest Touch; `Type` is `UIClick`, `UINotification`, `GameplayCollision`, `GameplayExplosion` or `Custom` with `SetWaveformKeys` (`FloatCurveKey` time in ms, value 0 to 1); the docs sample parents it to Workspace and plays it on the client; `HapticService` is the older API (docs, read 2026-11-10). The calls ran without errors in Studio, where nothing can be felt: tune strength on a real phone (not done).
 - **Screen layers.** Flash, edge tint, letterbox, coin rain and speed lines live in a `ScreenInsets = None` ScreenGui (`roblox-ui-layout` section 3). Mark effect elements `KitTransient` so the device sweep leaves them out of the HUD budgets. Their text and tap targets still meet the phone floors at full size, and a `UIScale` on or under the marked root is the way to animate them (`roblox-ui-layout` section 4).
 - **Streak sparks** are particles stretched along their velocity (`Orientation = VelocityParallel` with a positive `Squash`): a soft dot texture reads as a speed line. A ring that lies on the ground is one particle with `Orientation = VelocityPerpendicular`, emitted upward at almost no speed (tested in Studio, 2026-11-12).
-- **Textures.** The test place ran on built-in textures so it needed no uploads. That is a prototype state: the house rule above holds, so a release uses the game's own star, soft glow, smoke, ring and soft-edged band textures.
+- **Textures.** The test place ran on built-in textures so it needed no uploads. That is a prototype state: the house rule above holds, so a release uses the game's own star, soft glow, smoke, ring and soft-edged band textures. Public ids that rendered without uploads, with their blend settings: section 3d.
 - **Cost.** Creating a few instances per event and cleaning them up suits the local player's own effects. Pool and cap effects of other players and crowds (section 3).
 
 Checking effects from an agent:
@@ -169,6 +170,119 @@ Engine notes (measured in Studio 0.747 by the demo builds on 2026-11-15 unless m
 - An untextured `Neon` MeshPart crescent glowed strongly with bloom; a textured one rendered faint and did not glow (the same finding as section 3).
 
 The attack motion under the effect (the body leads the arm, the blade lags and whips, each stroke starts where the last ended): `roblox-character-motion` section 2b.
+
+Three worked effects built with this method, layer by layer, with served scripts and capture strips: section 3d.
+
+## 3d. Building an effect from layers (fire slash, hit impact, level-up aura)
+
+How three served effects are built, so one of the same quality can be built without seeing them. Evidence: a demo built in Studio 0.747 on a grey daylight floor (`ClockTime` 14.5), 3-4 capture-and-fix rounds per effect, played and approved by the owner in Studio as the form to build in (2026-11-17), then ported unchanged and captured again. Numbers are read from the code: chosen by eye, not measured optima. No real phone, no published game, no frame-cost measurement.
+
+Files: `scripts/fx_clock.luau` (the clock of section 3c), `scripts/fx_textures.luau`, `scripts/fire_slash.luau`, `scripts/hit_impact.luau`, `scripts/level_up_aura.luau`, `scripts/fx_capture.luau`, `scripts/fx_strip.py`; strips in `assets/vfx-examples/`. Copy the six `.luau` files as ModuleScripts of the same names into one folder (`ReplicatedStorage.Fx`) and require them from a LocalScript; `play(character or CFrame)` returns the clock (the hit also takes `{ direction = d }`). Client only; others' casts follow section 3b, Cost.
+
+**Layer anatomy.** The fire slash has 9 layers, the hit 11, the level-up 9 (rows of the cards below; a ring's dark twin shares its row).
+
+| Layer kind | Built with | What it adds |
+|---|---|---|
+| Motion | clock-posed part plus `IKControl`, or `Motor6D.C0` | the body sells the hit |
+| White core | one soft glow, `LightEmission` 1, life 0.05-0.1 s | the contact frame |
+| Body shape | ribbon of curved flat Beams (3c) or a camera-facing Beam | silhouette: crescent, ring, pillar |
+| Hot edge | a thin ribbon on the outer rim, `LightEmission` 1 | bright reads bright next to the body |
+| Dark underlayer | same shape wider, `LightEmission` 0, dark hue, `ZOffset` below | contrast on a lit floor |
+| Texture detail | flipbook or textured particles along the shape | breaks a flat band |
+| Streaks | streak texture, `VelocityParallel`, `Rotation` 90 | speed and direction |
+| Stars and dots | short star pops | aftermath sparkle |
+| Smoke | soft puff, normal blend, `ZOffset` -2 | the dark end of the value range, aftermath |
+| Light | one `PointLight` pulse | the world answers |
+| Sustain | clock streams that ramp in and out | a hold without a seam |
+
+**Texture slots.** `fx_textures.luau` maps slots to ranked ids; each effect asks for a slot, never an id.
+
+| Slot | The texture | Back | `LightEmission` | Id that rendered (source) |
+|---|---|---|---|---|
+| glow, band | white soft ball | alpha | any: 0 for dark layers | 3845808160 (docs custom particle effects tutorial) |
+| flare | ring and rays (unused by the three) | black | 1 only | 8983307836 (docs core curriculum, basic visual effects) |
+| smoke | soft grey puff | alpha | 0 | 16830673704 (docs volcano tutorial); 16830667309 (docs waterfall tutorial) |
+| star | small spark | alpha (inferred: no box at 0.7) | 0.7-1 | 5833323391 (docs artist curriculum) |
+| streak | long thin ember, long axis on X | black | 1 only | 17581858560 (docs volcano tutorial) |
+| fire | explosion flipbook, 8x8, played OneShot | alpha | 0.35 | 17040521870 (free sheet, https://devforum.roblox.com/t/2-free-realistic-flipbook-particle-explosions/3035597) |
+| electric | lightning bolt | not checked | 1 | 6101261905 (docs explosions tutorial) |
+
+- Black or alpha decides the blend: a black-backed texture needs `LightEmission` 1 (the black disappears, docs); an alpha texture can take any value, so it can also be a dark layer.
+- Status of these ids: every one rendered in Studio 0.747 Play (2026-11-17); none was checked in a published game. Three (16830673704, 16830667309, 17581858560) belong to the verified Roblox Resources group; the other docs ids and the flipbook are user uploads (economy API, read 2026-11-17), so they can change or vanish. A game moves to its own textures before release: put them first in each slot.
+- Stages: **prototype** may use built-in `rbxasset://` textures, labelled greybox (the slot table's fallbacks; `allowBuiltins = false` drops them); **test** may use the public ids above; **release** uses the game's own uploads. Built-ins stay prototype only (house rule, section 3).
+
+**Recipe card: fire slash** (`fire_slash.luau`). Beats: wind-up 0-0.12 s, swing 0.12-0.24 s (205 degrees, fast start), follow-through to 0.50, return to rest by 0.85, cleanup 1.30. Ribbons are 14 beams; each joint is born as the blade passes it and fades over its life, so the tail erodes first; widths taper to 0.35 at the ends.
+
+| Layer | Type | Slot | Start s | Life s | Size studs | Colour (RGB) | LE | Count | Note |
+|---|---|---|---|---|---|---|---|---|---|
+| Swing | sword part + IKControl | - | 0 | 0.85 | blade 4.2 | - | - | - | pivot at right chest, tilt 55 degrees |
+| Trail | ribbon | none | 0.12 | 0.08 | radius 3.6, width 2.6 | 255,150,50 to 200,60,20 | 0.6 | 1 | starts 70% transparent, `ZOffset` -0.6 |
+| Dark under | ribbon | none | 0.12 | 0.20 | r 4.4, w 1.9 | 60,10,4 | 0 | 1 | 50% transparent, `ZOffset` -0.3 |
+| Body | ribbon | none | 0.12 | 0.16 | r 4.4, w 1.4 | 255,225,120 to 255,110,25 (0.06 s) to 140,20,8 | 0.35 | 1 | `Brightness` 2 |
+| Hot edge | ribbon | none | 0.12 | 0.12 | r 4.95, w 0.35 | 255,252,240 to 255,190,80 | 1 | 1 | `Brightness` 5 |
+| Flames | emitter on a box moved with the blade | fire | 0.13 | 0.3-0.5 | 1 to 2.1 to 0.9 | 255,245,220 to 160,60,30 | 0.35 | 110/s to 0.27, 12/s to 0.33 | fade in over 12% of life, rise |
+| Embers | emitter | glow | 0.20, 0.23 | 0.5-0.9 | 0.55 to 0.15 | 255,235,150 to 200,50,10 | 0.5 | 2 x 18 | from 3 points on the arc, 6-12 studs/s |
+| Smoke | emitter | smoke | 0.26 | 0.7-1.0 | 1.4 to 3.4 | 55,40,35 to 95,90,85 | 0 | 6 | along the arc |
+| Light | PointLight | - | 0.14 | to 0.50 | range 12 | 255,150,60 | - | 1 | peak 3.5 at 0.20 |
+
+**Recipe card: hit impact** (`hit_impact.luau`). Beats: flash 0 s, core 0.017, sparks 0.033, ring 0.05, smoke 0.067, star pops 0.18, cleanup 1.0 (one 60 fps frame apart at the start). Flash, core, bolts, body and light sit 0.4 studs toward the attacker.
+
+| Layer | Type | Slot | Start s | Life s | Size studs | Colour (RGB) | LE | Count | Note |
+|---|---|---|---|---|---|---|---|---|---|
+| Flash | emitter | glow | 0 | 0.05 | 1.5 to 3 | white | 1 | 1 | `Brightness` 5 |
+| Dark under | emitter | glow | 0.017 | 0.16 | 3.5 to 6 | 10,28,70 | 0 | 1 | 45% transparent at start |
+| Core stars | emitter | star | 0.017 | 0.12-0.15 | 1 to 2.6 to 0 | white to 110,200,255 to 40,105,255 | 1 | 2 | |
+| Bolts | emitter | electric | 0.017 | 0.06-0.1 | 2.2 to 3.4 | white to 110,200,255 | 1 | 3 | accent, 3-6 frames |
+| Blue body | emitter | glow | 0.017 | 0.16 | 2 to 5.5 | 40,105,255 | 0.5 | 1 | keeps the hit blue on a lit floor |
+| Sparks | emitter | streak | 0.033 | 0.12-0.32 | 0.9 to 0.2 | white to cyan to blue | 1 | 22 | 25-45 studs/s toward the attacker, drag 8 |
+| Ring + dark ring | 2 ribbons of 12, untextured | - | 0.05 | 0.21 | radius 0.5 to 3.4, width 0.9 to 0.12 | white to cyan; 10,28,70 | 0.8; 0 | 1 | faces between attacker and camera: never edge-on |
+| Smoke | emitter | smoke | 0.067 | 0.5-0.8 | 1.4 to 4 | 55,65,85 to 100,108,120 | 0 | 6 | 3-7 studs/s |
+| Star pops | emitter | star | 0.18 | 0.25-0.35 | 0 to 0.9 to 0 | white to cyan | 1 | 4 | |
+| Light | PointLight | - | 0 | 0.2 | range 10 | 160,220,255 | - | 1 | 4 to 0 |
+| Recoil | root `Motor6D.C0` | - | 0 | 0.4 | 9 degrees | - | - | - | peak at 0.05, springs back |
+
+**Recipe card: level-up aura** (`level_up_aura.luau`). Phases: burst 0-0.75 s (ring, flash, pillar, stars), sustain 0.25-2.85 (rates ramp in over 0.2 s and out over 0.3 s), fade 2.8-3.3, cleanup 4.2. Follows the character every frame.
+
+| Layer | Type | Slot | Start s | Life s | Size studs | Colour (RGB) | LE | Count | Note |
+|---|---|---|---|---|---|---|---|---|---|
+| Ground ring + dark ring | 2 flat ribbons of 16 | - | 0 | 0.4 | radius 0.8 to 6.5, width 1.4 to 0.15 | 255,253,240 to 255,190,50; 90,50,10 | 0.8; 0 | 1 | dark ring 1.7x wider |
+| Core flash | emitter at the chest | glow | 0.03 | 0.1 | 1.2 to 3.5 to 2.5 | 255,235,150 | 1 | 1 | `Brightness` 5 |
+| Pillar | camera-facing Beam, 0.9 below the feet to 13 above | band, Stretch, `TextureLength` 1 | 0.05 | 0.70 | width 0 to 5 (0.15 s) to 1.5 | 255,190,50 | 0.55 | 1 | fades from 0.3 s |
+| Pillar core | camera-facing Beam | band | 0.05 | 0.40 | 0.35 x the pillar width | 255,253,240 | 1 | 1 | |
+| Burst stars | emitter at the feet | star | 0.08 | 0.7-1.1 | 0.9 to 0 | 255,235,150 to 220,120,20 | 0.7 | 32 | 18-32 studs/s up a 22 degree cone, fall back |
+| Risers | emitter on a 4.6-stud box at the feet | streak | 0.25 | 0.9-1.3 | 0.3 to 0.7 to 0 | pale to gold to amber | 1 | up to 26/s, about 60 | `Squash` 1.5, 5-9 studs/s |
+| Glow column | emitter on a 3.4-stud box 1.8 up | glow | 0.25 | 0.9-1.2 | 2.4 to 3.6 | 255,190,50 | 0.6 | up to 7/s | 75% transparent at best |
+| Ground circle + dark ring | 2 flat ribbons of 16 | - | 0.2 | to 3.3 | radius 2.2 to 3, 3.6 at the fade; width 0.45 | gold; 90,50,10 | 0.8; 0 | 1 | transparency pulses at 1.1 Hz; dark ring 0.95 wide |
+| Light | PointLight at the chest | - | 0 | 3.3 | range 12 | 255,205,110 | - | 1 | 5 at 0.06, 1.8 sustain |
+
+**Measured while building** (Studio 0.747 Play, 2026-11-17):
+
+| Fact | Consequence |
+|---|---|
+| Black-backed textures (17581858560, 8983307836) show grey bars below `LightEmission` 1 | black back: `LightEmission` 1, no exceptions |
+| 17581858560 is long on X: under `VelocityParallel` at `Rotation` 0 every streak lay across its path | `Rotation` 90 for that sprite |
+| `ContentProvider:PreloadAsync` reported Failure for ids that rendered | judge textures on a capture (`fx_capture.textureBoard`) |
+| A beam with the soft circle at Wrap, `TextureLength` 0.05 showed moire stripes; Stretch, `TextureLength` 1 gave a soft pillar | ribbons untextured; one beam at Stretch 1 (3c saw an even band at Wrap 0.02: check a capture) |
+| A `Disc` emitter shape emitted sideways | `Box` with `EmissionDirection` Top for risers |
+| Glows over 4 studs swallowed a dummy seen from 20-25 studs (a 6-stud aura core did) | cores at 3-3.5 studs |
+| On the daylight floor `LightEmission` 1 with `Brightness` 3+ washed to white (also the aura stars) | body layers at 0.5-0.7, `Brightness` 1.5 |
+| `TimeScale` 0 plus the stopped clock held each beat for a late `screen_capture` (every frame of the strips) | freeze-frame capture works without slow-motion video |
+
+**What looked wrong and what fixed it** (capture rounds of the demo):
+
+| Looked wrong | Fix in the code |
+|---|---|
+| The slash read as a flat paper fan | joints born where the blade passes, tail erodes first |
+| Flames appeared as red balls (frame 0 of the sheet) | flames fade in over the first 12% of life |
+| Flames trailed into the follow-through and burned at the hip | main stream stops at 0.27, tail at 0.33 |
+| Embers vanished (`VelocityParallel`), the additive streak was lost on the lit floor | soft alpha dots from three arc points, outward and up |
+| The hit read white on the lit floor; the 4.5-stud flash hid the target | flash 3 studs plus a saturated blue body |
+| The aura pillar looked like a striped slab | Stretch, `TextureLength` 1, one camera-facing beam |
+| The sword snapped back to the hand on frozen frames (server-owned part moved on the client) | a local copy swings, the original hidden by `LocalTransparencyModifier` |
+
+**Verify.** With every layer on the clock, `fx_capture.begin(tag, playFn, times, cameraCFrame)` freezes on the first beat; `screen_capture`, then `step()` to the next beat; `fx_strip.py` lays the frames in a grid. The strips used each script's `CAPTURE_TIMES` (12 beats), a fixed camera about 22 studs away at FOV 70 and two R15 dummies 7 studs apart. Start plays only from your own call and drop any frame with a play you did not start (a stray key press). Check on the strip: white core gone by about 0.07 s (3c); a dark layer under every bright one; the character readable at the contact frame; layer kinds at the peak against the 3c target (5 or more); nothing edge-on; smoke and stars outlast the bright layers. Peak live counts per cast: slash 3 emitters, 52 beams, 1 light; hit 8, 24, 1; aura 4, 66, 1.
+
+**Known limits.** No mesh layers (the mesh path of section 3 is untested here). Embers are nearly invisible on the strip; flames still float above the arc early and linger on the hero to about 0.5 s. The hit smoke reads as a dark blob on the target, the white glow at 0.017-0.033 s covers its upper body, and the recoil is not visible at this distance. The aura core flash still hides the hero at 0.1 s and the sustain stars are thin. After `fire_slash` on a rig with no animation playing, the arm keeps the swing pose (the IK leaves `Motor6D.Transform` set); a character with its Animate script is reset by its idle. Section 5 budgets still decide.
 
 ## 4. Lighting and atmosphere (docs)
 
