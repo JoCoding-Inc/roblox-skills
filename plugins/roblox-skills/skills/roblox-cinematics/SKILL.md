@@ -48,6 +48,8 @@ Keep the first minute interactive: a long intro before the first action costs th
 | Animation Editor on a camera rig, played through an Animator | Complex timing with actors and camera together | More setup; plugins exist (community) but check they are maintained |
 | Pre-rendered image sequence or video frame | Trailer-like title cards | Heavy; not recommended for a first game |
 
+A worked skill cutscene (shot table, impact frames, dark beat, flash cap counted in code, element scripts and capture strips): `roblox-feel-audio-vfx` section 3e; its 3-per-second flash cap is how a skill cutscene meets rule 10.
+
 ### 3a. Script recipe (client; syntax checked with luau-analyze, not run in a live playtest, so adapt and test)
 
 ```luau

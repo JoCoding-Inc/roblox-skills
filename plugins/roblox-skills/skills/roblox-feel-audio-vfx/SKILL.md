@@ -1,7 +1,7 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
-last_reviewed: 2026-11-17
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+last_reviewed: 2026-11-18
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
   - https://create.roblox.com/docs/effects/particle-emitters (Rate limits, fill rate, `LightEmission` 1 hides the dark regions of a texture)
@@ -14,6 +14,8 @@ sources:
   - RoDesigner skill effect demos, 2026-11-15 (two builds of one sword skill in Studio 0.747, one judged by the owner on video; engine probes of beams, Neon and TimeScale) and one public VFX showcase clip read frame by frame at 50 fps (numbers and method only); relayed by RoDesigner
   - https://create.roblox.com/docs/reference/engine/classes/Beam, enums/TextureMode and classes/ParticleEmitter (TextureLength per mode, TimeScale 0 to 1, flipbook and shape enums; read 2026-11-15)
   - RoDesigner VFX demo, 2026-11-17 (fire slash, hit impact, level-up aura in Studio 0.747 Play on a daylight floor, approved by the owner in Studio; ported to scripts/ and re-captured the same day); texture ids from the Roblox docs VFX tutorials and https://devforum.roblox.com/t/2-free-realistic-flipbook-particle-explosions/3035597; asset owners from economy.roblox.com/v2/assets/<id>/details (read 2026-11-17)
+  - RoDesigner skill cutscene demo, 2026-11-18 (nine elements and one 7.2 s cutscene in Studio 0.747 and 0.748 Play, judged well made by the owner on its captures; ported to scripts/ and re-captured the same day); target ranges read frame by frame from four public showcase clips at 30-60 fps, 2026-11-17 (numbers and method only); relayed by RoDesigner
+  - https://create.roblox.com/docs/reference/engine/classes/ColorCorrectionEffect, classes/Highlight, classes/PostEffect (post effects do not affect GuiObjects) and classes/GuiService (TouchControlsEnabled, ReducedMotionEnabled)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
 ---
@@ -284,6 +286,88 @@ Files: `scripts/fx_clock.luau` (the clock of section 3c), `scripts/fx_textures.l
 
 **Known limits.** No mesh layers (the mesh path of section 3 is untested here). Embers are nearly invisible on the strip; flames still float above the arc early and linger on the hero to about 0.5 s. The hit smoke reads as a dark blob on the target, the white glow at 0.017-0.033 s covers its upper body, and the recoil is not visible at this distance. The aura core flash still hides the hero at 0.1 s and the sustain stars are thin. After `fire_slash` on a rig with no animation playing, the arm keeps the swing pose (the IK leaves `Motor6D.Transform` set); a character with its Animate script is reset by its idle. Section 5 budgets still decide.
 
+## 3e. Skill cutscene from elements (camera, impact frames, energy, debris, lettering)
+
+A flashy skill cutscene (a charged punch, 7.2 s) built from nine element modules on one clock. Evidence: a demo built in Studio 0.747 and 0.748 Play on R15 dummies over a grey tiled floor, 3-7 capture rounds per element; the owner judged the cutscene well made, camera moves and effects good (2026-11-18); ported to `scripts/` with the code unchanged apart from module names, an opt-in capture marker and `cine_stage.buildRigs`, and the port captured again in Studio 0.748 Play (2026-11-18: every element and the cutscene with no Output errors or warnings, the same flash log and live counts as the demo, the 3d effects run once on the merged clock). Target ranges ("clips") were read frame by frame from four public showcase clips at 30-60 fps (2026-11-17): a lead from four samples, not a norm. Our values were chosen by eye. No real phone, no published game, no frame-cost measurement.
+
+Files: `scripts/skill_cutscene.luau` (the timeline), `cine_camera`, `impact_frames`, `flash_safety`, `screen_overlays`, `lightning`, `energy_sphere`, `ground_burst`, `ink_shapes`, `lettering`, `pose_beats`, plus `fx_clock`, `fx_textures`, `fx_capture` of 3d, `cine_stage` (palette, test stage, dummies) and `cine_demos` (one demo per element, setup in its header). Each module runs alone or, with `opts.clock` and `opts.at`, inside the cutscene clock. Comments r1-r4 name the capture round that found a problem. Strips: `assets/cutscene-examples/`.
+
+**Anatomy** (ours in 60 fps frames in brackets; clip frame counts are at each clip's own rate, 30 or 60 fps):
+
+| Beat | Time s | Ours | Clips |
+|---|---|---|---|
+| Build-up | 0-2.62 | low wide dolly 1.05 [63], then 3 close-ups of 30-33 f: fist, target face from below, over the shoulder; charge ball and crackle grow on the fist; letterbox and vignette in | 2-4 close-ups of 10-36 f |
+| Dark beat | 2.62-3.12 | 0.5 [30]: world near black, silhouettes, only the energy glows; a glint grows on the fist over the last 7 f | 0.25-0.7 s |
+| Impact block | 3.12-3.33 | 0.21 [13], 4 states of 3-4 f; the strike pose snaps in inside it (the move is never shown); the sphere bursts | 3-5 states, 0.15-0.25 s |
+| Peak | 3.33-4.00 | 6 shots of 4-8 f, 8 cuts in 0.88 s (9.1 per s), 8 layers at 3.4 s, world kept dark | shots 1-8 f, 6-9 cuts per s, 5-6 layers |
+| Hold | 4.00-6.60 | 2.6 [156]: one low wide, pull-out 18 f, finish pose, debris and dust; sphere pops at 4.64 into smoke and a second, smaller burst; lettering gone by 5.4 | 92-168 f, 1-3 layers |
+| Hand-back | 6.60-7.20 | 0.6 ease to a view behind the player, letterbox out | - |
+
+Peak position: block start at 43 % of 7.2 s, burst frames at 46-56 % (clips 30-75 %). Whole scene 12 cuts (1.7 per s; clips 0.5-3.2). One hue (electric cyan, `cine_stage` `HUE`) on a near-grey stage; clips used 1-2 hues on stages of saturation 0.05-0.10.
+
+**Impact frame states** (`impact_frames.luau`; L is the screen value `flash_safety` counts):
+
+| State | Built with | L |
+|---|---|---|
+| White / black | `ColorCorrectionEffect` under the Camera, `Brightness` +1 / -1 | 1 / 0.03 |
+| Colour field, flat silhouettes | Neon plane 0.6 studs in front of the camera, re-placed every frame; `Highlight` per character, `DepthMode` AlwaysOnTop, fill only (cyan field + black figures, blue field + white figures) | 0.85 x field + 0.15 x figures |
+| Invert | CC `Contrast` -2, `Saturation` -1, `Brightness` -0.15 | 0.45 |
+| World desaturated, one hue kept | CC `Saturation` -1, `Contrast` 3; the kept subject's Highlight keeps its fill hue | 0.6 |
+| Dark beat | `Lighting.Brightness` 0, ambients and fog to near black, `ExposureCompensation` -1.2 (fade-in 0.08 s); navy Highlights, Occluded; Neon, beams and additive particles keep glowing | 0.08 |
+| White-out | CC `Brightness` +1 for 0.1 s, out-cubic decay over 0.17 s (10 f) | 1 |
+
+The cutscene block: white 0.05, cyan field 0.05, invert 0.05, blue field 0.06 s; it hands over to a planned peak dim (the dark beat with no fade and no silhouettes, 3.33-4.00) so the peak cuts stay at one level. Failed: invert with a cyan tint read as a flat light-blue card; `Saturation` -1 alone turned the cyan Neon pink-white; `Brightness` +1 with a tint gave a flat field but tinted the figures too; a field plane 15 studs ahead was cut by the floor. Weakest: silhouettes are the blocky rig outline with no inner lines; the invert of a grey stage is mostly grey.
+
+**Elements:**
+
+| Element | Built with | Numbers | Failed, then | Weakest |
+|---|---|---|---|---|
+| Overlays | one ScreenGui `CineScreen` (`IgnoreGuiInset`, `ScreenInsets` None, `ZIndexBehavior` Sibling): letterbox Frames, 4 edge `UIGradient`s, speed lines = thin Frames rotated toward a focus with a transparency taper | bars 11 % of the height, in 0.25 s, out 0.3 s; 56 lines for 16 f, re-shaped every 1.5 f, clear radius 0.3 of the height, 1.5-6 px at 360 px high | white lines lost on the light floor: navy 1.5 px edge | uniform straight tapers |
+| Lightning | midpoint-displaced polyline (depth 4-5, 1-3 branches at 25-45 deg); 3 untextured camera-facing Beams per segment: core (LE 1, `Brightness` 6), body 2.6x, halo 8x at 0.62 | bolt 0.1-0.12 s + restrike after 0.04 s; re-shaped every 1.5 f; ground strikes from 40-48 studs up with flash, 18 sparks, light; crackle bolts 2-6 f on the fist | pooled bolts hidden by an older timer: owner token | thin and pale on a light floor |
+| Energy sphere | Neon core and body balls, 2 ForceField shells, 3 inner arcs, rim of 28 points plus 7 spikes in Beams, navy halo particle behind, light | charge 2.07 s at r 0.5 on the fist; burst to R 5.5 in 0.22 s (out-quart); hold 1.3 s; blink on 2 f, off 2 f; 16 smoke puffs | core 0.45r washed close shots white: 0.3r after the burst | rim reads beaded |
+| Ground burst | flat ring + navy dark ring + upright wall (beam ribbons of 20); 9 slabs; 18 debris parts moved by the clock (gravity 120, bounce); dust particles; light | ring radius 1 to 13 in 0.32 s; debris 0.45-3 studs, life 70-120 f, shrink in the last 0.35 s; dust 30-70 f, 2.5 to 7 studs, `LightInfluence` 0; floor `Material` and `Color` by raycast | box pile and black dust ball: smaller pieces, lighter dust | plain boxes, darker than the floor |
+| Ink shapes | triangles of two Neon WedgeParts each, laid in screen units on a camera-facing plane, re-laid every frame | 2-5 f; spikes behind the figures, smears and white shards in front; under about 35 % of the frame | shards behind were cut by the floor | straight edges |
+| Lettering | TextLabel (`Bangers`, `TextScaled`), `UIStroke` 7 % of the height, white-cyan `UIGradient`, navy drop copy, `UIScale` pop | 0.14-0.23 of the screen height, tilt -12 / +9 deg; pop 1.25 to 1 in 2 f; jitter 0.4 % and 0.6 deg every frame; fade in 2 f, out 3 f; hold 1.6-2.06 s | opaque first frame; 1.6 deg jitter read as wobble | no inner white edge |
+| Poses | `Motor6D.Transform` per frame from key poses (`snap`, `out`, `inout`), re-applied on PreSimulation | holds of 18-140 f; strike snaps in inside the block; knock-back 0.35 s | no posing on AnimationConstraint joints (facts) | rigid, no follow-through |
+
+**Camera** (`cine_camera.luau`). One row per shot: `{ t, len, subject, from = { offset, look }, to, fov, roll, move = { t0, t1, ease }, shake = { amp, roll, len, step } }`, offsets in the subject's space; `cine_camera.anchor(part, root)` follows a head or fist without turning with it. Hard cuts only.
+
+| Framing | Used | FOV |
+|---|---|---|
+| Low wide | camera about 0.6 studs over the floor, looking up | 50-62 |
+| ECU face or fist | 2-3 studs from the part, often from below | 40-42 |
+| Over the shoulder, medium side, reverse wide | 5-29 studs from the hero's root | 48-55 |
+
+- Roll (dutch) -20 to +25 deg per shot, a new sign on most cuts (clips 8-25, up to about 30). Push-ins 12 and 10 f, pull-out 18 f (clips 4-18 f).
+- Shake: rotation only, trauma squared over the shot, a new uniform random pose every 0.05 s (0.033 in the hold); peak shots 2.5-3 deg plus 10-12 deg roll, hold 1.2 deg plus 3 deg roll (clips: 5-10 % of the frame, roll swings every 2-4 f). Smooth noise used a third of its range (facts). Gameplay shakes keep section 3b.
+- `CameraType` Scriptable and the `CFrame` are written every frame. Hand-back: 0.6 s ease to 12 studs behind the player's root, then `CameraType`, `CameraSubject` and `FieldOfView` restored from the values saved at the start.
+- Phones: `GuiService.TouchControlsEnabled` false while it plays, restored at the end (the thumbstick and jump button sat over every shot). Skip, death exit and movement lock: `roblox-cinematics` sections 3a and 5.
+
+**Safety** (`flash_safety.luau`). At most 3 screen-wide flashes in any second (WCAG 2.3.1, section 3b), counted and enforced in code: each screen-wide state asks with its L; a change of 0.2 or more is a transition, two opposite transitions are one flash; a state that would be the 4th in any 1.0 s of clock time is refused (the previous one stays) and a block drops states from its end until it fits. Counted: the states of the impact table and the end of the peak dim. Not counted: local glows, lettering, ink under about 35 % of the frame, hard cuts (so the peak stays dark across its cuts). Logged by the cutscene: flashes at 3.12, 3.17 and 4.00 s, max 3 per second. With `GuiService.ReducedMotionEnabled`: every block, dark beat and white-out becomes one soft dim (CC `Brightness` -0.25 in 0.08 s, back in about 0.3 s), no shake, no lettering jitter, speed lines drawn once. Gameplay flashes keep the 2-per-second limit of section 3b.
+
+**Measured while building** (Studio 0.747 Play, 2026-11-18):
+
+| Fact | Consequence |
+|---|---|
+| CC under the Camera recolours parts, particles, Neon, beams and BillboardGuis, not ScreenGuis and not Highlight fills | silhouettes and kept hues use Highlights; overlays and lettering stay black and white through every state |
+| A Highlight with AlwaysOnTop draws through a part in front of the camera | field = Neon plane + Highlights |
+| CC `Brightness` +1 / -1 gives pure white / black; `Contrast` -2 inverts (cyan to red-orange) | white, black and invert states |
+| `Saturation` -1 turned cyan Neon pink-white; with `Contrast` 3 the world goes hard black and white and Highlights keep their hue | the one-hue-kept state |
+| `Brightness` +1 with a cyan `TintColor` gives a flat field with no silhouettes | not used for fields |
+| A Neon plane 15 studs ahead was cut by the floor in a low shot; 0.6 studs ahead covers the frame | plane at 0.6 |
+| A dense Atmosphere fades distance to the sky's colour; legacy fog works only with no Atmosphere; `EnvironmentDiffuseScale` 0 removed the sky's blue tint on figures | grey stage: walls, ceiling and fog |
+| Floor grout under 0.5 studs vanished 30-60 studs away in low wides | 0.5-stud grout |
+| `CreateHumanoidModelFromDescription` rigs use AnimationConstraint joints: `Transform` writes do nothing, `C0` errors (read only) | `cine_stage.buildRigs` swaps them for Motor6Ds |
+| A new ScreenGui's `ZIndexBehavior` is Global: a later layer drew over the letterbox | Sibling |
+| `execute_luau` resets a changed camera to Custom | drive the camera every frame |
+| Smooth `math.noise` at 0.05 s steps stayed within about +-0.3 of its range | stepped uniform random shake |
+| Debris lit only by `Ambient` 110 went near black next to the same-coloured floor | Ambient 135, OutdoorAmbient 148 |
+| Peak live counts: 10 emitters, 399 beams (most hidden pool beams), 5 lights, 152 parts, 4 Highlights, 68 GuiObjects | the phone risk is the beam pools |
+
+**Verify.** `fx_capture.run(tag, play, times, { hold = 1.8, scale = 0.25, marker = true })` slows the clock to 0.25x and stops on each beat; a background capture of the Studio window saves a frame when the bottom-left marker shows the beat's index. Capture each shot boundary, the block and the peak as consecutive 60 fps frames (0.017 s apart), and the hold every 0.3-0.5 s, from the real cutscene camera, never a free camera; start every play from your own call. Check: each close-up shows its subject (not a shoulder, a body or the sphere from inside); the dark beat reads as silhouettes plus glow; every block state is full-screen; 5 or more layers at the peak; the hold has moving debris or dust to its end; the `CUTSCENE|flashes=...` line says max 3; camera, FOV and touch controls are back after the end; then one run in the Device Simulator (Galaxy A06, viewport 705 x 338): letterbox full width, lettering readable, no touch controls over a shot.
+
+**Known limits.** Code poses are rigid (no follow-through or smear pose); debris are plain boxes; the sphere rim is beaded; ink edges are straight; silhouettes are the rig outline; R15 dummies limit every close-up (a face close-up reads as a dark block). 399 beams at the peak with no real-phone measurement. Elements and facts: Studio 0.747; cutscene and phone pass: 0.748; nothing checked in a published game or with several players. Uploaded art would raise it: drawn full-screen impact frames as ImageLabels, a spiky-ring texture or flipbook for the rim, a sphere mesh with scrolling noise, a bolt flipbook, 4-6 low-poly rock meshes and a crater decal, a dust flipbook, brush-stroke ink images, per-word lettering images with an inner edge, and keyframed attack and hit-reaction animations (`roblox-character-motion`).
+
 ## 4. Lighting and atmosphere (docs)
 
 - Choosing a mood or an effect style: show the same spot in each option as an image (and a short clip only for motion) before building it (`roblox-game-pipeline` section 10a: greybox screenshots first, or images from a generator the user has connected).
@@ -312,7 +396,7 @@ Files: `scripts/fx_clock.luau` (the clock of section 3c), `scripts/fx_textures.l
 | Emitter `Rate` low, bursts short, mobile cap known | yes |
 | Action animations at `Action` priority or higher; tracks cached, not reloaded per use; NPC animations play from the server | yes |
 | Screen shake has an off switch, combines by max, and only the object the camera follows (normally the player character) or the player's own actions move the camera | yes |
-| Full-screen flashes and edge pulses start at most twice a second; Reduce Motion and the game's own switches are honoured (section 3b) | yes |
+| Full-screen flashes and edge pulses start at most twice a second; Reduce Motion and the game's own switches are honoured (section 3b); a cutscene counts its flashes in code, at most 3 in any second (section 3e) | yes |
 | The same 30 s played with all effects off, then on: every channel is missed when off | yes |
 | Test on a low-end phone profile: FPS stable during the busiest effect moment | yes |
 | Mute and volume settings exist; music loops without gaps | yes |
