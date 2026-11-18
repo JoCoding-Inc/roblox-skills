@@ -7538,7 +7538,8 @@
             "night_sky",
             "texture_stages",
             "beams_particles_form",
-            "small_units"
+            "small_units",
+            "no_flat_mass"
           ],
           "properties": {
             "vfx_source": {
@@ -7612,6 +7613,20 @@
               ]
             },
             "small_units": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/leaf"
+                },
+                {
+                  "properties": {
+                    "v": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            },
+            "no_flat_mass": {
               "allOf": [
                 {
                   "$ref": "#/$defs/leaf"

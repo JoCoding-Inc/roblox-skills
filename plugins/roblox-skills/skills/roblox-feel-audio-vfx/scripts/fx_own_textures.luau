@@ -1,6 +1,6 @@
 -- fx_own_textures: the asset ids of the textures you uploaded for ground_blast (roblox-feel-audio-vfx section 3g).
 -- Make the files with ground_blast_textures.py, upload each PNG as an Image to your own account or the group that
--- owns the game, and write the ids here. A name left at 0 keeps a public stand-in texture (rough look).
+-- owns the game, and write the ids here. While a name is left at 0, ground_blast refuses to play and lists it.
 -- Copy this file as a ModuleScript named fx_own_textures next to ground_blast.
 -- swirl_streaks is not in this table: it goes into the swirl mesh template's SurfaceAppearance in Studio.
 return {
