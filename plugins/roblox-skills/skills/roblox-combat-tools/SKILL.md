@@ -72,6 +72,16 @@ Lag tolerance rules (numbers are judgment):
 3. Line of sight: the server casts shooter to target and rejects if a `CanQuery` part is in between.
 4. Fire rate: server clock, cooldown minus 15 percent slack.
 5. Rewind (ranked PvP only, otherwise skip): record each character's root CFrame every Heartbeat for 0.5 s. On a shot, test the target at `now - ping/2 - ~0.1 s` (measure the interpolation delay), cap the rewind at 0.25 s, accept within 3 to 4 studs. Rewind positions only, never health or cooldowns. Server Authority does this natively, so prefer it for ranked.
+   The same holds for a dodge against a server-timed attack (jumping a travelling ring wall): the server sees the jump late. In one Studio test, testing the wall half a ping back still hit jumps made 0.10-0.15 s early; rewinding it by half the ping plus 0.22 s (the character replication delay measured in Studio) cleared jumps 0.15-0.40 s early and still hit those 0.10 s and 0.50 s early. Recheck the 0.22 s on a live server (field note, 2026-11-14).
+
+### 4b. Telegraphs for server-timed hits
+
+A boss or area attack that the server times needs a warning on the ground that matches the server's test. Field notes from one boss fight, checked in Play (2026-11-14 and 2026-11-15):
+- Draw the exact shape the server tests (circle, cone, strip), 0.34 studs above the floor. A 0.12-stud disc sank under 0.25-stud ground steps and showed straight edges and a notch.
+- Lit `SmoothPlastic` in a saturated red at about 0.3 transparency over a soft texture; a `Neon` fill read pale pink in Play. A saturated red strip on grass can read as blood (judgment of that game's owner).
+- Grow an inner fill from the origin to the edge, so the hit lands when the fill reaches the edge, and finish with one thin hot rim (0.6 studs) with a soft glow, the same on every shape.
+- Thin the fill away over the last 0.14-0.26 s before the hit: a large transparent part is drawn over the `Beam`s above it and hid the strike's ribbons.
+- Keep telegraphs at 0.8 s or longer, also in a harder second phase.
 
 ### 4a. Server validation snippet (hitscan claim)
 
@@ -184,6 +194,7 @@ Use the kit for a prototype, a game jam or casual third-person shooter feel in a
 
 - Two clients: Studio Test, Server & Clients setting with 2 or more players. Shooter and target each see the hit, health, death and kill credit.
 - Latency: Test > Device Simulator, **Network** pill, **Apply** a preset. Presets (in/out): Home Wi-Fi 30/30 ms, Standard Mobile 45/55 ms, Bad Connection 150/180 ms; round trip is the sum plus real ping. Scriptable with `NetworkSettings.InboundNetworkMinDelayMs` and `OutboundNetworkMinDelayMs`. The docs page still labels it beta (enable New Device Simulator in Beta Features); `roblox-engine-2026` lists it as full release.
+- Read Studio's Network `IncomingReplicationLag` setting before any latency, fairness or dodge-window measurement and report its value with the number. One dev place ran with it at 0.2 s: casts reached the server about 0.23 s after the press and a boss wave's first hit came back 0.58 s after it. Run the timing test at 0, then again with the lag on (field note, 2026-11-14).
 - Bot scenarios (`roblox-bots-npcs`), one PASS/FAIL line each: standing target in range = hit with config damage; target at range + 50 studs, behind a wall, dead or respawning, or a teammate (friendly fire off) = no damage and no second kill credit; run-speed target at the 4G preset = 90 percent or better hits (judgment); fire at 3 x max rate for 2 s = accepted shots at or below max rate.
 - Exploit tests from a test LocalScript: spam the remote at 100 per second; send NaN, inf, huge vectors, wrong types, a destroyed Instance; claim a target 500 studs away; fire while dead; fire an unequipped weapon. Expected: no damage, no server errors, flags logged.
 - Hit feedback checks belong to `roblox-feel-audio-vfx`; hit stop, combo escalation and finisher effects to `roblox-fun-effects` section 8; save data for loadouts to `roblox-data-saves`; Studio MCP quirks to `roblox-pitfalls`.

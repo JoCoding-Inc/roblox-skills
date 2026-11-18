@@ -98,6 +98,7 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 
 - Status is cosmetic and has a free path. It never hides hitboxes, enemies or other players' UI.
 - Add a "reduce other players' effects" setting. Test 20 players with the top aura on the low-end phone profile.
+- An always-on glow must not beat. A held blade whose edge lines flashed every 0.45-1.5 s read as a heartbeat to one game's owner. What passed (field note, 2026-11-18; Studio, eight frames in a row at play speed held the same brightness): small points born along the edges at an uneven rate (14-44 a second by upgrade step, 40 percent of that on other players' items), each gone in 0.16-0.36 s, plus a star glint at random 0.8-3.2 times a second; edge lines dark at rest and lit only for a swing; an upward shine every 1.1-2.2 s with each wait randomised to 0.4-1.6 x.
 
 ## 6. Announcements and clips
 

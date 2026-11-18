@@ -170,6 +170,10 @@ end
 - Cost: the stick's dead zone is 2 px, so a tap that slides 3 to 10 px also nudges the character for the length of the tap. Use it for menu openers, not for a button the player taps while standing on a narrow ledge. The 0.3 s limit was not timed: the MCP tap itself takes about 0.4 s.
 - A column that cannot fit above the ring keep box (five 48 px rows need 240 px; a 280 px frame has 180 px above the box): show 3 rows and put the rest behind one "more" button, or split into two columns, or make the rows that reach the start area pass-through. Pass-through buttons do not count toward the start-area share and may sit over the ring.
 
+**A light push on the stick walks.** The thumbstick is analog: a light push moves the character at a fraction of `WalkSpeed`, and the default Animate script blends the walk in. One game measured a stick input of 0.4 giving 8.4 studs/s with walk weight 0.73 and run 0.27. If the game should always run, re-apply the control module's move direction at length 1 each frame, after the control module runs; an emulated 12 px stick drag then moved 21 studs/s instead of 13. Verify with an emulated touch drag in the Device Simulator, not with `Humanoid:Move` (field note, 2026-11-15; a real phone and a gamepad not checked).
+
+**Context hints need a hold.** A hint that follows a raw condition (Jump, Hide, nothing) flickered as it switched every 0.1-0.4 s while the runner left the ground or the line of sight moved. Once shown, keep each hint for a minimum time (0.4 s and 1.5 s by hint in one game), and let a hint that depends on standing wait out a jump (field note, 2026-11-16).
+
 **One layer per side.** Parent each side's HUD into one invisible full-size frame (Left, Right, Top). Layout code keeps owning each element; a panel moves a whole side by moving its layer (section 4).
 
 ## 4. Opening a panel
