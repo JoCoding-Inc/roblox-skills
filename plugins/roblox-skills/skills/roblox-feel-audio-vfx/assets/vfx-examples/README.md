@@ -50,3 +50,21 @@ Captures of `scripts/ground_blast.luau`, every frame from the served code with t
 | `ground_blast_texture_preview.jpg` | the `--preview` sheet of the generator: fire lump flipbook, tongues, crack webs, chips, flash fan and floor cracks as tint (1, 0.22, 0.03) at `Brightness` 4 draws them | - |
 
 Weak points visible on the sheets (also in section 3g, Known limits): at 0.02 s only one swirl sheet shows, as a single red leaf, and at 0.07-0.12 s the three swirl sheets cross like a bow; the grey ring is a flat ring on the floor; the ejecta trails are thick and bright against the sky; around 1.0 s the red smoke shows as round dark-red puffs above the patch; the violet cast is one flat pink mass at 0.32 s. No character for scale, no sound. Not checked on a phone preset, a real phone or in a published game.
+
+## Ground slam (section 3h)
+
+Captures of `scripts/ground_slam.luau`, every frame from the served code with the textures of `scripts/ground_slam_textures.py` and the kit of `scripts/ground_slam_crater_kit.py` uploaded to our own group and the kit template in the place; no frame was edited.
+
+- Date and engine: 2026-11-18, Roblox Studio 0.748, Play, client view, desktop window capture.
+- Stage: a grey checker floor under a day sky. `ClockTime` 13.2, `Brightness` 2.2, `Ambient` (128, 130, 136), `OutdoorAmbient` (128, 130, 138), `Atmosphere` density 0.28 and haze 1.2, `BloomEffect` 0.4 / 24 / 1.3. The floor is a SmoothPlastic Part of colour (128, 134, 150) with a `Texture` on its Top face: our own 2 x 2 checker image at `StudsPerTile` 16, so one tile is 8 studs.
+- Camera: fixed, FOV 70, the centre plus (0, 9, 31) studs looking at the centre plus (0, 2.7, 0).
+- The dark box in the middle is a 2 x 5 x 1 stud stand-in for a character. Radius 8 studs.
+
+| File | Shows | Times (s) |
+|---|---|---|
+| `ground_slam_real_time.jpg` | one cast at full speed: 16 window screenshots in a row, about 0.15 s apart, cropped. Time 0 is the first screenshot that shows the effect (the impact frame is fading there), so every label can be up to 0.14 s early. The smoke stops, opens holes and ends as curls by about 0.9 s; the crater holds, flattens to hairline cracks and is gone | 0 to 2.14 |
+| `ground_slam_first_frames.jpg` | the first third of a second, from a cast at `timeScale` 0.2 (12 screenshots, about 0.03 s of effect time apart): the black-and-white impact frame with the pillar, the slabs coming up, the white spikes, haze and puffs leaving, the first wind arc | 0 to 0.33 |
+| `ground_slam_texture_preview.jpg` | the `--preview` sheet of the texture generator: two puffs, the plume and two haze sheets, 16 frames each, in the tints the effect uses, over a sky and floor colour | - |
+| `ground_slam_kit_top.jpg` | the slab kit from above in Blender, one random colour per slab: 76 cells, small in the middle, uneven on purpose | - |
+
+Weak points visible on the sheets (also in section 3h, Known limits): the slabs are thin and the middle of the crater is shallow; the dark walls of two long outer slabs read as black slivers; around 0.45-0.6 s the plume and the puffs overlap into one dark grey mass above the centre; the outer hairline cracks trace the kit's round outline in the last frames. The checker continues across the slab tops, checked on this unrotated floor only. No sound. Not checked on a phone preset, a real phone or in a published game.
