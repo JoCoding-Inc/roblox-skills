@@ -403,6 +403,7 @@ function VoidPillar.play(cf: CFrame, opts)
 		EmissionDirection = Enum.NormalId.Top,
 		SpreadAngle = Vector2.new(10, 10),
 		Orientation = Enum.ParticleOrientation.VelocityParallel,
+		Rotation = NumberRange.new(90), -- VelocityParallel: 90 + positive Squash runs the streak along its path (measured 2026-11-18); FxClock's 0-360 default set a random angle
 		Squash = NumberSequence.new(1.6),
 	})
 	FxTextures.apply(sparks, "streak")

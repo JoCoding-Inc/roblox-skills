@@ -83,6 +83,31 @@ A boss or area attack that the server times needs a warning on the ground that m
 - Thin the fill away over the last 0.14-0.26 s before the hit: a large transparent part is drawn over the `Beam`s above it and hid the strike's ribbons.
 - Keep telegraphs at 0.8 s or longer, also in a harder second phase.
 
+### 4c. Arrows for attackers off screen
+
+A telegraph the camera cannot see needs an arrow at the screen edge. `Camera:WorldToViewportPoint` mirrors a point behind the camera: measured in Studio (2026-11-18, camera looking along -Z, viewport 1309 x 707), a point behind and to the right came back at x 453, in the left half, and one behind and below came back in the upper half, so an arrow clamped from that result points the wrong way. Take the direction from camera space and push it to an inset edge:
+
+```lua
+-- Returns the arrow's viewport position and its angle in degrees (0 = pointing right), or nil when in view.
+local function edgeArrow(cam: Camera, worldPos: Vector3, inset: number): (Vector2?, number?)
+	local _, onScreen = cam:WorldToViewportPoint(worldPos)
+	local rel = cam.CFrame:PointToObjectSpace(worldPos) -- camera space: -Z is forward
+	if onScreen and rel.Z < 0 then
+		return nil -- in view: no arrow
+	end
+	local dx, dy = rel.X, -rel.Y -- screen y grows downward
+	if math.abs(dx) < 1e-3 and math.abs(dy) < 1e-3 then
+		dy = 1 -- dead behind: bottom edge
+	end
+	local vp = cam.ViewportSize
+	local hx, hy = vp.X / 2 - inset, vp.Y / 2 - inset
+	local k = math.min(hx / math.max(math.abs(dx), 1e-6), hy / math.max(math.abs(dy), 1e-6))
+	return Vector2.new(vp.X / 2 + dx * k, vp.Y / 2 + dy * k), math.deg(math.atan2(dy, dx))
+end
+```
+
+In the same test it put the arrow on the right edge for a point behind and to the right, on the left edge for behind and to the left, at the bottom for behind and below or dead behind, at the top for a point high above, and none for a point in view. Keep the arrows out of the touch-control zones on phones (`roblox-ui-layout` section 1) and show only the two or three attackers that are closest or about to hit (judgment).
+
 ### 4a. Server validation snippet (hitscan claim)
 
 Syntax checked with luau-analyze against stubbed Roblox globals, not run in a live playtest. Equipped, ammo, alive and team checks are not shown (section 8, `Damage.apply`).
