@@ -3,7 +3,7 @@
   "schema_version": "1.0.0",
   "title": "Effects: rarity tier ladder, aura and particle limits, feedback tiers, skill and attack effect rules, VFX house rules",
   "scope": "every genre with rewards, rolls or effects",
-  "sources": ["roblox-fun-effects/SKILL.md#3,4,5,9", "roblox-feel-audio-vfx/SKILL.md#3,3b,3c,3d,3e,3f,5"],
+  "sources": ["roblox-fun-effects/SKILL.md#3,4,5,9", "roblox-feel-audio-vfx/SKILL.md#3,3b,3c,3d,3e,3f,3g,5"],
   "data": {
     "tiers": [
       {
@@ -475,6 +475,31 @@
         "orb_centre": {"v": "a hard white Neon ball as an orb's centre read as a pasted-on dot and layers offset toward the camera drifted off centre away from the screen centre; a soft camera-facing disc at the balls' own centre stayed centred", "p": "measured", "src": "Studio 0.748 Play, clip-built effect demo, one capture round each", "date": "2026-11-18"},
         "first_cast": {"v": "the first cast of a session drew squares for a few frames (textures not in memory); warming every texture on a 1 px ImageLabel and a tiny Beam at start made it rare, not zero (clean once, squares once)", "p": "measured", "src": "Studio 0.748 Play, clip-built effect demo, one capture round each", "date": "2026-11-18"},
         "sky_removal": {"v": "removing the Sky brought the default skybox back above the haze; a far wall in the haze colour gave a flat backdrop", "p": "measured", "src": "Studio 0.748 Play, clip-built effect demo, one capture round each", "date": "2026-11-18"}
+      },
+      "piece_fire": {
+        "tint_hsv_offset": {"v": [-0.037, 0.97, 1.0], "p": "opinion", "src": "ground blast demo, chosen by eye: Color3.fromHSV(hue - 0.037, 0.97, 1)", "date": "2026-11-18"},
+        "texture_luminance_range": {"v": [0.08, 1.0], "p": "opinion", "src": "ground blast demo, chosen by eye: cool rim to hottest patch", "date": "2026-11-18"},
+        "fire_brightness_over_time": {"v": [6, 2], "p": "opinion", "src": "ground blast demo, chosen by eye: from the first fire frame to 0.6 s later", "date": "2026-11-18"},
+        "piece_life_s": {"v": [0.05, 0.3], "p": "opinion", "src": "ground blast demo, chosen by eye", "date": "2026-11-18"},
+        "fire_lump": {"v": {"per_s_peak": [60, 90], "life_s": [0.14, 0.26], "size_studs": [3.4, 6], "light_emission": 0.7}, "p": "opinion", "src": "ground blast demo, chosen by eye, radius 8 studs", "date": "2026-11-18"},
+        "tongue": {"v": {"per_s_mass": 46, "per_s_fire_spot": 55, "life_s": [0.1, 0.2], "alive_per_spot": [5, 8], "spot_stops_below": 0.3}, "p": "opinion", "src": "ground blast demo, chosen by eye", "date": "2026-11-18"},
+        "crack_lines": {"v": {"per_s": [50, 60], "life_s": [0.05, 0.1], "brightness": 3}, "p": "opinion", "src": "ground blast demo, chosen by eye", "date": "2026-11-18"},
+        "chips": {"v": {"per_s": [60, 70], "life_s": [0.06, 0.13]}, "p": "opinion", "src": "ground blast demo, chosen by eye", "date": "2026-11-18"},
+        "red_smoke": {"v": {"per_s": [50, 60], "life_s": [0.22, 0.4], "transparency": 0.45, "light_emission": 0.3}, "p": "opinion", "src": "ground blast demo, chosen by eye", "date": "2026-11-18"},
+        "mass_shape_radius": {"v": {"width": 1.9, "height": 0.8}, "p": "opinion", "src": "ground blast demo, chosen by eye: multiples of the effect radius", "date": "2026-11-18"},
+        "swirl_mesh": {"v": {"clones": 3, "life_s": [0.12, 0.15], "rad_per_s": [8, 12], "emissive_strength": [6, 2], "part_transparency": 0.02}, "p": "opinion", "src": "ground blast demo, chosen by eye", "date": "2026-11-18"},
+        "live_counts": {"v": {"beams": 19, "emitters": 21, "helper_parts": 18, "mesh_parts": 3, "lights": 1, "reduced_motion": [17, 17, 14, 2, 1]}, "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"}
+      },
+      "piece_fire_measured": {
+        "brightness_bands": {"v": "ParticleEmitter.Brightness and Beam.Brightness scale the emitted colour before a per-channel clip: tint (1, 0.22, 0.03) at Brightness 4 drew texture luminance 1 as yellow, 0.5 as orange, 0.25 as red-orange and 0.1 as dark red", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "even_luminance_flat": {"v": "a sheet with luminance 0.6-1 inside drew as one flat yellow shape with a thin red rim at Brightness 4; the range has to be in the texture", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "emit_at_draw_position": {"v": "ParticleEmitter:Emit() placed particles where the attachment was when the frame was drawn: several emits in one frame from one moving attachment landed at its last position", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "random_cell": {"v": "FlipbookMode Loop with FlipbookStartRandom true and FlipbookFramerate 0 gave each particle one random cell of the sheet", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "mesh_texture_tint": {"v": "MeshPart.TextureID showed a texture's alpha but MeshPart.Color did not tint it and Neon added no glow; SurfaceAppearance with AlphaMode Transparency at part Transparency 0.02 showed the alpha and SurfaceAppearance.Color tinted it", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "emissive_mask_channel": {"v": "a SurfaceAppearance emissive mask reads the colour channels, not alpha: a white-RGB streak texture made the whole surface glow as a solid shape; EmissiveStrength 8-12 pushed red toward orange-yellow", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "dark_color_map_band": {"v": "mesh streaks whose colour map was near black drew as black bands; at luminance 0.5 or more they stayed coloured", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "local_script_writes": {"v": "from a LocalScript: SurfaceAppearance Color, EmissiveStrength, EmissiveTint and AlphaMode, MeshPart Size, DoubleSided and TextureID, and AssetService:CreateMeshPartAsync worked; ColorMap and EmissiveMaskContent failed with 'lacking capability Plugin'", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"},
+        "paused_vs_real_time": {"v": "pieces looked longer-lived in paused-clock captures than in real-time screenshots of the same cast", "p": "measured", "src": "Studio 0.748 Play, ground blast demo", "date": "2026-11-18"}
       }
     },
     "rules": {
@@ -482,7 +507,8 @@
       "burst_not_constant": {"v": "burst on events; destroy or disable emitters when done; cap effects per player and per server", "p": "opinion"},
       "night_sky": {"v": "fewer, brighter additive layers; dark semi-transparent layers render muddy", "p": "field", "date": "2026-11-04"},
       "texture_stages": {"v": "prototype: built-in rbxasset:// textures, labelled greybox; test: public ids from the Roblox docs and DevForum (effect_recipes.textures); release: the game's own uploads", "p": "opinion", "src": "owner house rule, clarified in roblox-feel-audio-vfx section 3d", "date": "2026-11-17"},
-      "beams_particles_form": {"v": "an effect of beams, particles and lights with no mesh is an approved form next to Blender meshes", "p": "opinion", "src": "owner verdict on the effect demo in Studio", "date": "2026-11-17"}
+      "beams_particles_form": {"v": "an effect of beams, particles and lights with no mesh is an approved form next to Blender meshes", "p": "opinion", "src": "owner verdict on the effect demo in Studio", "date": "2026-11-17"},
+      "small_units": {"v": "build every effect from small units, in size and in lifetime, even when that takes longer or is harder: no sprite is a picture of a whole thing (a whole flame, a whole explosion); each piece lives about 0.05-0.3 s and is replaced while the effect lasts; a dying fire shrinks, it does not thin out to one piece", "p": "opinion", "src": "owner rule, set after judging the ground blast demo on its captures", "date": "2026-11-18"}
     }
   }
 }

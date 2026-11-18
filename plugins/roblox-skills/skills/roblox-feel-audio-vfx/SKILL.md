@@ -1,6 +1,6 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
 last_reviewed: 2026-11-18
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
@@ -15,6 +15,7 @@ sources:
   - https://create.roblox.com/docs/reference/engine/classes/Beam, enums/TextureMode and classes/ParticleEmitter (TextureLength per mode, TimeScale 0 to 1, flipbook and shape enums; read 2026-11-15)
   - RoDesigner VFX demo, 2026-11-17 (fire slash, hit impact, level-up aura in Studio 0.747 Play on a daylight floor, approved by the owner in Studio; ported to scripts/ and re-captured the same day); texture ids from the Roblox docs VFX tutorials and https://devforum.roblox.com/t/2-free-realistic-flipbook-particle-explosions/3035597; asset owners from economy.roblox.com/v2/assets/<id>/details (read 2026-11-17)
   - RoDesigner skill cutscene demo, 2026-11-18 (nine elements and one 7.2 s cutscene in Studio 0.747 and 0.748 Play, judged well made by the owner on its captures; ported to scripts/ and re-captured the same day); target ranges read frame by frame from four public showcase clips at 30-60 fps, 2026-11-17 (numbers and method only); relayed by RoDesigner
+  - RoDesigner ground blast demo, 2026-11-18 (one fire and impact effect in Studio 0.748 Play, rebuilt over 8 capture rounds next to a public showcase clip of a similar effect read at the same 16 beat times, plus real-time captures; judged good by the owner on its captures, who then set the small-units rule; engine probes of Brightness, emit placement, mesh textures, SurfaceAppearance emissive and script write access; numbers and method only from the clip); relayed by RoDesigner
   - https://create.roblox.com/docs/reference/engine/classes/ColorCorrectionEffect, classes/Highlight, classes/PostEffect (post effects do not affect GuiObjects) and classes/GuiService (TouchControlsEnabled, ReducedMotionEnabled)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
@@ -41,6 +42,7 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 - The built-in `rbxasset://textures/particles/*` textures plus thin Trails read as a wireframe of lines on a dark sky next to concept art. A release-quality burst needs custom glow, star, streak and sparkle (flipbook) textures, dense emission along the shape, additive layers (`LightEmission` 1, `LightInfluence` 0) and a moderate `Bloom`. Dark semi-transparent layers over a night sky render brown and muddy; use fewer, brighter additive ones (field observations, 2026-11-04).
 - Generated glow and energy sprites for additive use: ask for the sprite on pure black, not on a transparent background. With `LightEmission` 1 the dark regions of a texture disappear (docs), so the black needs no keying, and the soft falloff stays. A transparent background comes back as a cut-out: in one test image about 69% of the pixels were fully clear, the body almost opaque and the halo under alpha 32 of 255, so the glow lost its falloff (relayed by RoDesigner, 2026-11-14). Ask for transparency only for solid sprites with normal blend.
 - House rule (owner): VFX are Blender meshes (`roblox-blender-export`) plus gradient or flipbook textures. No block tiles and no default sparkles (the `Sparkles` object or the built-in particle textures) in a release: built-in `rbxasset://` textures are prototype only, labelled as greybox, and public docs ids are a test stage (stages and ids: section 3d). The owner also approved an effect form of beams and particles with no mesh (section 3d; approved 2026-11-17). A glowing Blender mesh without a `SurfaceAppearance` (field note, 2026-11-09): model the emissive shapes as their own geometry in flat `Neon` colors (Neon on a textured MeshPart does not glow, `roblox-pitfalls` section 4), layer a dark non-Neon shade mesh for the dark parts, and put textures only on lit surfaces. When a brief forbids uploads, a portal vortex that worked without them (field note, 2026-11-09) used flat curved Beams as spiral arms around a centre: `CurveSize0` and `CurveSize1` bend a beam into a Bezier curve (docs), `FaceCamera` is false, and the built-in glow texture is stretched along each arm (section 4, "Night glow without lights"; a prototype by the stages above).
+- House rule (owner, 2026-11-18): build every effect from small units, in size and in lifetime, even when that takes longer or is harder. No sprite is a picture of a whole thing (a whole flame, a whole explosion); each piece lives about 0.05-0.3 s and is replaced for as long as the effect lasts; a fire that dies shrinks, it does not thin out to one piece. Method, numbers and the measurements behind them: section 3g.
 - Beams, trails, lights, highlights: use sparingly; each light source and highlight has a cost.
 - **A `Highlight` skips transparent parts.** It drew no outline and no fill on parts with any `Transparency` above 0: hologram parts at 0.06 lost the whole rim and tint (toggled live in Studio, field note 2026-11-11). The docs do not say so; a Roblox staff reply says highlights on transparent parts have not worked for years, and posters there report that parts inside a model with a Humanoid still get them (DevForum t/4678843, 2026-08-20). Keep highlighted parts at `Transparency` 0 and make a hologram from a dark `Neon` colour plus the Highlight fill. Check a Highlight against a plain background before trusting a capture: a bright portal behind the model passed for a rim.
 - **Curved Beams.** A Beam is a cubic Bezier: P1 sits `CurveSize0` studs along +X of `Attachment0`, P2 sits `CurveSize1` studs along -X of `Attachment1` (docs, effects/beams). For a circle of radius R from four quarter-arc beams, point each attachment's X axis along the direction of travel and set both sizes to +0.5523 R, the usual Bezier quarter-circle constant (4/3 x (sqrt 2 - 1)); a negative `CurveSize1` drew a hook at each joint (field note, 2026-11-11).
@@ -410,6 +412,95 @@ Take timing, order and layer structure. Make the shapes, colours and textures yo
 
 **Known limits.** No sound. The seal's fill shows faint wedge facets and its release is plain. The pillar's sashes are flat ribbons and read as paper from some angles; its strike is one full-screen flash (count it in the flash budget of section 3b). Six-sided seals and the pillar are over 100 beams: measure on a phone before shipping. The phone check is the Galaxy A06 Device Simulator preset only (viewport 705 x 338, same counts), run on the demo before the port.
 
+## 3g. Fire and impact from small short-lived pieces (ground blast)
+
+House rule (owner, 2026-11-18): every effect is built from small units, in size and in lifetime, even when that takes longer or is harder. This section is the method that reached that bar on one effect, an area explosion on the floor that leaves cracks and small fires (4.1 s).
+
+Evidence: built in Studio 0.748 Play on 2026-11-18. Three earlier builds were rejected by the owner (stretched soft circles; flat drawn shapes; pale lumps with one whole-flame sprite standing alone). The fourth was rebuilt over 8 capture rounds, each read next to a reference clip of a similar effect at the same 16 beat times, then checked in real-time captures; the owner judged it good on its captures. Timing, layer order and staging come from the clip; every texture, mesh and shape was made for this build. Numbers are chosen by eye, not measured optima. No real phone, no published game, no frame-cost measurement. The effect's script and its texture generators are not in `scripts/` yet.
+
+**Six rules.**
+
+| # | Rule | Without it |
+|---|---|---|
+| 1 | Colour bands come from one greyscale sprite: a wide luminance range in the texture, one deep saturated tint, `Brightness` 3-6 | flat single-colour shapes or pale yellow balls |
+| 2 | The mass is layers, back to front: tinted smoke, banded fire lumps, tongues, thin hot crack lines, chips, embers, small black smoke bits | one layer of fire sprites reads as a cotton ball |
+| 3 | Every piece lives 0.05-0.3 s and is replaced for as long as the effect burns | a sprite that stays for many frames reads as a slow, soft puff |
+| 4 | No sprite is a picture of a whole thing. A flame is 5-8 tongue pieces alive at once; a dying fire shrinks and then stops | one sprite seen alone is a pasted image; fading by darkening leaves a flat dark cut-out |
+| 5 | Judge on a dark stage that is not black; keep the mass low and wide; let the floor cut it straight | additive colour washes out on a bright floor; black smoke and the scorch vanish on a black one |
+| 6 | Capture your build at the reference's beat times and read the two side by side every round | two builds made from text notes alone came out as a different look |
+
+**Colour bands from one sprite (measured).** `ParticleEmitter.Brightness` and `Beam.Brightness` scale the emitted colour before it is clipped per channel: shown = clip(tint x texture luminance x Brightness). With tint (1, 0.22, 0.03) and `Brightness` 4:
+
+| Texture luminance | Shown |
+|---|---|
+| 1.0 | (1, 0.88, 0.12) yellow |
+| 0.5 | (1, 0.44, 0.06) orange |
+| 0.25 | (1, 0.22, 0.03) red-orange |
+| 0.1 | (0.4, 0.09, 0.01) dark red |
+
+- The texture decides where the bands sit; `Brightness` slides them. Animating it from 6 down to 2 took the same sprites from yellow-white to red.
+- A sheet whose luminance is nearly even inside (0.6-1) turned into one flat yellow shape with a thin red rim at `Brightness` 4. The range has to be in the texture: about 0.08 at the cool rim, 1 only in the hottest patches.
+- Tint for a hue h: `Color3.fromHSV(h - 0.037, 0.97, 1)`. Orange fire used h = 0.07; h = 0.75 gave violet with a pink inside (flatter: its second channel never rises).
+- `LightEmission` 0.7-1 for fire, 0.3 for the tinted smoke behind it. Keep the tint's weakest channel near 0, or a stack of sprites goes white. Fully additive ribbons over a bright sky washed to white; 0.55 kept their colour.
+- Two sprites in step (a body sheet and a core sheet) and a per-sprite colour sequence were both tried first and gave pale lumps.
+
+**Layers** (R = effect radius, 8 studs in the build; rates are particles per second at the peak):
+
+| Layer | Texture | Numbers |
+|---|---|---|
+| Swirl, 0.01-0.17 s | streaks on a swirl mesh (below) | 3 clones, each alive 0.12-0.15 s, 8-12 rad/s, tilted up to 20 degrees, growing 0.7 to 1.35 of its size |
+| Flash, 0.12-0.27 s | one fan of 6 fat bent blades | a white fan over a tint fan at `Brightness` 6, on a soft glow; 0.7 R to 1.6 R tall |
+| Fire lumps, 0.19-0.66 s | 4x4 flipbook from a fluid simulation | two box volumes (a low wide slab and a smaller crest): 60-90 per s, life 0.14-0.26 s, size 3.4 to 6 studs, `Brightness` 6 to 2 over 0.6 s |
+| Tongues | 16 different single tongues, one random cell each | 46 per s, life 0.1-0.18 s, upright within 28 degrees |
+| Red smoke | simulated smoke, tinted | 50-60 per s, life 0.22-0.4 s, transparency 0.45, `LightEmission` 0.3 |
+| Crack lines, 0.3-1.0 s | 4 webs of thin broken lines | 50-60 per s, life 0.05-0.1 s, speed 0, inside the middle of the mass |
+| Chips, 0.48-1.2 s | 4 scatters of small chips | 60-70 per s, life 0.06-0.13 s |
+| Black smoke bits | simulated smoke, near black | 26 per s, life 0.28-0.5 s, size 1.1 to 2.1 studs, low round the foot |
+| Embers | soft dot | size 0.2 down to 0.04 studs, tint to red, never white |
+| Ejecta | soft trail | 4 arcs, one curved beam each: flight 0.48-0.58 s, apex 0.9-1.35 R, trail 0.28 s long, `Brightness` 2.2 |
+| Small fires | the tongue sheet | 55 tongues per s per spot, life 0.1-0.2 s; the tongue size follows the spot's strength and the spot stops below 30 percent |
+| Floor | scorch, forked radial cracks | crack `Brightness` 3.2 to 0.6 as it cools |
+
+The mass is about 1.9 R wide and 0.8 R tall. A first version heaped 7-stud lumps into a ball as tall as it was wide and read as a balloon.
+
+**Textures.**
+
+- White on alpha, greyscale: luminance carries heat, alpha carries the shape.
+- Fire and smoke flipbooks from a small 2D fluid simulation (stable fluids with vorticity confinement, 256 px cells): the lump rolls, splits into lobes and tears. Drawn or noise-built puffs kept one outline that only swelled.
+- Start recording two frames into the simulation: the first frames are smooth round blobs and read as bubbles in the engine.
+- Late frames lose area from their cool parts; they do not fade as a whole.
+- A crisper alpha edge than a soft sheet (smoothstep 0.07 to 0.36 on density).
+- Piece sheets hold different pieces, not an animation: `FlipbookMode` Loop, `FlipbookStartRandom` true, `FlipbookFramerate` 0 gave each particle one random cell.
+- A preview that draws clip(tint x luminance x Brightness) over the stage colour shows a sheet's bands before any upload.
+
+**A swirl as a mesh (measured).** The swirl is a band modelled in Blender that winds 290 degrees round the centre, flares and rises, with UV U across the band and V along the flow, uploaded as a Model and textured through a `SurfaceAppearance`.
+
+| Question | Result |
+|---|---|
+| `MeshPart.TextureID` with an alpha texture | the alpha shows; `MeshPart.Color` does not tint it; `Neon` adds no glow |
+| `SurfaceAppearance`, `AlphaMode` Transparency, part `Transparency` 0.02 | the alpha shows and `SurfaceAppearance.Color` tints |
+| Glow | a textured mesh is drawn with the scene's light and looks dull; an emissive mask with `EmissiveStrength` makes it glow and bloom, and strength 8-12 pushed red toward orange-yellow, the same banding as `Brightness` |
+| What the emissive mask reads | the colour channels, not alpha: with a white-RGB texture the whole surface glowed and the streaks merged into a solid bowl. The mesh texture carries the pattern in RGB too |
+| Dark texels | a streak whose colour map was near black drew as a black band; luminance stays at 0.5 or more and the tail leaves through alpha |
+| What a LocalScript may write | `Color`, `EmissiveStrength`, `EmissiveTint`, `AlphaMode`, part `Size`, `DoubleSided`, `TextureID`, and `AssetService:CreateMeshPartAsync` ran. `ColorMap` and `EmissiveMaskContent` failed with "lacking capability Plugin" |
+| So | the maps go into a template in the place (set in Studio Edit mode) and the effect clones it and drives colour, strength, size and transparency |
+| Pivot | the part's CFrame is its bounding-box centre; the swirl's axis is the template's `PivotOffset`. When scaling by `Size`, shift the part by minus `PivotOffset.Position` times the scale |
+
+Not tested: `Texture` or `Decal` instances on a mesh, UV scrolling on a mesh.
+
+**Measured on the way** (Studio 0.748 Play):
+
+| Fact | Consequence |
+|---|---|
+| `ParticleEmitter:Emit()` put its particles where the attachment was when the frame was drawn: several emits in one frame from one moving attachment all landed at its last position (a burst of lumps became one white ball) | emit from a Part volume, or one attachment per emitter and one emit per frame |
+| A beam that was just switched on drew flat and untextured in one capture frame | keep it fully transparent for its first 0.025 s |
+| The stage floor's Part colour (107, 115, 120) drew as about (38, 44, 62) under the dim stage light | set the floor from a screenshot, not from the colour picker |
+| A paused-clock capture shows each beat exactly, but pieces looked longer-lived than in play | add a real-time burst of screenshots before judging lifetimes, and check that no piece is ever seen alone |
+
+**Counts** (one cast): 19 beams, 21 emitters, 18 helper parts, 3 mesh parts, 1 light; with `reducedMotion` 17, 17, 14, 2, 1; nothing left in Workspace after the end. A second hue and a 5-stud radius ran.
+
+**Known limits.** No sound. The swirl needs its own mesh upload and a template in the place. The violet variant is flatter than the orange one. The reference's first frame (a crown of blades and a ring wall) is only hinted. No phone preset and no frame cost were measured: the fire peak holds about 20 live sprites of 3-6 studs, which is fill rate (section 3, first bullet).
+
 ## 4. Lighting and atmosphere (docs)
 
 - Choosing a mood or an effect style: show the same spot in each option as an image (and a short clip only for motion) before building it (`roblox-game-pipeline` section 10a: greybox screenshots first, or images from a generator the user has connected).
@@ -439,6 +530,7 @@ Take timing, order and layer structure. Make the shapes, colours and textures yo
 | Action animations at `Action` priority or higher; tracks cached, not reloaded per use; NPC animations play from the server | yes |
 | Screen shake has an off switch, combines by max, and only the object the camera follows (normally the player character) or the player's own actions move the camera | yes |
 | Full-screen flashes and edge pulses start at most twice a second; Reduce Motion and the game's own switches are honoured (section 3b); a cutscene counts its flashes in code, at most 3 in any second (section 3e) | yes |
+| Effects are built from small short-lived pieces: no sprite shows a whole flame or explosion, pieces live about 0.05-0.3 s, and a real-time capture shows no piece alone (section 3g) | yes |
 | The same 30 s played with all effects off, then on: every channel is missed when off | yes |
 | Test on a low-end phone profile: FPS stable during the busiest effect moment | yes |
 | Mute and volume settings exist; music loops without gaps | yes |
