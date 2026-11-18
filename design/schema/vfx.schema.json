@@ -2085,7 +2085,9 @@
             "void_pillar",
             "clip_built_measured",
             "piece_fire",
-            "piece_fire_measured"
+            "piece_fire_measured",
+            "eroding_smoke",
+            "floor_crater"
           ],
           "properties": {
             "evidence": {
@@ -7501,6 +7503,710 @@
                       "properties": {
                         "v": {
                           "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "eroding_smoke": {
+              "type": "object",
+              "required": [
+                "evidence",
+                "served_files",
+                "method",
+                "frame_recipe",
+                "one_particle_per_attachment",
+                "puff",
+                "plume",
+                "haze",
+                "stops_within_s",
+                "longer_life_than_pieces",
+                "failed_first",
+                "paused_clock_flipbook"
+              ],
+              "properties": {
+                "evidence": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "served_files": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "method": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "frame_recipe": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "silhouette",
+                            "survival_mask",
+                            "alpha",
+                            "cell_edge"
+                          ],
+                          "properties": {
+                            "silhouette": {
+                              "type": "string"
+                            },
+                            "survival_mask": {
+                              "type": "string"
+                            },
+                            "alpha": {
+                              "type": "string"
+                            },
+                            "cell_edge": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "one_particle_per_attachment": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "puff": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "count",
+                            "life_s",
+                            "size_studs",
+                            "speed",
+                            "drag",
+                            "transparency",
+                            "tint_grey"
+                          ],
+                          "properties": {
+                            "count": {
+                              "type": "number"
+                            },
+                            "life_s": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "size_studs": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "speed": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "drag": {
+                              "type": "number"
+                            },
+                            "transparency": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "tint_grey": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "plume": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "count",
+                            "life_s",
+                            "size_studs",
+                            "speed",
+                            "drag",
+                            "transparency"
+                          ],
+                          "properties": {
+                            "count": {
+                              "type": "number"
+                            },
+                            "life_s": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "size_studs": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "speed": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "drag": {
+                              "type": "number"
+                            },
+                            "transparency": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "haze": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "count",
+                            "life_s",
+                            "size_studs",
+                            "speed",
+                            "drag",
+                            "transparency"
+                          ],
+                          "properties": {
+                            "count": {
+                              "type": "number"
+                            },
+                            "life_s": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "size_studs": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "speed": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "drag": {
+                              "type": "number"
+                            },
+                            "transparency": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "stops_within_s": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "longer_life_than_pieces": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "failed_first": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "paused_clock_flipbook": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "floor_crater": {
+              "type": "object",
+              "required": [
+                "method",
+                "kit",
+                "zones_kit_radius",
+                "timing_s",
+                "underlay_rgb",
+                "texture_on_meshpart",
+                "part_top_texture_origin",
+                "carry_floor_texture",
+                "corner_colours_arrive",
+                "failed_first",
+                "live_counts"
+              ],
+              "properties": {
+                "method": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "kit": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "slabs",
+                            "triangles",
+                            "gap_studs_at_radius_8",
+                            "thickness_kit_radius",
+                            "wall_corner_colour"
+                          ],
+                          "properties": {
+                            "slabs": {
+                              "type": "number"
+                            },
+                            "triangles": {
+                              "type": "number"
+                            },
+                            "gap_studs_at_radius_8": {
+                              "type": "array",
+                              "items": {
+                                "type": "number",
+                                "minimum": 0
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "thickness_kit_radius": {
+                              "type": "number"
+                            },
+                            "wall_corner_colour": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "zones_kit_radius": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "bowl_under",
+                            "rim_to",
+                            "bowl_tilt_deg",
+                            "rim_tilt_deg",
+                            "outer_loose_share",
+                            "outer_loose_tilt_deg"
+                          ],
+                          "properties": {
+                            "bowl_under": {
+                              "type": "number"
+                            },
+                            "rim_to": {
+                              "type": "number"
+                            },
+                            "bowl_tilt_deg": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "rim_tilt_deg": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "outer_loose_share": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            },
+                            "outer_loose_tilt_deg": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "timing_s": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "rise",
+                            "overshoot",
+                            "settle",
+                            "ripple_per_kit_radius",
+                            "hold",
+                            "flatten",
+                            "cracks_fade"
+                          ],
+                          "properties": {
+                            "rise": {
+                              "type": "number"
+                            },
+                            "overshoot": {
+                              "type": "number"
+                            },
+                            "settle": {
+                              "type": "number"
+                            },
+                            "ripple_per_kit_radius": {
+                              "type": "number"
+                            },
+                            "hold": {
+                              "type": "number"
+                            },
+                            "flatten": {
+                              "type": "number"
+                            },
+                            "cracks_fade": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "underlay_rgb": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "$ref": "#/$defs/rgb"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "texture_on_meshpart": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "part_top_texture_origin": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "carry_floor_texture": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "corner_colours_arrive": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "failed_first": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "live_counts": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "slab_mesh_parts",
+                            "emitters",
+                            "particles",
+                            "beams",
+                            "color_correction"
+                          ],
+                          "properties": {
+                            "slab_mesh_parts": {
+                              "type": "number"
+                            },
+                            "emitters": {
+                              "type": "number"
+                            },
+                            "particles": {
+                              "type": "number"
+                            },
+                            "beams": {
+                              "type": "number"
+                            },
+                            "color_correction": {
+                              "type": "number"
+                            }
+                          }
                         }
                       }
                     }

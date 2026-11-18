@@ -42,7 +42,7 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 - The built-in `rbxasset://textures/particles/*` textures plus thin Trails read as a wireframe of lines on a dark sky next to concept art. A release-quality burst needs custom glow, star, streak and sparkle (flipbook) textures, dense emission along the shape, additive layers (`LightEmission` 1, `LightInfluence` 0) and a moderate `Bloom`. Dark semi-transparent layers over a night sky render brown and muddy; use fewer, brighter additive ones (field observations, 2026-11-04).
 - Generated glow and energy sprites for additive use: ask for the sprite on pure black, not on a transparent background. With `LightEmission` 1 the dark regions of a texture disappear (docs), so the black needs no keying, and the soft falloff stays. A transparent background comes back as a cut-out: in one test image about 69% of the pixels were fully clear, the body almost opaque and the halo under alpha 32 of 255, so the glow lost its falloff (relayed by RoDesigner, 2026-11-14). Ask for transparency only for solid sprites with normal blend.
 - House rule (owner): VFX are Blender meshes (`roblox-blender-export`) plus gradient or flipbook textures. No block tiles and no default sparkles (the `Sparkles` object or the built-in particle textures) in a release: built-in `rbxasset://` textures are prototype only, labelled as greybox, and public docs ids are a test stage (stages and ids: section 3d). The owner also approved an effect form of beams and particles with no mesh (section 3d; approved 2026-11-17). A glowing Blender mesh without a `SurfaceAppearance` (field note, 2026-11-09): model the emissive shapes as their own geometry in flat `Neon` colors (Neon on a textured MeshPart does not glow, `roblox-pitfalls` section 4), layer a dark non-Neon shade mesh for the dark parts, and put textures only on lit surfaces. When a brief forbids uploads, a portal vortex that worked without them (field note, 2026-11-09) used flat curved Beams as spiral arms around a centre: `CurveSize0` and `CurveSize1` bend a beam into a Bezier curve (docs), `FaceCamera` is false, and the built-in glow texture is stretched along each arm (section 4, "Night glow without lights"; a prototype by the stages above).
-- House rule (owner, 2026-11-18): build every effect from small units, in size and in lifetime, even when that takes longer or is harder. No sprite is a picture of a whole thing (a whole flame, a whole explosion); each piece lives about 0.05-0.3 s and is replaced for as long as the effect lasts; a fire that dies shrinks, it does not thin out to one piece. Avoid a large mass of one colour wherever possible (owner, same day): a big shape needs bands, texture or pieces inside it, and a layer whose texture is missing is left out, not drawn as a flat shape. Judge an effect running at real speed as well as on frozen frames. Method, numbers and the measurements behind them: section 3g.
+- House rule (owner, 2026-11-18): build every effect from small units, in size and in lifetime, even when that takes longer or is harder. No sprite is a picture of a whole thing (a whole flame, a whole explosion); each piece lives about 0.05-0.3 s and is replaced for as long as the effect lasts; a fire that dies shrinks, it does not thin out to one piece. Avoid a large mass of one colour wherever possible (owner, same day): a big shape needs bands, texture or pieces inside it, and a layer whose texture is missing is left out, not drawn as a flat shape. Judge an effect running at real speed as well as on frozen frames. Method, numbers and the measurements behind them: section 3g. Smoke that has to keep its place and dissolve is a flipbook whose frames carry the erosion, and a floor breaks without a hole from a kit of slabs: section 3h.
 - Beams, trails, lights, highlights: use sparingly; each light source and highlight has a cost.
 - **A `Highlight` skips transparent parts.** It drew no outline and no fill on parts with any `Transparency` above 0: hologram parts at 0.06 lost the whole rim and tint (toggled live in Studio, field note 2026-11-11). The docs do not say so; a Roblox staff reply says highlights on transparent parts have not worked for years, and posters there report that parts inside a model with a Humanoid still get them (DevForum t/4678843, 2026-08-20). Keep highlighted parts at `Transparency` 0 and make a hologram from a dark `Neon` colour plus the Highlight fill. Check a Highlight against a plain background before trusting a capture: a bright portal behind the model passed for a rim.
 - **Curved Beams.** A Beam is a cubic Bezier: P1 sits `CurveSize0` studs along +X of `Attachment0`, P2 sits `CurveSize1` studs along -X of `Attachment1` (docs, effects/beams). For a circle of radius R from four quarter-arc beams, point each attachment's X axis along the direction of travel and set both sizes to +0.5523 R, the usual Bezier quarter-circle constant (4/3 x (sqrt 2 - 1)); a negative `CurveSize1` drew a hook at each joint (field note, 2026-11-11).
@@ -494,7 +494,7 @@ The mass is about 1.9 R wide and 0.8 R tall. A first version heaped 7-stud lumps
 | So | the maps go into a template in the place (set in Studio Edit mode) and the effect clones it and drives colour, strength, size and transparency |
 | Pivot | the part's CFrame is its bounding-box centre; the swirl's axis is the template's `PivotOffset`. When scaling by `Size`, shift the part by minus `PivotOffset.Position` times the scale |
 
-Not tested: `Texture` or `Decal` instances on a mesh, UV scrolling on a mesh.
+A `Texture` instance on a mesh: section 3h. Not tested: `Decal` instances on a mesh, UV scrolling on a mesh.
 
 **Measured on the way** (Studio 0.748 Play):
 
@@ -508,6 +508,66 @@ Not tested: `Texture` or `Decal` instances on a mesh, UV scrolling on a mesh.
 **Counts** (one cast): 19 beams, 21 emitters, 18 helper parts, 3 mesh parts, 1 light; with `reducedMotion` 17, 17, 14, 2, 1; nothing left in Workspace after the end. Live at once at the 16 beats of the served code: at most 15 beams and 21 emitters. A second hue, a 5-stud radius, and a cast without the mesh template ran.
 
 **Known limits.** No sound. The swirl needs its own mesh upload and a template in the place. The violet variant is flatter than the orange one. The reference's first frame (a crown of blades and a ring wall) is only hinted. No phone preset and no frame cost were measured: the fire peak holds about 20 live sprites of 3-6 studs, which is fill rate (section 3, first bullet).
+
+## 3h. A floor that breaks and smoke that erodes (ground slam)
+
+Two things a ParticleEmitter and a Part cannot do by themselves: a smoke puff that keeps its place and is eaten away from inside, and a floor that breaks into slabs with no hole cut in it. This section is the method that gave both on one effect, a ground slam in white, grey and black (2.25 s).
+
+Evidence: built in Studio 0.748 Play on 2026-11-18 next to a reference clip of a similar move, read frame by frame (timing, layer order and staging come from the clip; every texture and the slab kit were made for this build). Judged on real-time window captures: a paused clock does not show long-lived flipbook particles correctly. The owner watched it running in Studio and judged it good; the impact frame, spikes, shake and a reworked plume sheet were added after that. The code was then ported to `scripts/` and captured again the same day: no Output errors, nothing left in Workspace or Lighting after the end, the camera back in place. Numbers are chosen by eye. No real phone, no phone preset, no published game, no frame-cost measurement, flat floors only. Whether the clip's creator built it this way is not known: this is a method that reproduces the behaviour.
+
+Files: `scripts/ground_slam.luau` on `scripts/fx_clock.luau` and `scripts/fx_textures.luau`; `scripts/ground_slam_textures.py` (the 5 smoke flipbooks; numpy, scipy, Pillow), `scripts/ground_slam_crater_kit.py` (the slab kit, Blender headless), `scripts/fx_own_textures.luau` (the ids table to fill); sheets in `assets/vfx-examples/`. `GroundSlam.play(cframe, { radius, timeScale, seed, ignore, layers, reducedMotion })` returns the clock; call `GroundSlam.preload()` once first. Client only; others' casts follow section 3b, Cost.
+
+Setup, once per game (uploads are permanent: ask the user first):
+
+1. Run `ground_slam_textures.py <outDir> --preview` and look at `preview.jpg`: whole clouds first, holes in the middle frames, thin curls last. Upload the five PNG files as Images to the account or group that owns the game and write the ids into `fx_own_textures`.
+2. Run `ground_slam_crater_kit.py` in Blender, upload the FBX as a Model and build the template its header describes (a Model named CraterKit in a folder FxMeshTemplates in ReplicatedStorage).
+3. No id and no mesh ships with this skill, and there is no stand-in: `play` raises an error that names what is missing, unless that layer is switched off (`layers = { smoke = false, haze = false }` or `{ crater = false }`).
+
+**Smoke that erodes.**
+
+| Part | How |
+|---|---|
+| Why a flipbook | `Transparency` fades a whole sprite; nothing on a ParticleEmitter opens holes in it. The dissolve is drawn into 16 frames played once over the particle's life (`FlipbookLayout` Grid4x4, `FlipbookMode` OneShot, `FlipbookBlendFrames` true) |
+| Silhouette | a smooth union of 10-14 round lobes (p-norm of radial falloffs): one cloud outline with no inner outlines |
+| Shading | the union's height lit from the upper left, darker low down and at the edge being eaten; greyscale, tinted by the emitter |
+| Erosion | survival = a ridged smooth noise (high along closed curves), rank-normalised inside the silhouette; alpha = step(threshold, survival) and the threshold sweeps 0 to 1 from frame 3 to the last. The ridges last longest, so the puff ends as curls and rings |
+| Cell edge | alpha fades to 0 before the cell border; a sheet that reached it drew hard rectangle edges |
+| Emission | each puff is ONE particle on its own attachment, placed round a ring; `Speed` 9-30 with `Drag` 3.4-5.5 stops it within about 0.2 s, and from then on only the flipbook changes it |
+| Layers | 9 dark puffs (size 4-7 studs, life 0.8-1.05 s), 4 plume particles straight up (7-12.5 studs, a taller sheet that thins from the top), 12 pale haze particles (7-14 studs, transparency 0.5-0.9, life 0.55-0.9 s) |
+| Tint | mid greys (100-180) at `Transparency` 0.2-0.5, `LightEmission` 0, `LightInfluence` 0 |
+
+These particles live 0.55-1.05 s, longer than the 0.05-0.3 s of section 3g. What changes every 0.05-0.07 s here is the flipbook frame, and the sheets are five different clouds (our reading of why it still passed, not an owner ruling); use it for smoke that has to keep its place, not for fire.
+
+Failed first: lobes with thin outlines and hand-placed round holes read as soap bubbles; one emitter with a Disc shape put all 5-10 particles on one side in a cast; near-black tints stacked into one black mass; a plume built from three or four big lobes opened as plain balls until small lobes were added on their rims.
+
+**A floor that breaks without a hole.**
+
+| Part | How |
+|---|---|
+| Kit | one upload: a disc pre-broken into 76 convex slabs (Voronoi cells, small in the middle, larger outward, uneven sizes), each a MeshPart with its pivot on its top centroid; unit radius 1, scaled per cast |
+| On the floor | slabs are cloned 0.03 studs above the floor with its `Color` and `Material` from a raycast: a flat slab cannot be told from the floor. A dark disc (36, 41, 56) under the tops shows through the gaps as crack lines |
+| Zones | by distance from the centre in kit radii: under 0.34 a bowl (faces lean to the centre 10-26 degrees); to 0.95 a rim (inner edge up 10-24 degrees, less further out); beyond it flat, with about a third of the slabs tipping 3-7 degrees |
+| Resting | a tilted slab is lifted by the drop of its low edge, so it rests on the floor instead of sinking into it; slabs that dipped under a black underlay left large black wedges |
+| Walls | corner colours in the mesh (tops white, walls 0.5 down to 0.2) arrive with FBX `colors_type` SRGB and darken the walls without a second material |
+| Timing | up in the impact frame: overshoot 1.3 in 0.04 s, settled 0.2 s later, 0.04 s later per kit radius outward; hold 1.7 s; flatten over 0.3 s; the crack lines fade over 0.15 s |
+| Floor texture | if the floor Part has a `Texture` on its Top face, every slab gets a clone with its offsets set, and the pattern continues across the tops |
+
+**Measured on the way** (Studio 0.748):
+
+| Fact | Consequence |
+|---|---|
+| A `Texture` instance on a MeshPart is laid from the part's centre in studs: `StudsPerTileU/V` are honoured and the mesh UVs are not used; `OffsetStudsU/V` move its origin by that many studs along +X and +Z | per slab: offset = (floor half size - slab centre in the floor's space) mod `StudsPerTile` |
+| A Part's Top-face `Texture` grid starts at the part's +X +Z corner | the same formula lines the slab up with the floor |
+| Both checked with a symmetric 8-stud checker on an unrotated floor | a rotated floor or a texture that is not symmetric is not checked |
+| Kit v1 had even cells and 0.25-0.5 stud gaps | it read as a football pattern with thick lines; v2 has uneven cells and 0.08-0.22 stud gaps |
+| The first cast showed the dark disc for several frames before the slabs | `preload()` passes the kit to `ContentProvider:PreloadAsync` |
+| A paused-clock capture showed 1 s flipbook particles about 60 percent through at clock age 1.35 s | judge flipbook smoke on real-time screenshots, or on a cast at `timeScale` 0.2 |
+
+**Other layers** (each can be switched off through `layers`): a pillar flash (a thin white beam up for 0.1 s, a thinner one 0.1 s later), 7 tapered white spike beams for 0.09 s, a white line across the floor for 0.07 s, 5 wind arcs (curved beams whose ends ride a circle, 0.3-0.55 s each), an impact frame (a `ColorCorrectionEffect` at saturation -1 and contrast 0.85 for 0.05 s, back over 0.06 s) and a camera shake (0.2 s, at most 0.3 studs and 0.5 degrees, falling off). The impact frame is a full-screen flash and the shake moves the camera: `reducedMotion = true` skips both, and section 3b's rules apply (at most two flashes a second; only the player's own cast moves the camera).
+
+**Counts** (one cast): 76 slab MeshParts for 2.25 s, moved with `PivotTo` every frame for about 0.3 s at the start and 0.3 s at the end; 22 emitters with 25 particles in total; 15 beams; 1 `ColorCorrectionEffect`.
+
+**Known limits.** No sound. Flat floors only: the kit lies level at the raycast height, so slopes, steps and props inside the radius are not handled. The reference's white dome is not built. The slabs are thinner and the middle is shallower than in the reference. Building the slabs at run time as one EditableMesh was not tried (it needs the experience's mesh API setting). Frame cost on a phone is not measured: 76 moving MeshParts and 25 sprites of 4-14 studs.
 
 ## 4. Lighting and atmosphere (docs)
 
