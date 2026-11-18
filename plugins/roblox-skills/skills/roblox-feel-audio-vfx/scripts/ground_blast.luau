@@ -10,8 +10,8 @@
 --
 -- Textures: run ground_blast_textures.py, upload the PNG files as Images to your own account or group and put
 -- the ids into a ModuleScript named fx_own_textures next to this one (template: fx_own_textures.luau), or call
--- GroundBlast.setTextures({ hot_fire_a = 123, ... }) before the first cast. Without ids the effect runs on public
--- stand-in textures and looks rough: GroundBlast.usesOwnTextures tells which.
+-- GroundBlast.setTextures({ hot_fire_a = 123, ... }) before the first cast. Without every id play() and preload()
+-- raise an error that lists the missing names (GroundBlast.usesOwnTextures, GroundBlast.missingTextures).
 -- Swirl mesh (optional): a MeshPart named Swirl in a folder FxMeshTemplates in ReplicatedStorage, with a
 -- SurfaceAppearance (AlphaMode Transparency) whose ColorMap and EmissiveMask are the swirl_streaks texture; set the
 -- maps in Studio Edit mode, a game script cannot write them. Without it streak sheets (beams) draw the swirl.
@@ -52,41 +52,39 @@ local UP = Vector3.yAxis
 local smooth, keys = FxClock.smooth, Kit.keys
 local ns, cs = FxClock.ns, FxClock.cs
 
--- Own textures: slot "own_<name>", with a public stand-in while the id is missing.
+-- Own textures: slot "own_<name>". There is no stand-in: a public texture stretched over these layers gave
+-- large one-colour shapes that read as pasted images, so play() refuses to run until every id is set.
 local OWN = {
-	hot_fire_a = { flipbook = "Grid4x4", standIn = "smoke" },
-	hot_fire_b = { flipbook = "Grid4x4", standIn = "smoke" },
-	lick = { flipbook = "Grid4x4", standIn = "flare" },
-	crackle = { flipbook = "Grid2x2", standIn = "electric" },
-	flecks = { flipbook = "Grid2x2", standIn = "streak" },
-	sim_smoke = { flipbook = "Grid4x4", standIn = "smoke" },
-	streaks = { standIn = "streak" },
-	blades = { standIn = "flare" },
-	cracks = { standIn = "glow" },
-	trail = { standIn = "streak" },
-	swirl_disc = { standIn = "flare" },
-	scorch = { standIn = "glow" },
-	shock_ring = { standIn = "flare" },
-	spark = { standIn = "streak" },
+	hot_fire_a = "Grid4x4", hot_fire_b = "Grid4x4", lick = "Grid4x4", crackle = "Grid2x2", flecks = "Grid2x2",
+	sim_smoke = "Grid4x4", streaks = false, blades = false, cracks = false, trail = false, swirl_disc = false,
+	scorch = false, shock_ring = false, spark = false,
 }
 GroundBlast.usesOwnTextures = false
+GroundBlast.missingTextures = {} :: { string }
 -- ids: { name = asset id number }, the names of the files ground_blast_textures.py writes (swirl_streaks is for the
--- mesh template, not for this table). A name that is missing keeps its stand-in.
+-- mesh template, not for this table).
 function GroundBlast.setTextures(ids: { [string]: number })
-	local all = true
-	for name, def in OWN do
+	local missing = {}
+	for name, flipbook in OWN do
 		local id = ids[name]
 		if id and id ~= 0 then
-			FxTextures.slots["own_" .. name] = { { id = "rbxassetid://" .. tostring(id), note = "own art: " .. name, flipbook = def.flipbook } }
+			FxTextures.slots["own_" .. name] = { { id = "rbxassetid://" .. tostring(id), note = "own art: " .. name, flipbook = flipbook or nil } }
 		else
-			FxTextures.slots["own_" .. name] = FxTextures.slots[def.standIn]
-			all = false
+			FxTextures.slots["own_" .. name] = nil
+			table.insert(missing, name)
 		end
 	end
-	GroundBlast.usesOwnTextures = all
+	table.sort(missing)
+	GroundBlast.missingTextures = missing
+	GroundBlast.usesOwnTextures = #missing == 0
 end
 local ownModule = script.Parent:FindFirstChild("fx_own_textures")
 GroundBlast.setTextures(if ownModule then require(ownModule) else {})
+local function needTextures()
+	if not GroundBlast.usesOwnTextures then
+		error("ground_blast needs its own textures: run ground_blast_textures.py, upload the files and fill fx_own_textures (missing: " .. table.concat(GroundBlast.missingTextures, ", ") .. ")", 3)
+	end
+end
 
 -- Fire palette from one hue: the hot colours lean one way round the wheel, the deep ones the other
 -- (orange: yellow inside, red rim; violet: pink inside, blue-violet rim).
@@ -112,6 +110,7 @@ end
 
 -- Call once before the first cast (it yields): a texture that is not in memory yet draws as a flat square.
 function GroundBlast.preload()
+	needTextures()
 	local list = {}
 	for name in OWN do
 		for _, cand in FxTextures.slots["own_" .. name] do
@@ -122,6 +121,7 @@ function GroundBlast.preload()
 end
 
 function GroundBlast.play(cf: CFrame, opts)
+	needTextures()
 	opts = opts or {}
 	local R: number = opts.radius or 8
 	local speed: number = opts.timeScale or 1
