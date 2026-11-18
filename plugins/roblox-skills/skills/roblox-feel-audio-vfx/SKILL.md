@@ -416,7 +416,15 @@ Take timing, order and layer structure. Make the shapes, colours and textures yo
 
 House rule (owner, 2026-11-18): every effect is built from small units, in size and in lifetime, even when that takes longer or is harder. This section is the method that reached that bar on one effect, an area explosion on the floor that leaves cracks and small fires (4.1 s).
 
-Evidence: built in Studio 0.748 Play on 2026-11-18. Three earlier builds were rejected by the owner (stretched soft circles; flat drawn shapes; pale lumps with one whole-flame sprite standing alone). The fourth was rebuilt over 8 capture rounds, each read next to a reference clip of a similar effect at the same 16 beat times, then checked in real-time captures; the owner judged it good on its captures. Timing, layer order and staging come from the clip; every texture, mesh and shape was made for this build. Numbers are chosen by eye, not measured optima. No real phone, no published game, no frame-cost measurement. The effect's script and its texture generators are not in `scripts/` yet.
+Evidence: built in Studio 0.748 Play on 2026-11-18. Three earlier builds were rejected by the owner (stretched soft circles; flat drawn shapes; pale lumps with one whole-flame sprite standing alone). The fourth was rebuilt over 8 capture rounds, each read next to a reference clip of a similar effect at the same 16 beat times, then checked in real-time captures; the owner judged it good on its captures. Timing, layer order and staging come from the clip; every texture, mesh and shape was made for this build. Numbers are chosen by eye, not measured optima. No real phone, no published game, no frame-cost measurement. The effect was then ported to `scripts/` with the module and texture names changed and captured again the same day: the 16 beats match the demo's, no Output errors or warnings, nothing left in Workspace after the end.
+
+Files: `scripts/ground_blast.luau` on `scripts/fx_clock.luau`, `scripts/fx_textures.luau` and `scripts/fx_kit.luau`; `scripts/ground_blast_textures.py` (the 15 textures; numpy, scipy, Pillow), `scripts/fx_own_textures.luau` (the ids table to fill), `scripts/ground_blast_swirl.py` (the swirl mesh, Blender headless); strips in `assets/vfx-examples/`. `GroundBlast.play(cframe, { hue, radius, timeScale, reducedMotion, seed })` returns the clock; call `GroundBlast.preload()` once first. Client only; others' casts follow section 3b, Cost.
+
+Setup, once per game:
+
+1. Run `ground_blast_textures.py <outDir> --preview` and look at `preview.jpg`: yellow only in the hottest parts, red at the rims.
+2. Upload the PNG files as Images to the account or group that owns the game (asset uploads are permanent: ask the user first) and write the ids into `fx_own_textures`. No texture id ships with this skill: without ids the effect runs on public stand-in textures and looks rough (`ground_blast_variants.jpg`, bottom row).
+3. Optional, the swirl as a mesh: run `ground_blast_swirl.py`, upload the FBX as a Model, and build the template its header describes (a MeshPart named Swirl in a folder FxMeshTemplates in ReplicatedStorage, with a SurfaceAppearance whose two maps are the `swirl_streaks` texture). Without the template streak beams draw the swirl.
 
 **Six rules.**
 
@@ -497,7 +505,7 @@ Not tested: `Texture` or `Decal` instances on a mesh, UV scrolling on a mesh.
 | The stage floor's Part colour (107, 115, 120) drew as about (38, 44, 62) under the dim stage light | set the floor from a screenshot, not from the colour picker |
 | A paused-clock capture shows each beat exactly, but pieces looked longer-lived than in play | add a real-time burst of screenshots before judging lifetimes, and check that no piece is ever seen alone |
 
-**Counts** (one cast): 19 beams, 21 emitters, 18 helper parts, 3 mesh parts, 1 light; with `reducedMotion` 17, 17, 14, 2, 1; nothing left in Workspace after the end. A second hue and a 5-stud radius ran.
+**Counts** (one cast): 19 beams, 21 emitters, 18 helper parts, 3 mesh parts, 1 light; with `reducedMotion` 17, 17, 14, 2, 1; nothing left in Workspace after the end. Live at once at the 16 beats of the served code: at most 15 beams and 21 emitters. A second hue, a 5-stud radius, a cast without texture ids and a cast without the mesh template ran.
 
 **Known limits.** No sound. The swirl needs its own mesh upload and a template in the place. The violet variant is flatter than the orange one. The reference's first frame (a crown of blades and a ring wall) is only hinted. No phone preset and no frame cost were measured: the fire peak holds about 20 live sprites of 3-6 studs, which is fill rate (section 3, first bullet).
 

@@ -6846,6 +6846,9 @@
             "piece_fire": {
               "type": "object",
               "required": [
+                "evidence",
+                "served_files",
+                "peak_live_at_beats",
                 "tint_hsv_offset",
                 "texture_luminance_range",
                 "fire_brightness_over_time",
@@ -6860,6 +6863,67 @@
                 "live_counts"
               ],
               "properties": {
+                "evidence": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "served_files": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "peak_live_at_beats": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "beams",
+                            "emitters",
+                            "lights"
+                          ],
+                          "properties": {
+                            "beams": {
+                              "type": "number"
+                            },
+                            "emitters": {
+                              "type": "number"
+                            },
+                            "lights": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
                 "tint_hsv_offset": {
                   "allOf": [
                     {
