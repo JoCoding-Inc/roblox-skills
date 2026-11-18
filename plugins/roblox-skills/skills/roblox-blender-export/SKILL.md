@@ -48,6 +48,8 @@ Confirmed 2026-11-02 for FBX with the call below, headless Blender export then t
 
 Confirmed again 2026-11-09 for an Open Cloud FBX upload (assetType Model, same export call): mesh space is Blender (-x, z, y), the same mapping (field note, EditableMesh vertex readback). A separate test upload costs an asset, so fold the check into the real upload: include front/back-asymmetric pieces and read their vertices back before building on them.
 
+glTF does not follow that mapping: a glTF uploaded through Open Cloud as a Model came in turned 180 degrees about Y (mean x and z negated; field note, 2026-11-12). To re-upload existing geometry (for example an OBJ written from an `EditableMesh`, then converted to glTF), pre-turn the file 180 degrees about Y and compare the new mesh with the old one: vertex count, face count, bounding size, mean UV and mean position must match. When reading a big mesh out of Studio through `execute_luau`, return it in chunks of about 90 KB; one run's returned output was cut at 100 KB.
+
 Measuring it without eyeballing: read the vertices from the imported MeshPart (`AssetService:CreateEditableMeshAsync(Content.fromUri(part.MeshId))`, then `GetVertices` and `GetPosition`). Do not use raycasts for this: they hit the collision shape, and with the default `CollisionFidelity` that is a box or hull, not the visible mesh. In Studio MCP `execute_luau`, `datamodel_type` is `Edit` (capital E) and the result must be `return`ed, since `print` output is not shown.
 
 ## 1. Scale, pivot, structure

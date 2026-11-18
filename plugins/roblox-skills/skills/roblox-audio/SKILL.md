@@ -63,6 +63,7 @@ Rules (judgment):
 - Rare beats common: the rarer the moment, the longer and louder the cue. Common cues stay short and quiet so they do not tire the ear.
 - Never play two tier sounds at once, or a tier jingle over music that is not ducked (`roblox-fun-effects` section 4).
 - Silence is a valid value: write `false` in the map so nobody adds a sound there later by accident.
+- Give every one-shot cue a maximum length in the map and cut it there (a timed stop or `PlaybackRegion`), and stop every one-shot still sounding on restart or respawn. Catalog effects are often long files with several takes: in one game a scream, a sting and a shout played uncut ran up to 6 s and kept sounding after a restart. With caps of 1.5-2.6 s, four one-shots still sounded 1.2 s after a catch and none at 2.8 s (field note, 2026-11-16).
 
 ## 2. Mix and volumes (judgment)
 
@@ -189,7 +190,8 @@ In Studio (docs):
 - Set `Asset`, wait for `IsReady`, then read `TimeLength` (seconds): the real length.
 - `AudioPlayer:GetWaveformAsync(NumberRange.new(0, length), samples)` returns `samples` numbers from -1 to 1 without playing the asset. It yields, and returns an empty table if the waveform cannot be read. Peak dBFS = 20 * log10(max |value|).
 - `GetWaveformAsync` worked in Edit mode, without a playtest. Ask for about 2,000 samples per second of audio: a few dozen samples for a whole clip under-read the peak (field note, 2026-11-11).
-- `AudioAnalyzer.PeakLevel` and `RmsLevel` measure a live stream (`GetSpectrum` with `SpectrumEnabled`). On the server they are always 0, so read them on the client.
+- Measure a clip's tempo before wiring a cue to it: one note said a heartbeat loop ran at 96 BPM, and `GetWaveformAsync` at 50 samples a second showed beats at 0.10, 1.04, 2.00, 2.94 s and on, 64 a minute over the 60.06 s clip (field note, 2026-11-16).
+- `AudioAnalyzer.PeakLevel` and `RmsLevel` measure a live stream (`GetSpectrum` with `SpectrumEnabled`). On the server they are always 0, so read them on the client. To measure a positional rolloff, isolate one listener and an analyzer and move a steady clip away from it: one game measured shares of 1.00, 1.00, 0.70, 0.52, 0.15, 0.04 and 0 at 0.5, 5, 10, 25, 45, 60 and 70 studs for its emitter curve, then logged real step levels by distance in a chase to compare (field note, 2026-11-16).
 - A game still on `Sound` and `SoundGroup` cannot feed an `AudioAnalyzer`: a `Wire` connects only the audio objects (docs, Wire). Measure each asset by id with an `AudioPlayer` (the sketch below), then add its playback volume: change in dB = 20 * log10(`Sound.Volume` * `SoundGroup.Volume`) (judgment). Or move the game to the Audio API first (section 5).
 - `Sound.PlaybackLoudness` (0 to 1000, docs) is the only live meter on a `Sound`. It ignores `Sound.Volume`, lags behind playback and under-reads clips shorter than about 100 ms (field note, 2026-11-11), so use it to compare, not to measure.
 - Short SFX: integrated LUFS is meaningless (a short UI click measured -70 LUFS because of the 400 ms gate). Compare peak and the loudest 50 ms RMS instead; compare music by integrated LUFS (field note, 2026-11-09).

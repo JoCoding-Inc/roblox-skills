@@ -40,6 +40,8 @@ If the genre is a simulator or tycoon and the developer is unsure, recommend a 5
 
 Keep the first minute interactive: a long intro before the first action costs the early retention that the platform data points to (median session about 7 min).
 
+Measured in one game: a 48 s first-join intro was finished by everyone who watched it, yet 77 percent of first sessions on phones and 66 percent on computers skipped it, at 7-9 s; on tablets 19 percent skipped, at 13-20 s (field note, 2026-11-16). Log a cutscene-end event with how it ended (finished or skipped) and when, per device. What the first 7-9 s show is all most players see (judgment).
+
 ## 3. Three ways to make one
 
 | Method | Use when | Notes |
@@ -128,6 +130,8 @@ end
 
 Movement is locked inside `play` with the camera: the first cinematic saves and disables the controls, `restore` enables them once on every exit, death included. Never lock or save movement in the caller: a second cinematic would save the locked state and restore it. Do not restore hard-coded defaults.
 
+Lens fights: a camera or zoom module that writes `Camera.FieldOfView` every frame overrides the cinematic's lens. One game measured 70 on every frame of a shot that asked for 42, and its start screen had the same fault. Route the film's lens through that module (a setter it applies each frame, cleared with nil on every exit) or bind the film's step after it, and log `FieldOfView` per frame in the first Studio check before judging any framing (field note, 2026-11-17).
+
 ## 4. Shot list (write it before code)
 
 One line per shot in `docs/cinematics.md`:
@@ -138,14 +142,20 @@ Shot 01 | 3.0 s | marks Shot01_A -> Shot01_B | slow push-in | FOV 70 -> 55 | tex
 
 Keep 3-6 shots per cinematic. Name every mark. Include what the player's character does (frozen, hidden, or acting).
 
+Framing rules from built boss reveals and world tours:
+- **Keep the player's character out of shots by geometry, not luck.** Build the camera keys in a frame made at the film's start from the subject's ground point and the character (forward = the flat direction from the character to the ground). Put low cameras between the character and the boss, then turn the whole low run about the ground by the first angle of 0, +-25 ... +-125 degrees that keeps the character's box (about 4 x 4 studs and 9.5 tall with a weapon on the back) out of every low picture between the bars, on a 16:9 screen and an 800 x 360 phone, with 6 degrees of lens and 1 stud of box to spare for shake. When no turn works (the character stands close to the subject), hide the character's own parts on that client with `LocalTransparencyModifier` until the camera has passed it, and restore them on every exit. Test the rule as code with the box, not by eye: by eye, the character's back and weapon filled a third of the first low shot (field note, 2026-11-18).
+- **Fit key for a big subject:** give the landing and roar shots no aim or lens of their own and compute both from where the camera stands, so the whole body sits between the bars (feet at about -0.45 of the half-height, top at +0.85) with ground under it. For a 27-stud boss that gave FOV 67 from 38 studs and 75 from 32; hand-framed shots had cut the boss at the waist and showed no ground. Keep every camera 1 stud short of walls (a ray from 6 studs up) and at least 15 studs from the subject's centre (field note, 2026-11-18).
+- **A fly-through flies low:** 8-11 studs up, under gate beams, past each creature group from its side. A first version at 20-44 studs read the creatures as dots. Write the path as data and test it by sampling every 0.01 s: near the road, always moving on, clear of every gate, never under 6 studs, 12-16 s long. Move creature groups that a raised weapon would sweep across the lens (field note, 2026-11-17).
+- **Title inside the bars:** lay the title out at the 800 x 360 phone picture and scale it by the picture height with a `UIScale`, because `TextSize` stops at 100 px; keep capitals about 10 percent of the picture height on every screen (field note, 2026-11-18).
+
 ## 5. Rules (checklist)
 
 1. **Skip:** a visible Skip button (touch size, 44 px or more), gamepad and keyboard binding. Skip restores everything exactly as the end of the cutscene would.
-2. **Restore:** save camera type, subject and FOV before; restore after, also on skip, error and player death. Restore only what the cinematic changed, and remove only what it created (`roblox-feel-audio-vfx` section 3b, ownership rule).
+2. **Restore:** save camera type, subject and FOV before; restore after, also on skip, error and player death. Restore only what the cinematic changed, and remove only what it created (`roblox-feel-audio-vfx` section 3b, ownership rule). Hide the game's overlays too and give them back on every exit: touch controls, open panels, guide arrows, pending notices and world `BillboardGui`s. Hide world labels by setting `MaxDistance` to about 0.01 and restoring it, not by `Enabled`: other scripts toggle `Enabled` with their own state and switch a label back on mid-film. One game found a reward notice and NPC name tags over its intro only in captures (field note, 2026-11-17).
 3. **Input:** lock movement controls during the cutscene inside the cinematic module (section 3a), never in the caller; unlock on every exit, death included.
 4. **Safety:** make the player invulnerable or anchored while the camera is away from the character; unanchor after, on every exit, and save the old state once in one place like the camera (first save wins). Anchored roots ignore `Humanoid:MoveTo` (`roblox-pitfalls`).
 5. **Streaming:** with `StreamingEnabled`, call `Player:RequestStreamAroundAsync(position)` for the cutscene area before the first shot, or shots show unloaded geometry.
-6. **Client authority:** the server sends one event ("play cinematic X to player P") and tracks "seen X" in the save; the client plays it. Do not let the client decide that a reward was earned.
+6. **Client authority:** the server sends one event ("play cinematic X to player P") and tracks "seen X" in the save; the client plays it. Do not let the client decide that a reward was earned. When a film covers a server-run activity (a boss entrance, a run), the server owns the wait: it sets and saves "seen" at the trigger (a skip, death or leave never replays it), names the one player who gets the film (everyone else gets the normal entrance) and holds the activity for max(normal wait, film length - lead-in + 0.3 s), so no attack lands during the film. Cap any hold that waits for the client's "ended" report: with a 10 s cap, a client that never reported was released at 10.03 s. Skip is one remote the server accepts once, only from that player, only while the activity is held, rate-limited, and it shortens the hold to the normal wait, never below it (field notes, 2026-11-15 and 2026-11-18). Mark "seen" only when the full version played: a short fallback must not use up a once-per-save film (judgment).
 7. **Overlap:** one cinematic owner at a time; a new one cancels the old one cleanly.
 8. **Mobile:** test on a phone in the Studio Device Simulator (`roblox-ui-layout` section 6); letterbox bars must not cover the Roblox top-left buttons or the Skip button.
 9. **Performance:** no new heavy effects only for the cutscene; check frame time on a low-end phone profile.
