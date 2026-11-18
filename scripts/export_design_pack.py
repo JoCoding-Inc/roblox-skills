@@ -102,6 +102,8 @@ SCRIPTS = [
     ("roblox-feel-audio-vfx/scripts/fx_textures.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d,3e,3f,3g,3h"),
     ("roblox-feel-audio-vfx/scripts/fire_slash.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
     ("roblox-feel-audio-vfx/scripts/hit_impact.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
+    ("roblox-feel-audio-vfx/scripts/hit_stop.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3b"),
+    ("roblox-feel-audio-vfx/scripts/spring.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3b"),
     ("roblox-feel-audio-vfx/scripts/level_up_aura.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
     ("roblox-feel-audio-vfx/scripts/fx_capture.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d,3e,3f,3g"),
     ("roblox-feel-audio-vfx/scripts/fx_kit.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3f,3g"),

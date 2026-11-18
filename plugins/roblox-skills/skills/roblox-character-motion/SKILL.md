@@ -42,6 +42,8 @@ Pair with `roblox-feel-audio-vfx` section 3a (loading, priorities, replication),
 | Attack, skill, death or creature motion judged by its look | Motion sheet first (section 2a: a row of key poses plus a beat table; attack rules in section 2b), then whichever path above fits the body | The sheet is the target and the check; it does not replace the upload or the contact rules |
 | Not this | Joint angles typed by guess, root anchored in the air | Measured in section 4: body sinks 1.43 studs into the floor |
 
+Layered writes, measured (Studio, 2026-11-19, R15 rig with `AnimationConstraint` joints, client, a looping track playing): an offset written to the root joint's `Transform` showed only when written in `RunService.PreSimulation`; written in `PreAnimation`, `PostSimulation` or `PreRender` it was overwritten by the Animator or never drawn. With no track playing nothing resets `Transform`, so `offset * joint.Transform` adds up frame after frame: save a base once and write `offset * base`, then put the base back. `PreSimulation` fires once per physics step, four times per drawn frame on a 15 fps client, so per-frame counters belong in `PreRender`. `roblox-feel-audio-vfx` `scripts/hit_stop.luau` does all three.
+
 Not available yet (2026-11): shared animations across creators (early 2027), root motion (mid 2027). Animation ids follow new uploads only until 2027-03-31: after that an id without `&version=<n>` keeps the version current on that date (asset versioning, `roblox-engine-2026` section 6), so pin versions or use `AssetService:GetLatestVersionUriAsync`.
 
 ## 2. Write a motion spec first
