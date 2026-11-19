@@ -2251,7 +2251,8 @@
                   "required": [
                     "default",
                     "to_scale",
-                    "total_s"
+                    "total_s",
+                    "spring_punch"
                   ],
                   "properties": {
                     "default": {
@@ -2297,6 +2298,199 @@
                           }
                         }
                       ]
+                    },
+                    "spring_punch": {
+                      "type": "object",
+                      "required": [
+                        "target",
+                        "peak_scale",
+                        "dip_scale",
+                        "dip_at_s",
+                        "rebound_scale",
+                        "rebound_at_s",
+                        "second_dip_scale",
+                        "second_dip_at_s",
+                        "rest_at_s",
+                        "row_flash_brightness_share",
+                        "row_flash_decay_s"
+                      ],
+                      "properties": {
+                        "target": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "peak_scale": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "dip_scale": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "dip_at_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "rebound_scale": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "rebound_at_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "second_dip_scale": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "second_dip_at_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "rest_at_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "row_flash_brightness_share": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "row_flash_decay_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/leaf"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          }
+                        ]
+                      }
                     }
                   },
                   "additionalProperties": {
@@ -2995,7 +3189,9 @@
                 "hold_to_confirm",
                 "timing_marker",
                 "hp_loss",
-                "xp_level_up"
+                "xp_level_up",
+                "xp_gain",
+                "resource_empty"
               ],
               "properties": {
                 "stat_fill": {
@@ -3280,7 +3476,9 @@
                     "fill_easing",
                     "flash_on_frames",
                     "flash_decay_s",
-                    "reset"
+                    "reset",
+                    "form_a",
+                    "form_b"
                   ],
                   "properties": {
                     "fill_easing": {
@@ -3335,6 +3533,459 @@
                           "properties": {
                             "v": {
                               "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "form_a": {
+                      "type": "object",
+                      "required": [
+                        "level_change",
+                        "flash"
+                      ],
+                      "properties": {
+                        "level_change": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "flash": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/leaf"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          }
+                        ]
+                      }
+                    },
+                    "form_b": {
+                      "type": "object",
+                      "required": [
+                        "label",
+                        "plate_peak_scale",
+                        "plate_dip_scale",
+                        "plate_dip_at_s",
+                        "plate_rebound_scale",
+                        "plate_rebound_at_s",
+                        "plate_rest_at_s",
+                        "fill_down_s",
+                        "fill_down_easing"
+                      ],
+                      "properties": {
+                        "label": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_peak_scale": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_dip_scale": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_dip_at_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_rebound_scale": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_rebound_at_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_rest_at_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "fill_down_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "fill_down_easing": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/leaf"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      }
+                    ]
+                  }
+                },
+                "xp_gain": {
+                  "type": "object",
+                  "required": [
+                    "label",
+                    "form_a",
+                    "form_b"
+                  ],
+                  "properties": {
+                    "label": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "form_a": {
+                      "type": "object",
+                      "required": [
+                        "fill_easing",
+                        "fill_bar_widths_per_s",
+                        "plate_width_gain_share",
+                        "plate_height_loss_share",
+                        "plate_squash_s"
+                      ],
+                      "properties": {
+                        "fill_easing": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "fill_bar_widths_per_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_width_gain_share": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1
+                                  },
+                                  "minItems": 2,
+                                  "maxItems": 2
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_height_loss_share": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "plate_squash_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/leaf"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          }
+                        ]
+                      }
+                    },
+                    "form_b": {
+                      "type": "object",
+                      "required": [
+                        "fill_easing",
+                        "fill_s",
+                        "squash"
+                      ],
+                      "properties": {
+                        "fill_easing": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "fill_s": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "number",
+                                  "minimum": 0
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "squash": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/leaf"
+                            },
+                            {
+                              "properties": {
+                                "v": {
+                                  "type": "boolean"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/$defs/leaf"
+                          },
+                          {
+                            "$ref": "#/$defs/node"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/$defs/leaf"
+                      },
+                      {
+                        "$ref": "#/$defs/node"
+                      }
+                    ]
+                  }
+                },
+                "resource_empty": {
+                  "type": "object",
+                  "required": [
+                    "recovering_colour",
+                    "hidden_while_empty"
+                  ],
+                  "properties": {
+                    "recovering_colour": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "hidden_while_empty": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "boolean"
                             }
                           }
                         }
@@ -3449,7 +4100,10 @@
                     "down_s",
                     "down_easing",
                     "back_s",
-                    "back_easing"
+                    "back_easing",
+                    "hold_s",
+                    "back_overshoot_share",
+                    "total_s"
                   ],
                   "properties": {
                     "to_scale": {
@@ -3524,6 +4178,52 @@
                           }
                         }
                       ]
+                    },
+                    "hold_s": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "back_overshoot_share": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0,
+                              "maximum": 1
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "total_s": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
                     }
                   },
                   "additionalProperties": {
@@ -3557,7 +4257,8 @@
                   "required": [
                     "sweep",
                     "easing",
-                    "seconds"
+                    "seconds",
+                    "seen_one_game"
                   ],
                   "properties": {
                     "sweep": {
@@ -3589,6 +4290,20 @@
                       ]
                     },
                     "seconds": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "seen_one_game": {
                       "allOf": [
                         {
                           "$ref": "#/$defs/leaf"
@@ -4736,7 +5451,9 @@
                     "step_flash_on_frames",
                     "step_flash_decay_s",
                     "text_fade_out_s",
-                    "text_fade_in_s"
+                    "text_fade_in_s",
+                    "new_objective",
+                    "completion"
                   ],
                   "properties": {
                     "progress": {
@@ -4811,6 +5528,34 @@
                           }
                         }
                       ]
+                    },
+                    "new_objective": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "completion": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
                     }
                   },
                   "additionalProperties": {
@@ -4854,7 +5599,10 @@
                     "period_s",
                     "pulsing_max",
                     "also_fits",
-                    "text_mark"
+                    "text_mark",
+                    "low_scale",
+                    "appear_frames",
+                    "pulsing_seen"
                   ],
                   "properties": {
                     "peak_scale": {
@@ -4946,6 +5694,49 @@
                       ]
                     },
                     "text_mark": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "low_scale": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number",
+                              "minimum": 0
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "appear_frames": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/leaf"
+                        },
+                        {
+                          "properties": {
+                            "v": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    "pulsing_seen": {
                       "allOf": [
                         {
                           "$ref": "#/$defs/leaf"

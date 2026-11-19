@@ -1,6 +1,6 @@
 {
   "type": "motion",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "title": "UI motion: panel open and close, button feedback, counters, idle motion, HUD element motion, rules",
   "scope": "every genre; panel_open, panel_close, button, number_count_up_s, float, idle_rotate_deg and badge_attention are the stud-style defaults; panel_motion and hud are what live games were measured doing, with judgment values tagged opinion",
   "sources": ["roblox-ui-genre-studs/SKILL.md#5", "roblox-ui-typography/SKILL.md#4", "roblox-ui-mobile/SKILL.md#4,4a"],
@@ -160,7 +160,20 @@
         "bump": {
           "default": {"v": "none: most measured counters do not bump", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
           "to_scale": {"v": 1.05, "p": "measured", "src": "one live game, 60 fps capture; UIScale; on a discrete arrival only, never during a count", "date": "2026-11-19"},
-          "total_s": {"v": 0.065, "p": "measured", "src": "one live game, 60 fps capture; out and back", "date": "2026-11-19"}
+          "total_s": {"v": 0.065, "p": "measured", "src": "one live game, 60 fps capture; out and back", "date": "2026-11-19"},
+          "spring_punch": {
+            "target": {"v": "the icon and the number together", "p": "measured", "src": "one live game, 60 fps capture; high confidence", "date": "2026-11-19"},
+            "peak_scale": {"v": 1.12, "p": "measured", "src": "one live game, 60 fps capture; one frame after the change", "date": "2026-11-19"},
+            "dip_scale": {"v": 0.92, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+            "dip_at_s": {"v": 0.05, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+            "rebound_scale": {"v": 1.02, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+            "rebound_at_s": {"v": 0.12, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+            "second_dip_scale": {"v": 0.97, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+            "second_dip_at_s": {"v": 0.2, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+            "rest_at_s": {"v": 0.27, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+            "row_flash_brightness_share": {"v": 0.09, "p": "measured", "src": "one live game, 60 fps capture; about, added brightness on the row", "date": "2026-11-19"},
+            "row_flash_decay_s": {"v": 0.27, "p": "measured", "src": "one live game, 60 fps capture; same time as the spring", "date": "2026-11-19"}
+          }
         },
         "suffix_change": {"v": "switch K, M, B during the count as the value crosses it; no extra effect", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
         "digits": {"v": "equal-width digits, or right-aligned in a fixed box", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
@@ -232,29 +245,67 @@
           "ghost_easing": {"v": "Quad/Out", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
         },
         "xp_level_up": {
-          "fill_easing": {"v": "Linear", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "flash_on_frames": {"v": 1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "flash_decay_s": {"v": 0.33, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "reset": {"v": "to 0 in the frame the level number changes, then fill the rest", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+          "fill_easing": {"v": "Out", "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B: the fill runs down from full to the new value, easing out; form A has no fill motion", "date": "2026-11-19"},
+          "flash_on_frames": {"v": 0, "p": "measured", "src": "two live games, 60 fps captures, high confidence; no flash in form A; form B punches the plate (form_b)", "date": "2026-11-19"},
+          "flash_decay_s": {"v": 0, "p": "measured", "src": "two live games, 60 fps captures, high confidence; no flash in form A", "date": "2026-11-19"},
+          "reset": {"v": "form A: the bar empties and the label changes to the new level in one frame, without waiting for the fill to reach the end", "p": "measured", "src": "two live games, 60 fps captures, high confidence", "date": "2026-11-19"},
+          "form_a": {
+            "level_change": {"v": "the bar empties and the label changes to the new level in one frame; it does not wait for the fill to reach the end", "p": "measured", "src": "two live games, 60 fps captures, high confidence; form A", "date": "2026-11-19"},
+            "flash": {"v": false, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form A", "date": "2026-11-19"}
+          },
+          "form_b": {
+            "label": {"v": "changes at the start", "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"},
+            "plate_peak_scale": {"v": 1.03, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B; in one frame", "date": "2026-11-19"},
+            "plate_dip_scale": {"v": 0.955, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"},
+            "plate_dip_at_s": {"v": 0.05, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"},
+            "plate_rebound_scale": {"v": 1.014, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"},
+            "plate_rebound_at_s": {"v": 0.13, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"},
+            "plate_rest_at_s": {"v": 0.27, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"},
+            "fill_down_s": {"v": 0.27, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B; about, from full to the new value", "date": "2026-11-19"},
+            "fill_down_easing": {"v": "Out", "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"}
+          }
+        },
+        "xp_gain": {
+          "label": {"v": "swaps in the same frame as the gain; the fill follows", "p": "measured", "src": "two live games, 60 fps captures, high confidence", "date": "2026-11-19"},
+          "form_a": {
+            "fill_easing": {"v": "Linear", "p": "measured", "src": "two live games, 60 fps captures, high confidence; form A", "date": "2026-11-19"},
+            "fill_bar_widths_per_s": {"v": 1.5, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form A; a gain of 38% of the bar takes 0.25 s", "date": "2026-11-19"},
+            "plate_width_gain_share": {"v": [0.013, 0.026], "p": "measured", "src": "two live games, 60 fps captures, high confidence; form A; the plate squashes wider and flatter on each gain", "date": "2026-11-19"},
+            "plate_height_loss_share": {"v": 0.04, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form A", "date": "2026-11-19"},
+            "plate_squash_s": {"v": 0.2, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form A; about", "date": "2026-11-19"}
+          },
+          "form_b": {
+            "fill_easing": {"v": "Out", "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B; eases out to its target", "date": "2026-11-19"},
+            "fill_s": {"v": 0.2, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B; about", "date": "2026-11-19"},
+            "squash": {"v": false, "p": "measured", "src": "two live games, 60 fps captures, high confidence; form B", "date": "2026-11-19"}
+          }
+        },
+        "resource_empty": {
+          "recovering_colour": {"v": "red while it recovers from empty; its normal colour again when usable", "p": "measured", "src": "one live game, 60 fps capture; read from frames, no curve fitted", "date": "2026-11-19"},
+          "hidden_while_empty": {"v": true, "p": "measured", "src": "one live game, 60 fps capture; read from frames, no curve fitted", "date": "2026-11-19"}
         }
       },
       "buttons": {
-        "press_forms": {"v": ["no scale: brightness steps to 0.67 while held, 0.083 s white flash (+27%) on release", "nothing at all"], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "press_forms": {"v": ["no scale: brightness steps to 0.67 while held, 0.083 s white flash (+27%) on release", "squash: UIScale 1.00 -> 0.875 in 0.05 s, held about 0.033 s, back in 0.05-0.067 s with +1% overshoot", "nothing at all"], "p": "measured", "src": "60 fps captures of live games, frame by frame; the squash from one live game", "date": "2026-11-19"},
         "press_held_brightness_scale": {"v": 0.67, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
         "release_flash_s": {"v": 0.083, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
         "release_flash_brightness_share": {"v": 0.27, "p": "measured", "src": "60 fps captures of live games, frame by frame; added brightness", "date": "2026-11-19"},
         "squash": {
-          "to_scale": {"v": 0.94, "p": "opinion", "src": "not seen in any clip", "date": "2026-11-19"},
-          "down_s": {"v": 0.06, "p": "opinion", "date": "2026-11-19"},
-          "down_easing": {"v": "Quad/Out", "p": "opinion", "date": "2026-11-19"},
-          "back_s": {"v": 0.12, "p": "opinion", "date": "2026-11-19"},
-          "back_easing": {"v": "Back/Out", "p": "opinion", "date": "2026-11-19"}
+          "to_scale": {"v": 0.875, "p": "measured", "src": "one live game, 60 fps capture; high confidence", "date": "2026-11-19"},
+          "down_s": {"v": 0.05, "p": "measured", "src": "one live game, 60 fps capture; high confidence", "date": "2026-11-19"},
+          "down_easing": {"v": "Out", "p": "measured", "src": "one live game, 60 fps capture; decelerating; style not fitted", "date": "2026-11-19"},
+          "back_s": {"v": 0.067, "p": "measured", "src": "one live game, 60 fps capture; 0.05 to 0.067", "date": "2026-11-19"},
+          "back_easing": {"v": "Out with a +1% overshoot", "p": "measured", "src": "one live game, 60 fps capture; style not fitted", "date": "2026-11-19"},
+          "hold_s": {"v": 0.033, "p": "measured", "src": "one live game, 60 fps capture; about", "date": "2026-11-19"},
+          "back_overshoot_share": {"v": 0.01, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "total_s": {"v": 0.15, "p": "measured", "src": "one live game, 60 fps capture; about", "date": "2026-11-19"}
         },
         "pending_s": {"v": 0.32, "p": "measured", "src": "one live game, 60 fps capture; high confidence; a dark pending state, then the new state (disabled or cooling down)", "date": "2026-11-19"},
         "cooldown": {
           "sweep": {"v": "dark overlay cleared clockwise from 12 o'clock", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
           "easing": {"v": "Linear", "p": "opinion", "src": "no clip measured; starting value; so the time left reads true", "date": "2026-11-19"},
-          "seconds": {"v": "whole seconds while more than 1 s is left, one hard tick a second", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+          "seconds": {"v": "whole seconds while more than 1 s is left, one hard tick a second", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "seen_one_game": {"v": "a segmented ring gauge that drains clockwise at a constant rate", "p": "measured", "src": "one live game, 60 fps capture; seen, not timed", "date": "2026-11-19"}
         },
         "ready": {
           "peak_scale": {"v": 1.1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
@@ -337,22 +388,27 @@
           "undim_easing": {"v": "Quad/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
         },
         "quest_tracker": {
-          "progress": {"v": "counts like a counter", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "step_flash_on_frames": {"v": 1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "step_flash_decay_s": {"v": 0.33, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "text_fade_out_s": {"v": 0.1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "text_fade_in_s": {"v": 0.2, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+          "progress": {"v": "the number and its bar follow the value with no tween", "p": "measured", "src": "one live game, 60 fps capture; 50 ms steps", "date": "2026-11-19"},
+          "step_flash_on_frames": {"v": 1, "p": "opinion", "src": "softer option; the measured tracker has no flash", "date": "2026-11-19"},
+          "step_flash_decay_s": {"v": 0.33, "p": "opinion", "src": "softer option; the measured tracker has no flash", "date": "2026-11-19"},
+          "text_fade_out_s": {"v": 0, "p": "measured", "src": "one live game, 60 fps capture; 50 ms steps; hard swap", "date": "2026-11-19"},
+          "text_fade_in_s": {"v": 0, "p": "measured", "src": "one live game, 60 fps capture; 50 ms steps; hard swap", "date": "2026-11-19"},
+          "new_objective": {"v": "replaces the old one in one frame at full size", "p": "measured", "src": "one live game, 60 fps capture; 50 ms steps", "date": "2026-11-19"},
+          "completion": {"v": "the bar and the number vanish and a one-word praise line takes their place in the same frame; it holds until the next hint replaces it", "p": "measured", "src": "one live game, 60 fps capture; 50 ms steps", "date": "2026-11-19"}
         }
       },
       "badges": {
         "alert": {
-          "peak_scale": {"v": 1.1, "p": "opinion", "src": "no clip measured; starting value; UIScale", "date": "2026-11-19"},
-          "each_way_s": {"v": 0.6, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "easing": {"v": "Sine/InOut", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "period_s": {"v": 2, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "pulsing_max": {"v": 2, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "also_fits": {"v": "a wobble or a colour pulse", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
-          "text_mark": {"v": "a pulse is continuous scaling: draw the mark as an image, or wobble or pulse colour; never tween Size", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+          "peak_scale": {"v": 1.11, "p": "measured", "src": "one live game, 60 fps capture; the pulse; high confidence; UIScale, of its mean size", "date": "2026-11-19"},
+          "each_way_s": {"v": 0.6, "p": "measured", "src": "one live game, 60 fps capture; the pulse; high confidence; about, with a short rest at both ends", "date": "2026-11-19"},
+          "easing": {"v": "Sine/InOut", "p": "measured", "src": "one live game, 60 fps capture; the pulse; high confidence", "date": "2026-11-19"},
+          "period_s": {"v": 1.23, "p": "measured", "src": "one live game, 60 fps capture; the pulse; high confidence", "date": "2026-11-19"},
+          "pulsing_max": {"v": 2, "p": "opinion", "src": "judgment", "date": "2026-11-19"},
+          "also_fits": {"v": "a wobble or a colour pulse", "p": "opinion", "src": "judgment", "date": "2026-11-19"},
+          "text_mark": {"v": "a pulse is continuous scaling: draw the mark as an image, or wobble or pulse colour; never tween Size", "p": "opinion", "src": "judgment", "date": "2026-11-19"},
+          "low_scale": {"v": 0.89, "p": "measured", "src": "one live game, 60 fps capture; the pulse; high confidence; of its mean size, +25% from smallest to largest", "date": "2026-11-19"},
+          "appear_frames": {"v": 1, "p": "measured", "src": "one live game, 60 fps capture; full size, no scale-in", "date": "2026-11-19"},
+          "pulsing_seen": {"v": "1 of 3 badges seen pulses; the other 2 stay still", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
         },
         "glint": {
           "cross_s": {"v": [0.33, 0.5], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
