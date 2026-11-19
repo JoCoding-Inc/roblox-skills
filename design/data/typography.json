@@ -1,6 +1,6 @@
 {
   "type": "typography",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "title": "Fonts: what exists, display and body pairs per genre, Creator Store font ids, readability",
   "scope": "every genre",
   "sources": ["roblox-ui-typography/SKILL.md#1-4", "roblox-ui-genre-studs/SKILL.md#3"],

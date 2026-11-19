@@ -28,7 +28,7 @@ SKILLS = ROOT / "plugins" / "roblox-skills" / "skills"
 DESIGN = ROOT / "design"
 MOCK = SKILLS / "roblox-game-pipeline" / "scripts" / "ui_style_mock.luau"
 UI_STYLES = SKILLS / "roblox-game-pipeline" / "assets" / "ui-styles"
-SCHEMA_VERSION = "1.1.0"
+SCHEMA_VERSION = "1.2.0"
 REPO = "https://github.com/JoCoding-Inc/roblox-skills"
 SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?$")
 

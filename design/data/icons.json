@@ -1,6 +1,6 @@
 {
   "type": "icons",
-  "schema_version": "1.1.0",
+  "schema_version": "1.2.0",
   "title": "UI icons: Creator Store icon packs and family rules",
   "scope": "every genre",
   "sources": ["roblox-store-art-pack/SKILL.md#4", "roblox-ui-genre-studs/SKILL.md#8", "roblox-game-pipeline/assets/ui-styles/README.md"],

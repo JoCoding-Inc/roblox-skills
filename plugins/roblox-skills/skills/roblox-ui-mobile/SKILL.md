@@ -10,7 +10,7 @@ sources:
   - Roblox FY2025 Form 10-K and Q3 2026 Form 10-Q (users and revenue by region); Counterpoint Research, best-selling smartphones of 2025; Roblox help article 203625474 (mobile system requirements, updated 2026-11-05)
   - RoDesigner research library, 2026-11-12, 84 phone frames with an open panel from 28 top games, 45 phone HUD frames from 29 top games, 50 tablet frames from 17 games and 24 row-list panels from 16 games (frames private; numbers and method only)
   - original (test set, recipes and thresholds marked judgment)
-  - original motion reads, 2026-11-19 (60 fps captures of five live games and 33 more UI clips, measured frame by frame; clips private, numbers and method only)
+  - original motion reads, 2026-11-05 and 2026-11-19 (60 fps captures of five live games and 33 more UI clips, measured frame by frame; clips private, numbers and method only)
 ---
 
 # Mobile-first UI (phone, tablet, desktop)
@@ -233,7 +233,7 @@ With the grid panel open on a phone the left menu column stays, and the top curr
 
 The tablet and list numbers rest on few frames (tablet panels 20 frames from 8 games, phone row lists 6 from 3), so treat these caps as a starting point: a panel that reads well outside them is not a violation.
 
-**Open and close, frame by frame.** One live simulator measured at 60 fps (three panels, 2026-11-19), added to the survey above; basis per row as in section 4a. Where it differs from the Timing row: the 0.2 s there is the median of three tagged clips and `PanelStage`'s default, the 250 ms here is one game read frame by frame; both sit inside the measured 133-300 ms.
+**Open and close, frame by frame.** One live simulator measured at 60 fps (three panels; frame-by-frame reads of 2026-11-05 and 2026-11-19), added to the survey above; basis per row as in section 4a. Where it differs from the Timing row: the 0.2 s there is the median of three tagged clips and `PanelStage`'s default, the 250 ms here is one game read frame by frame; both sit inside the measured 133-300 ms.
 
 | Part | Value | Basis |
 |---|---|---|
@@ -260,7 +260,7 @@ Check it on a 60 fps capture: count the frames of the open (at 0.2 s the panel s
 
 ## 4a. HUD motion
 
-How each HUD element moves, measured frame by frame on 60 fps captures of five live games and on 33 more UI clips (2026-11-19). Times are in ms; easing names are `Enum.EasingStyle` and `Enum.EasingDirection` (Quad Out is style Quad, direction Out).
+How each HUD element moves, measured frame by frame on 60 fps captures of five live games and on 33 more UI clips (two sets of reads, 2026-11-05 and 2026-11-19). Times are in ms; easing names are `Enum.EasingStyle` and `Enum.EasingDirection` (Quad Out is style Quad, direction Out).
 
 | Basis | Means |
 |---|---|
@@ -291,7 +291,7 @@ Panels and the HUD that leaves for them: section 4. A stud-style game may keep i
 |---|---|---|
 | Value goes up (reward, sell, claim) | Count from the old value to the new one in 650 ms Quart Out (fast start, short tail). Linear over 330-830 ms is the other measured form: Linear when the count is the show (a results screen), Quart or Cubic Out on the HUD | measured (HUD cash 650 ms Quart Out, a popup amount 850 ms Cubic Out, results rows Linear 330-830 ms) |
 | Small pickup (a coin, +1) | No count: swap the number in the same frame. Never hold the readout until a flight lands (`roblox-feel-audio-vfx` section 3b) | measured |
-| Bump on change | Most measured counters do not bump. If you want one: `UIScale` 1.00 -> 1.05 and back in 65 ms in all, on a discrete arrival only, never during a count | measured (no bump); measured, one game (the bump) |
+| Bump on change | Most measured counters do not bump. Two games do, in two sizes: a small punch, `UIScale` 1.00 -> 1.05 and back in 65 ms in all; or a spring punch on the icon and the number together, +12% in one frame, then -8% at 50 ms, +2% at 120 ms, -3% at 200 ms and at rest by 270 ms, with a brightness flash of about +9% on the row that decays over the same 270 ms. Either only on a discrete arrival, never during a count | measured (no bump); measured, one game (each punch; the spring at 60 fps, high confidence) |
 | Suffix change (K, M, B) | Switch the suffix during the count as the value crosses it, with no extra effect | measured |
 | Digits | Equal-width digits, or right-aligned in a fixed box, so the number does not jitter while counting (fonts: `roblox-ui-typography` section 6) | measured |
 | Timer digits | Swap once a second, no tween | measured, one game |
@@ -322,16 +322,18 @@ Panels and the HUD that leaves for them: section 4. A stud-style game may keep i
 | Stat or XP bar fills to its value | Linear, about 1.0-1.1 s per bar; several bars fill one after another, 1.2 s apart, the active row scaled to about 1.4x while it fills | measured, one game |
 | Hold-to-confirm bar | Speeds up: 0 -> 100% over 2.3 s Quad In, then holds full for 280 ms before the result | measured |
 | Timing or power marker | Appears in 100 ms; moves faster and faster (Quad In) | measured, one game |
+| XP bar gains | The label number swaps in the same frame as the gain; the fill follows. Form A: Linear at a constant 1.5 bar widths a second (a gain of 38% of the bar takes 250 ms), and the bar's plate squashes wider and flatter, +1.3 to +2.6% in width and -4% in height, for about 200 ms on each gain. Form B: the fill eases out to its target over about 200 ms, no squash | measured, two games (60 fps, high confidence) |
+| XP bar on a level up | Form A: the bar empties and the label changes to the new level in one frame; it does not wait for the fill to reach the end, and there is no flash. Form B: the label changes, the plate punches +3% in one frame and springs back (-4.5% at 50 ms, +1.4% at 130 ms, at rest by 270 ms), and the fill runs down from full to the new value over about 270 ms, easing out | measured, two games |
+| Resource bar that empties (stamina) | The fill turns red while it recovers from empty and goes back to its normal colour when it is usable again; the bar hides while empty | measured, one game (read from frames, no curve fitted) |
 | HP bar loses health | The front bar snaps to the new value in 1 frame; a lighter bar behind it waits 250 ms, then shrinks over 300 ms Quad Out (the late "ghost" bar of `roblox-feel-audio-vfx` section 3b) | not measured yet |
-| XP bar on a level up | Fills to full, Linear; a 1-frame white flash with a 330 ms decay; resets to 0 in the frame the level number changes; then fills the rest | not measured yet |
 
 **Skill and action buttons**
 
 | Event | Build to | Basis |
 |---|---|---|
-| Press | Two measured forms: no scale, a hard step to 0.67 of the brightness while held and an 83 ms white flash (+27%) on release; or nothing at all. A squash was not seen; if you want one, `UIScale` 1.00 -> 0.94 in 60 ms Quad Out and back in 120 ms Back Out | measured (both forms); judgment (the squash) |
+| Press | Three measured forms: no scale, a hard step to 0.67 of the brightness while held and an 83 ms white flash (+27%) on release; a squash, `UIScale` 1.00 -> 0.875 in 50 ms (decelerating), held about 33 ms, back to 1.00 in 50-67 ms with a +1% overshoot, about 150 ms in all; or nothing at all | measured (no scale, nothing); measured, one game (the squash, 60 fps, high confidence) |
 | After a press that starts something | A 320 ms dark "pending" state, then the new state (disabled or cooling down) | measured, one game |
-| Cooldown sweep | A dark overlay cleared clockwise from 12 o'clock at constant speed (Linear, so the time left reads true); whole seconds as a number while more than 1 s is left, ticking once a second with no tween | not measured yet |
+| Cooldown sweep | A dark overlay cleared clockwise from 12 o'clock at constant speed (Linear, so the time left reads true); whole seconds as a number while more than 1 s is left, ticking once a second with no tween. One game showed a segmented ring gauge that drains clockwise at a constant rate (not timed) | not measured yet |
 | Ready again | `UIScale` 1.00 -> 1.10 -> 1.00 in 200 ms Back Out, plus a 1-frame flash with a 330 ms decay | not measured yet |
 | Hover (desktop only) | Scale 1.02-1.15 in 100-170 ms, or +16% brightness in 110 ms with no scale; out in 60-160 ms. Touch has no hover: the press gives the feedback | measured |
 | Selected slot ring | Jumps to the new slot and grows 0.93 -> 1.00 in 133 ms Quad Out; the old ring goes at once | measured, one game |
@@ -348,13 +350,13 @@ Panels and the HUD that leaves for them: section 4. A stud-style game may keep i
 | Subtitle or dialogue line | The box appears in 1 frame; the text fades in over 90 ms or types at 45-90 characters a second; out with a 100 ms Linear fade | measured, one game |
 | Tooltip or hint card | The card appears in 1 frame and its text fades in over 80 ms, or the card drops 82 px in 500 ms Quad Out; it leaves with a hard cut | measured (appear, cut); measured, one game (drop) |
 | Tutorial focus | The world dims to about 10% brightness in 400 ms Exponential Out, with a highlight on the target; back in 300 ms Quad Out | measured, one game |
-| Quest tracker update | The progress number counts like a counter; a completed step gets a 1-frame flash with a 330 ms decay on its row, then the row's text swaps with a 100 ms fade out and a 200 ms fade in | not measured yet |
+| Quest tracker update | Hard swaps: a new objective replaces the old one in one frame at full size; the progress number and its bar follow the value with no tween; at completion the bar and the number vanish and a one-word praise line takes their place in the same frame, then holds until the next hint replaces it. A softer option: a 1-frame flash with a 330 ms decay on the completed row | measured, one game (50 ms steps); judgment (the flash) |
 
 **Badges and idle attention**
 
 | Event | Build to | Basis |
 |---|---|---|
-| Alert badge ("!") | `UIScale` 1.00 -> 1.10 -> 1.00, 600 ms each way Sine InOut, one cycle every 2 s, at most 2 badges pulsing at once. A wobble or a colour pulse also fits. Never tween the badge's `Size`; a pulse is continuous scaling, so a "!" drawn as text steps between font sizes (`roblox-ui-genre-studs` section 5): draw the mark as an image, or wobble or pulse colour | not measured yet |
+| Alert badge ("!" or a red dot) | Appears at full size in one frame, no scale-in. Of three badges seen, two stay still and one pulses: a continuous loop between 0.89 and 1.11 of its mean size (+25% from smallest to largest), about 600 ms each way with a short rest at both ends, a 1.23 s period, Sine InOut, on a `UIScale`. At most 2 badges pulsing at once. A wobble or a colour pulse also fits. Never tween the badge's `Size`; a pulse is continuous scaling, so a "!" drawn as text steps between font sizes (`roblox-ui-genre-studs` section 5): draw the mark as an image, or wobble or pulse colour | measured, one game (the pulse at 60 fps, high confidence; the appear); judgment (at most 2, wobble or colour) |
 | Card or button glint | A diagonal highlight crosses in 330-500 ms, once every 4 s, on hero items only | measured |
 | Glow breathing | +7% brightness, 1050 ms each way Sine InOut | measured |
 | Sparkle | Lives 250 ms (brightest at 100 ms); a new one every 150-250 ms | measured, one game |
@@ -367,7 +369,7 @@ Panels and the HUD that leaves for them: section 4. A stud-style game may keep i
 | HUD leaves for a panel | Section 4 | |
 | Phone budget | About 40 live tweens at once; pause loops while their group is hidden; at most 24 pooled particle images | judgment (working limits, not from Roblox docs) |
 
-The rows marked not measured yet (HP bar loss, XP level up, cooldown sweep, ready pop, quest tracker update, badge pulse) have no measured clip behind them: none of the captured games showed them. Build them from the starting values, capture your build at 60 fps and count frames against the rules above.
+The rows marked not measured yet (HP bar loss, cooldown sweep, ready pop) have no measured clip behind them: the captured games are simulators and show neither, so they need 60 fps captures of combat or RPG games. Build them from the starting values, capture your build at 60 fps and count frames against the rules above.
 
 ## 5. Text entry and the keyboard
 
