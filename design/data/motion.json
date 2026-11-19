@@ -1,9 +1,9 @@
 {
   "type": "motion",
-  "schema_version": "1.0.0",
-  "title": "UI motion: panel open and close, button feedback, counters, idle motion, rules",
-  "scope": "every genre; values are the stud-style defaults",
-  "sources": ["roblox-ui-genre-studs/SKILL.md#5", "roblox-ui-typography/SKILL.md#4"],
+  "schema_version": "1.1.0",
+  "title": "UI motion: panel open and close, button feedback, counters, idle motion, HUD element motion, rules",
+  "scope": "every genre; panel_open, panel_close, button, number_count_up_s, float, idle_rotate_deg and badge_attention are the stud-style defaults; panel_motion and hud are what live games were measured doing, with judgment values tagged opinion",
+  "sources": ["roblox-ui-genre-studs/SKILL.md#5", "roblox-ui-typography/SKILL.md#4", "roblox-ui-mobile/SKILL.md#4,4a"],
   "data": {
     "panel_open": {
       "from_scale": {"v": 0.85, "p": "opinion"},
@@ -33,6 +33,350 @@
       "never_scale_text_continuously": {"v": true, "p": "documented", "src": "text steps between whole font sizes"},
       "never_tween_stroke_thickness_or_text_size": {"v": true, "p": "documented", "src": "every in-between size renders new glyphs"},
       "honor_reduced_motion": {"v": "GuiService.ReducedMotionEnabled", "p": "documented"}
+    },
+    "panel_motion": {
+      "open": {
+        "from_scale": {"v": 0.9, "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture", "date": "2026-11-19"},
+        "to_scale": {"v": 1.0, "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture", "date": "2026-11-19"},
+        "duration_s": {"v": 0.25, "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture", "date": "2026-11-19"},
+        "easing": {"v": "Back/Out", "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture", "date": "2026-11-19"},
+        "origin": {"v": "the panel's centre: AnchorPoint 0.5, 0.5; UIScale on a plain Frame wrapper", "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture", "date": "2026-11-19"},
+        "overshoot_peak_share": {"v": 0.01, "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture; of the panel's size, at 0.58 of the time; the Back/Out default, add none", "date": "2026-11-19"},
+        "variants": {
+          "snappy": {
+            "duration_s": {"v": 0.133, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+            "easing": {"v": "Quad/Out", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+          },
+          "chunky": {
+            "duration_s": {"v": 0.3, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+            "easing": {"v": "Back/Out", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+          }
+        },
+        "slide_up_of_height": {"v": 0.08, "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture; optional, start this far below, same 0.25 s Back/Out", "date": "2026-11-19"},
+        "fade": {"v": false, "p": "measured", "src": "60 fps captures of live games, frame by frame; no tagged clip fades the panel", "date": "2026-11-19"},
+        "duration_max_s": {"v": 0.4, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "hero_panel_needs_tween": {"v": true, "p": "measured", "src": "60 fps captures of live games, frame by frame; never a hard pop with no tween on a hero panel", "date": "2026-11-19"},
+        "survey_median_s": {"v": 0.2, "p": "measured", "src": "median of 3 tagged clips, 0.12-0.25 s", "date": "2026-11-12"},
+        "panel_stage_s": {"v": 0.2, "p": "opinion", "src": "PanelStage default (scripts/panel_stage.luau); Back/Out from 0.9", "date": "2026-11-19"}
+      },
+      "full_screen_page": {
+        "scale_pop": {"v": false, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "backdrop_fade_s": {"v": 0.2, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "backdrop_easing": {"v": "Quad/Out", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "plate_s": {"v": 0.067, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "row_s": {"v": 0.13, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "row_stagger_s": {"v": 0.05, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "animated_rows_max": {"v": 12, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "entrance_max_s": {"v": 0.6, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+      },
+      "backdrop": {
+        "dim_darkness_share": {"v": 0.5, "p": "opinion", "src": "black overlay; PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "dim_s": {"v": 0.2, "p": "opinion", "src": "from the panel's first frame; PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "dim_easing": {"v": "Quad/Out", "p": "opinion", "src": "PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "dim_in_place_s": {"v": [0.1, 0.18], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "dim_darkness_min_share": {"v": 0.4, "p": "opinion", "src": "a 24% dim was not visible by eye", "date": "2026-11-19"},
+        "blur_effect_size": {"v": 16, "p": "opinion", "src": "BlurEffect.Size; PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "blur_in_s": {"v": [0.1, 0.12], "p": "measured", "src": "60 fps captures of live games, frame by frame; 117 ms in one clip; Quad/Out", "date": "2026-11-19"},
+        "blur_dim_darkness_share": {"v": 0.25, "p": "opinion", "src": "PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "blur_on_low_quality": {"v": false, "p": "opinion", "date": "2026-11-19"},
+        "release_after_close_s": {"v": [0.4, 0.5], "p": "measured", "src": "60 fps captures of live games, frame by frame; Quad/Out, once the panel is gone", "date": "2026-11-19"},
+        "panel_stage_release_s": {"v": 0.2, "p": "opinion", "src": "from the start of the close; PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"}
+      },
+      "hud_slide": {
+        "measured_leave_s": {"v": [0.067, 0.15], "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture; the HUD is cut or faded out, not slid, this long after the panel's first frame", "date": "2026-11-19"},
+        "slide_seen": {"v": "0 of 26 tagged panel clips", "p": "measured", "date": "2026-11-12"},
+        "window_panel_groups": {"v": "only the groups it covers, each off its nearest edge: menu column left, action buttons right, bars down, top tracker up", "p": "opinion", "date": "2026-11-19"},
+        "full_screen_page_groups": {"v": "every group but the counters", "p": "opinion", "date": "2026-11-19"},
+        "counters": {"v": "stay; or the balance goes in the panel header", "p": "measured", "src": "balance visible in all 19 shop frames of 8 games", "date": "2026-11-12"},
+        "touch_controls": {"v": "hide with GuiService.TouchControlsEnabled = false; they cannot slide", "p": "opinion", "date": "2026-11-19"},
+        "distance": {"v": "until the whole group is off screen: far edge plus a margin, from AbsolutePosition and AbsoluteSize, divided by the UIScale above", "p": "opinion", "src": "PanelStage, tested on 7 device presets", "date": "2026-11-19"},
+        "panel_stage_margin_px": {"v": 80, "p": "opinion", "src": "room for a notch margin; PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "out_s": {"v": 0.18, "p": "opinion", "src": "PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "out_easing": {"v": "Quad/In", "p": "opinion", "src": "accelerates away; PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "start": {"v": "the panel's first frame; the HUD is gone before the panel settles", "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture", "date": "2026-11-19"},
+        "group_stagger_s": {"v": [0, 0.02, 0.04], "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture; bottom first, then the sides, the top last; groups gone at 67, 83, 100 and 150 ms; PanelStage moves every covered layer at once", "date": "2026-11-19"},
+        "total_max_s": {"v": 0.15, "p": "measured", "src": "one live simulator, 3 panels, 60 fps capture", "date": "2026-11-19"},
+        "cannot_leave_fade_s": {"v": 0.1, "p": "opinion", "src": "fade to 0 instead of sliding: behind a notch, on a wide tablet", "date": "2026-11-19"},
+        "fade_on_full_slide": {"v": false, "p": "opinion", "date": "2026-11-19"},
+        "taps_while_moving": {"v": "none: buttons Interactable false from the first frame of the slide until home", "p": "opinion", "date": "2026-11-19"}
+      },
+      "close": {
+        "from_scale": {"v": 1.0, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "to_scale": {"v": 0.9, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "duration_s": {"v": 0.12, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "easing": {"v": "Quad/In", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "overshoot": {"v": false, "p": "measured", "src": "60 fps captures of live games, frame by frame; no overshoot, no wind-up", "date": "2026-11-19"},
+        "measured_s": {"v": [0.1, 0.3], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "of_open_share": {"v": [0.35, 0.6], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "hud_back_s": {"v": 0.25, "p": "opinion", "src": "PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "hud_back_easing": {"v": "Quad/Out", "p": "opinion", "src": "PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "hud_back_order": {"v": "starts with the close; reverse order, top first", "p": "opinion", "src": "PanelStage moves all layers at once", "date": "2026-11-19"},
+        "touch_controls_back": {"v": "when the close starts", "p": "opinion", "src": "PanelStage default (scripts/panel_stage.luau)", "date": "2026-11-19"},
+        "interrupt": {"v": "stop the running tweens and tween from the current values to the new targets; never snap to the end state first; keep the full times", "p": "opinion", "date": "2026-11-19"}
+      },
+      "reduced_motion": {
+        "scale_and_slide": {"v": "instant, or a Linear fade of 0.1 s or less", "p": "opinion", "src": "the setting (GuiService.ReducedMotionEnabled) is documented; listen for changes", "date": "2026-11-19"},
+        "fade_max_s": {"v": 0.1, "p": "opinion", "date": "2026-11-19"},
+        "overshoot": {"v": false, "p": "opinion", "date": "2026-11-19"},
+        "stagger": {"v": false, "p": "opinion", "date": "2026-11-19"},
+        "dim_stays": {"v": true, "p": "opinion", "src": "the dim is state, not motion", "date": "2026-11-19"}
+      }
+    },
+    "hud": {
+      "rules": {
+        "entrance_s": {"v": [0.133, 0.27], "p": "measured", "src": "60 fps captures of live games, frame by frame; routine UI", "date": "2026-11-19"},
+        "entrance_easing": {"v": ["Quad/Out", "Exponential/Out"], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "hero_moment_over_s": {"v": 0.4, "p": "measured", "src": "60 fps captures of live games, frame by frame; an entrance longer than this is for a hero moment only", "date": "2026-11-19"},
+        "exit_of_entrance_share": {"v": [0.35, 0.6], "p": "measured", "src": "60 fps captures of live games, frame by frame; a hard cut is fine for routine UI", "date": "2026-11-19"},
+        "overshoot": {"v": "Back/Out on pops only; none on toasts, fills, counters or closes", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "overshoot_live_share": {"v": [0.01, 0.05], "p": "measured", "src": "60 fps captures of live games, frame by frame; of the element's size; Roblox Back/Out overshoots about 0.1 of the travel", "date": "2026-11-19"},
+        "count_s": {"v": [0.33, 0.85], "p": "measured", "src": "60 fps captures of live games, frame by frame; any size of change", "date": "2026-11-19"},
+        "count_max_s": {"v": 1.0, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "flash_on_frames": {"v": 1, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "flash_decay_s": {"v": [0.33, 0.53], "p": "measured", "src": "60 fps captures of live games, frame by frame; Quad/Out or Exponential/Out", "date": "2026-11-19"},
+        "stagger_grid_item_s": {"v": [0.05, 0.083], "p": "measured", "src": "60 fps captures of live games, frame by frame; dense grid", "date": "2026-11-19"},
+        "stagger_card_s": {"v": [0.117, 0.15], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "stagger_group_max_s": {"v": 0.6, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "animated_items_max": {"v": 12, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "idle_glow_brightness_share": {"v": 0.07, "p": "measured", "src": "60 fps captures of live games, frame by frame; added brightness", "date": "2026-11-19"},
+        "idle_glow_period_s": {"v": 2.1, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "idle_featured_item_move_max_px": {"v": 1, "p": "measured", "src": "60 fps captures of live games, frame by frame; under; no large bob, no spin on HUD icons", "date": "2026-11-19"},
+        "reduced_motion": {"v": "scales and slides instant or a Linear fade of 0.1 s or less; no flashes, loops or shakes; counts 0.3 s or less", "p": "opinion", "src": "the setting (GuiService.ReducedMotionEnabled) is documented; the values are judgment", "date": "2026-11-19"}
+      },
+      "counters": {
+        "count_up": {
+          "duration_s": {"v": 0.65, "p": "measured", "src": "60 fps captures of live games, frame by frame; HUD cash counter", "date": "2026-11-19"},
+          "easing": {"v": "Quart/Out", "p": "measured", "src": "60 fps captures of live games, frame by frame; HUD cash counter", "date": "2026-11-19"}
+        },
+        "count_up_popup": {
+          "duration_s": {"v": 0.85, "p": "measured", "src": "60 fps captures of live games, frame by frame; popup amount", "date": "2026-11-19"},
+          "easing": {"v": "Cubic/Out", "p": "measured", "src": "60 fps captures of live games, frame by frame; popup amount", "date": "2026-11-19"}
+        },
+        "count_up_results": {
+          "duration_s": {"v": [0.33, 0.83], "p": "measured", "src": "60 fps captures of live games, frame by frame; results rows; Linear when the count is the show", "date": "2026-11-19"},
+          "easing": {"v": "Linear", "p": "measured", "src": "60 fps captures of live games, frame by frame; results rows", "date": "2026-11-19"}
+        },
+        "small_pickup": {"v": "no count: swap the number in the same frame", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "bump": {
+          "default": {"v": "none: most measured counters do not bump", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "to_scale": {"v": 1.05, "p": "measured", "src": "one live game, 60 fps capture; UIScale; on a discrete arrival only, never during a count", "date": "2026-11-19"},
+          "total_s": {"v": 0.065, "p": "measured", "src": "one live game, 60 fps capture; out and back", "date": "2026-11-19"}
+        },
+        "suffix_change": {"v": "switch K, M, B during the count as the value crosses it; no extra effect", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "digits": {"v": "equal-width digits, or right-aligned in a fixed box", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "timer_digits": {"v": "swap once a second, no tween", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+      },
+      "fly_to_counter": {
+        "burst_icons": {"v": [9, 12], "p": "measured", "src": "one live game, 60 fps capture; 12 in about 0.15 s", "date": "2026-11-19"},
+        "burst_s": {"v": [0.15, 0.18], "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+        "burst_easing": {"v": "Exponential/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+        "scatter_px": {"v": [40, 90], "p": "opinion", "date": "2026-11-19"},
+        "flight_s": {"v": 0.68, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+        "flight_easing": {"v": "Quad/In", "p": "measured", "src": "one live game, 60 fps capture; slow start, fast arrival", "date": "2026-11-19"},
+        "flight_distance_width_share": {"v": 0.43, "p": "measured", "src": "one live game, 60 fps capture; about", "date": "2026-11-19"},
+        "flight_time_rule": {"v": "clamp(0.25 + 0.0006 x distance, 0.38, 0.7) s, distance in px on a 1080 px tall screen", "p": "opinion", "date": "2026-11-19"},
+        "launch_stagger_s": {"v": [0.015, 0.05], "p": "measured", "src": "one live game, 60 fps capture; the measured game launched one a frame, about 30 icons", "date": "2026-11-19"},
+        "counter": {"v": "counts in parallel, not in step with the arrivals", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+        "last_arrival_after_burst_s": {"v": 1.1, "p": "measured", "src": "one live game, 60 fps capture; about", "date": "2026-11-19"},
+        "live_icons_max": {"v": 12, "p": "opinion", "src": "phones; one reused pool", "date": "2026-11-19"},
+        "trail_on_low_quality": {"v": false, "p": "opinion", "date": "2026-11-19"}
+      },
+      "world_numbers": {
+        "damage": {
+          "in_frames": {"v": 1, "p": "measured", "src": "one live game, 60 fps capture; appears at full size", "date": "2026-11-19"},
+          "hold_s": {"v": 0.23, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "drift_px": {"v": 8, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "out_s": {"v": 0.31, "p": "measured", "src": "one live game, 60 fps capture; breaks up or fades; no slow float upward", "date": "2026-11-19"},
+          "out_easing": {"v": "Quad/In", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        },
+        "stat_text": {
+          "from_scale": {"v": 0.8, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "to_scale": {"v": 1.0, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "pop_s": {"v": 0.1, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "overshoot": {"v": false, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "change_punch_scale": {"v": 1.05, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "change_punch_s": {"v": 0.065, "p": "measured", "src": "one live game, 60 fps capture; out and back", "date": "2026-11-19"}
+        },
+        "high_fire_rate": {"v": "no scale-in per hit; show the number at full size", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+        "combo_text": {
+          "in_max_s": {"v": 0.5, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "wipe_s": {"v": 0.23, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "wipe_easing": {"v": "Exponential/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "settle_from_scale": {"v": 1.15, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "settle_s": {"v": 0.34, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "settle_easing": {"v": "Back/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "hold_s": {"v": 3, "p": "measured", "src": "one live game, 60 fps capture; about", "date": "2026-11-19"},
+          "bounce_while_holding": {"v": false, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        }
+      },
+      "bars": {
+        "stat_fill": {
+          "easing": {"v": "Linear", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "duration_s": {"v": [1.0, 1.1], "p": "measured", "src": "one live game, 60 fps capture; per bar", "date": "2026-11-19"},
+          "sequence_gap_s": {"v": 1.2, "p": "measured", "src": "one live game, 60 fps capture; several bars fill one after another", "date": "2026-11-19"},
+          "active_row_scale": {"v": 1.4, "p": "measured", "src": "one live game, 60 fps capture; about, while it fills", "date": "2026-11-19"}
+        },
+        "hold_to_confirm": {
+          "fill_s": {"v": 2.3, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "easing": {"v": "Quad/In", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "full_hold_s": {"v": 0.28, "p": "measured", "src": "60 fps captures of live games, frame by frame; before the result", "date": "2026-11-19"}
+        },
+        "timing_marker": {
+          "in_s": {"v": 0.1, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "motion_easing": {"v": "Quad/In", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        },
+        "hp_loss": {
+          "front_bar": {"v": "snaps to the new value in 1 frame", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "ghost_delay_s": {"v": 0.25, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "ghost_shrink_s": {"v": 0.3, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "ghost_easing": {"v": "Quad/Out", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+        },
+        "xp_level_up": {
+          "fill_easing": {"v": "Linear", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "flash_on_frames": {"v": 1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "flash_decay_s": {"v": 0.33, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "reset": {"v": "to 0 in the frame the level number changes, then fill the rest", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+        }
+      },
+      "buttons": {
+        "press_forms": {"v": ["no scale: brightness steps to 0.67 while held, 0.083 s white flash (+27%) on release", "nothing at all"], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "press_held_brightness_scale": {"v": 0.67, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "release_flash_s": {"v": 0.083, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+        "release_flash_brightness_share": {"v": 0.27, "p": "measured", "src": "60 fps captures of live games, frame by frame; added brightness", "date": "2026-11-19"},
+        "squash": {
+          "to_scale": {"v": 0.94, "p": "opinion", "src": "not seen in any clip", "date": "2026-11-19"},
+          "down_s": {"v": 0.06, "p": "opinion", "date": "2026-11-19"},
+          "down_easing": {"v": "Quad/Out", "p": "opinion", "date": "2026-11-19"},
+          "back_s": {"v": 0.12, "p": "opinion", "date": "2026-11-19"},
+          "back_easing": {"v": "Back/Out", "p": "opinion", "date": "2026-11-19"}
+        },
+        "pending_s": {"v": 0.32, "p": "measured", "src": "one live game, 60 fps capture; high confidence; a dark pending state, then the new state (disabled or cooling down)", "date": "2026-11-19"},
+        "cooldown": {
+          "sweep": {"v": "dark overlay cleared clockwise from 12 o'clock", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "easing": {"v": "Linear", "p": "opinion", "src": "no clip measured; starting value; so the time left reads true", "date": "2026-11-19"},
+          "seconds": {"v": "whole seconds while more than 1 s is left, one hard tick a second", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+        },
+        "ready": {
+          "peak_scale": {"v": 1.1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "duration_s": {"v": 0.2, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "easing": {"v": "Back/Out", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "flash_on_frames": {"v": 1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "flash_decay_s": {"v": 0.33, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+        },
+        "hover_desktop": {
+          "to_scale": {"v": [1.02, 1.15], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "in_s": {"v": [0.1, 0.17], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "brightness_gain_share": {"v": 0.16, "p": "measured", "src": "60 fps captures of live games, frame by frame; the other form: no scale", "date": "2026-11-19"},
+          "brightness_in_s": {"v": 0.11, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "out_s": {"v": [0.06, 0.16], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "touch": {"v": "no hover; the press gives the feedback", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+        },
+        "selected_ring": {
+          "from_scale": {"v": 0.93, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "to_scale": {"v": 1.0, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "duration_s": {"v": 0.133, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "easing": {"v": "Quad/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "old_ring": {"v": "goes at once", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        }
+      },
+      "toasts": {
+        "text_toast": {
+          "fade_in_s": {"v": 0.4, "p": "measured", "src": "one live game, 60 fps capture; low confidence", "date": "2026-11-19"},
+          "hold_s": {"v": 2, "p": "measured", "src": "one live game, 60 fps capture; low confidence", "date": "2026-11-19"},
+          "fade_out_s": {"v": 0.17, "p": "measured", "src": "one live game, 60 fps capture; low confidence", "date": "2026-11-19"},
+          "slide": {"v": false, "p": "measured", "src": "one live game, 60 fps capture; low confidence", "date": "2026-11-19"}
+        },
+        "band_toast": {
+          "slide_in_s": {"v": 0.358, "p": "measured", "src": "one live game, 60 fps capture; from the left edge", "date": "2026-11-19"},
+          "easing": {"v": "Quart/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "overshoot": {"v": false, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "hold_min_s": {"v": 2, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        },
+        "call_to_action": {
+          "drop_s": {"v": 0.2, "p": "measured", "src": "one live game, 60 fps capture; from the top", "date": "2026-11-19"},
+          "overshoot_of_travel_share": {"v": 0.24, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "rebound_s": {"v": 0.2, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "stays": {"v": "until tapped", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "only_toast_that_overshoots": {"v": true, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        },
+        "result_banner": {
+          "from_width_share": {"v": 0.08, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "duration_s": {"v": 0.4, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "easing": {"v": "Quad/Out", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "rise_px": {"v": 34, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+        },
+        "level_up_banner": {
+          "unfold_s": {"v": 0.6, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "unfold_easing": {"v": "Back/Out", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "unfold_overshoot_share": {"v": 0.025, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "lead_flash_s": {"v": 0.06, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "hard_pop_s": {"v": 0.07, "p": "measured", "src": "one live game, 60 fps capture; the other form", "date": "2026-11-19"},
+          "gold_flash_s": {"v": 0.13, "p": "measured", "src": "one live game, 60 fps capture; with the hard pop", "date": "2026-11-19"},
+          "particles_outlive_s": {"v": 1, "p": "measured", "src": "60 fps captures of live games, frame by frame; about", "date": "2026-11-19"}
+        },
+        "subtitle": {
+          "box_in_frames": {"v": 1, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "text_fade_in_s": {"v": 0.09, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "type_chars_per_s": {"v": [45, 90], "p": "measured", "src": "one live game, 60 fps capture; the other form: typed", "date": "2026-11-19"},
+          "out_s": {"v": 0.1, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "out_easing": {"v": "Linear", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        },
+        "tooltip": {
+          "card_in_frames": {"v": 1, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "text_fade_in_s": {"v": 0.08, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "drop_px": {"v": 82, "p": "measured", "src": "one live game, 60 fps capture; the other form", "date": "2026-11-19"},
+          "drop_s": {"v": 0.5, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "drop_easing": {"v": "Quad/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "exit": {"v": "hard cut", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+        },
+        "tutorial_focus": {
+          "world_brightness_share": {"v": 0.1, "p": "measured", "src": "one live game, 60 fps capture; about", "date": "2026-11-19"},
+          "dim_s": {"v": 0.4, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "dim_easing": {"v": "Exponential/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "undim_s": {"v": 0.3, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "undim_easing": {"v": "Quad/Out", "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        },
+        "quest_tracker": {
+          "progress": {"v": "counts like a counter", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "step_flash_on_frames": {"v": 1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "step_flash_decay_s": {"v": 0.33, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "text_fade_out_s": {"v": 0.1, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "text_fade_in_s": {"v": 0.2, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+        }
+      },
+      "badges": {
+        "alert": {
+          "peak_scale": {"v": 1.1, "p": "opinion", "src": "no clip measured; starting value; UIScale", "date": "2026-11-19"},
+          "each_way_s": {"v": 0.6, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "easing": {"v": "Sine/InOut", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "period_s": {"v": 2, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "pulsing_max": {"v": 2, "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "also_fits": {"v": "a wobble or a colour pulse", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"},
+          "text_mark": {"v": "a pulse is continuous scaling: draw the mark as an image, or wobble or pulse colour; never tween Size", "p": "opinion", "src": "no clip measured; starting value", "date": "2026-11-19"}
+        },
+        "glint": {
+          "cross_s": {"v": [0.33, 0.5], "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "every_s": {"v": 4, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "on": {"v": "hero items only", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+        },
+        "glow_breathing": {
+          "brightness_gain_share": {"v": 0.07, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "each_way_s": {"v": 1.05, "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"},
+          "easing": {"v": "Sine/InOut", "p": "measured", "src": "60 fps captures of live games, frame by frame", "date": "2026-11-19"}
+        },
+        "sparkle": {
+          "life_s": {"v": 0.25, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "peak_at_s": {"v": 0.1, "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"},
+          "every_s": {"v": [0.15, 0.25], "p": "measured", "src": "one live game, 60 fps capture", "date": "2026-11-19"}
+        }
+      },
+      "whole_hud": {
+        "appear_no_ui_beat_s": {"v": 0.63, "p": "measured", "src": "two live games, 60 fps captures; every group in one frame after this beat", "date": "2026-11-19"},
+        "appear_cross_fade_s": {"v": 0.56, "p": "measured", "src": "two live games, 60 fps captures; the other form", "date": "2026-11-19"},
+        "phone_live_tweens_max": {"v": 40, "p": "opinion", "src": "about; working limit, not from Roblox docs", "date": "2026-11-19"},
+        "pause_loops_while_hidden": {"v": true, "p": "opinion", "date": "2026-11-19"},
+        "pooled_particle_images_max": {"v": 24, "p": "opinion", "src": "working limit, not from Roblox docs", "date": "2026-11-19"}
+      }
     }
   }
 }

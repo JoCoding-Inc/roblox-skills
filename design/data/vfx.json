@@ -1,6 +1,6 @@
 {
   "type": "vfx",
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "title": "Effects: rarity tier ladder, aura and particle limits, feedback tiers, skill and attack effect rules, VFX house rules",
   "scope": "every genre with rewards, rolls or effects",
   "sources": ["roblox-fun-effects/SKILL.md#3,4,5,9", "roblox-feel-audio-vfx/SKILL.md#3,3b,3c,3d,3e,3f,3g,5"],

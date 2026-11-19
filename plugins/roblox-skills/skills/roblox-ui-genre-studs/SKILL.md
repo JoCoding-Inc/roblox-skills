@@ -133,6 +133,7 @@ Pair with `roblox-engine-2026` (flex layouts, input) and `roblox-ui-layout` (pla
 - Float images only: 10 px or more each way over 0.9-1.2 s.
 - Scale every UIStroke by viewport height / 1080 (minimum 1), or on text set `UIStroke.StrokeSizingMode` to `ScaledSize` so the stroke follows the font size. Never tween stroke `Thickness`. Add `UITextSizeConstraint` to TextScaled labels.
 - Animate UIScale, not Size. Honor `GuiService.ReducedMotionEnabled`.
+- These values are the house style (judgment); values measured on live games for panels and each HUD element (counters, bars, buttons, toasts, badges) are in `roblox-ui-mobile` sections 4 and 4a.
 
 ## 6. World labels (BillboardGui)
 
