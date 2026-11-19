@@ -1,7 +1,7 @@
 ---
 name: roblox-ui-mobile
-description: "Use when designing, building or reviewing Roblox UI for phones first, then tablet and desktop: which Studio Device Simulator presets to test on and why (player share, the smallest real safe frame), a phone-first build order, HUD placement around the touch controls (when buttons may sit in the thumbstick start area, action buttons placed from the jump button), how a panel opens (size, dim or blur behind it, which HUD stays or slides off, touch controls, close button, grid and tabs, timing) with a tested PanelStage module, the on-screen keyboard, what changes on tablet and desktop, and a device sweep script. Also when agents test on an old small preset such as iPhone 7 or only on desktop, a panel fills the whole phone screen or hides the currency, a shop opens over the HUD, a TextBox ends under the keyboard, action buttons collide with the jump button on tablets, or MCP clicks miss in the Device Simulator. Zone px, size floors and insets stay in roblox-ui-layout; the genre look in roblox-ui-genre-studs and roblox-ui-genre-scifi."
-last_reviewed: 2026-11-13
+description: "Use when designing, building or reviewing Roblox UI for phones first, then tablet and desktop: which Device Simulator presets to test, a phone-first build order, HUD placement around the thumbstick and jump button, how a panel opens and closes (size, dim or blur, which HUD slides off, close button, grid, tabs, timing) with a tested PanelStage module, measured HUD motion (counters, coin fly-to-counter, damage numbers, HP and XP bars, button press and cooldown, toasts, badges), the on-screen keyboard, tablet, desktop, a device sweep script. Also when agents test on an old small preset such as iPhone 7 or only on desktop, a panel fills the phone screen, hides the currency or opens over the HUD, a TextBox ends under the keyboard, action buttons hit the jump button on tablets, MCP clicks miss in the Device Simulator, or a counter, cooldown, HP bar, toast or badge animation is slow, jittery or overdone. Zone px and floors stay in roblox-ui-layout; the genre look in roblox-ui-genre-studs and roblox-ui-genre-scifi."
+last_reviewed: 2026-11-19
 sources:
   - Studio 0.747 Device Simulator, measured 2026-11-12 through Studio MCP execute_luau and user_mouse_input (Play, Client datamodel) on 16 presets (safe frames, touch controls, keyboard, ViewportDisplaySize); runs of scripts/panel_stage.luau and roblox-ui-layout/scripts/ui_device_check.luau; tap pass-through measured by the RoDesigner kit build (Studio 0.747, Play, Galaxy A06 preset touch and desktop mouse, 2026-11-16; result file read by us, not re-run)
   - Roblox client scripts, PlayerModule ControlModule DynamicThumbstick (read from PlayerScripts in Studio 0.747); EmulatedDevices.xml (mirror MaximumADHD/Roblox-Client-Tracker branch roblox at b0b3ae8, Studio 0.746)
@@ -10,6 +10,7 @@ sources:
   - Roblox FY2025 Form 10-K and Q3 2026 Form 10-Q (users and revenue by region); Counterpoint Research, best-selling smartphones of 2025; Roblox help article 203625474 (mobile system requirements, updated 2026-11-05)
   - RoDesigner research library, 2026-11-12, 84 phone frames with an open panel from 28 top games, 45 phone HUD frames from 29 top games, 50 tablet frames from 17 games and 24 row-list panels from 16 games (frames private; numbers and method only)
   - original (test set, recipes and thresholds marked judgment)
+  - original motion reads, 2026-11-19 (60 fps captures of five live games and 33 more UI clips, measured frame by frame; clips private, numbers and method only)
 ---
 
 # Mobile-first UI (phone, tablet, desktop)
@@ -231,6 +232,142 @@ Sizes that reproduce the measured shares (tested in the simulator; the caps are 
 With the grid panel open on a phone the left menu column stays, and the top currency row and the right action buttons slide off, so the balance goes in the panel header.
 
 The tablet and list numbers rest on few frames (tablet panels 20 frames from 8 games, phone row lists 6 from 3), so treat these caps as a starting point: a panel that reads well outside them is not a violation.
+
+**Open and close, frame by frame.** One live simulator measured at 60 fps (three panels, 2026-11-19), added to the survey above; basis per row as in section 4a. Where it differs from the Timing row: the 0.2 s there is the median of three tagged clips and `PanelStage`'s default, the 250 ms here is one game read frame by frame; both sit inside the measured 133-300 ms.
+
+| Part | Value | Basis |
+|---|---|---|
+| Panel open | `UIScale` 0.90 -> 1.00 in 250 ms Back Out, growing from the panel's centre (AnchorPoint 0.5, 0.5; the `UIScale` on a plain Frame wrapper). Back Out alone peaks about +1% of the panel's size at 0.58 of the time: add no more. Other measured forms run from 133 ms Quad Out (snappy) to 300 ms Back Out (chunky) | measured, one game |
+| Slide up while scaling (optional) | Start 8% of the panel's height lower, same 250 ms Back Out | measured, one game |
+| Fade | None: no tagged clip fades the panel | measured |
+| Never | Slower than 400 ms; a hero panel that pops with no tween | measured |
+| Full-screen page (upgrades, skills) | No scale pop. The dark backdrop fades in over 200 ms Quad Out, then the plate (67 ms) and the rows, 130 ms each at 50 ms steps, at most 12 animated rows; the whole entrance within 600 ms | measured |
+| Dim | Black to 0.5 in 200 ms Quad Out from the panel's first frame (`PanelStage`); keep it at 40% or darker. Measured dims are in place within 100-180 ms | judgment (200 ms, 40%); measured (100-180 ms) |
+| Blur (optional) | `BlurEffect.Size` 0 -> 16 in 100-120 ms Quad Out with a 0.25 dim; skip it on low graphics quality. `PanelStage` blends it in over 200 ms | measured (117 ms in one clip); judgment (the rest) |
+| HUD that leaves | Cut or faded out 67-150 ms after the panel's first frame; none slid (table above) | measured, one game |
+| Which groups leave | A window panel: only the groups it covers, each off its nearest edge (menu column left, action buttons right, bars down, a top tracker up). A full-screen page: every group. Counters stay on both, or the balance goes in the panel header (measured, table above). The jump button and thumbstick are the engine's and cannot slide: hide them with `GuiService.TouchControlsEnabled` | judgment |
+| Slide out | Until the whole group is off screen: its far edge plus a margin (`PanelStage` adds 80 px for a notch margin), from `AbsolutePosition` and `AbsoluteSize`, divided by the `UIScale` above it. 180 ms Quad In, starting on the panel's first frame, so the HUD is gone before the panel settles | judgment (`PanelStage`, tested on 7 presets); measured, one game (the start) |
+| Order | Bottom first, then the sides, the top last: 0, 20 and 40 ms apart, all within 150 ms. `PanelStage` moves every covered layer at once | measured, one game (groups gone at 67, 83, 100 and 150 ms) |
+| A group that cannot leave | Behind a notch or on a wide tablet: fade it to 0 in 100 ms instead of sliding. No fade on a full slide | judgment |
+| Taps while moving | A group that is moving or off screen takes no taps: set its buttons' `Interactable` to false from the first frame of the slide until it is home | judgment |
+| Close | `UIScale` 1.00 -> 0.90 in 120 ms Quad In, then hide; no overshoot, no wind-up. Measured closes take 100-300 ms, 0.35-0.6 of their open | measured |
+| HUD back | 250 ms Quad Out to home, starting with the close, in the reverse order (top first); touch controls back on when the close starts | judgment (`PanelStage`, which moves all layers at once) |
+| Dim after close | Released over 400-500 ms Quad Out once the panel is gone. `PanelStage` releases it over 200 ms from the start of the close, so it still ends after the panel | measured; judgment (`PanelStage`) |
+| Close during the open | Stop the running tweens and tween from the current values to the close targets; never snap to the open end state first. The same for an open during a close. Keep the full 120 and 250 ms | judgment |
+| Reduced motion | Listen for changes of `GuiService.ReducedMotionEnabled`: every scale and slide is instant or a Linear fade of 100 ms or less, with no overshoot and no stagger. The dim stays: it is state, not motion | judgment (the setting: docs) |
+
+Check it on a 60 fps capture: count the frames of the open (at 0.2 s the panel settles at frame 12, at 250-300 ms at frames 15-18; the covered HUD is gone by frame 11); tap close at frame 5 of the open and the panel turns back from where it is; open one panel from another and the dim does not flicker; on the Galaxy A06 and a tablet preset every slid group leaves the screen completely; with Reduce Motion on nothing moves and every end state is the same.
+
+## 4a. HUD motion
+
+How each HUD element moves, measured frame by frame on 60 fps captures of five live games and on 33 more UI clips (2026-11-19). Times are in ms; easing names are `Enum.EasingStyle` and `Enum.EasingDirection` (Quad Out is style Quad, direction Out).
+
+| Basis | Means |
+|---|---|
+| measured | read frame by frame on several clips or games |
+| measured, one game | one live game, or a read of medium confidence |
+| judgment | no clip shows it; set from the measured rows around it |
+| not measured yet | no clip covered this case; a starting value. Capture your build at 60 fps and tune it |
+
+Panels and the HUD that leaves for them: section 4. A stud-style game may keep its house pop, button squash and count-up (`roblox-ui-genre-studs` section 5, judgment); the rows here are what live games were measured doing.
+
+**Rules for every element**
+
+| Rule | Value | Basis |
+|---|---|---|
+| Entrances are fast | Routine UI 133-270 ms, Quad or Exponential Out. Over 400 ms only for a hero moment | measured |
+| Exits are shorter | 0.35-0.6 of the entrance; a hard cut is fine for routine UI | measured |
+| Overshoot only on pops | Back Out on pops: live games overshoot 1-5% of the element's size, Roblox's Back Out about 10% of the travel. None on toasts, fills, counters or closes | measured |
+| Counts are short | 330-850 ms for any size of change, never over 1 s | measured |
+| Flash | On for 1 frame, then a 330-530 ms decay, Quad or Exponential Out; at most 3 a second (`roblox-feel-audio-vfx` section 3b) | measured |
+| Stagger | 50-83 ms between the items of a dense grid, 117-150 ms between cards; the whole group within 600 ms, at most 12 animated items | measured |
+| Idle motion is tiny | A glow breathes +7% brightness over a 2.1 s period; a featured item moves under 1 px. No large bob, no spin on HUD icons | measured |
+| Never tween | `TextSize`, `UIStroke.Thickness` or the `Size` of text: scale a `UIScale` instead (`roblox-ui-typography` section 4) | docs |
+| Reduced motion | With `GuiService.ReducedMotionEnabled`, scales and slides are instant or a Linear fade of 100 ms or less; no flashes, loops or shakes; counts take 300 ms or less | judgment (the setting: docs) |
+
+**Counters (currency, power, any stat readout)**
+
+| Event | Build to | Basis |
+|---|---|---|
+| Value goes up (reward, sell, claim) | Count from the old value to the new one in 650 ms Quart Out (fast start, short tail). Linear over 330-830 ms is the other measured form: Linear when the count is the show (a results screen), Quart or Cubic Out on the HUD | measured (HUD cash 650 ms Quart Out, a popup amount 850 ms Cubic Out, results rows Linear 330-830 ms) |
+| Small pickup (a coin, +1) | No count: swap the number in the same frame. Never hold the readout until a flight lands (`roblox-feel-audio-vfx` section 3b) | measured |
+| Bump on change | Most measured counters do not bump. If you want one: `UIScale` 1.00 -> 1.05 and back in 65 ms in all, on a discrete arrival only, never during a count | measured (no bump); measured, one game (the bump) |
+| Suffix change (K, M, B) | Switch the suffix during the count as the value crosses it, with no extra effect | measured |
+| Digits | Equal-width digits, or right-aligned in a fixed box, so the number does not jitter while counting (fonts: `roblox-ui-typography` section 6) | measured |
+| Timer digits | Swap once a second, no tween | measured, one game |
+
+**Currency flying to the counter**
+
+| Part | Build to | Basis |
+|---|---|---|
+| Burst | 9-12 icons leave the source in 150-180 ms, Exponential Out, scattered 40-90 px | measured, one game (12 bills in about 150 ms); judgment (the scatter) |
+| Flight | Each icon flies to the counter's icon in 680 ms Quad In (slow start, fast arrival), over about 0.43 of the screen width. For other distances: clamp(250 + 0.6 x distance, 380, 700) ms, with the distance in px on a 1080 px tall screen | measured, one game (the flight); judgment (the formula) |
+| Launch stagger | 15-50 ms between icons; the measured game launched one a frame, about 30 icons | measured, one game |
+| Counter | Counts in parallel (counters above), not in step with the arrivals; the last icon lands about 1.1 s after the burst | measured, one game |
+| Phones | At most 12 live icons, from one reused pool; no trail on low graphics quality | judgment |
+
+**Numbers over the world (+N, damage, stat gain)**
+
+| Event | Build to | Basis |
+|---|---|---|
+| Damage number | Appears at full size in 1 frame, holds 230 ms while drifting 8 px, then breaks up or fades over 310 ms Quad In. No slow float upward | measured, one game |
+| Stat or multiplier text | Pops 0.80 -> 1.00 in 100 ms with no overshoot; each later change punches +5% and returns in 65 ms | measured, one game |
+| High fire rate | Do not scale a number in on every hit; show it at full size | measured, one game |
+| Combo or streak text | Wipes in over 230 ms Exponential Out and settles 1.15 -> 1.00 over 340 ms Back Out, all within 500 ms; holds about 3 s, with no bounce while it holds | measured, one game |
+
+**Bars (HP, XP, level, progress)**
+
+| Event | Build to | Basis |
+|---|---|---|
+| Stat or XP bar fills to its value | Linear, about 1.0-1.1 s per bar; several bars fill one after another, 1.2 s apart, the active row scaled to about 1.4x while it fills | measured, one game |
+| Hold-to-confirm bar | Speeds up: 0 -> 100% over 2.3 s Quad In, then holds full for 280 ms before the result | measured |
+| Timing or power marker | Appears in 100 ms; moves faster and faster (Quad In) | measured, one game |
+| HP bar loses health | The front bar snaps to the new value in 1 frame; a lighter bar behind it waits 250 ms, then shrinks over 300 ms Quad Out (the late "ghost" bar of `roblox-feel-audio-vfx` section 3b) | not measured yet |
+| XP bar on a level up | Fills to full, Linear; a 1-frame white flash with a 330 ms decay; resets to 0 in the frame the level number changes; then fills the rest | not measured yet |
+
+**Skill and action buttons**
+
+| Event | Build to | Basis |
+|---|---|---|
+| Press | Two measured forms: no scale, a hard step to 0.67 of the brightness while held and an 83 ms white flash (+27%) on release; or nothing at all. A squash was not seen; if you want one, `UIScale` 1.00 -> 0.94 in 60 ms Quad Out and back in 120 ms Back Out | measured (both forms); judgment (the squash) |
+| After a press that starts something | A 320 ms dark "pending" state, then the new state (disabled or cooling down) | measured, one game |
+| Cooldown sweep | A dark overlay cleared clockwise from 12 o'clock at constant speed (Linear, so the time left reads true); whole seconds as a number while more than 1 s is left, ticking once a second with no tween | not measured yet |
+| Ready again | `UIScale` 1.00 -> 1.10 -> 1.00 in 200 ms Back Out, plus a 1-frame flash with a 330 ms decay | not measured yet |
+| Hover (desktop only) | Scale 1.02-1.15 in 100-170 ms, or +16% brightness in 110 ms with no scale; out in 60-160 ms. Touch has no hover: the press gives the feedback | measured |
+| Selected slot ring | Jumps to the new slot and grows 0.93 -> 1.00 in 133 ms Quad Out; the old ring goes at once | measured, one game |
+
+**Toasts, banners and prompts**
+
+| Kind | Build to | Basis |
+|---|---|---|
+| Plain text toast (no plate) | Fades in over 400 ms, holds 2 s, fades out over 170 ms; no slide | measured, one game (low confidence) |
+| Stat or level toast on a band | Slides in from the left edge in 358 ms Quart Out, no overshoot; holds over 2 s | measured, one game |
+| Call-to-action popup from the top | Drops in over 200 ms, overshoots by 24% of its travel and comes back in 200 ms; stays until tapped. The only toast that overshoots | measured, one game |
+| Win or result banner | Grows from 8% of its width to full in 400 ms Quad Out while rising 34 px | measured |
+| Level-up banner | Unfolds in 600 ms Back Out (2.5% overshoot) after a 60 ms lead flash, or hard-pops in 70 ms with a 130 ms gold flash; its particles outlive it by about 1 s | measured (unfold); measured, one game (hard pop) |
+| Subtitle or dialogue line | The box appears in 1 frame; the text fades in over 90 ms or types at 45-90 characters a second; out with a 100 ms Linear fade | measured, one game |
+| Tooltip or hint card | The card appears in 1 frame and its text fades in over 80 ms, or the card drops 82 px in 500 ms Quad Out; it leaves with a hard cut | measured (appear, cut); measured, one game (drop) |
+| Tutorial focus | The world dims to about 10% brightness in 400 ms Exponential Out, with a highlight on the target; back in 300 ms Quad Out | measured, one game |
+| Quest tracker update | The progress number counts like a counter; a completed step gets a 1-frame flash with a 330 ms decay on its row, then the row's text swaps with a 100 ms fade out and a 200 ms fade in | not measured yet |
+
+**Badges and idle attention**
+
+| Event | Build to | Basis |
+|---|---|---|
+| Alert badge ("!") | `UIScale` 1.00 -> 1.10 -> 1.00, 600 ms each way Sine InOut, one cycle every 2 s, at most 2 badges pulsing at once. A wobble or a colour pulse also fits. Never tween the badge's `Size`; a pulse is continuous scaling, so a "!" drawn as text steps between font sizes (`roblox-ui-genre-studs` section 5): draw the mark as an image, or wobble or pulse colour | not measured yet |
+| Card or button glint | A diagonal highlight crosses in 330-500 ms, once every 4 s, on hero items only | measured |
+| Glow breathing | +7% brightness, 1050 ms each way Sine InOut | measured |
+| Sparkle | Lives 250 ms (brightest at 100 ms); a new one every 150-250 ms | measured, one game |
+
+**The HUD as a whole**
+
+| Event | Build to | Basis |
+|---|---|---|
+| HUD appears after loading or a cutscene | Every group in one frame after a 630 ms beat with no UI, or a 560 ms cross-fade | measured, two games |
+| HUD leaves for a panel | Section 4 | |
+| Phone budget | About 40 live tweens at once; pause loops while their group is hidden; at most 24 pooled particle images | judgment (working limits, not from Roblox docs) |
+
+The rows marked not measured yet (HP bar loss, XP level up, cooldown sweep, ready pop, quest tracker update, badge pulse) have no measured clip behind them: none of the captured games showed them. Build them from the starting values, capture your build at 60 fps and count frames against the rules above.
 
 ## 5. Text entry and the keyboard
 
