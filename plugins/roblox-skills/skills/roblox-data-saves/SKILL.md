@@ -1,13 +1,13 @@
 ---
 name: roblox-data-saves
 description: "Use when planning, writing or reviewing Roblox player saves: what to store, DataStore layout, session locking, ProfileStore, retries, periodic and shutdown saves, schema versions, migrations, trading, leaderboards, badges, test cases, storage limits and deletion rules. Also when a design adds currency, inventory, progression, trading, a leaderboard, badges or settings; when data is lost, rolled back or duplicated; before a release that changes the save shape, reorders items, zones or tiers that saves refer to, or recomputes a stored value; when choosing between DataStore, MemoryStore and a module such as ProfileStore."
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-20
 sources:
   - https://create.roblox.com/docs/cloud-services/data-stores/best-practices
   - https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing (session locking)
   - https://create.roblox.com/docs/cloud-services/data-stores/error-codes-and-limits
   - https://madstudioroblox.github.io/ProfileStore/api/ (and ProfileStore.luau source, read 2026-11-03)
-  - https://create.roblox.com/docs/players/leaderboards
+  - https://create.roblox.com/docs/players/leaderboards (read 2026-11-20) and https://devforum.roblox.com/t/4832224 (staff update 2026-09-16, read 2026-11-20)
   - https://create.roblox.com/docs/production/publishing/badges
   - https://devforum.roblox.com/t/4739240 (unified Data Stores budget and 500 MB storage, live 2026-07-29)
   - original (checklists and test cases from our release gates)
@@ -90,7 +90,7 @@ Wally `lm-loleris/profilestore` 1.0.3 (no GitHub releases; last commit 2025-07-3
 | Need | Use | Notes |
 |---|---|---|
 | In-server ranking | `leaderstats` Folder (exact lowercase name) with `IntValue`/`NumberValue` children under the Player | Session only; values come from the save |
-| Persistent ranking (Friends, Global tabs of the PlayerList) | `DataStoreService:GetOrderedDataStore(name)`, one numeric score per player keyed by user id, registered in Creator Hub | **Beta** (since 2026-08-26): one active persistent leaderboard per experience. Your server writes the scores; Roblox only reads them. Validate scores server-side |
+| Persistent ranking (Friends, Global tabs of the PlayerList) | `DataStoreService:GetOrderedDataStore(name)`, one numeric score per player keyed by user id, registered in Creator Hub | "Fully released" per a staff update of 2026-09-16 (DevForum t/4832224; open beta from 2026-08-26), while the docs page (read 2026-11-20) still says beta with one active persistent leaderboard per experience. Your server writes the scores; Roblox only reads them. Validate scores server-side |
 | Custom top-N board | `OrderedDataStore:GetSortedAsync(false, pageSize)` | Cache the result and refresh every few minutes; never per player join |
 | Badges | `BadgeService:AwardBadgeAsync(userId, badgeId)` in `pcall`, server only; check `UserHasBadgeAsync` / `CheckUserBadgesAsync` first and `GetBadgeInfoAsync().IsEnabled` | Rate limit 50 + 35 x players per minute. 5 free badges per game per 24 h, then 100 Robux each. A badge is a progress funnel signal (`roblox-market-research` reads others' award counts) |
 
