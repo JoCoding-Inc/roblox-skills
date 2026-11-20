@@ -24,7 +24,7 @@ Run `roblox-game-pipeline` for the staged flow (questions, working mode, plan). 
 
 ## 0. Look up before you use (every session)
 
-The model's own API knowledge is older than Studio. At session start call the Studio MCP `list_skills` (Roblox ships `rbx-*` skills for docs search, device and network simulation, profiling, unit tests, debugging, analytics, Configs) and load the matching one before the task. Before writing code with an API that is new, beta, renamed, or listed in `roblox-engine-2026` section 6, read its page with `http_get` (`https://create.roblox.com/docs/reference/engine/classes/<Class>.md`, `query` for the member). If the page does not have it, probe in Studio with `pcall` before relying on it, and say it is unverified. These skills hold workflow, judgment, policy, market data and pitfalls; they do not replace the reference.
+The model's own API knowledge is older than Studio. At session start call the Studio MCP `list_roblox_skills` (its name in the tool list read 2026-11-20; older builds called it `list_skills`; Roblox ships `rbx-*` skills for docs search, device and network simulation, profiling, unit tests, debugging, analytics, Configs) and load the matching one with `get_roblox_skill` before the task. Before writing code with an API that is new, beta, renamed, or listed in `roblox-engine-2026` section 6, read its page with `http_get` (`https://create.roblox.com/docs/reference/engine/classes/<Class>.md`, `query` for the member). If the page does not have it, probe in Studio with `pcall` before relying on it, and say it is unverified. These skills hold workflow, judgment, policy, market data and pitfalls; they do not replace the reference.
 
 Doc map (official, no login; "never guess a URL", a wrong path returns an HTML 404):
 
