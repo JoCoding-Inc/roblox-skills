@@ -524,7 +524,7 @@ FxRecipe.recipes = {
 	skill_eruption = {
 		palette = "fire",
 		anchor = "feet",
-		duration = 2.8,
+		duration = 3.4,
 		layers = {
 			-- tell 0-0.4
 			L.floorRing({ name = "Closing", at = 0, dur = 0.4, r0 = 7, r1 = 2, w0 = 0.15, w1 = 0.5, twin = false }),
@@ -536,26 +536,28 @@ FxRecipe.recipes = {
 			L.core({ at = 0.4, up = 1.5, count = 3 }),
 			-- a hot spot on the floor: bright on the contact frame, then down to a tenth within 0.13 s (held brighter, it drew a
 			-- white disc inside the rings), flickering under the fire and cooling with it
-			L.light({ name = "HotSpot", at = 0.4, up = 0.5, peak = 8, range = 7, dur = 1.8, shape = { { 0, 1 }, { 0.03, 0.3 }, { 0.07, 0.1 }, { 0.6, 0.14 }, { 1, 0 } }, flicker = 0.35, color = { { 0, "hot" }, { 0.15, "hot" }, { 0.5, "mid" }, { 1, "mid" } } }),
+			L.light({ name = "HotSpot", at = 0.4, up = 0.5, peak = 8, range = 7, dur = 2.6, shape = { { 0, 1 }, { 0.021, 0.3 }, { 0.048, 0.1 }, { 0.415, 0.14 }, { 0.7, 0.07 }, { 1, 0 } }, flicker = 0.35, color = { { 0, "hot" }, { 0.104, "hot" }, { 0.346, "mid" }, { 0.69, "mid" }, { 1, "deep" } } }),
 			L.scorch({ at = 0.42, size = { { 0, 8 }, { 0.2, 13 }, { 1, 14 } }, life = { 1.4, 1.4 } }),
 			L.floorGlow({ at = 0.4, color = "hot", size = { { 0, 6 }, { 1, 17 } } }),
 			L.fireball({ at = 0.42, up = 1.5, count = 7, emission = 1, size = { { 0, 3, 0.5 }, { 1, 7, 0.8 } } }),
 			-- broken arcs, not clean circles (a clean ring read as a UI ring or a target); chips in a wide cone, hot not white
 			-- (40 white streaks in a 28 degree cone read as a bundle of needles)
-			L.floorRing({ at = 0.42, dur = 0.4, r0 = 1, r1 = 11, w0 = 1.7, w1 = 0.15, segments = 20, times = 2, every = 0.11, color = { "hot", "mid" }, twin = false, arcs = 5 }),
+			L.floorRing({ at = 0.42, dur = 0.4, r0 = 1, r1 = 11, w0 = 1.7, w1 = 0.15, segments = 20, times = 2, every = 0.11, color = { "hot", "mid" }, twin = false, arcs = 5, alpha = { { 0, 0.45 }, { 0.2, 0.05 }, { 0.4, 0.15 }, { 1, 1 } } }),
 			L.debris({ at = 0.43, count = 26, speed = { 30, 75 }, spread = 45, accel = { 0, -95, 0 }, squash = { { 0, 1 }, { 1, 0.4 } }, size = { { 0, 0.4, 0.1 }, { 1, 0.15 } }, color = { { 0, "hot" }, { 0.4, "mid" }, { 1, "deep" } } }),
 			L.sparks({ at = 0.43, up = 1, count = 30, speed = { 30, 60 }, spread = 75, drag = 5, accel = { 0, -30, 0 } }),
 			L.dust({ at = 0.45, count = 20, speed = { 14, 24 } }),
 			L.light({ at = 0.4, up = 2, peak = 7, range = 15.4, dur = 0.4, color = { { 0, "hot" }, { 1, "mid" } } }),
 			-- fountain 0.42-1.4
-			L.flames({ from = 0.42, to = 1.35, emission = 1 }),
+			L.flames({ from = 0.42, to = 1.35, emission = 1, settle = 0.4 }),
 			L.flames({ name = "FlamesWide", from = 0.45, to = 1.1, rate = 22, disc = { 4.5, 1 }, speed = { 10, 18 }, emission = 1, size = { { 0, 1.2, 0.3 }, { 1, 3, 0.5 } } }),
 			L.debris({ name = "Spit", kind = "stream", from = 0.5, to = 1.3, rate = 45, disc = { 2, 1 }, speed = { 30, 55 }, spread = 22, accel = { 0, -80, 0 } }),
 			-- amber over the fountain: from hot to the fire's mid as it dies, flickering, out with the last flames
 			L.light({ name = "FountainLight", at = 0.6, up = 3, peak = 3.5, range = 12.1, dur = 1.6, hold = true, ramp = { 0.15, 0.45 }, flicker = 0.15, color = { { 0, "hot" }, { 1, "mid" } } }),
-			-- tail
-			L.flames({ name = "Dying", from = 1.3, to = 1.85, rate = 16, disc = { 1.5, 1 }, speed = { 10, 18 }, emission = 1, size = { { 0, 1, 0.2 }, { 1, 2.4, 0.4 } } }),
-			L.smoke({ kind = "stream", name = "Plume", from = 0.6, to = 1.7, rate = 6, up = 2, disc = { 2.5, 1 }, speed = { 6, 11 }, spread = 14, life = { 0.7, 1.0 }, size = { { 0, 2, 0.4 }, { 1, 5, 0.8 } }, alpha = { { 0, 1 }, { 0.15, 0.5 }, { 1, 1 } } }),
+			-- tail: the fountain sinks to its base (settle) and a bed of low flames outlasts it; coals cool on the floor and the
+			-- hot spot dies after the fire, so it ends in steps (everything gone in one tenth of a second read as a cut)
+			L.flames({ name = "Dying", from = 0.9, to = 1.95, rate = 22, disc = { 2.4, 1 }, up = 0.3, speed = { 3, 8 }, life = { 0.3, 0.45 }, emission = 1, size = { { 0, 1.1, 0.2 }, { 1, 2, 0.3 } }, settle = 0.5, ramp = { 0.2, 0.45 } }),
+			L.smoke({ kind = "stream", name = "Plume", from = 0.6, to = 2.5, rate = 6, up = 2, disc = { 2.5, 1 }, speed = { 6, 11 }, spread = 14, life = { 0.7, 1.3 }, size = { { 0, 2, 0.4 }, { 1, 5, 0.8 } }, alpha = { { 0, 1 }, { 0.15, 0.5 }, { 1, 1 } }, settle = 0.45, ramp = { 0.15, 0.5 } }),
+			L.embers({ kind = "stream", name = "Coals", from = 0.5, to = 1.7, rate = 22, slot = "glow", along = false, squash = false, rotation = 0, up = 0.2, disc = { 3.2, 1 }, life = { 1.0, 1.7 }, speed = { 0.05, 0.1 }, spread = 0, drag = 0, accel = { 0, 0, 0 }, size = { { 0, 0.26, 0.08 }, { 0.7, 0.2 }, { 1, 0.1 } }, alpha = { { 0, 0.15 }, { 0.75, 0.35 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.45, "deep" }, { 1, "deep" } }, brightness = 2, z = 0.3 }),
 			-- embers as small round dots: streaks rising slowly read as sticks standing on the floor
 			L.embers({ from = 0.5, to = 1.85, rate = 70, slot = "glow", along = false, squash = false, rotation = 0, disc = { 5, 1 }, up = 0.5, speed = { 8, 18 }, spread = 25, size = { { 0, 0.2, 0.06 }, { 1, 0.05 } }, color = { { 0, "hot" }, { 1, "mid" } }, brightness = 3 }),
 		},
@@ -604,18 +606,19 @@ FxRecipe.recipes = {
 			L.light({ at = 0, dur = "end", peak = 2.5, range = 12, hold = true, ramp = { 0.05, 0 } }),
 		},
 	},
-	-- a tell on the floor where something will land, for the flight time (opts.emitUntil): a ring that closes on the
-	-- point and is gone at the impact, a mark that flickers and builds, heat spots, motes on the rim, a light that
-	-- grows. The impact itself is another recipe.
+	-- a tell on the floor where something will land, for the flight time (opts.emitUntil): broken arcs that close on
+	-- the point and are gone at the impact (a clean ring read as a UI ring), a mark that flickers and builds, heat
+	-- spots, round motes rising from the rim (streaks rising slowly read as sticks), a light that grows. The impact
+	-- itself is another recipe.
 	tell = {
 		palette = "fire",
 		anchor = "feet",
 		duration = 1.3,
 		layers = {
-			L.floorRing({ name = "Closing", at = 0, dur = "end", r0 = 6, r1 = 0.6, w0 = 0.22, w1 = 0.5, segments = 24, ease = "in", alpha = { { 0, 1 }, { 0.12, 0.15 }, { 1, 0 } }, color = { "hot", "mid" } }),
+			L.floorRing({ name = "Closing", at = 0, dur = "end", r0 = 6, r1 = 0.6, w0 = 0.22, w1 = 0.5, segments = 24, ease = "in", alpha = { { 0, 1 }, { 0.12, 0.15 }, { 1, 0 } }, color = { "hot", "mid" }, arcs = 4 }),
 			L.floorGlow({ kind = "stream", name = "Mark", from = 0, to = "end", rate = 14, grow = true, life = { 0.2, 0.3 }, size = { { 0, 3.5 }, { 1, 4.2 } }, alpha = { { 0, 1 }, { 0.3, 0.5 }, { 1, 1 } } }),
 			L.floorGlow({ kind = "stream", name = "Heat", from = 0, to = "end", rate = 18, grow = true, disc = { 3, 1 }, life = { 0.15, 0.25 }, size = { { 0, 0.6 }, { 1, 1.6 } }, color = "hot", alpha = { { 0, 1 }, { 0.4, 0.3 }, { 1, 1 } } }),
-			L.motes({ name = "RimMotes", from = 0, to = "end", rate = 40, grow = true, disc = { 5, 0 }, speed = { 6, 12 } }),
+			L.motes({ name = "RimMotes", from = 0, to = "end", rate = 40, grow = true, disc = { 5, 0 }, speed = { 6, 12 }, slot = "glow", along = false, squash = false, rotation = 0, size = { { 0, 0.2, 0.06 }, { 1, 0.05 } } }),
 			L.light({ at = 0, up = 1, dur = "end", peak = 3, range = 16, grow = true }),
 		},
 	},
@@ -1040,6 +1043,12 @@ function FxRecipe.play(recipe, target, opts)
 						local life = math.clamp(math.min(byLen, t - l.from + l.life[1]), l.life[1], l.life[2])
 						e.Lifetime = NumberRange.new(life * 0.85, life)
 					end
+					if l.settle then
+						-- settle: new pieces leave slower toward the end of the span (down to this share of their speed), so
+						-- a fountain sinks to its base as it dies instead of leaving its last pieces floating high
+						local k = 1 - (1 - l.settle) * smooth(0.3, 1, u)
+						e.Speed = NumberRange.new(l.speed[1] * s * k, l.speed[2] * s * k)
+					end
 					local rate = (l.rate or 0) + (l.density or 0) * speed / s
 					if l.grow then
 						return rate * rampAt(l.ramp, u, 0) * (0.2 + 0.8 * u * u)
@@ -1095,7 +1104,9 @@ function FxRecipe.play(recipe, target, opts)
 				for k = 1, l.arcs do
 					local start = (k - 1 + rng:NextNumber(-0.3, 0.3)) * share
 					local len = share * rng:NextNumber(0.55, 1.15)
-					local rk, life, turn = rng:NextNumber(0.95, 1.05), dur * rng:NextNumber(0.65, 1), rng:NextNumber(-0.8, 0.8)
+					-- "end" arcs (a tell) all last until the arrival, which covers their cut
+					local rk, turn = rng:NextNumber(0.95, 1.05), rng:NextNumber(-0.8, 0.8)
+					local life = if l.dur == "end" then dur else dur * rng:NextNumber(0.65, 1)
 					local arc = clock:ribbon(per, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s, TextureMode = Enum.TextureMode.Wrap, TextureLength = 0.07 })
 					for _, b in arc.beams do
 						FxTextures.apply(b, "band")
