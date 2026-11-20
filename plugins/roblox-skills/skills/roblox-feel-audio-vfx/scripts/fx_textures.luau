@@ -20,7 +20,8 @@ local ContentProvider = game:GetService("ContentProvider")
 local FxTextures = {}
 
 -- flipbook: an animation played once over the particle's life. pieces: a sheet of different static pieces.
-export type Candidate = { id: string, note: string, flipbook: string?, pieces: string?, builtin: boolean? }
+-- lead: the share of each particle's life spent on the sheet's opening frames that must not show (hideLead).
+export type Candidate = { id: string, note: string, flipbook: string?, pieces: string?, builtin: boolean?, lead: number? }
 
 FxTextures.slots = {
 	glow = {
@@ -45,7 +46,8 @@ FxTextures.slots = {
 		{ id = "rbxasset://textures/particles/fire_sparks_main.dds", note = "built-in", builtin = true },
 	},
 	fire = {
-		{ id = "rbxassetid://17040521870", note = "DevForum free explosion flipbook 8x8", flipbook = "Grid8x8" },
+		-- its first three frames are a smooth pink-red ball: shown, every flame was born as a pink dot (Studio, 2026-11-21)
+		{ id = "rbxassetid://17040521870", note = "DevForum free explosion flipbook 8x8", flipbook = "Grid8x8", lead = 0.05 },
 		{ id = "rbxassetid://3845808160", note = "docs soft circle tinted by a fire ramp" },
 	},
 	band = {
@@ -139,6 +141,28 @@ function FxTextures.apply(inst: Instance, slot: string)
 		inst.Texture = c.id
 	end
 	return c
+end
+
+-- A transparency sequence that hides the first `lead` of each particle's life and keeps the rest.
+function FxTextures.hideLead(seq: NumberSequence, lead: number): NumberSequence
+	local kps = seq.Keypoints
+	local t1 = lead + 0.002
+	local v, env = kps[#kps].Value, kps[#kps].Envelope
+	for i = 2, #kps do
+		local a, b = kps[i - 1], kps[i]
+		if t1 <= b.Time then
+			local u = (t1 - a.Time) / math.max(b.Time - a.Time, 1e-6)
+			v, env = a.Value + (b.Value - a.Value) * u, a.Envelope + (b.Envelope - a.Envelope) * u
+			break
+		end
+	end
+	local out = { NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(lead, 1), NumberSequenceKeypoint.new(t1, v, env) }
+	for _, k in kps do
+		if k.Time > t1 then
+			table.insert(out, k)
+		end
+	end
+	return NumberSequence.new(out)
 end
 
 function FxTextures.report(): string
