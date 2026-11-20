@@ -1725,7 +1725,8 @@
             "buttons",
             "toasts",
             "badges",
-            "whole_hud"
+            "whole_hud",
+            "ui_particles"
           ],
           "properties": {
             "rules": {
@@ -6057,6 +6058,321 @@
                         "v": {
                           "type": "number",
                           "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "$ref": "#/$defs/leaf"
+                  },
+                  {
+                    "$ref": "#/$defs/node"
+                  }
+                ]
+              }
+            },
+            "ui_particles": {
+              "type": "object",
+              "required": [
+                "status",
+                "publishable",
+                "shipping_method_until_live",
+                "size_is_half_px",
+                "emit_default_count",
+                "flipbook_framerate_max",
+                "flipbook_layouts",
+                "flipbook_grid_max",
+                "blend_range",
+                "time_scale_range",
+                "defaults",
+                "draws_with_beta_off",
+                "clipped_in_surface_and_billboard_gui",
+                "styling_supported",
+                "vanish_when_parent_culled"
+              ],
+              "properties": {
+                "status": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "publishable": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "shipping_method_until_live": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "size_is_half_px": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "emit_default_count": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "flipbook_framerate_max": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "flipbook_layouts": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "flipbook_grid_max": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "blend_range": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number"
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "time_scale_range": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "array",
+                          "items": {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          "minItems": 2,
+                          "maxItems": 2
+                        }
+                      }
+                    }
+                  ]
+                },
+                "defaults": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "Enabled",
+                            "Rate",
+                            "Lifetime",
+                            "Speed",
+                            "Size",
+                            "EmissionMode",
+                            "EmissionAngle",
+                            "SpreadAngle",
+                            "Blend",
+                            "Brightness",
+                            "TimeScale",
+                            "ZIndex"
+                          ],
+                          "properties": {
+                            "Enabled": {
+                              "type": "boolean"
+                            },
+                            "Rate": {
+                              "type": "number"
+                            },
+                            "Lifetime": {
+                              "type": "array",
+                              "items": {
+                                "type": "number"
+                              },
+                              "minItems": 2,
+                              "maxItems": 2
+                            },
+                            "Speed": {
+                              "type": "number"
+                            },
+                            "Size": {
+                              "type": "number"
+                            },
+                            "EmissionMode": {
+                              "type": "string"
+                            },
+                            "EmissionAngle": {
+                              "type": "number"
+                            },
+                            "SpreadAngle": {
+                              "type": "number"
+                            },
+                            "Blend": {
+                              "type": "number"
+                            },
+                            "Brightness": {
+                              "type": "number"
+                            },
+                            "TimeScale": {
+                              "type": "number"
+                            },
+                            "ZIndex": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "draws_with_beta_off": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "clipped_in_surface_and_billboard_gui": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "styling_supported": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "vanish_when_parent_culled": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
                         }
                       }
                     }

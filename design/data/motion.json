@@ -1,6 +1,6 @@
 {
   "type": "motion",
-  "schema_version": "1.2.0",
+  "schema_version": "1.3.0",
   "title": "UI motion: panel open and close, button feedback, counters, idle motion, HUD element motion, rules",
   "scope": "every genre; panel_open, panel_close, button, number_count_up_s, float, idle_rotate_deg and badge_attention are the stud-style defaults; panel_motion and hud are what live games were measured doing, with judgment values tagged opinion",
   "sources": ["roblox-ui-genre-studs/SKILL.md#5", "roblox-ui-typography/SKILL.md#4", "roblox-ui-mobile/SKILL.md#4,4a"],
@@ -432,6 +432,23 @@
         "phone_live_tweens_max": {"v": 40, "p": "opinion", "src": "about; working limit, not from Roblox docs", "date": "2026-11-19"},
         "pause_loops_while_hidden": {"v": true, "p": "opinion", "date": "2026-11-19"},
         "pooled_particle_images_max": {"v": 24, "p": "opinion", "src": "working limit, not from Roblox docs", "date": "2026-11-19"}
+      },
+      "ui_particles": {
+        "status": {"v": "studio_beta", "p": "documented", "src": "ParticleEmitter2D, File > Beta Features > UI Particles, restart Studio; DevForum announcement", "date": "2026-11-19"},
+        "publishable": {"v": false, "p": "documented", "src": "places that use it cannot be published until it ships to the client", "date": "2026-11-19"},
+        "shipping_method_until_live": {"v": "pooled ImageLabels", "p": "opinion", "src": "under pooled_particle_images_max", "date": "2026-11-20"},
+        "size_is_half_px": {"v": true, "p": "documented", "src": "Size is the half size in offset px: 32 draws 64 px across", "date": "2026-11-20"},
+        "emit_default_count": {"v": 16, "p": "documented", "src": "Emit() particleCount default", "date": "2026-11-20"},
+        "flipbook_framerate_max": {"v": 30, "p": "documented", "date": "2026-11-20"},
+        "flipbook_layouts": {"v": ["2x2", "4x4", "8x8", "Custom"], "p": "documented", "date": "2026-11-20"},
+        "flipbook_grid_max": {"v": 64, "p": "measured", "src": "FlipbookSizeX and FlipbookSizeY clamp to 1-64 on write; Studio 0.748, beta off", "date": "2026-11-20"},
+        "blend_range": {"v": [0, 1], "p": "documented", "src": "0 normal, 1 additive; clamps on write (measured)", "date": "2026-11-20"},
+        "time_scale_range": {"v": [0, 1], "p": "documented", "src": "clamps on write (measured)", "date": "2026-11-20"},
+        "defaults": {"v": {"Enabled": true, "Rate": 20, "Lifetime": [5, 10], "Speed": 64, "Size": 32, "EmissionMode": "BoundingBox", "EmissionAngle": 0, "SpreadAngle": 0, "Blend": 0, "Brightness": 1, "TimeScale": 1, "ZIndex": 1}, "p": "measured", "src": "property reads of a new instance; Studio 0.748, beta off", "date": "2026-11-20"},
+        "draws_with_beta_off": {"v": false, "p": "measured", "src": "class created and properties set, nothing drawn in Edit or Play under a ScreenGui; Studio 0.748", "date": "2026-11-20"},
+        "clipped_in_surface_and_billboard_gui": {"v": false, "p": "documented", "src": "release notes", "date": "2026-11-19"},
+        "styling_supported": {"v": false, "p": "documented", "src": "release notes", "date": "2026-11-19"},
+        "vanish_when_parent_culled": {"v": true, "p": "documented", "src": "release notes", "date": "2026-11-19"}
       }
     }
   }
