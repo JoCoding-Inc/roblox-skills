@@ -84,6 +84,9 @@
 -- flight); opts.palette, opts.scale, opts.tellScale, opts.impactScale, opts.tail (multiplies the trail's len);
 -- opts.onArrive(position, direction).
 -- A burst or stream takes locked (true: its particles move with their anchor: a glow that rides on a moving body).
+-- A locked stream takes clear (true: while following, it shrinks once a surface below or ahead of the anchor is
+-- nearer than its radius, so the floor never cuts a big glow in a straight line; a particle has no soft edge where
+-- it crosses a surface). The rays skip the effect's own parts and opts.ignore (travel passes its body).
 -- A kind for what an effect leaves behind:
 --   mark : at, dur, r0, r1 (radius at birth and after `grow` s), grow, alpha {{u, transparency}, ...} over dur,
 --          color (key | {{u, key}, ...} over dur), glow (true: lit by itself, so it reads on a dark floor; a colour
@@ -547,26 +550,27 @@ FxRecipe.recipes = {
 	-- Moving things: play them with opts.follow, or through FxRecipe.travel. "end" streams run until opts.emitUntil
 	-- at full rate (ramp out 0: the impact covers the cut). Sizes are for a projectile of 1-2 studs at scale 1. -----
 	-- a fire trail: a haze round the head, an orange glow drawn over the front half of the body and a hot one with a
-	-- white-hot point on its leading edge (locked, z above the body's radius), a tail in three len layers like a
-	-- flame (a narrow white core, a band of fire cards, a wide glow laid per stud about 8 deep that cools from orange
-	-- to deep red; one comet tail at any speed), sparks thrown back that shrink out, embers that fall away behind, a
-	-- thin smoke line, a light that rides along
+	-- white-hot point on its leading edge (locked, z above the body's radius; the haze and the front glow shrink near a
+	-- surface, so the floor never cuts them), a tail in three len layers like a flame (a narrow white core, a band of
+	-- fire cards, a wide glow laid per stud about 8 deep that cools from orange to deep red; one comet tail at any
+	-- speed), sparks thrown back that shrink out, embers that fall away behind (per stud, so they thicken into an
+	-- impact), smoke that carries on past the red tip, a light ahead of the body that lights the floor before the impact
 	trail = {
 		palette = "fire",
 		anchor = "trail",
 		duration = 1.5,
 		layers = {
-			L.body({ kind = "stream", name = "Haze", from = 0, to = "end", rate = 24, ramp = { 0.05, 0 }, where = "hit", locked = true, life = { 0.14, 0.18 }, size = { { 0, 3.6, 0.2 }, { 1, 3 } }, alpha = { { 0, 1 }, { 0.3, 0.72 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.3, z = 0 }),
-			L.body({ kind = "stream", name = "Halo", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.3, locked = true, life = { 0.12, 0.16 }, size = { { 0, 1.6, 0.15 }, { 1, 1.45 } }, alpha = { { 0, 1 }, { 0.25, 0.8 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.2, z = 1.2 }),
+			L.body({ kind = "stream", name = "Haze", from = 0, to = "end", rate = 24, ramp = { 0.05, 0 }, where = "hit", locked = true, clear = true, life = { 0.14, 0.18 }, size = { { 0, 3.6, 0.2 }, { 1, 3 } }, alpha = { { 0, 1 }, { 0.3, 0.72 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.3, z = 0 }),
+			L.body({ kind = "stream", name = "Halo", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.3, locked = true, clear = true, life = { 0.12, 0.16 }, size = { { 0, 1.6, 0.15 }, { 1, 1.45 } }, alpha = { { 0, 1 }, { 0.25, 0.8 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.2, z = 1.2 }),
 			L.body({ kind = "stream", name = "Bow", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.85, locked = true, life = { 0.08, 0.12 }, size = { { 0, 0.55, 0.06 }, { 1, 0.46 } }, alpha = { { 0, 1 }, { 0.2, 0.45 }, { 1, 1 } }, color = { { 0, "hot" }, { 1, "mid" } }, emission = 1, brightness = 1.4, z = 1.3 }),
 			L.body({ kind = "stream", name = "Point", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.8, locked = true, life = { 0.06, 0.1 }, size = { { 0, 0.2, 0.03 }, { 1, 0.16 } }, alpha = { { 0, 1 }, { 0.2, 0.3 }, { 1, 1 } }, color = { { 0, "white" }, { 1, "hot" } }, emission = 1, brightness = 1.6, z = 1.4 }),
-			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 0, density = 4, ramp = { 0.05, 0 }, path = 0.2, where = "hit", len = 5, life = { 0.06, 0.3 }, size = { { 0, 0.75, 0.05 }, { 0.5, 0.55 }, { 1, 0.2 } }, alpha = { { 0, 0.25 }, { 0.5, 0.45 }, { 1, 1 } }, color = { { 0, "white" }, { 0.5, "hot" }, { 1, "hot" } }, emission = 1, brightness = 1.4, z = 0.5 }),
+			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 0, density = 4, ramp = { 0.05, 0 }, path = 0.2, where = "hit", len = 5, life = { 0.06, 0.3 }, size = { { 0, 0.75, 0.05 }, { 0.5, 0.55 }, { 1, 0.2 } }, alpha = { { 0, 0.35 }, { 0.5, 0.5 }, { 1, 1 } }, color = { { 0, "white" }, { 0.5, "hot" }, { 1, "hot" } }, emission = 1, brightness = 1.4, z = 0.5 }),
 			L.body({ kind = "stream", name = "Tail", from = 0, to = "end", rate = 0, density = 4, ramp = { 0.05, 0 }, path = 0.3, where = "hit", len = 20, life = { 0.3, 1.0 }, speed = { 0, 0.2 }, spread = 180, size = { { 0, 2.2, 0.25 }, { 0.35, 1.55 }, { 0.6, 1.05 }, { 0.8, 0.7 }, { 1, 0.3 } }, alpha = { { 0, 0.8, 0.05 }, { 0.35, 0.62, 0.05 }, { 0.6, 0.62 }, { 0.75, 0.72 }, { 0.88, 0.9 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.45, "mid" }, { 0.75, "deep" }, { 1, "deep" } }, emission = 1, brightness = 0.9, z = 0.2 }),
-			L.fireball({ kind = "stream", name = "Flames", from = 0, to = "end", rate = 0, density = 3, ramp = { 0.05, 0 }, path = 0.3, len = 10, life = { 0.2, 0.5 }, speed = { 0, 1 }, spread = 180, drag = 2, rotSpeed = { -60, 60 }, size = { { 0, 1.1, 0.25 }, { 0.5, 0.85, 0.15 }, { 1, 0.35 } }, alpha = { { 0, 0.3, 0.1 }, { 0.5, 0.45, 0.1 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.55, "hot" }, { 1, "mid" } }, emission = 1, brightness = 0.7, z = 0.3 }),
+			L.fireball({ kind = "stream", name = "Flames", from = 0, to = "end", rate = 0, density = 2, ramp = { 0.05, 0 }, path = 0.3, len = 14, life = { 0.2, 0.6 }, speed = { 0.5, 2 }, spread = 180, drag = 2, rotSpeed = { -90, 90 }, size = { { 0, 1.1, 0.3 }, { 0.5, 1.2, 0.3 }, { 1, 0.6 } }, alpha = { { 0, 0.35, 0.1 }, { 0.5, 0.45, 0.1 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.55, "hot" }, { 1, "mid" } }, emission = 1, brightness = 0.9, z = 0.35 }),
 			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 10, density = 3, ramp = { 0.05, 0 }, path = 0.5, life = { 0.2, 0.35 }, speed = { 6, 14 }, spread = 30, drag = 1, accel = { 0, -6, 0 }, size = { { 0, 0.35, 0.1 }, { 1, 0 } }, alpha = { { 0, 1 }, { 0.1, 1 }, { 0.14, 0 }, { 1, 0 } }, color = { { 0, "white" }, { 0.3, "hot" }, { 1, "hot" } }, emission = 1, brightness = 3 }),
-			L.wisps({ name = "Embers", from = 0, to = "end", rate = 20, density = 1.2, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.5, 0.9 }, speed = { 5, 12 }, spread = 180, drag = 1.5, accel = { 0, -8, 0 }, size = { { 0, 0.2, 0.05 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 0.8, 0.1 }, { 1, 1 } }, emission = 1, brightness = 3 }),
-			L.smoke({ kind = "stream", name = "Smoke", from = 0, to = "end", rate = 0, density = 0.8, ramp = { 0.05, 0 }, path = 0.9, up = 1.2, life = { 0.6, 1.0 }, speed = { 1, 3 }, spread = 40, drag = 2, accel = { 0, 2, 0 }, size = { { 0, 0.6, 0.2 }, { 1, 2.4, 0.4 } }, alpha = { { 0, 1 }, { 0.15, 0.78 }, { 1, 1 } } }),
-			L.light({ at = 0, dur = "end", peak = 2.5, range = 12, hold = true, ramp = { 0.05, 0 } }),
+			L.wisps({ name = "Embers", from = 0, to = "end", rate = 20, density = 2.5, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.5, 0.9 }, speed = { 5, 12 }, spread = 180, drag = 1.5, accel = { 0, -8, 0 }, size = { { 0, 0.2, 0.05 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 0.8, 0.1 }, { 1, 1 } }, emission = 1, brightness = 3 }),
+			L.smoke({ kind = "stream", name = "Smoke", from = 0, to = "end", rate = 0, density = 1.2, ramp = { 0.05, 0 }, path = 0.6, up = 1.2, len = 34, life = { 0.6, 2.0 }, speed = { 0.5, 1.5 }, spread = 30, drag = 2, accel = { 0, 0.5, 0 }, size = { { 0, 1, 0.2 }, { 1, 3, 0.4 } }, alpha = { { 0, 1 }, { 0.4, 1 }, { 0.55, 0.45 }, { 0.85, 0.6 }, { 1, 1 } }, color = "smoke1", z = 0 }),
+			L.light({ at = 0, up = -1.6, dur = "end", peak = 3, range = 12, hold = true, ramp = { 0.05, 0 } }),
 		},
 	},
 	-- an energy trail (a bolt, a magic missile): a white-hot core, a saturated glow around it, sparks and glints;
@@ -634,6 +638,15 @@ local function colorOf(pal, c)
 		pts[i] = { p[1], key(pal, p[2]) }
 	end
 	return FxClock.cs(pts)
+end
+
+-- half the widest size a layer reaches (with its random envelope), at scale 1
+local function halfOf(points)
+	local w = 0
+	for _, p in points do
+		w = math.max(w, p[2] + (p[3] or 0))
+	end
+	return w / 2
 end
 
 local function sized(points, s)
@@ -837,6 +850,19 @@ function FxRecipe.play(recipe, target, opts)
 	local syncedAt = nil
 	local speed = 0 -- studs per clock second, for density streams
 	local accel = 0 -- studs per clock second squared, smoothed, for len tails
+	-- clear layers: room is the distance from the anchor to the nearest surface below or ahead, up to reach
+	local reach = 0
+	for _, l in recipe.layers do
+		if l.clear then
+			reach = math.max(reach, halfOf(l.size) * s)
+		end
+	end
+	local rays = if reach > 0 and follow then RaycastParams.new() else nil
+	if rays then
+		local skip = opts.ignore or (if typeof(target) == "Instance" then target else nil)
+		rays.FilterDescendantsInstances = if skip then { skip } else {}
+	end
+	local room = math.huge
 	local function sync(t)
 		if not follow or t == syncedAt then
 			return
@@ -859,6 +885,18 @@ function FxRecipe.play(recipe, target, opts)
 		if anchor == "trail" and moved.Magnitude > 1e-3 then
 			spray = -moved.Unit
 			side = across(spray)
+		end
+		if rays then
+			local here = p + shift
+			room = reach
+			local down = workspace:Raycast(here, Vector3.new(0, -reach, 0), rays)
+			if down then
+				room = here.Y - down.Position.Y
+			end
+			local ahead = workspace:Raycast(here, -spray * reach, rays)
+			if ahead then
+				room = math.min(room, (here - ahead.Position):Dot(ahead.Normal))
+			end
 		end
 		local frame = CFrame.fromMatrix(p + shift, side, spray)
 		for _, m in movers do
@@ -958,8 +996,18 @@ function FxRecipe.play(recipe, target, opts)
 				-- per stud the anchor moved (while following), so a trail is as full at any speed
 				local to = if l.to == "end" then stopAt else l.to
 				local tailLen = if l.len then l.len * s * (opts.tail or 1) else nil
+				local half = if l.clear and rays then halfOf(l.size) * s else nil
+				local fit = 1
 				clock:stream(e, l.from, to, function(t)
 					local u = (t - l.from) / (to - l.from)
+					if half then
+						-- clear: every live piece shrinks with the room left (an emitter's Size applies to them all)
+						local k = math.floor(math.clamp(room / half, 0, 1) * 50 + 0.5) / 50
+						if k ~= fit then
+							fit = k
+							e.Size = sized(l.size, s * k)
+						end
+					end
 					if tailLen then
 						-- len: a tail measured in studs, so its shape holds at any speed: each piece lives as long as the
 						-- anchor takes to move that far at its current speed and acceleration (within life), and no longer
@@ -1220,6 +1268,7 @@ function FxRecipe.travel(from, to, opts)
 			scale = s,
 			palette = opts.palette,
 			tail = opts.tail,
+			ignore = opts.body,
 			noPlay = true,
 		})
 	else
