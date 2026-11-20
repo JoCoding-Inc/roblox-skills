@@ -1,7 +1,7 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
-last_reviewed: 2026-11-18
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, when a fast sword cut's trail looks like a polygon, waves or a white blob, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+last_reviewed: 2026-11-20
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
   - https://create.roblox.com/docs/effects/particle-emitters (Rate limits, fill rate, `LightEmission` 1 hides the dark regions of a texture)
@@ -17,6 +17,7 @@ sources:
   - RoDesigner skill cutscene demo, 2026-11-18 (nine elements and one 7.2 s cutscene in Studio 0.747 and 0.748 Play, judged well made by the owner on its captures; ported to scripts/ and re-captured the same day); target ranges read frame by frame from four public showcase clips at 30-60 fps, 2026-11-17 (numbers and method only); relayed by RoDesigner
   - RoDesigner ground blast demo, 2026-11-18 (one fire and impact effect in Studio 0.748 Play, rebuilt over 8 capture rounds next to a public showcase clip of a similar effect read at the same 16 beat times, plus real-time captures; judged good by the owner on its captures, who then set the small-units rule; engine probes of Brightness, emit placement, mesh textures, SurfaceAppearance emissive and script write access; numbers and method only from the clip); relayed by RoDesigner
   - https://create.roblox.com/docs/reference/engine/classes/ColorCorrectionEffect, classes/Highlight, classes/PostEffect (post effects do not affect GuiObjects) and classes/GuiService (TouchControlsEnabled, ReducedMotionEnabled)
+  - RoDesigner blade trail demo, 2026-11-20 (a dual-blade combo in Studio 0.748 Play; the band trail first built for a greatsword in another game of ours; judged in two blind rounds and approved by the owner on video; ported to scripts/ and run from per-frame records at 60 and 30 fps; interpolation errors and update cost measured in Studio against the demo's exact poses)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
 ---
@@ -185,7 +186,7 @@ Engine notes (measured in Studio 0.747 by the demo builds on 2026-11-15 unless m
 
 The attack motion under the effect (the body leads the arm, the blade lags and whips, each stroke starts where the last ended): `roblox-character-motion` section 2b.
 
-Three worked effects built with this method, layer by layer, with served scripts and capture strips: section 3d.
+Three worked effects built with this method, layer by layer, with served scripts and capture strips: section 3d. A trail for very fast cuts, a fan of bands built from the blade's own frames: section 3j.
 
 ## 3d. Building an effect from layers (fire slash, hit impact, level-up aura)
 
@@ -730,6 +731,89 @@ Test through the service (2026-11-20): a smaller model in a fresh session with o
 Test of this section (2026-11-20): a smaller model given only this section and the module wrote three new recipes (a water hit, a reward pickup, a critical hit) without running Studio; all three played with no errors on the first run. Looked at frozen at 0.06, 0.15 and 0.4 s: the water hit and the pickup read as intended; the critical hit was washed out by two large `flare` discs, which the flare bullet above now covers. At real speed the owner judged the pickup and the critical hit good and the water hit odd for its large round drops (2026-11-20); the shipped `hit_water` uses 0.3-stud drops and has not been judged at real speed.
 
 Cost of one hit (counted in Studio, not a frame-cost measurement): 8-10 emitters, 24 beams (a 12-segment ring and its twin), 1 light; a second ring adds 12 or 24 beams; cap hits on screen at once on phones (section 5). Read from the recipe tables, not counted in Studio: `level_up` is 7 emitters, 64 beams (four 16-segment rings) and 1 light; `aura` is 4 emitters, 32 beams and 1 light for as long as it holds, so give it to the local player and a few nearby characters, not to a crowd.
+
+## 3j. A blade trail as a fan of bands (fast sword cuts)
+
+A fast sword cut sweeps 150-200 degrees in 0.035-0.05 s, two or three drawn frames at 60 fps. This is a trail for such cuts that reads as one sheet ending in pointed tails, with a served module that builds it from the blade's own past frames.
+
+Evidence: built in Studio 0.748 Play on 2026-11-20 on a dual-blade combo demo of ours (4.4 s, 15 strike windows on two blades: single cuts, double cuts, a spin and a crossed finisher), first as a pure function of time on the demo's exact poses. The band build was made earlier for a greatsword in another game of ours and approved by the owner there; here its times were scaled to the faster cuts. Fresh judges in two blind rounds (clip order flipped) named its defects: the fixes are the measured rows below, the rest is under Known limits. The owner watched the demo at real speed and asked for it in the product (2026-11-20). It was then ported to `scripts/blade_fan.luau`, which sees only the blade's guard and tip once per drawn frame, and run on the demo's body with 60 and 30 fps game frames emulated in a 0.2x capture and at real speed: no Output errors. At 60 fps it drew the same fans as the approved render at the beats compared (nine cut beats, the spin and the finisher) except the first cut, seen nearly edge-on, and over the whole clip its white and pink pixel shares were within 6 % and 9 % of the approved render's. Numbers are chosen by eye unless marked measured. No real phone, no published game.
+
+Files: `scripts/blade_fan.luau`, one ModuleScript; strip in `assets/vfx-examples/blade_fan_strip.jpg`. Client only.
+
+```lua
+local BladeFan = require(ReplicatedStorage.Fx.BladeFan)
+-- two Attachments on the blade: where the trail starts (just past the guard) and ends (the tip)
+local fan = BladeFan.new(blade.TrailStart, blade.TrailEnd)
+slashTrack:GetMarkerReachedSignal("Cut"):Connect(function()
+	fan:swing(0.1) -- points cut from just before now to 0.1 s on draw; a spin: fan:swing(0.25, 0.6)
+end)
+-- on a hit, hold the fan as long as the tracks (scripts/hit_stop.luau)
+local seconds = HitStop.play(character, victim, damage)
+fan:setSpeed(0)
+task.delay(seconds, function() fan:setSpeed(1) end)
+```
+
+Options are the fields of `BladeFan.defaults`: `bands` 7, `life` 0.15, `coreLife` 0.014, `grid` 1/150 s, `color` and `tail` (crimson by default), `lightEmission` 0.45, `brightness` 1.25, `minSpeed` 40 and `fullSpeed` 110 studs/s, `near` 5 studs, `light` true. One `RenderPriority.Last` binding updates every fan; set `BladeFan.autoStep = false` before the first `new` to call `BladeFan.step(dt)` yourself (a replay, a fixed-step capture).
+
+**Anatomy.**
+
+| Part | Numbers | Why |
+|---|---|---|
+| Bands | 7 along the blade, guard to tip, each overlapping its neighbours by 1.2 % of the blade; each band a chain of flat beams through its middle at the blade now and every 1/150 s back | one sheet; without the overlap a hairline shows between bands |
+| Band life | the tip band lives `life`, the guard band 0.55 of it, every other band 0.78 of its own | tails of unequal length: the fan ends in a row of points, not one straight edge |
+| Shape | full width for 55 % of a band's life, then narrowing to a point; the oldest live point is pulled back to where the life ends | each tail ends in a point exactly at its life |
+| Colour | white to 4 % of the life, the body colour from 14 %, the tail colour (the same hue, darker) at the end; transparency 0.06 at birth, 0.12 at half life, 0.3 at the end | one hue family with a white-hot edge (section 3c) |
+| Light | `LightEmission` 0.45, `Brightness` 1.25 | 1 burnt the fan white; 0.6 with 1.4 turned the crimson pale pink on a night floor |
+| Core | the outer half of the blade, white, `LightEmission` 1, `Brightness` 2, for `coreLife` | the white-hot line right behind the edge |
+| Gates | a band draws only for points cut inside a swing window and only where the tip crosses the blade's line faster than `minSpeed` (full at `fullSpeed`); within `near` studs of the camera it fades, gone at half of it | wind-ups, counterweight moves and holds leave nothing; a blade sliding along itself drew planks |
+| Tip light | a `PointLight`, range 5, brightness 0.9 x the gate | the floor answers the cut |
+
+**Times and the sweep.** The core scales with the sweep; the trail life does not.
+
+| Cut | Sweep time | Trail life (tip band) | Core life |
+|---|---|---|---|
+| Greatsword, another game of ours | 0.16 s | 0.2 s | 0.05 s |
+| Dual-blade cuts (the defaults) | 0.035-0.05 s | 0.15 s | 0.014 s |
+
+Copied unchanged onto the fast cuts, the greatsword's numbers turned the whole fan white (a 0.05 s core covers a 0.04 s sweep), and at 0.2 s the bands piled into solid discs. Set `coreLife` to about a third of your sweep time and keep `life` near 0.15-0.2 s.
+
+**Beams that curve without waves** (Studio 0.748, 2026-11-20):
+
+| Fact | Consequence |
+|---|---|
+| Each beam spans 1/150 s, up to 30 degrees of a fast sweep; drawn with `Segments` 3 it showed as corners on the fan's edge (a judge named faceted edges) | `Segments` 10 |
+| Straight beams showed a corner at every joint | curve each beam through its joints: `CurveSize0 = CurveSize1 = -length / 3`, each attachment's X pointing to the newer end (P1 sits along +X of `Attachment0`, P2 along -X of `Attachment1`, docs); the other sign drew S-curves |
+| With X forced square to the blade every segment bulged into a wave, whether all bands shared one direction or each had its own: the hand moves, so the blade also slides along itself, and X sat up to 45 degrees off the band's path | X is each band's own path direction at that point (its two neighbours, the closer one weighted more); the width axis Y is the blade made square to X |
+| Where the path runs almost along the blade (just before a cut) the width turned with it and twisted the ribbon; letting X tilt 35 degrees out of the blade's square plane left hatched teeth at the tails | cap the tilt at 20 degrees |
+
+**From the blade's frames** (the module). It records the guard and tip every drawn frame and reads that record back on the 1/150 s grid. Measured against the demo's exact poses over the fast parts of all its cuts, error of the interpolated tip:
+
+| Between two drawn frames | Mean at 60 fps | Mean at 30 fps |
+|---|---|---|
+| The grip frame's rotation (`CFrame:Lerp`) | 0.38 studs | 1.35 |
+| Blade direction on the shortest arc, guard on a straight line | 0.35 | 1.27 |
+| Blade direction on the shortest arc, guard turned with it about the point that move implies (served) | 0.29 | 1.25 |
+
+- The blade turned up to 132 degrees between two frames at 60 fps and up to 231 at 30 (worst frame phase). Past 180 degrees the shortest arc runs the wrong way: a turn of more than 115 degrees whose next frame turns clearly the other way is redrawn the long way round from that next frame on. The next frame decides because a follow-through keeps the cut's sense; the frame before a cut is often the wind-up, which turns the other way (judgment).
+- Cuts this fast keep their shape at 60 fps and lose it at 30, where most fans came out smaller. Give the fast part of a cut 3-4 frames of the frame rate it must hold: about 0.05 s at 60 fps, 0.1 s at 30.
+- Hit-stop: `setSpeed(0)` stops the fan's clock. A hit lands between two frames, so the first held frame still shows the blade moved; the module counts that frame at full speed. Without it, that motion aged 0 s and the held frames showed a mostly white fan (white 10-12 % of the frame against 6-7 % on the approved render; 4-5 % after the fix).
+
+**Feel around it** (the demo; chosen by eye, checked by the judges):
+
+- The finisher holds 0.083 s (5 frames at 60 fps) on the second blade's landing, with a camera kick over 0.24 s: a 0.9-stud push, a 0.2-0.3 stud shake and the view 6 degrees narrower, decaying with the square. A 0.05 s hold with a 0.18 s kick went unnoticed by a judge. The demo shook the camera by position; a game uses the shake model of section 3b.
+- A spin keeps its bands at 0.6 of their life (`fan:swing(0.25, 0.6)`): at full life the turns piled into one blob.
+- One trail per blade. The demo's contact star at the end of each cut used a texture and stays out of the module: build impact flashes from sections 3c and 3d.
+
+**Cost** (measured: Studio 0.748 Play on a desktop, the client at 15 fps, both blades, `os.clock` around the update of frames with a trail on screen):
+
+| Setting | Instances per blade | Drawn at once, both blades | Update per frame, both blades |
+|---|---|---|---|
+| defaults | 172 beams, 181 attachments, 1 light | up to 204 beams | 1.11 ms mean, 2.27 ms max |
+| `bands = 4, grid = 1 / 90` | 63 beams, 69 attachments, 1 light | up to 72 beams | 0.51 ms mean, 1.17 ms max |
+
+An idle fan draws nothing and only records two positions a frame. Use the defaults for the player's own blades and the lighter setting with `light = false` for other players. Not measured on a phone.
+
+**Known limits.** Two frames carry no bulge: a cut whose sheet curves out of its plane, seen nearly edge-on, drew a thinner sheet from 60 fps frames than from the exact poses. The judges still named these on the approved demo, and the owner kept the look: on overhead cuts and the finisher the fans are large and opaque enough to hide the head and torso for a few frames, and thin rings show between bands for 4-6 frames as the tails part. Judged on a dark stage only. No sound, no phone, no published game.
 
 ## 4. Lighting and atmosphere (docs)
 
