@@ -12,12 +12,15 @@
 -- local FxTextures = require(folder.fx_textures)
 -- task.spawn(FxTextures.resolve)          -- optional, once at start
 -- FxTextures.apply(emitterOrBeam, "glow") -- sets Texture (and the flipbook layout for a flipbook candidate)
+-- FxTextures.use("streak", "rbxassetid://<your sheet>", "Grid4x4") -- the game's own texture for a slot (or a new slot
+--   name); the third argument is for a sheet of variants (2x2 or 4x4 different pieces, one random cell per particle)
 
 local ContentProvider = game:GetService("ContentProvider")
 
 local FxTextures = {}
 
-export type Candidate = { id: string, note: string, flipbook: string?, builtin: boolean? }
+-- flipbook: an animation played once over the particle's life. pieces: a sheet of different static pieces.
+export type Candidate = { id: string, note: string, flipbook: string?, pieces: string?, builtin: boolean? }
 
 FxTextures.slots = {
 	glow = {
@@ -96,6 +99,17 @@ function FxTextures.resolve()
 	return FxTextures.chosen
 end
 
+-- Pins a slot to the game's own texture, before or after resolve(). `pieces` names the grid of a variant sheet
+-- ("Grid2x2", "Grid4x4"): every particle then shows one random cell for its whole life. A new slot name is allowed,
+-- so a recipe layer can ask for it (slot = "shard").
+function FxTextures.use(slot: string, id: string, pieces: string?): Candidate
+	local c: Candidate = { id = id, note = "own texture", pieces = pieces }
+	FxTextures.force[slot] = c
+	FxTextures.slots[slot] = FxTextures.slots[slot] or { c }
+	FxTextures.chosen[slot] = c
+	return c
+end
+
 function FxTextures.get(slot: string): Candidate
 	if not FxTextures.resolved then
 		-- Not resolved yet: take the first candidate (or the forced one).
@@ -112,6 +126,12 @@ function FxTextures.apply(inst: Instance, slot: string)
 		if c.flipbook then
 			inst.FlipbookLayout = Enum.ParticleFlipbookLayout[c.flipbook]
 			inst.FlipbookMode = Enum.ParticleFlipbookMode.OneShot
+		elseif c.pieces then
+			-- variants, not frames: Loop at framerate 0 holds the random start cell (OneShot would play the cells)
+			inst.FlipbookLayout = Enum.ParticleFlipbookLayout[c.pieces]
+			inst.FlipbookMode = Enum.ParticleFlipbookMode.Loop
+			inst.FlipbookStartRandom = true
+			inst.FlipbookFramerate = NumberRange.new(0)
 		else
 			inst.FlipbookLayout = Enum.ParticleFlipbookLayout.None
 		end
