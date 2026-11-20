@@ -583,6 +583,74 @@ Failed first: lobes with thin outlines and hand-placed round holes read as soap 
 
 **Known limits.** No sound. Flat floors only: the kit lies level at the raycast height, so slopes, steps and props inside the radius are not handled. The reference's white dome is not built. The slabs are thinner and the middle is shallower than in the reference. Building the slabs at run time as one EditableMesh was not tried (it needs the experience's mesh API setting). Frame cost on a phone is not measured: 76 moving MeshParts and 25 sprites of 4-14 studs.
 
+## 3i. An effect as a recipe (data, not code)
+
+For the short effects a game needs in dozens: a hit per element, a pickup burst, a small skill impact. Each is a stack of a few bursts, one ring and one light, so it is written as a table and played by one module. Slashes, pillars, ground blasts and cutscenes stay code (3d-3h).
+
+Files: `scripts/fx_recipe.luau` with `scripts/fx_clock.luau` and `scripts/fx_textures.luau`, copied as ModuleScripts into one folder. `FxRecipe.play("hit_fire", targetModel or impactCFrame, { scale = 1, direction = d })` returns the clock; a CFrame's LookVector is the direction the hit travels, and sparks fly back against it. Client only.
+
+Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) as data: built side by side in Studio 0.748 Play on 2026-11-20, all 8 emitters matched on 19 properties and the beam and light counts matched. The other five recipes were looked at frozen at 0.05, 0.1 and 0.2 s on a daylight floor; not judged at real speed, on a phone or in a published game.
+
+**Four layer kinds.** Sizes, speeds and radii are studs at scale 1; `opts.scale` multiplies them and leaves the times alone.
+
+| Kind | Fields | Use |
+|---|---|---|
+| `burst` | `at`, `count`, `slot`, `where`, `life`, `size`, `alpha`, `color`, `emission`, `brightness`, `z`; motion: `speed`, `spread`, `drag`, `accel`, `rotSpeed`, `along`, `squash` | Everything that appears at one moment |
+| `stream` | the burst fields with `from`, `to`, `rate` in place of `at`, `count` | Embers, drips: anything that keeps coming, ramped in and out |
+| `ring` | `at`, `dur`, `r0`, `r1`, `w0`, `w1`, `segments`, `color` {from, to}, `twin` | The shock ring, with a dark twin under it |
+| `light` | `at`, `dur`, `peak`, `range` | One PointLight pulse |
+
+**Templates** (`FxRecipe.layers`): call one with a table of the fields to change, for example `L.sparks({ count = 16 })`.
+
+| Template | What it adds | Life |
+|---|---|---|
+| `flash` | the white contact frame | 0.05 s |
+| `under` | a dark soft disc for contrast on a lit floor | 0.16 s |
+| `core` | stars that grow and collapse, white to hot to mid | 0.12-0.15 s |
+| `body` | the one saturated colour mass; without it the hit reads white | 0.16 s |
+| `bolts` | electric accent | 0.06-0.1 s |
+| `rays` | a disc of rays behind the core | 0.14 s |
+| `sparks` | streaks thrown back at the attacker, stopped by drag | 0.12-0.32 s |
+| `embers` | a stream of small streaks that rise | 0.2-0.45 s each, 0.4 s long |
+| `smoke` | a few puffs behind everything, the dark end of the value range | 0.5-0.8 s |
+| `pops` | small stars after the hit | 0.25-0.35 s |
+| `ring` | the shock ring, radius 0.5 to 3.4 in 0.21 s | 0.21 s |
+| `light` | the world answers | 0.2 s |
+
+**Palette.** A layer names keys, never colours, so one recipe plays in any palette (`opts.palette`). Seven keys: `white` (the contact frame, near white), `hot` (a light tint, the bright edge), `mid` (the saturated body), `dark` (the same hue, almost black), `smoke0` to `smoke1` (smoke over its life), `light` (the PointLight). Shipped: electric, fire, ice, holy, shadow, poison.
+
+**Writing a new one.**
+1. Start from the nearest shipped recipe and its palette; copy the table.
+2. New element: write the seven palette keys first. Keep `white` within a few percent of white, `mid` fully saturated, `dark` below about 30% value.
+3. Change the character with accent layers, not with colour alone:
+
+| Character | Add | Drop or change |
+|---|---|---|
+| Electric | `bolts` | |
+| Fire | `embers`, more `smoke` | fewer `sparks` with weaker gravity |
+| Ice | more `pops`, a third `core` star | faster `sparks` with more drag; short pale `smoke` |
+| Holy | `rays`, more and slower `pops` | no `smoke`; `sparks` that rise |
+| Shadow | two `bolts`, longer `smoke` | a tinted `flash`, a wider `under` |
+| Poison | `pops` that float up | slow `sparks`; `smoke` that lingers and rises |
+
+4. Tune in this order: `count`, then `speed` and `drag` (a spark stops after about 1.44 x speed / drag studs, section 3), then `life`. Keep every life at 0.35 s or less except smoke (house rule: small, short-lived pieces).
+5. Verify as in 3d: freeze with `fx_capture` at 0.05, 0.1, 0.2 and 0.45 s from the player's camera, then watch it at real speed. Checks: a white frame of at most 3 frames; one saturated mass, not a white blob; the ring reads against the floor; nothing left on screen after 1 s.
+
+**Details an author needs** (each one was a guess for a smaller model writing recipes from this section alone, 2026-11-20):
+- Slots: `glow` a soft round ball; `star` a 4-point spark; `streak` an elongated ember (set `along = true`, `rotation = 90`); `flare` a ring with rays, additive only; `smoke` a thick puff; `electric` a lightning bolt; `fire` an 8x8 explosion flipbook; `band` is for beams. Round drops and bubbles: `glow` at 0.2-0.5 studs with `emission` 0.3-0.6.
+- `flare` reads as a large translucent bubble above about 6 studs, and two of them stacked on the core washed a critical hit out to white: keep `rays` at 7 studs or less, use one, and make a bigger hit bigger with the ring radius, the spark count and the light, not with more additive discs on the centre.
+- Defaults of a hand-written layer: `where` "hit", `emission` 1, `brightness` 1, `z` 0, no motion; a ring defaults to 12 segments. `rotation` is a fixed start angle (random without it). An override replaces the whole field.
+- `duration` is when everything is destroyed: the last particle's death plus a margin (1.0 s for the shipped hits).
+- The 0.35 s life limit wins over the drag rule: a spark with low drag fades out on its way instead of stopping, which is fine. Use drag of about 3 / life or more only for pieces that must visibly stop.
+- A pickup or any effect that is not a hit: pass a CFrame that looks straight down so the sparks go up, widen `spread` (180 sends them every way), leave out `recoilDeg`, `smoke` and the ring's `twin`. `spread` 180 ran in Studio.
+- Keep `under` wherever the background is bright (a lit floor, the sky); drop it in dark scenes.
+- A second element must differ from its neighbours in hue (`mid` about 30 degrees of hue apart or more) and in at least one accent layer, or players cannot tell them apart in a fight (judgment).
+- Fill all seven palette keys even when a recipe uses no smoke: another recipe may be played in that palette.
+
+Test of this section (2026-11-20): a smaller model given only this section and the module wrote three new recipes (a water hit, a reward pickup, a critical hit) without running Studio; all three played with no errors on the first run. Looked at frozen at 0.06, 0.15 and 0.4 s: the water hit and the pickup read as intended; the critical hit was washed out by two large `flare` discs, which the flare bullet above now covers. Not judged at real speed or by the owner.
+
+Cost of one hit (counted in Studio, not a frame-cost measurement): 8-10 emitters, 24 beams (a 12-segment ring and its twin), 1 light; a second ring adds 12 or 24 beams; cap hits on screen at once on phones (section 5).
+
 ## 4. Lighting and atmosphere (docs)
 
 - Choosing a mood or an effect style: show the same spot in each option as an image (and a short clip only for motion) before building it (`roblox-game-pipeline` section 10a: greybox screenshots first, or images from a generator the user has connected).
