@@ -1,6 +1,6 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, when a fast sword cut's trail looks like a polygon, waves or a white blob, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, when a fast sword cut's trail looks like a polygon, waves or a white blob, when something that flies (an arrow, a fireball, a magic bolt, a thrown item, something falling from the sky) needs a trail, a warning on the floor and an impact, when a trail breaks into dots at speed or an effect stays behind while its object moves, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
 last_reviewed: 2026-11-20
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
@@ -18,6 +18,7 @@ sources:
   - RoDesigner ground blast demo, 2026-11-18 (one fire and impact effect in Studio 0.748 Play, rebuilt over 8 capture rounds next to a public showcase clip of a similar effect read at the same 16 beat times, plus real-time captures; judged good by the owner on its captures, who then set the small-units rule; engine probes of Brightness, emit placement, mesh textures, SurfaceAppearance emissive and script write access; numbers and method only from the clip); relayed by RoDesigner
   - https://create.roblox.com/docs/reference/engine/classes/ColorCorrectionEffect, classes/Highlight, classes/PostEffect (post effects do not affect GuiObjects) and classes/GuiService (TouchControlsEnabled, ReducedMotionEnabled)
   - RoDesigner blade trail demo, 2026-11-20 (a dual-blade combo in Studio 0.748 Play; the band trail first built for a greatsword in another game of ours; judged in two blind rounds and approved by the owner on video; ported to scripts/ and run from per-frame records at 60 and 30 fps; interpolation errors and update cost measured in Studio against the demo's exact poses)
+  - RoDesigner moving-things lab, 2026-11-20 (follow, path emission, density and travel added to the recipe module; a fall from the sky, a lob and an energy bolt in Studio 0.748 Play, slow-motion and frozen-frame captures, instance counts; not judged by the owner) and a smaller model's skill-effect build from this guide alone the same day (its report's guesses and defects feed section 3k)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
 ---
@@ -36,6 +37,7 @@ Sound effects, music and ambience live in `roblox-audio`: event sound map, mix, 
 
 ## 3. Effects
 
+- Before building any effect, read 3k: the bar every effect is judged by, which section fits it, sizes for the camera distance, budgets, and the defects that keep coming back.
 - `ParticleEmitter`: one emitter makes up to 400 particles per second (100 on mobile) according to the docs; keep `Rate` low and `Lifetime` short. Particle size costs GPU fill rate, so many large overlapping particles hurt phones.
 - Flipbooks (`ParticleEmitter.FlipbookLayout` 2x2, 4x4, 8x8 or `Custom` with `FlipbookSizeX`/`FlipbookSizeY`) cost texture memory, and clients switch them off when low on memory (docs), so an effect must still read without its flipbook. `ParticleEmitter.TimeScale` (0-1) slows or freezes an effect for a hit stop; at 0 it held particles still for a late screen capture (section 3d, measured 2026-11-17).
 - **UI particles.** `ParticleEmitter2D` is a native 2D emitter for any `GuiObject`, a Studio beta since 2026-11-19 (DevForum t/4996850): places that use it cannot be published until Roblox ships it to the client. It mirrors `ParticleEmitter` with offset px as units (speed, acceleration, drag, spread, colour, transparency and size over the lifetime, squash, flipbooks, a 0-1 `TimeScale`), and a `Blend` from normal (0) to additive (1) takes the place of `LightEmission` (docs). Until it is live, UI bursts and sparkle stay pooled ImageLabels under the phone budget in `roblox-ui-mobile` section 4a, which lists its units, limits and defaults. With the beta off the class exists but draws nothing. With it on, `Emit(n)` drew nothing in our build, so a burst is a short `Rate` pulse; `roblox-ui-mobile` section 4a has the pulse, the spawn area, the angles and how `UIScale` acts (measured in Studio 0.748, 2026-11-20). Its cost on a phone is not measured.
@@ -586,7 +588,7 @@ Failed first: lobes with thin outlines and hand-placed round holes read as soap 
 
 ## 3i. An effect as a recipe (data, not code)
 
-For the short effects a game needs in dozens: a hit per element, a pickup, a level-up, an aura, a ground hit, a heal, a spawn, a puff, an explosion. Each is a stack of a few bursts, streams, rings and one light, so it is written as a table and played by one module. Skill-size effects (2-4 s over 8-12 studs: a nova, a strike from the sky, a zone, an eruption) are recipes too, see "Skill-size recipes" below. Slashes, a floor that breaks and cutscenes stay code (3d-3h).
+For the short effects a game needs in dozens: a hit per element, a pickup, a level-up, an aura, a ground hit, a heal, a spawn, a puff, an explosion. Each is a stack of a few bursts, streams, rings and one light, so it is written as a table and played by one module. Skill-size effects (2-4 s over 8-12 studs: a nova, a strike from the sky, a zone, an eruption) are recipes too, see "Skill-size recipes" below. Anything that flies or moves carries its effect with `follow` and `FxRecipe.travel`, see "Moving things" below. Slashes, a floor that breaks and cutscenes stay code (3d-3h). Read 3k first.
 
 Files: `scripts/fx_recipe.luau` with `scripts/fx_clock.luau` and `scripts/fx_textures.luau`, copied as ModuleScripts into one folder. `FxRecipe.play("hit_fire", targetModel or impactCFrame, { scale = 1, direction = d })` returns the clock; a CFrame's LookVector is the direction the hit travels, and sparks fly back against it. `FxRecipe.play("aura", characterModel, { duration = 6 })` holds an aura for 6 s. Client only.
 
@@ -605,7 +607,7 @@ Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) 
 
 Every kind also takes `times` and `every`: the layer plays `times` times, `every` seconds apart (`times = "end"` repeats until the effect ends). A burst or stream also takes `tube = {radius, height}` (born anywhere in a box that tall above the anchor: the inside of a column) and `gather = radius` (emitted on a sphere of that radius and thrown at its centre: a charge; give it a speed of about radius / life) and `dir = "down"` (thrown down: rain inside a column).
 
-**Anchor** (`recipe.anchor`): `"hit"` (default) is the contact point, and sparks go back at the attacker; `"up"` is the same point with world up as the spray direction (pickups, puffs, explosions); `"feet"` is the floor under a model, or the CFrame's position (auras, level-ups, ground hits, heals). `opts.duration` replaces the recipe's duration, which is how long an aura holds.
+**Anchor** (`recipe.anchor`): `"hit"` (default) is the contact point, and sparks go back at the attacker; `"up"` is the same point with world up as the spray direction (pickups, puffs, explosions); `"feet"` is the floor under a model, or the CFrame's position (auras, level-ups, ground hits, heals); `"trail"` sprays back along the motion (trails, see "Moving things"). `opts.duration` replaces the recipe's duration, which is how long an aura holds. The target may be a character model, a CFrame, or a part, an attachment or another model (its own frame; a hit travels into its front unless `opts.direction` says otherwise).
 
 **Shipped recipes.**
 
@@ -732,6 +734,43 @@ Test of this section (2026-11-20): a smaller model given only this section and t
 
 Cost of one hit (counted in Studio, not a frame-cost measurement): 8-10 emitters, 24 beams (a 12-segment ring and its twin), 1 light; a second ring adds 12 or 24 beams; cap hits on screen at once on phones (section 5). Read from the recipe tables, not counted in Studio: `level_up` is 7 emitters, 64 beams (four 16-segment rings) and 1 light; `aura` is 4 emitters, 32 beams and 1 light for as long as it holds, so give it to the local player and a few nearby characters, not to a crowd.
 
+**Moving things.** `play` reads its target's position once, so by default an effect stays where it started. Three additions let anything that moves carry its effect:
+- `opts.follow = true` moves the whole effect with its target (a part, an attachment or a model) every frame; `opts.follow = function(t)` (clock time, returns a Vector3 or CFrame) moves it along any path. Rings, columns, helices and lights move with it; a target that is destroyed leaves the effect where it was.
+- `recipe.anchor = "trail"`: the spray points back along the motion and turns as the path turns. A stream with `path = width` is emitted over the distance its anchor moved in the frame, and `density` adds pieces per stud moved, so a trail is as full at 40 studs/s as at 150. Rate per second alone left gaps at speed.
+- `opts.emitUntil` stops the `"end"` layers there while the clock runs on, so the last pieces finish their lives.
+
+`FxRecipe.travel(from, to, opts)` flies something from `from` to `to` (a Vector3, CFrame, part, attachment or model each) and returns the flight's clock:
+
+```lua
+FxRecipe.travel(handAttachment, enemyModel, { time = 0.4, trail = "trail_glow", palette = "holy", impact = "hit_holy" })
+FxRecipe.travel(skyPoint, floorPoint, { time = 1, ease = "in", body = rockModel, spin = Vector3.new(0.5, 0.2, 0.35),
+	trail = "trail", tell = "tell", impact = { "ground_hit" }, scale = 3, tellScale = 1.5, impactScale = 2.5 })
+```
+
+| Option | Default | What it does |
+|---|---|---|
+| `time` | 0.6 | flight time in seconds |
+| `arc` | 0 | studs of height at the middle of the flight: a lob |
+| `ease` | `"linear"` | `"in"`: already moving at 0.4 of the mean speed, 1.6 of it at the end (a fall, a dive); `"out"`: the reverse |
+| `body` | none | an anchored part or model moved along the path, facing it; `spin` (a Vector3 of turns per second about its own axes) tumbles it instead; destroyed on arrival unless `keepBody` |
+| `trail` | `"trail"` | a recipe that follows the flight; `false` for none |
+| `tell` | none | a recipe played at `to` for the whole flight |
+| `impact` | none | a recipe or a list played on arrival with LookVector along the flight; one whose anchor is not `"feet"` is set back `impactLift` studs (default 1, times its scale) so the surface it hit does not cut it |
+| `palette`, `scale`, `tellScale`, `impactScale` | the recipes' own, 1 | |
+| `onArrive(position, direction)` | none | damage, a sound or a camera kick on the beat |
+
+A `to` that moves is chased, and the tell follows it. The flight is drawn on this client; the server decides the hit (`roblox-combat-tools`). A bolt of energy needs no body (its core is the body); a rock, an arrow or a missile is a mesh (house rule, section 3).
+
+| Recipe | Anchor | Palette | What plays |
+|---|---|---|---|
+| `trail` | trail | fire | a small core, white only at birth, that tapers behind the body; an orange glow; flames that face the camera and shrink; sparks thrown back; embers; a thin smoke line; a light that rides along |
+| `trail_glow` | trail | electric | a white-hot core and a saturated glow that taper, sparks and glints; no fire or smoke (energy bolts, magic; set the colour with `palette`) |
+| `tell` | feet | fire | a floor ring that closes on the point and is gone at the impact, a mark that flickers and builds, heat spots, motes on the rim, a light that grows |
+
+Fields added for them, usable in any recipe: a stream takes `path`, `density`, `ramp = { in, out }` (shares of its span; the trails use `{ 0.05, 0 }` so they end at full rate under the impact) and `grow` (builds toward its end and stops there: a tell, a charge); a light takes `grow`, and `ramp` with `hold`; a ring takes `ease` (`"in"` closes slowly, then fast, onto a beat) and `alpha` `{ { u, transparency }, ... }` over its span.
+
+Evidence (2026-11-20, Studio 0.748 Play on a desktop, slow motion at 0.04 and 0.2 and frozen frames): a fall from the sky over 94 studs in 1 s (`trail` at scale 3, `tell` at 1.5, impacts at 2-2.5, about 38-150 studs/s), a lobbed fireball of particles only (arc 10) and a holy bolt at 131 studs/s into a wall. Fixed on the way, each now a row of the 3k defect table: a core 4.5 studs wide read as a white disc over the body; fire cards laid along their velocity read as paper scraps; a rate per second left gaps at speed and the bolt's glow read as a string of dots; `explosion` at a floor point was cut into a white dome and a half ring. All 22 recipes then played with no errors, and part, attachment and moving-part targets (one destroyed while followed) worked. No owner verdict yet; not checked on a phone.
+
 ## 3j. A blade trail as a fan of bands (fast sword cuts)
 
 A fast sword cut sweeps 150-200 degrees in 0.035-0.05 s, two or three drawn frames at 60 fps. This is a trail for such cuts that reads as one sheet ending in pointed tails, with a served module that builds it from the blade's own past frames.
@@ -815,6 +854,91 @@ An idle fan draws nothing and only records two positions a frame. Use the defaul
 
 **Known limits.** Two frames carry no bulge: a cut whose sheet curves out of its plane, seen nearly edge-on, drew a thinner sheet from 60 fps frames than from the exact poses. The judges still named these on the approved demo, and the owner kept the look: on overhead cuts and the finisher the fans are large and opaque enough to hide the head and torso for a few frames, and thin rings show between bands for 4-6 frames as the tails part. Judged on a dark stage only. No sound, no phone, no published game.
 
+## 3k. Read first: what every effect is judged by
+
+The rules that the owner's verdicts and our test builds keep coming back to, in one place, for any effect (sources: the owner's verdicts in 3g, 3i and 3j; a smaller model that built a skill effect from this guide alone on 2026-11-20 and listed ten guesses in its report; the moving-things lab in 3i, 2026-11-20). Every row of the defect table is something one of those builds got wrong or had to guess.
+
+**The bar.** Check each from the player's camera, on frozen frames and at real speed:
+
+| Check | Fails when |
+|---|---|
+| Small units | one sprite shows a whole flame, explosion or trail; a piece lives over 0.35 s (smoke over about 1 s) |
+| Brief white | white lasts past a contact flash of 3 frames or the first 15% of a piece's life; a white ball or disc holds on screen |
+| No big one-colour mass | a large shape is one flat colour: a disc, a dome, a slab, one black smoke mass |
+| Something moves | a layer holds over 0.3 s with nothing moving in it (a still picture) |
+| Fire shrinks as it ends | a fire stops dead or thins out to one piece |
+| Reads at its distance | its pieces are under about 4 px on a phone (size table below) |
+| Nothing left behind | the effect stays where its object was while the object moves on |
+
+**Which section.**
+
+| The effect | Start from |
+|---|---|
+| A hit, pickup, level-up, aura, ground hit, heal, spawn, puff, explosion | 3i, a shipped recipe |
+| A 2-4 s skill on the floor: a nova, a strike from the sky, a zone, an eruption | 3i, the skill recipes |
+| Anything that flies: an arrow, a fireball, a magic bolt, a thrown item, something falling from the sky | 3i "Moving things": `FxRecipe.travel` with a trail, a tell and impact recipes |
+| An effect on something that moves (an aura on a running player, fire on a cart) | `FxRecipe.play` with `follow` (3i) |
+| A sword cut | 3j for fast cuts, 3d for a fire slash |
+| A skill with camera work, a cutscene | 3c for the beats, then 3e |
+| Fire, an explosion or smoke at large size | 3g |
+| A floor that breaks, smoke that erodes | 3h |
+| Copying a reference clip | 3f |
+| Camera shake, screen flash, hit stop, FOV | 3b |
+
+**Build order.**
+1. What it rewards and how big it is: the fun card (`roblox-fun-effects` section 1).
+2. A beat table: the tell (what the player reads first), the release, the tail, each with its time; the impact lands on a beat (3c).
+3. The camera distance it is watched from, and the scale from the size table.
+4. The nearest recipe: change data, not code. Anything that moves gets `follow` or `travel`.
+5. Run it in Play from the player's camera; look at a contact sheet of a slow run, then at real speed; fix against the defect table.
+6. Count it against the budget.
+
+**Size for the camera.** The default `FieldOfView` is 70 degrees (vertical), so 1 stud at distance D covers H / (1.4 x D) px on a screen H px tall. Detail under about 4 px averages away (`roblox-blender-export` section 4). The phone row is the 360 px height of the Samsung Galaxy A06 preset.
+
+| Camera distance | px per stud, phone | px per stud, desktop 1080 px | Smallest piece that reads on the phone | Recipe `scale` (judgment) |
+|---|---|---|---|---|
+| 15 studs | 17 | 51 | 0.25 studs | 1 |
+| 30 studs | 8.6 | 26 | 0.5 studs | 1 |
+| 60 studs | 4.3 | 13 | 0.9 studs | 2 |
+| 100 studs | 2.6 | 7.7 | 1.6 studs | 3 |
+
+The recipes are sized for about 15-35 studs. Something watched from 60-100 studs takes `scale` 2-3, which grows sizes, speeds and radii together and keeps the times. Never enlarge one layer instead: it turns into a mass.
+
+**Budget per effect** (instances counted in Studio 0.748, not a frame-cost measurement; who may run it is judgment). Particles alive in one stream: rate x life, plus density x speed x life on a trail.
+
+| Effect | Emitters | Beams | Lights | Parts | Who may run it |
+|---|---|---|---|---|---|
+| A hit (3i) | 8-10 | 24 | 1 | 1 | many on screen; cap hits at once on phones |
+| A trail in flight (3i) | 6 | 0 | 1 | 7 | each projectile in flight |
+| A fall from the sky: trail, tell and `ground_hit` at the landing (3i) | 9 in flight, 15 at the landing | 48, then 80 | 2, then 3 | 10-11 plus the body | the local player's own skill |
+| A skill recipe (3i) | 8-15 | 96-316 | 1-3 | 7-9 | one caster at a time |
+
+Frame cost on a phone is not measured for any of these: play the busiest moment on a low-end phone profile (section 5).
+
+**Defects we keep seeing.**
+
+| What you see | Cause | Fix |
+|---|---|---|
+| A white ball or disc over a moving thing | a core glow wider than the body and white for most of its life | the core under the body's size, white only in its first 15%, plus a saturated `mid` layer |
+| A string of dots behind something fast | pieces emitted at one point per frame, at a rate per second | `path` (emitted over the distance moved) and `density` (pieces per stud moved) |
+| The effect stays where its object was | the position was read once | `follow` or `travel` |
+| A white dome or a half ring at a landing point | a camera-facing glow or ring centred on the floor | on a floor play a `"feet"` recipe (`ground_hit`, `skill_eruption`); an `"up"` recipe sits at least half its glow's size above the floor |
+| Fire like paper scraps | flipbook cards laid along their velocity | flames face the camera; lay only streaks along the velocity |
+| Fire that reads pink on a bright sky | strong additive orange over blue | `emission` 0.4-0.5 on fire layers in daylight |
+| Fire like a row of separate explosions | big flipbook lumps that live long, far apart | smaller, shorter, denser pieces that shrink (3g) |
+| White sticks hanging in the air | streaks with a long life and little speed | streaks of 0.08-0.2 s in hot colours, round dots for embers |
+| One black smoke mass | many opaque puffs | thin smoke, at least half transparent (3i) |
+| A still picture | a held beam or glow with nothing moving in it | moving pieces (3i) |
+| A grey veil instead of a flash over a dark sky | a white full-screen flash at 0.3-0.4 | a warm tint at 0.35 opacity or less for 0.15-0.25 s (seen in one test build; limits in 3b) |
+| The screen washes out for 2 frames | a flash too long or too opaque | at most 3 frames and 0.5 opacity (3b) |
+
+**Watching an effect from an agent.**
+- Hold the camera every frame: Studio puts `CameraType` back to `Custom` after an `execute_luau` call that changed it (its console says so, 2026-11-20). Bind a step at `RenderPriority.Camera + 1` that sets `CameraType` to `Scriptable` and the `CFrame` each frame.
+- The Play client may run at 15 fps (3b), so a real-speed video shows a 0.16 s flash in 2 frames. Slow the effect instead: `FxClock.defaultScale = 0.2` slows every clock made after it, with its emitters' `TimeScale` and its beams' texture speed, so the look does not change. Record with `video_capture`, then `ffmpeg -i in.mp4 -vf "setpts=(PTS-STARTPTS)/5,fps=60" out.mp4` plays it at real speed with five times the frames. A screenshot of a run at 0.04 is a frozen frame.
+- One image of the whole run: `ffmpeg -i slow.mp4 -vf "fps=3,scale=480:-1,tile=6x4" -frames:v 1 sheet.png`. Read it beat by beat against the bar and the defect table, then watch it at real speed.
+
+**Getting the scripts into Studio.** The guide reader serves each script with `raw_url`, `sha256` and `bytes`: download the file and check both. Studio refused a script `Source` over 200,000 characters in our runs; the effect scripts are under 75,000. Two ways in without retyping: a Rojo project that syncs the folder, or a file server on 127.0.0.1 and one Edit-mode `execute_luau` that sets each ModuleScript's `Source` from `HttpService:GetAsync` (worked in Edit mode with `HttpEnabled` off, not from Play). Retyping the three scripts took a smaller model most of a 5.5-minute run (3i).
+
 ## 4. Lighting and atmosphere (docs)
 
 - Choosing a mood or an effect style: show the same spot in each option as an image (and a short clip only for motion) before building it (`roblox-game-pipeline` section 10a: greybox screenshots first, or images from a generator the user has connected).
@@ -851,6 +975,8 @@ An idle fan draws nothing and only records two positions a frame. Use the defaul
 | Screen shake has an off switch, combines by max, and only the object the camera follows (normally the player character) or the player's own actions move the camera | yes |
 | Full-screen flashes and edge pulses start at most twice a second; Reduce Motion and the game's own switches are honoured (section 3b); a cutscene counts its flashes in code, at most 3 in any second (section 3e) | yes |
 | Effects are built from small short-lived pieces: no sprite shows a whole flame or explosion, pieces live about 0.05-0.3 s, a real-time capture shows no piece alone, and no large shape is one flat colour (section 3g) | yes |
+| Every effect passes the bar of section 3k from the player's camera at its real distance, and is counted against the 3k budget | yes |
+| Anything that moves carries its effect (`follow` or `travel`, 3i): its trail has no gaps at full speed and nothing stays where it started | yes |
 | The same 30 s played with all effects off, then on: every channel is missed when off | yes |
 | Test on a low-end phone profile: FPS stable during the busiest effect moment | yes |
 | Mute and volume settings exist; music loops without gaps | yes |
