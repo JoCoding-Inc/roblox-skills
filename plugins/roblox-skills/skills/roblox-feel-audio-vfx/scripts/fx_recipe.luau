@@ -1,22 +1,25 @@
 --!nonstrict
--- fx_recipe: an effect written as data. A recipe is a list of layers; each layer is one of five kinds (burst,
--- stream, ring, light, column) with plain numbers and palette keys, so a new effect is a new table, not new code
+-- fx_recipe: an effect written as data. A recipe is a list of layers; each layer is one of a few kinds (burst,
+-- stream, ring, light, column, helix, mark) with plain numbers and palette keys, so a new effect is a new table, not new code
 -- (roblox-feel-audio-vfx section 3i). Needs fx_clock and fx_textures. Client only.
 --
 -- local FxRecipe = require(folder.fx_recipe)
+-- FxRecipe.preload() -- once on the client before the first cast (it yields while the textures load)
 -- FxRecipe.play("hit_electric", targetModel | impactCFrame, { scale = 1, direction = d }) -> clock
 -- FxRecipe.play(myRecipeTable, impactCFrame, { palette = "fire" })
 -- FxRecipe.play("aura", characterModel, { duration = 6 })
 --
 -- impactCFrame.LookVector = the direction the hit travels; sparks fly back against it. opts.scale multiplies
--- sizes, speeds, radii and light range (times stay); opts.palette overrides the recipe's palette (a name in
+-- sizes, speeds and radii, and a light's range by its square root (times stay; a range grown with the scale lit the
+-- whole floor as one flat oval at scale 4); opts.palette overrides the recipe's palette (a name in
 -- FxRecipe.palettes or a table with the same keys); opts.duration replaces the recipe's duration (how long an aura
 -- holds); opts.noPlay returns the clock unstarted.
 --
 -- Palette keys: white (the contact frame), hot (bright edge), mid (the saturated body), dark (the underlayer),
 -- smoke0 -> smoke1 (smoke over its life), light (the PointLight). A layer names keys, never colours.
 --
--- Layer fields (every size, speed and radius is in studs at scale 1):
+-- Layer fields (every size, speed, radius and z is in studs at scale 1; z is the ZOffset toward the camera, so a
+-- glow with z above the radius of a moving body is drawn over it, not hidden inside it):
 --   burst : at, count, slot, where ("front" | "hit"), life {min, max}, size {{t, v, envelope?}, ...},
 --           alpha {{t, transparency}, ...}, color (key | {{t, key}, ...}), emission, brightness, z,
 --           speed {min, max}, spread (deg), drag, accel {x, y, z}, rotation (deg), rotSpeed {min, max},
@@ -25,7 +28,8 @@
 --   ring  : at, dur, r0, r1, w0, w1, segments, color {from key, to key}, emission, brightness, z,
 --           twin (true: a dark ring under it, a little behind in time)
 --   light : at, dur, peak, range, hold (true: ramps in, holds and ramps out, for an aura)
--- More fields: a burst or stream takes up (studs above the anchor), disc {radius, partial} (emit from a flat disc
+-- More fields: a burst or stream takes up (studs above the anchor; on a "trail" anchor it runs back along the
+-- flight, so a negative up sits ahead of the body), disc {radius, partial} (emit from a flat disc
 -- at the anchor: partial 1 fills it, 0 is the rim only) and flat (true: the particle lies on the floor); a ring
 -- takes plane ("floor": it lies flat) and y0, y1 (it travels from y0 to y1 studs above the anchor); a stream's
 -- `to` may be "end" (runs until 0.35 s before the clock ends, so opts.duration sets how long an aura holds);
@@ -62,8 +66,11 @@
 -- step, so a fast trail has no gaps between frames. opts.emitUntil (s): "end" streams, rings, columns, helices and
 -- lights stop there while the clock runs on to opts.duration, so the last pieces finish their lives.
 -- A stream takes density (particles per stud the anchor moved, on top of rate, while following: a trail stays as
--- full at any speed; alive per layer = rate x life + density x speed x life, so mind it on fast things), ramp {in,
--- out} (shares of its span; default 0.15 each) and grow (true: it builds toward its end and stops there at full
+-- full at any speed; alive per layer = rate x life + density x speed / scale x life, so mind it on fast things), ramp {in,
+-- out} (shares of its span; default 0.15 each), len (studs at scale 1: each piece lives as long as the anchor takes
+-- to move that far, within life {min, max} and never longer than the stream has run, so a tail keeps its shape at
+-- any speed and a growing one ends in a faded point; opts.tail multiplies it) and
+-- grow (true: it builds toward its end and stops there at full
 -- rate); a light takes grow (rises to its peak at the end, then goes out) and, with hold,
 -- ramp; a ring takes ease ("out" default, "in": slow then fast, closing on a beat, "linear") and alpha {{u,
 -- transparency}, ...} over its span (default: fades over the last 65%).
@@ -74,7 +81,15 @@
 -- destroyed on arrival unless opts.keepBody. opts.trail (recipe; default "trail", false for none) follows it;
 -- opts.tell (recipe) plays at `to` for the flight; opts.impact (a recipe or a list) plays on arrival with LookVector
 -- along the flight (a recipe whose anchor is not "feet" is set back opts.impactLift studs, default 1, along the
--- flight); opts.palette, opts.scale, opts.tellScale, opts.impactScale; opts.onArrive(position, direction).
+-- flight); opts.palette, opts.scale, opts.tellScale, opts.impactScale, opts.tail (multiplies the trail's len);
+-- opts.onArrive(position, direction).
+-- A burst or stream takes locked (true: its particles move with their anchor: a glow that rides on a moving body).
+-- A kind for what an effect leaves behind:
+--   mark : at, dur, r0, r1 (radius at birth and after `grow` s), grow, alpha {{u, transparency}, ...} over dur,
+--          color (key | {{u, key}, ...} over dur), glow (true: lit by itself, so it reads on a dark floor; a colour
+--          ramp hot -> dark makes it cool), brightness, slot (default "glow": a soft disc), y (studs above the anchor)
+--          an image lying flat at the anchor that stays where it was put and fades: a scorch, a stain, frost. For
+--          a "feet" recipe (the anchor on the floor).
 --
 -- hit_electric reproduces scripts/hit_impact.luau layer for layer: built side by side in Studio 0.748 Play on
 -- 2026-11-20, all 8 emitters had the same 19 properties and the beam and light counts matched. The six element
@@ -178,6 +193,10 @@ L.dust = layer({ kind = "burst", name = "Dust", at = 0.04, count = 14, slot = "s
 L.debris = layer({ kind = "burst", name = "Debris", at = 0.03, count = 16, slot = "streak", where = "hit", up = 0.3, life = { 0.28, 0.35 }, speed = { 20, 36 }, spread = 42, drag = 2, accel = { 0, -70, 0 }, along = true, rotation = 90, squash = { { 0, 1.4 }, { 1, 0.8 } }, size = { { 0, 0.5, 0.1 }, { 1, 0.18 } }, alpha = { { 0, 0 }, { 0.7, 0.1 }, { 1, 1 } }, color = { { 0, "white" }, { 0.3, "hot" }, { 1, "mid" } }, emission = 0.9, brightness = 3, z = 0.7 })
 -- a fireball: lumps of an explosion flipbook that play once over their life
 L.fireball = layer({ kind = "burst", name = "Fireball", at = 0.02, count = 5, slot = "fire", where = "hit", life = { 0.28, 0.35 }, speed = { 2, 6 }, spread = 180, drag = 3, size = { { 0, 2.2, 0.4 }, { 1, 5.5, 0.6 } }, alpha = { { 0, 0 }, { 0.7, 0.15 }, { 1, 1 } }, color = { { 0, "white" }, { 0.35, "hot" }, { 1, "mid" } }, emission = 0.7, brightness = 2.5, z = 0.4 })
+-- a mark on the floor that stays where it was put and fades (a scorch); not a particle, so it can last seconds
+L.mark = layer({ kind = "mark", name = "Mark", at = 0.03, dur = 3, r0 = 2, r1 = 4.5, grow = 0.12, alpha = { { 0, 0.25 }, { 0.6, 0.35 }, { 1, 1 } }, color = "dark", y = 0.04 })
+-- the same mark lit by itself, cooling from hot to dark, so it reads on a dark floor
+L.hotMark = layer({ kind = "mark", name = "HotMark", at = 0.03, dur = 2.4, r0 = 1, r1 = 2.6, grow = 0.1, glow = true, brightness = 1.5, alpha = { { 0, 0.15 }, { 0.5, 0.45 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.3, "mid" }, { 1, "dark" } }, y = 0.05 })
 
 -- Skill-size layers (2-4 s effects over 8-12 studs; every piece is still small and short-lived) ------------------
 -- streaks pulled in to one point: the charge before a release
@@ -527,19 +546,24 @@ FxRecipe.recipes = {
 
 	-- Moving things: play them with opts.follow, or through FxRecipe.travel. "end" streams run until opts.emitUntil
 	-- at full rate (ramp out 0: the impact covers the cut). Sizes are for a projectile of 1-2 studs at scale 1. -----
-	-- a fire trail: a bright core that tapers behind the body, small fire tongues, streaks thrown back, embers that
-	-- drift up, a thin smoke line, a light that rides along
+	-- a fire trail: a haze round the head, a faint red glow drawn over the body and a white-hot one on its leading
+	-- face (locked, z above the body's radius), a white core, a tail of soft glows laid per stud that overlap about 8
+	-- deep and shrink and cool from hot to dark (one comet tail at any speed), flame licks, white-hot streaks thrown
+	-- back, embers that fall away behind, a thin smoke line, a light that rides along
 	trail = {
 		palette = "fire",
 		anchor = "trail",
 		duration = 1.5,
 		layers = {
+			L.body({ kind = "stream", name = "Haze", from = 0, to = "end", rate = 24, ramp = { 0.05, 0 }, where = "hit", locked = true, life = { 0.14, 0.18 }, size = { { 0, 3.6, 0.2 }, { 1, 3 } }, alpha = { { 0, 1 }, { 0.3, 0.72 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.3, z = 0 }),
+			L.body({ kind = "stream", name = "Halo", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", locked = true, life = { 0.12, 0.16 }, size = { { 0, 2, 0.2 }, { 1, 1.8 } }, alpha = { { 0, 1 }, { 0.25, 0.85 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.2, z = 1.2 }),
+			L.body({ kind = "stream", name = "Bow", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.65, locked = true, life = { 0.08, 0.12 }, size = { { 0, 0.7, 0.1 }, { 1, 0.6 } }, alpha = { { 0, 1 }, { 0.2, 0.5 }, { 1, 1 } }, color = { { 0, "white" }, { 1, "hot" } }, emission = 1, brightness = 1.6, z = 1.3 }),
 			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 20, density = 2.5, ramp = { 0.05, 0 }, path = 0.4, where = "hit", life = { 0.06, 0.1 }, size = { { 0, 0.8, 0.15 }, { 1, 0.25 } }, alpha = { { 0, 0.15 }, { 1, 1 } }, color = { { 0, "white" }, { 0.15, "hot" }, { 1, "mid" } }, emission = 1, brightness = 2, z = 0.5 }),
-			L.body({ kind = "stream", name = "Body", from = 0, to = "end", rate = 8, density = 1, ramp = { 0.05, 0 }, path = 0.6, where = "hit", life = { 0.1, 0.18 }, size = { { 0, 1.6, 0.2 }, { 1, 0.8 } }, alpha = { { 0, 0.55 }, { 1, 1 } }, color = "mid", emission = 0.5, brightness = 1.5, z = 0.2 }),
-			L.fireball({ kind = "stream", name = "Flames", from = 0, to = "end", rate = 20, density = 2, ramp = { 0.05, 0 }, path = 0.6, life = { 0.12, 0.2 }, speed = { 2, 5 }, spread = 25, drag = 2, rotSpeed = { -90, 90 }, size = { { 0, 1.1, 0.2 }, { 1, 0.4, 0.1 } }, alpha = { { 0, 0.1 }, { 0.7, 0.35 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.5, "mid" }, { 1, "mid" } }, emission = 0.5, brightness = 2.5, z = 0.3 }),
-			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 24, density = 0.2, ramp = { 0.05, 0 }, path = 0.5, life = { 0.08, 0.16 }, speed = { 12, 20 }, spread = 30, drag = 3, accel = { 0, -12, 0 }, size = { { 0, 0.5, 0.1 }, { 1, 0.12 } }, color = { { 0, "hot" }, { 1, "mid" } }, emission = 1, brightness = 3 }),
-			L.wisps({ name = "Embers", from = 0, to = "end", rate = 20, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.3, 0.6 }, speed = { 2, 6 }, spread = 70, drag = 2, accel = { 0, 4, 0 }, size = { { 0, 0.3, 0.1 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 1, 0.3 } }, emission = 1, brightness = 3 }),
-			L.smoke({ kind = "stream", name = "Smoke", from = 0, to = "end", rate = 6, density = 0.8, ramp = { 0.05, 0 }, path = 0.9, up = 0.8, life = { 0.5, 0.9 }, speed = { 1, 3 }, spread = 40, drag = 2, accel = { 0, 2, 0 }, size = { { 0, 0.7, 0.2 }, { 1, 2.2, 0.4 } }, alpha = { { 0, 1 }, { 0.15, 0.68 }, { 1, 1 } } }),
+			L.body({ kind = "stream", name = "Tail", from = 0, to = "end", rate = 0, density = 4.5, ramp = { 0.05, 0 }, path = 0.3, where = "hit", len = 16, life = { 0.15, 0.9 }, speed = { 0, 0.2 }, spread = 180, size = { { 0, 1.9, 0.2 }, { 0.3, 1.35 }, { 0.6, 0.9 }, { 0.85, 0.65 }, { 1, 0.4 } }, alpha = { { 0, 0.3 }, { 0.3, 0.38 }, { 0.6, 0.45 }, { 0.85, 0.65 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.3, "mid" }, { 1, "dark" } }, emission = 1, brightness = 0.6, z = 0.2 }),
+			L.fireball({ kind = "stream", name = "Flames", from = 0, to = "end", rate = 20, density = 2, ramp = { 0.05, 0 }, path = 0.6, life = { 0.18, 0.3 }, speed = { 2, 5 }, spread = 25, drag = 2, rotSpeed = { -90, 90 }, size = { { 0, 1.2, 0.2 }, { 1, 0.5, 0.1 } }, alpha = { { 0, 0.1 }, { 0.7, 0.35 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.5, "mid" }, { 1, "mid" } }, emission = 1, brightness = 1.5, z = 0.3 }),
+			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 40, density = 1.5, ramp = { 0.05, 0 }, path = 0.5, life = { 0.2, 0.35 }, speed = { 6, 14 }, spread = 25, drag = 1, accel = { 0, -6, 0 }, size = { { 0, 0.35, 0.1 }, { 1, 0 } }, alpha = { { 0, 0 }, { 0.85, 0 }, { 1, 1 } }, color = { { 0, "white" }, { 0.3, "hot" }, { 1, "hot" } }, emission = 1, brightness = 3.5 }),
+			L.wisps({ name = "Embers", from = 0, to = "end", rate = 16, density = 1.2, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.5, 0.9 }, speed = { 5, 12 }, spread = 180, drag = 1.5, accel = { 0, -8, 0 }, size = { { 0, 0.18, 0.05 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 0.8, 0.1 }, { 1, 1 } }, emission = 1, brightness = 3 }),
+			L.smoke({ kind = "stream", name = "Smoke", from = 0, to = "end", rate = 0, density = 0.8, ramp = { 0.05, 0 }, path = 0.9, up = 1.2, life = { 0.6, 1.0 }, speed = { 1, 3 }, spread = 40, drag = 2, accel = { 0, 2, 0 }, size = { { 0, 0.6, 0.2 }, { 1, 2.4, 0.4 } }, alpha = { { 0, 1 }, { 0.15, 0.78 }, { 1, 1 } } }),
 			L.light({ at = 0, dur = "end", peak = 2.5, range = 12, hold = true, ramp = { 0.05, 0 } }),
 		},
 	},
@@ -582,6 +606,20 @@ local function key(pal, k)
 	return c
 end
 
+-- a palette key, or a ramp {{u, key}, ...} read at u
+local function keyAt(pal, c, u)
+	if type(c) == "string" then
+		return key(pal, c)
+	end
+	for i = 2, #c do
+		local a, b = c[i - 1], c[i]
+		if u <= b[1] then
+			return key(pal, a[2]):Lerp(key(pal, b[2]), math.clamp((u - a[1]) / math.max(b[1] - a[1], 1e-6), 0, 1))
+		end
+	end
+	return key(pal, c[#c][2])
+end
+
 local function colorOf(pal, c)
 	if type(c) == "string" then
 		return ColorSequence.new(key(pal, c))
@@ -604,13 +642,13 @@ end
 local function emitterProps(l, pal, s)
 	local props = {
 		Name = l.name or "Layer",
-		Lifetime = NumberRange.new(l.life[1], l.life[2]),
+		Lifetime = if l.len then NumberRange.new(l.life[2] * 0.85, l.life[2]) else NumberRange.new(l.life[1], l.life[2]),
 		Size = sized(l.size, s),
 		Transparency = FxClock.ns(l.alpha),
 		Color = colorOf(pal, l.color),
 		LightEmission = l.emission or 1,
 		Brightness = l.brightness or 1,
-		ZOffset = l.z or 0,
+		ZOffset = (l.z or 0) * s,
 	}
 	if l.speed then
 		props.EmissionDirection = Enum.NormalId.Top
@@ -631,6 +669,9 @@ local function emitterProps(l, pal, s)
 	end
 	if l.along then
 		props.Orientation = Enum.ParticleOrientation.VelocityParallel
+	end
+	if l.locked then
+		props.LockedToPart = true
 	end
 	if l.squash then
 		props.Squash = FxClock.ns(l.squash)
@@ -906,8 +947,17 @@ function FxRecipe.play(recipe, target, opts)
 				-- seam; grow: it builds toward its end and stops there at full rate (a tell, a charge). density: more
 				-- per stud the anchor moved (while following), so a trail is as full at any speed
 				local to = if l.to == "end" then stopAt else l.to
+				local tailLen = if l.len then l.len * s * (opts.tail or 1) else nil
 				clock:stream(e, l.from, to, function(t)
 					local u = (t - l.from) / (to - l.from)
+					if tailLen then
+						-- len: a tail measured in studs, so its shape holds at any speed: each piece lives as long as the
+						-- anchor takes to move that far (within life), and no longer than the stream has run, so a tail
+						-- that is still growing ends in a faded point, not a round cap where it started
+						local byLen = if speed > 0 then tailLen / speed else math.huge
+						local life = math.clamp(math.min(byLen, t - l.from + l.life[1]), l.life[1], l.life[2])
+						e.Lifetime = NumberRange.new(life * 0.85, life)
+					end
 					local rate = (l.rate or 0) + (l.density or 0) * speed / s
 					if l.grow then
 						return rate * rampAt(l.ramp, u, 0) * (0.2 + 0.8 * u * u)
@@ -931,8 +981,8 @@ function FxRecipe.play(recipe, target, opts)
 			end
 			local c0, c1, dark = key(pal, l.color[1]), key(pal, l.color[2]), key(pal, "dark")
 			local r0, r1, w0, w1 = l.r0 * s, l.r1 * s, l.w0 * s, l.w1 * s
-			local ring = clock:ribbon(segs, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = l.z or 0.5 })
-			local twin = l.twin and clock:ribbon(segs, { LightEmission = 0, Brightness = 1, ZOffset = -0.3 })
+			local ring = clock:ribbon(segs, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s })
+			local twin = l.twin and clock:ribbon(segs, { LightEmission = 0, Brightness = 1, ZOffset = -0.3 * s })
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			-- ease: "out" (default) fast then slow, "in" slow then fast (closes on a beat), "linear"
 			local ease = if l.ease == "in" then function(u) return u * u end elseif l.ease == "linear" then function(u) return u end else FxClock.outQuart
@@ -967,7 +1017,7 @@ function FxRecipe.play(recipe, target, opts)
 				Segments = 1,
 				LightEmission = l.emission or 1,
 				Brightness = l.brightness or 3,
-				ZOffset = l.z or 0.2,
+				ZOffset = (l.z or 0.2) * s,
 				TextureMode = Enum.TextureMode.Wrap,
 				TextureLength = l.length or (if slot == "band" then 0.07 else 16 * s),
 				TextureSpeed = l.speed or 0,
@@ -1002,7 +1052,7 @@ function FxRecipe.play(recipe, target, opts)
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
 			local y0, y1, r, w = (l.y0 or 0) * s, l.y1 * s, l.r * s, l.w * s
 			local turns, spin, phase, base = l.turns or 2, l.spin or -1.5, l.phase or 0, l.alpha or 0.15
-			local ribbon = clock:ribbon(segs, { LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = l.z or 0.3 })
+			local ribbon = clock:ribbon(segs, { LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.3) * s })
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			local function point(f, turn)
 				local ang = (turns * f + turn) * math.pi * 2
@@ -1027,9 +1077,38 @@ function FxRecipe.play(recipe, target, opts)
 					ribbon.hide()
 				end
 			end)
+		elseif l.kind == "mark" then
+			-- an image on a thin part at the anchor, placed once at `at` (it does not follow); a SurfaceGui rather than a
+			-- Decal so that glow = true can light it by itself
+			local part = clock:part({ Name = l.name or "Mark", Size = Vector3.new(1, 0.05, 1), CFrame = CFrame.new(p) })
+			local gui = Instance.new("SurfaceGui")
+			gui.Face = Enum.NormalId.Top
+			gui.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+			gui.CanvasSize = Vector2.new(256, 256)
+			gui.LightInfluence = if l.glow then 0 else 1
+			gui.Brightness = l.brightness or 1
+			gui.Enabled = false
+			gui.Parent = part
+			local img = Instance.new("ImageLabel")
+			img.Size = UDim2.fromScale(1, 1)
+			img.BackgroundTransparency = 1
+			img.Image = FxTextures.get(l.slot or "glow").id
+			img.ImageTransparency = 1
+			img.Parent = gui
+			local dur = if l.dur == "end" then endAt - l.at else l.dur
+			local spot = nil
+			clock:span(l.at, l.at + dur, function(u, t)
+				spot = spot or p + shift + Vector3.yAxis * (l.y or 0.04) * s
+				local r = lerp(l.r0, l.r1, FxClock.outCubic(math.clamp((t - l.at) / math.max(l.grow or 0.1, 1e-3), 0, 1))) * s
+				part.Size = Vector3.new(r * 2, 0.05, r * 2)
+				part.CFrame = CFrame.new(spot)
+				img.ImageColor3 = keyAt(pal, l.color, u)
+				img.ImageTransparency = if u >= 1 then 1 else curve(l.alpha, u)
+				gui.Enabled = u < 1
+			end)
 		elseif l.kind == "light" then
 			local holder = if l.up then moves(clock:attachment(CFrame.new(p + spray * l.up * s))) else atts.front
-			local light = clock:light(holder, { Range = l.range * s, Color = key(pal, "light") })
+			local light = clock:light(holder, { Range = l.range * math.sqrt(s), Color = key(pal, "light") })
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			-- hold: ramps in, holds and ramps out (ramp {in, out}, default 0.15 and 0.25); grow: rises to its peak at
 			-- the end of its span, then goes out (a tell); otherwise it starts at its peak and falls
@@ -1093,7 +1172,7 @@ local function longestLife(r)
 	local m = 0
 	for _, l in r.layers do
 		if l.life then
-			m = math.max(m, l.life[2])
+			m = math.max(m, if type(l.life) == "table" then l.life[2] else l.life)
 		end
 	end
 	return m
@@ -1127,6 +1206,7 @@ function FxRecipe.travel(from, to, opts)
 			duration = time + longestLife(r) + 0.1,
 			scale = s,
 			palette = opts.palette,
+			tail = opts.tail,
 			noPlay = true,
 		})
 	else
@@ -1187,6 +1267,13 @@ function FxRecipe.travel(from, to, opts)
 		end
 	end)
 	return clock:play()
+end
+
+-- Loads every texture the recipes use (FxTextures.resolve, ContentProvider:PreloadAsync); it yields. Call it once on
+-- the client before the first cast: without it the first cast froze the client for about 1 s while its textures
+-- loaded, then the effect jumped ahead and left a blob where it started.
+function FxRecipe.preload()
+	return FxTextures.resolve()
 end
 
 return FxRecipe
