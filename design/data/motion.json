@@ -446,6 +446,13 @@
         "time_scale_range": {"v": [0, 1], "p": "documented", "src": "clamps on write (measured)", "date": "2026-11-20"},
         "defaults": {"v": {"Enabled": true, "Rate": 20, "Lifetime": [5, 10], "Speed": 64, "Size": 32, "EmissionMode": "BoundingBox", "EmissionAngle": 0, "SpreadAngle": 0, "Blend": 0, "Brightness": 1, "TimeScale": 1, "ZIndex": 1}, "p": "measured", "src": "property reads of a new instance; Studio 0.748, beta off", "date": "2026-11-20"},
         "draws_with_beta_off": {"v": false, "p": "measured", "src": "class created and properties set, nothing drawn in Edit or Play under a ScreenGui; Studio 0.748", "date": "2026-11-20"},
+        "draws_with_beta_on": {"v": true, "p": "measured", "src": "five-effect HUD build in Play; Studio 0.748, beta on", "date": "2026-11-20"},
+        "emit_draws": {"v": false, "p": "measured", "src": "Emit(n) drew nothing with Rate 0, 0.01 or set to 0 later, with and without a flipbook; Studio 0.748, beta on, Play", "date": "2026-11-20"},
+        "burst_rate_pulse_s": {"v": 0.12, "p": "measured", "src": "a burst of n is Rate = n / 0.12 for 0.12 s, then Rate 0: about n particles, give or take a frame; Enabled stays true; Studio 0.748, beta on", "date": "2026-11-20"},
+        "spawn_area": {"v": "random point inside the parent", "p": "measured", "src": "default EmissionMode BoundingBox; Studio 0.748, beta on", "date": "2026-11-20"},
+        "emission_angle_axes": {"v": {"0": "up", "90": "right"}, "p": "measured", "src": "Studio 0.748, beta on", "date": "2026-11-20"},
+        "acceleration_plus_y": {"v": "down", "p": "measured", "src": "Studio 0.748, beta on", "date": "2026-11-20"},
+        "uiscale_scales_size_and_travel": {"v": true, "p": "measured", "src": "a UIScale above the emitter scales particle size and travel alike; Studio 0.748, beta on", "date": "2026-11-20"},
         "clipped_in_surface_and_billboard_gui": {"v": false, "p": "documented", "src": "release notes", "date": "2026-11-19"},
         "styling_supported": {"v": false, "p": "documented", "src": "release notes", "date": "2026-11-19"},
         "vanish_when_parent_culled": {"v": true, "p": "documented", "src": "release notes", "date": "2026-11-19"}
