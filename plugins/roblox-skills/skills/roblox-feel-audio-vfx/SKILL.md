@@ -585,20 +585,38 @@ Failed first: lobes with thin outlines and hand-placed round holes read as soap 
 
 ## 3i. An effect as a recipe (data, not code)
 
-For the short effects a game needs in dozens: a hit per element, a pickup burst, a small skill impact. Each is a stack of a few bursts, one ring and one light, so it is written as a table and played by one module. Slashes, pillars, ground blasts and cutscenes stay code (3d-3h).
+For the short effects a game needs in dozens: a hit per element, a pickup, a level-up, an aura, a ground hit, a heal, a spawn, a puff, an explosion. Each is a stack of a few bursts, streams, rings and one light, so it is written as a table and played by one module. Slashes, beams, a floor that breaks and cutscenes stay code (3d-3h).
 
-Files: `scripts/fx_recipe.luau` with `scripts/fx_clock.luau` and `scripts/fx_textures.luau`, copied as ModuleScripts into one folder. `FxRecipe.play("hit_fire", targetModel or impactCFrame, { scale = 1, direction = d })` returns the clock; a CFrame's LookVector is the direction the hit travels, and sparks fly back against it. Client only.
+Files: `scripts/fx_recipe.luau` with `scripts/fx_clock.luau` and `scripts/fx_textures.luau`, copied as ModuleScripts into one folder. `FxRecipe.play("hit_fire", targetModel or impactCFrame, { scale = 1, direction = d })` returns the clock; a CFrame's LookVector is the direction the hit travels, and sparks fly back against it. `FxRecipe.play("aura", characterModel, { duration = 6 })` holds an aura for 6 s. Client only.
 
-Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) as data: built side by side in Studio 0.748 Play on 2026-11-20, all 8 emitters matched on 19 properties and the beam and light counts matched. The other five recipes were looked at frozen at 0.05, 0.1 and 0.2 s on a daylight floor; not judged at real speed, on a phone or in a published game.
+Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) as data: built side by side in Studio 0.748 Play on 2026-11-20, all 8 emitters matched on 19 properties and the beam and light counts matched. The six element hits were judged good by the owner at real speed in Studio on a desktop (2026-11-20). `hit_water` and the nine recipes that are not hits ran with no errors in Studio Play and were looked at frozen at 0.08, 0.3 and 0.7 s (`level_up`, `aura`, `heal` and `spawn_in` once more at 0.6 s after their streaks and dots were made smaller); the last size changes to `wisps`, `debris` and `embers` were not captured again, and nobody has judged these ten at real speed. Nothing was checked on a phone or in a published game.
 
 **Four layer kinds.** Sizes, speeds and radii are studs at scale 1; `opts.scale` multiplies them and leaves the times alone.
 
 | Kind | Fields | Use |
 |---|---|---|
-| `burst` | `at`, `count`, `slot`, `where`, `life`, `size`, `alpha`, `color`, `emission`, `brightness`, `z`; motion: `speed`, `spread`, `drag`, `accel`, `rotSpeed`, `along`, `squash` | Everything that appears at one moment |
-| `stream` | the burst fields with `from`, `to`, `rate` in place of `at`, `count` | Embers, drips: anything that keeps coming, ramped in and out |
-| `ring` | `at`, `dur`, `r0`, `r1`, `w0`, `w1`, `segments`, `color` {from, to}, `twin` | The shock ring, with a dark twin under it |
-| `light` | `at`, `dur`, `peak`, `range` | One PointLight pulse |
+| `burst` | `at`, `count`, `slot`, `where`, `life`, `size`, `alpha`, `color`, `emission`, `brightness`, `z`; motion: `speed`, `spread`, `drag`, `accel`, `rotSpeed`, `along`, `squash`; placing: `up` (studs above the anchor), `disc` {radius, partial} (emit from a flat disc: partial 1 fills it, 0 is the rim), `flat` (the particle lies on the floor) | Everything that appears at one moment |
+| `stream` | the burst fields with `from`, `to`, `rate` in place of `at`, `count`; `to = "end"` runs until the effect ends | Embers, rising streaks, an aura: anything that keeps coming, ramped in and out |
+| `ring` | `at`, `dur`, `r0`, `r1`, `w0`, `w1`, `segments`, `color` {from, to}, `twin`; `plane = "floor"` lays it flat, `y0`, `y1` move it up or down the body, `dur = "end"` with `r0 = r1` holds it | The shock ring with a dark twin under it, a floor ring, a ring that climbs the body |
+| `light` | `at`, `dur`, `peak`, `range`, `up`; `hold = true` ramps in, holds and ramps out; `dur = "end"` | One PointLight: a pulse, or held for an aura |
+
+**Anchor** (`recipe.anchor`): `"hit"` (default) is the contact point, and sparks go back at the attacker; `"up"` is the same point with world up as the spray direction (pickups, puffs, explosions); `"feet"` is the floor under a model, or the CFrame's position (auras, level-ups, ground hits, heals). `opts.duration` replaces the recipe's duration, which is how long an aura holds.
+
+**Shipped recipes.**
+
+| Recipe | Anchor | Palette | What plays | Length |
+|---|---|---|---|---|
+| `hit_electric`, `hit_fire`, `hit_ice`, `hit_holy`, `hit_shadow`, `hit_poison`, `hit_water` | hit | its element | the contact frame, a core, one colour mass, sparks, a ring, the element's accent | 1.0-1.1 s |
+| `pickup` | up | gold | a small pop, a fountain of sparks that fall back, a thin ring, stars | 0.8 s |
+| `level_up` | feet | holy | a floor ring, a column of light, two rings that climb the body, rising streaks, stars at the top | 1.7 s |
+| `aura` | feet | electric | a floor pulse, a held floor ring, rising streaks and drifting dots for as long as `opts.duration` | 3 s by default |
+| `ground_hit` | feet | earth | a flash, a dark mark on the floor, a wide floor ring, dust along the floor, chips that fall back | 1.2 s |
+| `heal` | feet | heal | no white flash: slow rings up the body, slow streaks, drifting dots | 1.6 s |
+| `spawn_in` | feet | electric | a column, a ring that scans down the body, then a floor ring and sparks | 1.0 s |
+| `poof` | up | shadow | a puff of smoke every way, a small flash, a few stars | 1.1 s |
+| `explosion` | up | fire | a big flash, a fireball flipbook, sparks every way, a wide ring, heavy smoke, embers | 1.5 s |
+
+Any recipe plays in any palette: `FxRecipe.play("aura", model, { palette = "fire" })`.
 
 **Templates** (`FxRecipe.layers`): call one with a table of the fields to change, for example `L.sparks({ count = 16 })`.
 
@@ -616,8 +634,18 @@ Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) 
 | `pops` | small stars after the hit | 0.25-0.35 s |
 | `ring` | the shock ring, radius 0.5 to 3.4 in 0.21 s | 0.21 s |
 | `light` | the world answers | 0.2 s |
+| `floorRing` | a shock ring lying on the floor, radius 0.6 to 5 | 0.3 s |
+| `riseRing` | a thin ring that travels up the body (swap `y0`, `y1` to scan down) | 0.55 s |
+| `floorGlow` | a soft colour disc lying on the floor | 0.3 s |
+| `scorch` | a dark mark left on the floor, the underlayer of a ground hit | 0.7 s |
+| `pillar` | a column of light on the body: one soft glow squashed tall | 0.3 s |
+| `motes` | thin streaks that rise from a ring at the feet | 0.25-0.35 s each, 0.9 s long |
+| `wisps` | small bright dots that drift up around the body | 0.3-0.35 s each, 0.9 s long |
+| `dust` | smoke thrown out along the floor | 0.5-0.8 s |
+| `debris` | chips thrown up that fall back | 0.28-0.35 s |
+| `fireball` | lumps of the explosion flipbook | 0.28-0.35 s |
 
-**Palette.** A layer names keys, never colours, so one recipe plays in any palette (`opts.palette`). Seven keys: `white` (the contact frame, near white), `hot` (a light tint, the bright edge), `mid` (the saturated body), `dark` (the same hue, almost black), `smoke0` to `smoke1` (smoke over its life), `light` (the PointLight). Shipped: electric, fire, ice, holy, shadow, poison.
+**Palette.** A layer names keys, never colours, so one recipe plays in any palette (`opts.palette`). Seven keys: `white` (the contact frame, near white), `hot` (a light tint, the bright edge), `mid` (the saturated body), `dark` (the same hue, almost black), `smoke0` to `smoke1` (smoke over its life), `light` (the PointLight). Shipped: electric, fire, ice, holy, shadow, poison, water, gold, heal, earth.
 
 **Writing a new one.**
 1. Start from the nearest shipped recipe and its palette; copy the table.
@@ -637,19 +665,22 @@ Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) 
 5. Verify as in 3d: freeze with `fx_capture` at 0.05, 0.1, 0.2 and 0.45 s from the player's camera, then watch it at real speed. Checks: a white frame of at most 3 frames; one saturated mass, not a white blob; the ring reads against the floor; nothing left on screen after 1 s.
 
 **Details an author needs** (each one was a guess for a smaller model writing recipes from this section alone, 2026-11-20):
-- Slots: `glow` a soft round ball; `star` a 4-point spark; `streak` an elongated ember (set `along = true`, `rotation = 90`); `flare` a ring with rays, additive only; `smoke` a thick puff; `electric` a lightning bolt; `fire` an 8x8 explosion flipbook; `band` is for beams. Round drops and bubbles: `glow` at 0.2-0.5 studs with `emission` 0.3-0.6.
+- Slots: `glow` a soft round ball; `star` a 4-point spark; `streak` an elongated ember (set `along = true`, `rotation = 90`); `flare` a ring with rays, additive only; `smoke` a thick puff; `electric` a lightning bolt; `fire` an 8x8 explosion flipbook; `band` is for beams. Round drops, bubbles and drifting dots: `glow` at about 0.3 studs with `emission` 0.3-0.6; at 0.6 studs and more they read as lumps (owner, on a water hit at real speed, 2026-11-20).
 - `flare` reads as a large translucent bubble above about 6 studs, and two of them stacked on the core washed a critical hit out to white: keep `rays` at 7 studs or less, use one, and make a bigger hit bigger with the ring radius, the spark count and the light, not with more additive discs on the centre.
 - Defaults of a hand-written layer: `where` "hit", `emission` 1, `brightness` 1, `z` 0, no motion; a ring defaults to 12 segments. `rotation` is a fixed start angle (random without it). An override replaces the whole field.
 - `duration` is when everything is destroyed: the last particle's death plus a margin (1.0 s for the shipped hits).
 - The 0.35 s life limit wins over the drag rule: a spark with low drag fades out on its way instead of stopping, which is fine. Use drag of about 3 / life or more only for pieces that must visibly stop.
-- A pickup or any effect that is not a hit: pass a CFrame that looks straight down so the sparks go up, widen `spread` (180 sends them every way), leave out `recoilDeg`, `smoke` and the ring's `twin`. `spread` 180 ran in Studio.
+- A pickup or any effect that is not a hit: set `anchor = "up"` (or `"feet"`) so the sparks go up, widen `spread` (180 sends them every way), leave out `recoilDeg`, `smoke` and the ring's `twin`. `spread` 180 ran in Studio.
+- A `streak` needs `along = true`, `rotation = 90` and a `squash` above 1 at the start (the shipped ones use 1.2-1.6), with a start size of 0.35-0.5 studs: without the squash, rising streaks drew as white squares in Studio.
+- An aura reads as a state only with something that holds: keep the held floor ring (`dur = "end"`, `r0 = r1`) under the streams, or it looks like scattered sparks.
+- Body effects keep the body visible: rings, streaks and dots around it, and at most one soft `pillar` for 0.3 s. Do not fill the silhouette with glow.
 - Keep `under` wherever the background is bright (a lit floor, the sky); drop it in dark scenes.
 - A second element must differ from its neighbours in hue (`mid` about 30 degrees of hue apart or more) and in at least one accent layer, or players cannot tell them apart in a fight (judgment).
 - Fill all seven palette keys even when a recipe uses no smoke: another recipe may be played in that palette.
 
-Test of this section (2026-11-20): a smaller model given only this section and the module wrote three new recipes (a water hit, a reward pickup, a critical hit) without running Studio; all three played with no errors on the first run. Looked at frozen at 0.06, 0.15 and 0.4 s: the water hit and the pickup read as intended; the critical hit was washed out by two large `flare` discs, which the flare bullet above now covers. Not judged at real speed or by the owner.
+Test of this section (2026-11-20): a smaller model given only this section and the module wrote three new recipes (a water hit, a reward pickup, a critical hit) without running Studio; all three played with no errors on the first run. Looked at frozen at 0.06, 0.15 and 0.4 s: the water hit and the pickup read as intended; the critical hit was washed out by two large `flare` discs, which the flare bullet above now covers. At real speed the owner judged the pickup and the critical hit good and the water hit odd for its large round drops (2026-11-20); the shipped `hit_water` uses 0.3-stud drops and has not been judged at real speed.
 
-Cost of one hit (counted in Studio, not a frame-cost measurement): 8-10 emitters, 24 beams (a 12-segment ring and its twin), 1 light; a second ring adds 12 or 24 beams; cap hits on screen at once on phones (section 5).
+Cost of one hit (counted in Studio, not a frame-cost measurement): 8-10 emitters, 24 beams (a 12-segment ring and its twin), 1 light; a second ring adds 12 or 24 beams; cap hits on screen at once on phones (section 5). Read from the recipe tables, not counted in Studio: `level_up` is 7 emitters, 64 beams (four 16-segment rings) and 1 light; `aura` is 4 emitters, 32 beams and 1 light for as long as it holds, so give it to the local player and a few nearby characters, not to a crowd.
 
 ## 4. Lighting and atmosphere (docs)
 
