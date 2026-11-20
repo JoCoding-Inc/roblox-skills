@@ -121,16 +121,16 @@ local FxRecipe = {}
 local C = Color3.fromRGB
 
 FxRecipe.palettes = {
-	electric = { white = C(255, 255, 255), hot = C(110, 200, 255), mid = C(40, 105, 255), dark = C(10, 28, 70), smoke0 = C(55, 65, 85), smoke1 = C(100, 108, 120), light = C(160, 220, 255) },
-	fire = { white = C(255, 250, 225), hot = C(255, 190, 70), mid = C(255, 95, 20), dark = C(60, 14, 6), smoke0 = C(40, 34, 32), smoke1 = C(95, 88, 84), light = C(255, 170, 90) },
-	ice = { white = C(255, 255, 255), hot = C(190, 240, 255), mid = C(90, 190, 235), dark = C(14, 44, 70), smoke0 = C(150, 175, 195), smoke1 = C(215, 230, 240), light = C(190, 235, 255) },
-	holy = { white = C(255, 255, 245), hot = C(255, 240, 170), mid = C(255, 200, 60), dark = C(80, 50, 8), smoke0 = C(120, 105, 70), smoke1 = C(200, 190, 160), light = C(255, 235, 170) },
-	shadow = { white = C(240, 220, 255), hot = C(200, 130, 255), mid = C(120, 40, 220), dark = C(20, 6, 40), smoke0 = C(30, 22, 44), smoke1 = C(70, 58, 90), light = C(190, 130, 255) },
-	poison = { white = C(245, 255, 220), hot = C(170, 255, 90), mid = C(60, 200, 60), dark = C(10, 50, 16), smoke0 = C(40, 60, 40), smoke1 = C(100, 125, 95), light = C(170, 255, 120) },
-	water = { white = C(245, 252, 255), hot = C(150, 225, 255), mid = C(30, 150, 235), dark = C(8, 40, 78), smoke0 = C(110, 150, 185), smoke1 = C(200, 225, 240), light = C(150, 215, 255) },
-	gold = { white = C(255, 255, 240), hot = C(255, 225, 110), mid = C(255, 170, 20), dark = C(70, 38, 4), smoke0 = C(120, 100, 60), smoke1 = C(205, 190, 150), light = C(255, 215, 120) },
-	heal = { white = C(250, 255, 245), hot = C(170, 255, 190), mid = C(60, 220, 130), dark = C(8, 54, 34), smoke0 = C(90, 130, 110), smoke1 = C(190, 225, 205), light = C(170, 255, 200) },
-	earth = { white = C(255, 248, 230), hot = C(240, 205, 150), mid = C(190, 130, 70), dark = C(48, 32, 20), smoke0 = C(92, 80, 68), smoke1 = C(165, 152, 138), light = C(255, 215, 160) },
+	electric = { white = C(255, 255, 255), hot = C(110, 200, 255), mid = C(40, 105, 255), deep = C(25, 45, 200), dark = C(10, 28, 70), smoke0 = C(55, 65, 85), smoke1 = C(100, 108, 120), light = C(160, 220, 255) },
+	fire = { white = C(255, 250, 225), hot = C(255, 190, 70), mid = C(255, 95, 20), deep = C(170, 30, 10), dark = C(60, 14, 6), smoke0 = C(40, 34, 32), smoke1 = C(95, 88, 84), light = C(255, 170, 90) },
+	ice = { white = C(255, 255, 255), hot = C(190, 240, 255), mid = C(90, 190, 235), deep = C(30, 100, 190), dark = C(14, 44, 70), smoke0 = C(150, 175, 195), smoke1 = C(215, 230, 240), light = C(190, 235, 255) },
+	holy = { white = C(255, 255, 245), hot = C(255, 240, 170), mid = C(255, 200, 60), deep = C(210, 120, 15), dark = C(80, 50, 8), smoke0 = C(120, 105, 70), smoke1 = C(200, 190, 160), light = C(255, 235, 170) },
+	shadow = { white = C(240, 220, 255), hot = C(200, 130, 255), mid = C(120, 40, 220), deep = C(85, 15, 165), dark = C(20, 6, 40), smoke0 = C(30, 22, 44), smoke1 = C(70, 58, 90), light = C(190, 130, 255) },
+	poison = { white = C(245, 255, 220), hot = C(170, 255, 90), mid = C(60, 200, 60), deep = C(25, 130, 25), dark = C(10, 50, 16), smoke0 = C(40, 60, 40), smoke1 = C(100, 125, 95), light = C(170, 255, 120) },
+	water = { white = C(245, 252, 255), hot = C(150, 225, 255), mid = C(30, 150, 235), deep = C(15, 80, 185), dark = C(8, 40, 78), smoke0 = C(110, 150, 185), smoke1 = C(200, 225, 240), light = C(150, 215, 255) },
+	gold = { white = C(255, 255, 240), hot = C(255, 225, 110), mid = C(255, 170, 20), deep = C(195, 95, 5), dark = C(70, 38, 4), smoke0 = C(120, 100, 60), smoke1 = C(205, 190, 150), light = C(255, 215, 120) },
+	heal = { white = C(250, 255, 245), hot = C(170, 255, 190), mid = C(60, 220, 130), deep = C(20, 145, 75), dark = C(8, 54, 34), smoke0 = C(90, 130, 110), smoke1 = C(190, 225, 205), light = C(170, 255, 200) },
+	earth = { white = C(255, 248, 230), hot = C(240, 205, 150), mid = C(190, 130, 70), deep = C(140, 70, 30), dark = C(48, 32, 20), smoke0 = C(92, 80, 68), smoke1 = C(165, 152, 138), light = C(255, 215, 160) },
 }
 
 -- Layer templates: each returns a fresh layer table; pass a table of fields to override.
@@ -546,23 +546,25 @@ FxRecipe.recipes = {
 
 	-- Moving things: play them with opts.follow, or through FxRecipe.travel. "end" streams run until opts.emitUntil
 	-- at full rate (ramp out 0: the impact covers the cut). Sizes are for a projectile of 1-2 studs at scale 1. -----
-	-- a fire trail: a haze round the head, a faint red glow drawn over the body and a white-hot one on its leading
-	-- face (locked, z above the body's radius), a white core, a tail of soft glows laid per stud that overlap about 8
-	-- deep and shrink and cool from hot to dark (one comet tail at any speed), flame licks, white-hot streaks thrown
-	-- back, embers that fall away behind, a thin smoke line, a light that rides along
+	-- a fire trail: a haze round the head, an orange glow drawn over the front half of the body and a hot one with a
+	-- white-hot point on its leading edge (locked, z above the body's radius), a tail in three len layers like a
+	-- flame (a narrow white core, a band of fire cards, a wide glow laid per stud about 8 deep that cools from orange
+	-- to deep red; one comet tail at any speed), sparks thrown back that shrink out, embers that fall away behind, a
+	-- thin smoke line, a light that rides along
 	trail = {
 		palette = "fire",
 		anchor = "trail",
 		duration = 1.5,
 		layers = {
 			L.body({ kind = "stream", name = "Haze", from = 0, to = "end", rate = 24, ramp = { 0.05, 0 }, where = "hit", locked = true, life = { 0.14, 0.18 }, size = { { 0, 3.6, 0.2 }, { 1, 3 } }, alpha = { { 0, 1 }, { 0.3, 0.72 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.3, z = 0 }),
-			L.body({ kind = "stream", name = "Halo", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", locked = true, life = { 0.12, 0.16 }, size = { { 0, 2, 0.2 }, { 1, 1.8 } }, alpha = { { 0, 1 }, { 0.25, 0.85 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.2, z = 1.2 }),
-			L.body({ kind = "stream", name = "Bow", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.65, locked = true, life = { 0.08, 0.12 }, size = { { 0, 0.7, 0.1 }, { 1, 0.6 } }, alpha = { { 0, 1 }, { 0.2, 0.5 }, { 1, 1 } }, color = { { 0, "white" }, { 1, "hot" } }, emission = 1, brightness = 1.6, z = 1.3 }),
-			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 20, density = 2.5, ramp = { 0.05, 0 }, path = 0.4, where = "hit", life = { 0.06, 0.1 }, size = { { 0, 0.8, 0.15 }, { 1, 0.25 } }, alpha = { { 0, 0.15 }, { 1, 1 } }, color = { { 0, "white" }, { 0.15, "hot" }, { 1, "mid" } }, emission = 1, brightness = 2, z = 0.5 }),
-			L.body({ kind = "stream", name = "Tail", from = 0, to = "end", rate = 0, density = 4.5, ramp = { 0.05, 0 }, path = 0.3, where = "hit", len = 16, life = { 0.15, 0.9 }, speed = { 0, 0.2 }, spread = 180, size = { { 0, 1.9, 0.2 }, { 0.3, 1.35 }, { 0.6, 0.9 }, { 0.85, 0.65 }, { 1, 0.4 } }, alpha = { { 0, 0.3 }, { 0.3, 0.38 }, { 0.6, 0.45 }, { 0.85, 0.65 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.3, "mid" }, { 1, "dark" } }, emission = 1, brightness = 0.6, z = 0.2 }),
-			L.fireball({ kind = "stream", name = "Flames", from = 0, to = "end", rate = 20, density = 2, ramp = { 0.05, 0 }, path = 0.6, life = { 0.18, 0.3 }, speed = { 2, 5 }, spread = 25, drag = 2, rotSpeed = { -90, 90 }, size = { { 0, 1.2, 0.2 }, { 1, 0.5, 0.1 } }, alpha = { { 0, 0.1 }, { 0.7, 0.35 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.5, "mid" }, { 1, "mid" } }, emission = 1, brightness = 1.5, z = 0.3 }),
-			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 40, density = 1.5, ramp = { 0.05, 0 }, path = 0.5, life = { 0.2, 0.35 }, speed = { 6, 14 }, spread = 25, drag = 1, accel = { 0, -6, 0 }, size = { { 0, 0.35, 0.1 }, { 1, 0 } }, alpha = { { 0, 0 }, { 0.85, 0 }, { 1, 1 } }, color = { { 0, "white" }, { 0.3, "hot" }, { 1, "hot" } }, emission = 1, brightness = 3.5 }),
-			L.wisps({ name = "Embers", from = 0, to = "end", rate = 16, density = 1.2, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.5, 0.9 }, speed = { 5, 12 }, spread = 180, drag = 1.5, accel = { 0, -8, 0 }, size = { { 0, 0.18, 0.05 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 0.8, 0.1 }, { 1, 1 } }, emission = 1, brightness = 3 }),
+			L.body({ kind = "stream", name = "Halo", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.3, locked = true, life = { 0.12, 0.16 }, size = { { 0, 1.6, 0.15 }, { 1, 1.45 } }, alpha = { { 0, 1 }, { 0.25, 0.8 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.2, z = 1.2 }),
+			L.body({ kind = "stream", name = "Bow", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.85, locked = true, life = { 0.08, 0.12 }, size = { { 0, 0.55, 0.06 }, { 1, 0.46 } }, alpha = { { 0, 1 }, { 0.2, 0.45 }, { 1, 1 } }, color = { { 0, "hot" }, { 1, "mid" } }, emission = 1, brightness = 1.4, z = 1.3 }),
+			L.body({ kind = "stream", name = "Point", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.8, locked = true, life = { 0.06, 0.1 }, size = { { 0, 0.2, 0.03 }, { 1, 0.16 } }, alpha = { { 0, 1 }, { 0.2, 0.3 }, { 1, 1 } }, color = { { 0, "white" }, { 1, "hot" } }, emission = 1, brightness = 1.6, z = 1.4 }),
+			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 0, density = 4, ramp = { 0.05, 0 }, path = 0.2, where = "hit", len = 5, life = { 0.06, 0.3 }, size = { { 0, 0.75, 0.05 }, { 0.5, 0.55 }, { 1, 0.2 } }, alpha = { { 0, 0.25 }, { 0.5, 0.45 }, { 1, 1 } }, color = { { 0, "white" }, { 0.5, "hot" }, { 1, "hot" } }, emission = 1, brightness = 1.4, z = 0.5 }),
+			L.body({ kind = "stream", name = "Tail", from = 0, to = "end", rate = 0, density = 4, ramp = { 0.05, 0 }, path = 0.3, where = "hit", len = 20, life = { 0.3, 1.0 }, speed = { 0, 0.2 }, spread = 180, size = { { 0, 2.2, 0.25 }, { 0.35, 1.55 }, { 0.6, 1.05 }, { 0.8, 0.7 }, { 1, 0.3 } }, alpha = { { 0, 0.8, 0.05 }, { 0.35, 0.62, 0.05 }, { 0.6, 0.62 }, { 0.75, 0.72 }, { 0.88, 0.9 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.45, "mid" }, { 0.75, "deep" }, { 1, "deep" } }, emission = 1, brightness = 0.9, z = 0.2 }),
+			L.fireball({ kind = "stream", name = "Flames", from = 0, to = "end", rate = 0, density = 3, ramp = { 0.05, 0 }, path = 0.3, len = 10, life = { 0.2, 0.5 }, speed = { 0, 1 }, spread = 180, drag = 2, rotSpeed = { -60, 60 }, size = { { 0, 1.1, 0.25 }, { 0.5, 0.85, 0.15 }, { 1, 0.35 } }, alpha = { { 0, 0.3, 0.1 }, { 0.5, 0.45, 0.1 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.55, "hot" }, { 1, "mid" } }, emission = 1, brightness = 0.7, z = 0.3 }),
+			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 10, density = 3, ramp = { 0.05, 0 }, path = 0.5, life = { 0.2, 0.35 }, speed = { 6, 14 }, spread = 30, drag = 1, accel = { 0, -6, 0 }, size = { { 0, 0.35, 0.1 }, { 1, 0 } }, alpha = { { 0, 1 }, { 0.1, 1 }, { 0.14, 0 }, { 1, 0 } }, color = { { 0, "white" }, { 0.3, "hot" }, { 1, "hot" } }, emission = 1, brightness = 3 }),
+			L.wisps({ name = "Embers", from = 0, to = "end", rate = 20, density = 1.2, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.5, 0.9 }, speed = { 5, 12 }, spread = 180, drag = 1.5, accel = { 0, -8, 0 }, size = { { 0, 0.2, 0.05 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 0.8, 0.1 }, { 1, 1 } }, emission = 1, brightness = 3 }),
 			L.smoke({ kind = "stream", name = "Smoke", from = 0, to = "end", rate = 0, density = 0.8, ramp = { 0.05, 0 }, path = 0.9, up = 1.2, life = { 0.6, 1.0 }, speed = { 1, 3 }, spread = 40, drag = 2, accel = { 0, 2, 0 }, size = { { 0, 0.6, 0.2 }, { 1, 2.4, 0.4 } }, alpha = { { 0, 1 }, { 0.15, 0.78 }, { 1, 1 } } }),
 			L.light({ at = 0, dur = "end", peak = 2.5, range = 12, hold = true, ramp = { 0.05, 0 } }),
 		},
@@ -600,6 +602,9 @@ FxRecipe.recipes = {
 
 local function key(pal, k)
 	local c = pal[k]
+	if not c and k == "deep" and pal.mid and pal.dark then
+		c = pal.mid:Lerp(pal.dark, 0.4) -- a palette made before `deep` existed
+	end
 	if not c then
 		error(`fx_recipe: palette has no key "{k}"`, 3)
 	end
@@ -831,6 +836,7 @@ function FxRecipe.play(recipe, target, opts)
 	local movers = {}
 	local syncedAt = nil
 	local speed = 0 -- studs per clock second, for density streams
+	local accel = 0 -- studs per clock second squared, smoothed, for len tails
 	local function sync(t)
 		if not follow or t == syncedAt then
 			return
@@ -842,7 +848,11 @@ function FxRecipe.play(recipe, target, opts)
 		end
 		local moved = pos - track0 - shift
 		if syncedAt and t > syncedAt then
-			speed = moved.Magnitude / (t - syncedAt)
+			local v = moved.Magnitude / (t - syncedAt)
+			if speed > 0 then
+				accel += ((v - speed) / (t - syncedAt) - accel) * 0.3
+			end
+			speed = v
 		end
 		syncedAt = t
 		shift = pos - track0
@@ -952,9 +962,12 @@ function FxRecipe.play(recipe, target, opts)
 					local u = (t - l.from) / (to - l.from)
 					if tailLen then
 						-- len: a tail measured in studs, so its shape holds at any speed: each piece lives as long as the
-						-- anchor takes to move that far (within life), and no longer than the stream has run, so a tail
-						-- that is still growing ends in a faded point, not a round cap where it started
-						local byLen = if speed > 0 then tailLen / speed else math.huge
+						-- anchor takes to move that far at its current speed and acceleration (within life), and no longer
+						-- than the stream has run, so a tail that is still growing ends in a faded point, not a round cap
+						-- where it started. With the speed alone, the pieces born while a fall was still slow outlived its
+						-- tail and bunched into a round bulb at the tip
+						local disc = speed * speed + 2 * accel * tailLen
+						local byLen = if disc > 0 and speed + math.sqrt(disc) > 0 then 2 * tailLen / (speed + math.sqrt(disc)) else math.huge
 						local life = math.clamp(math.min(byLen, t - l.from + l.life[1]), l.life[1], l.life[2])
 						e.Lifetime = NumberRange.new(life * 0.85, life)
 					end
