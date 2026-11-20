@@ -23,7 +23,7 @@
 -- outline, as a rim):
 --   burst : at, count, slot, where ("front" | "hit"), life {min, max}, size {{t, v, envelope?}, ...},
 --           alpha {{t, transparency}, ...}, color (key | {{t, key}, ...}), emission, brightness, z,
---           speed {min, max}, spread (deg), drag, accel {x, y, z}, rotation (deg), rotSpeed {min, max},
+--           speed {min, max}, spread (deg), drag, accel {x, y, z}, rotation (deg or {min, max}), rotSpeed {min, max},
 --           along (true: stretched along its velocity), squash {{t, v}, ...}
 --   stream: the burst fields with from, to (s) and rate (per s) in place of at and count
 --   ring  : at, dur, r0, r1, w0, w1, segments, color {from key, to key}, emission, brightness, z,
@@ -31,7 +31,8 @@
 --           and soft edges instead of a clean circle, each with its own start, length, radius, life and turn; no twin)
 --   light : at, dur, peak, range, hold (true: ramps in, holds and ramps out, for an aura), shape ({{u, share of
 --           peak}, ...}: any curve over its span), flicker (0-0.5: the brightness jitters like a flame), color (a
---           palette key, or a ramp {{u, key}, ...} read over its span; default "light")
+--           palette key, or a ramp {{u, key}, ...} read over its span; default "light"), soft (true: three lights
+--           in one, so a big light fades across a floor instead of drawing a flat oval)
 -- More fields: a burst or stream takes up (studs above the anchor; on a "trail" anchor it runs back along the
 -- flight, so a negative up sits ahead of the body), disc {radius, partial} (emit from a flat disc
 -- at the anchor: partial 1 fills it, 0 is the rim only) and flat (true: the particle lies on the floor); a ring
@@ -55,11 +56,11 @@
 -- "front" sits 0.4 studs toward the attacker so glow layers do not sink into the target; "hit" is the contact
 -- point with its up axis pointing back at the attacker (speed and spread fan out from there).
 -- Defaults of a layer written by hand: where "hit", emission 1, brightness 1, z 0, no motion; a ring: 12 segments,
--- emission 0.8, brightness 2.5, z 0.5. rotation is a fixed start angle in degrees (without it each particle starts
--- at a random angle). A template override replaces the whole field (a new size table, not one key of it).
--- duration is when the clock destroys everything: the last death plus a margin. One ring is `segments` beams, and
--- its twin as many again. An effect that is not a hit sets recipe.anchor ("up" or "feet"), so speed and spread fan
--- out from world up; spread 180 sends particles every way.
+-- emission 0.8, brightness 2.5, z 0.5. rotation is a fixed start angle in degrees, or {min, max} for a random one in
+-- that range (without it each particle starts at a random angle). A template override replaces the whole field (a
+-- new size table, not one key of it). duration is when the clock destroys everything: the last death plus a margin.
+-- One ring is `segments` beams, and its twin as many again. An effect that is not a hit sets recipe.anchor ("up" or
+-- "feet"), so speed and spread fan out from world up; spread 180 sends particles every way.
 --
 -- Targets: a character model (above), a CFrame, or a part, an attachment or another model (its own frame; a hit
 -- travels into its front unless opts.direction says otherwise).
@@ -524,7 +525,7 @@ FxRecipe.recipes = {
 	skill_eruption = {
 		palette = "fire",
 		anchor = "feet",
-		duration = 3.4,
+		duration = 3.9,
 		layers = {
 			-- tell 0-0.4
 			L.floorRing({ name = "Closing", at = 0, dur = 0.4, r0 = 7, r1 = 2, w0 = 0.15, w1 = 0.5, twin = false }),
@@ -536,28 +537,31 @@ FxRecipe.recipes = {
 			L.core({ at = 0.4, up = 1.5, count = 3 }),
 			-- a hot spot on the floor: bright on the contact frame, then down to a tenth within 0.13 s (held brighter, it drew a
 			-- white disc inside the rings), flickering under the fire and cooling with it
-			L.light({ name = "HotSpot", at = 0.4, up = 0.5, peak = 8, range = 7, dur = 2.6, shape = { { 0, 1 }, { 0.021, 0.3 }, { 0.048, 0.1 }, { 0.415, 0.14 }, { 0.7, 0.07 }, { 1, 0 } }, flicker = 0.35, color = { { 0, "hot" }, { 0.104, "hot" }, { 0.346, "mid" }, { 0.69, "mid" }, { 1, "deep" } } }),
-			L.scorch({ at = 0.42, size = { { 0, 8 }, { 0.2, 13 }, { 1, 14 } }, life = { 1.4, 1.4 } }),
-			L.floorGlow({ at = 0.4, color = "hot", size = { { 0, 6 }, { 1, 17 } } }),
+			L.light({ name = "HotSpot", at = 0.4, up = 0.5, peak = 8, range = 7, dur = 3.2, shape = { { 0, 1 }, { 0.017, 0.3 }, { 0.039, 0.1 }, { 0.338, 0.14 }, { 0.569, 0.07 }, { 1, 0 } }, flicker = 0.35, color = { { 0, "hot" }, { 0.084, "hot" }, { 0.281, "mid" }, { 0.563, "mid" }, { 1, "deep" } } }),
+			-- no flat glow or scorch under the release: 15-40 studs wide at scale 2.6, their soft-circle texture showed its
+			-- square edge as a flat card on the contact frame; the lights draw the floor's answer
 			L.fireball({ at = 0.42, up = 1.5, count = 7, emission = 1, size = { { 0, 3, 0.5 }, { 1, 7, 0.8 } } }),
-			-- broken arcs, not clean circles (a clean ring read as a UI ring or a target); chips in a wide cone, hot not white
-			-- (40 white streaks in a 28 degree cone read as a bundle of needles)
-			L.floorRing({ at = 0.42, dur = 0.4, r0 = 1, r1 = 11, w0 = 1.7, w1 = 0.15, segments = 20, times = 2, every = 0.11, color = { "hot", "mid" }, twin = false, arcs = 5, alpha = { { 0, 0.45 }, { 0.2, 0.05 }, { 0.4, 0.15 }, { 1, 1 } } }),
+			-- no floor rings: drawn flat on the floor they read as a UI ring or a target, and broken arcs as a decal; the dust
+			-- thrown out along the floor carries the shock. Chips in a wide cone, hot not white (40 white streaks in a 28 degree
+			-- cone read as a bundle of needles)
 			L.debris({ at = 0.43, count = 26, speed = { 30, 75 }, spread = 45, accel = { 0, -95, 0 }, squash = { { 0, 1 }, { 1, 0.4 } }, size = { { 0, 0.4, 0.1 }, { 1, 0.15 } }, color = { { 0, "hot" }, { 0.4, "mid" }, { 1, "deep" } } }),
 			L.sparks({ at = 0.43, up = 1, count = 30, speed = { 30, 60 }, spread = 75, drag = 5, accel = { 0, -30, 0 } }),
-			L.dust({ at = 0.45, count = 20, speed = { 14, 24 } }),
-			L.light({ at = 0.4, up = 2, peak = 7, range = 15.4, dur = 0.4, color = { { 0, "hot" }, { 1, "mid" } } }),
+			-- dust lifted (big puffs centred low were cut by the floor in a straight line) and drawn under the fire: pulled
+			-- toward the camera, dark dust covered the burst as a black blob
+			L.dust({ at = 0.45, count = 28, speed = { 18, 30 }, up = 0.8, z = 0 }),
+			-- the flash's light as a soft pool: one light this bright lit the floor as a flat yellow oval with a hard edge
+			L.light({ at = 0.4, up = 2, peak = 7, range = 15.4, dur = 0.4, soft = true, color = { { 0, "hot" }, { 1, "mid" } } }),
 			-- fountain 0.42-1.4
 			L.flames({ from = 0.42, to = 1.35, emission = 1, settle = 0.4 }),
 			L.flames({ name = "FlamesWide", from = 0.45, to = 1.1, rate = 22, disc = { 4.5, 1 }, speed = { 10, 18 }, emission = 1, size = { { 0, 1.2, 0.3 }, { 1, 3, 0.5 } } }),
 			L.debris({ name = "Spit", kind = "stream", from = 0.5, to = 1.3, rate = 45, disc = { 2, 1 }, speed = { 30, 55 }, spread = 22, accel = { 0, -80, 0 } }),
 			-- amber over the fountain: from hot to the fire's mid as it dies, flickering, out with the last flames
-			L.light({ name = "FountainLight", at = 0.6, up = 3, peak = 3.5, range = 12.1, dur = 1.6, hold = true, ramp = { 0.15, 0.45 }, flicker = 0.15, color = { { 0, "hot" }, { 1, "mid" } } }),
+			L.light({ name = "FountainLight", at = 0.6, up = 3, peak = 3.5, range = 12.1, dur = 1.6, hold = true, ramp = { 0.15, 0.45 }, flicker = 0.15, soft = true, color = { { 0, "hot" }, { 1, "mid" } } }),
 			-- tail: the fountain sinks to its base (settle) and a bed of low flames outlasts it; coals cool on the floor and the
 			-- hot spot dies after the fire, so it ends in steps (everything gone in one tenth of a second read as a cut)
 			L.flames({ name = "Dying", from = 0.9, to = 1.95, rate = 22, disc = { 2.4, 1 }, up = 0.3, speed = { 3, 8 }, life = { 0.3, 0.45 }, emission = 1, size = { { 0, 1.1, 0.2 }, { 1, 2, 0.3 } }, settle = 0.5, ramp = { 0.2, 0.45 } }),
 			L.smoke({ kind = "stream", name = "Plume", from = 0.6, to = 2.5, rate = 6, up = 2, disc = { 2.5, 1 }, speed = { 6, 11 }, spread = 14, life = { 0.7, 1.3 }, size = { { 0, 2, 0.4 }, { 1, 5, 0.8 } }, alpha = { { 0, 1 }, { 0.15, 0.5 }, { 1, 1 } }, settle = 0.45, ramp = { 0.15, 0.5 } }),
-			L.embers({ kind = "stream", name = "Coals", from = 0.5, to = 1.7, rate = 22, slot = "glow", along = false, squash = false, rotation = 0, up = 0.2, disc = { 3.2, 1 }, life = { 1.0, 1.7 }, speed = { 0.05, 0.1 }, spread = 0, drag = 0, accel = { 0, 0, 0 }, size = { { 0, 0.26, 0.08 }, { 0.7, 0.2 }, { 1, 0.1 } }, alpha = { { 0, 0.15 }, { 0.75, 0.35 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.45, "deep" }, { 1, "deep" } }, brightness = 2, z = 0.3 }),
+			L.embers({ kind = "stream", name = "Coals", from = 0.5, to = 1.8, rate = 22, slot = "glow", along = false, squash = { { 0, 0.4 }, { 1, 0.25 } }, rotation = { 0, 360 }, up = 0.2, disc = { 3.2, 1 }, life = { 1.2, 2.0 }, speed = { 0.05, 0.1 }, spread = 0, drag = 0, accel = { 0, 0, 0 }, size = { { 0, 0.26, 0.08 }, { 0.7, 0.2 }, { 1, 0.1 } }, alpha = { { 0, 0.15 }, { 0.75, 0.35 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.45, "deep" }, { 1, "deep" } }, brightness = 2, z = 0.3 }),
 			-- embers as small round dots: streaks rising slowly read as sticks standing on the floor
 			L.embers({ from = 0.5, to = 1.85, rate = 70, slot = "glow", along = false, squash = false, rotation = 0, disc = { 5, 1 }, up = 0.5, speed = { 8, 18 }, spread = 25, size = { { 0, 0.2, 0.06 }, { 1, 0.05 } }, color = { { 0, "hot" }, { 1, "mid" } }, brightness = 3 }),
 		},
@@ -565,14 +569,14 @@ FxRecipe.recipes = {
 
 	-- Moving things: play them with opts.follow, or through FxRecipe.travel. "end" streams run until opts.emitUntil
 	-- at full rate (ramp out 0: the impact covers the cut). Sizes are for a projectile of 1-2 studs at scale 1. -----
-	-- a fire trail: a haze round the head, an orange glow drawn over the front half of the body and a hot one with a
-	-- white-hot point on its leading edge (locked, z above the body's radius; the haze and the front glow shrink near a
-	-- surface, so the floor never cuts them), a tail in len layers like a flame (a narrow core white only at its start,
-	-- a band of fire cards, a wide glow laid per stud about 8 deep that cools from orange to deep red, red billows of
-	-- smoke texture over its back; one comet tail at any speed; on arrival the fire goes out from the tip toward the
-	-- impact, `cut`), sparks thrown back that shrink out, embers that fall away behind (per stud, so they thicken into
-	-- an impact), smoke that carries on past the red tip and stays as a column, a light ahead of the body that lights
-	-- the floor fire-orange before the impact
+	-- a fire trail: a haze round the head, an orange glow drawn over the front half of the body and a hot one on its
+	-- leading edge (locked, z above the body's radius; the haze and the front glow shrink near a surface, so the floor
+	-- never cuts them; no white point: a dot, flame cards or a light there all read as pasted on), a tail in len layers
+	-- like a flame (a narrow core white only at its start, a band of fire cards, a wide glow laid per stud about 8 deep
+	-- that cools from orange to deep red, red billows of smoke texture over its back; one comet tail at any speed; on
+	-- arrival the fire goes out from the tip toward the impact, `cut`), sparks thrown back that shrink out, embers that
+	-- fall away behind (per stud, so they thicken into an impact), smoke that carries on past the red tip and stays as a
+	-- column, a light ahead of the body that lights the floor fire-orange before the impact
 	trail = {
 		palette = "fire",
 		anchor = "trail",
@@ -581,7 +585,6 @@ FxRecipe.recipes = {
 			L.body({ kind = "stream", name = "Haze", from = 0, to = "end", rate = 24, ramp = { 0.05, 0 }, where = "hit", locked = true, clear = true, life = { 0.14, 0.18 }, size = { { 0, 3.6, 0.2 }, { 1, 3 } }, alpha = { { 0, 1 }, { 0.3, 0.72 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.3, z = 0 }),
 			L.body({ kind = "stream", name = "Halo", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.3, locked = true, clear = true, life = { 0.12, 0.16 }, size = { { 0, 1.6, 0.15 }, { 1, 1.45 } }, alpha = { { 0, 1 }, { 0.25, 0.8 }, { 1, 1 } }, color = "mid", emission = 1, brightness = 1.2, z = 1.2 }),
 			L.body({ kind = "stream", name = "Bow", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.85, locked = true, life = { 0.08, 0.12 }, size = { { 0, 0.55, 0.06 }, { 1, 0.46 } }, alpha = { { 0, 1 }, { 0.2, 0.45 }, { 1, 1 } }, color = { { 0, "hot" }, { 1, "mid" } }, emission = 1, brightness = 1.4, z = 1.3 }),
-			L.body({ kind = "stream", name = "Point", from = 0, to = "end", rate = 40, ramp = { 0.05, 0 }, where = "hit", up = -0.8, locked = true, life = { 0.06, 0.1 }, size = { { 0, 0.28, 0.04 }, { 1, 0.22 } }, alpha = { { 0, 1 }, { 0.2, 0.3 }, { 1, 1 } }, color = { { 0, "white" }, { 1, "hot" } }, emission = 1, brightness = 2, z = 1.4 }),
 			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 0, density = 4, ramp = { 0.05, 0 }, path = 0.2, where = "hit", up = 0.3, len = 3.5, cut = 0.15, life = { 0.06, 0.3 }, size = { { 0, 0.75, 0.05 }, { 0.5, 0.55 }, { 1, 0.2 } }, alpha = { { 0, 0.35 }, { 0.5, 0.5 }, { 1, 1 } }, color = { { 0, "white" }, { 0.2, "hot" }, { 1, "hot" } }, emission = 1, brightness = 1.2, z = 0 }),
 			L.body({ kind = "stream", name = "Tail", from = 0, to = "end", rate = 0, density = 4, ramp = { 0.05, 0 }, path = 0.3, where = "hit", len = 20, cut = 0.3, life = { 0.3, 1.0 }, speed = { 0, 0.2 }, spread = 180, size = { { 0, 2.2, 0.25 }, { 0.35, 1.55 }, { 0.6, 1.05 }, { 0.8, 0.7 }, { 1, 0.3 } }, alpha = { { 0, 0.8, 0.05 }, { 0.35, 0.7, 0.05 }, { 0.55, 0.68 }, { 0.75, 0.74 }, { 0.88, 0.86 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.25, "mid" }, { 0.5, "deep" }, { 1, "deep" } }, emission = 1, brightness = 0.9, z = 0.2 }),
 			L.body({ kind = "stream", name = "Billow", slot = "smoke", from = 0, to = "end", rate = 0, density = 2, ramp = { 0.05, 0 }, path = 0.3, where = "hit", len = 20, cut = 0.4, life = { 0.3, 1.0 }, speed = { 0, 0.3 }, spread = 180, rotSpeed = { -40, 40 }, size = { { 0, 1.2, 0.2 }, { 0.4, 1.2, 0.2 }, { 0.7, 0.9 }, { 1, 0.4 } }, alpha = { { 0, 1 }, { 0.35, 1 }, { 0.45, 0.55, 0.05 }, { 0.8, 0.65 }, { 1, 1 } }, color = "deep", emission = 1, brightness = 0.9, z = 0.25 }),
@@ -700,7 +703,8 @@ local function emitterProps(l, pal, s)
 		props.Acceleration = Vector3.new(l.accel[1], l.accel[2], l.accel[3]) * s
 	end
 	if l.rotation then
-		props.Rotation = NumberRange.new(l.rotation)
+		-- a number, or {min, max} for a random turn per piece
+		props.Rotation = if type(l.rotation) == "table" then NumberRange.new(l.rotation[1], l.rotation[2]) else NumberRange.new(l.rotation)
 	end
 	if l.rotSpeed then
 		props.RotSpeed = NumberRange.new(l.rotSpeed[1], l.rotSpeed[2])
@@ -737,7 +741,7 @@ local function emitterProps(l, pal, s)
 		props.EmissionDirection = Enum.NormalId.Top
 		props.Orientation = Enum.ParticleOrientation.VelocityPerpendicular
 		props.Speed = NumberRange.new(0.01)
-		props.Rotation = NumberRange.new(l.rotation or 0)
+		props.Rotation = if type(l.rotation) == "table" then NumberRange.new(l.rotation[1], l.rotation[2]) else NumberRange.new(l.rotation or 0)
 	end
 	return props
 end
@@ -1258,7 +1262,15 @@ function FxRecipe.play(recipe, target, opts)
 			end)
 		elseif l.kind == "light" then
 			local holder = if l.up then moves(clock:attachment(CFrame.new(p + spray * l.up * s))) else atts.front
-			local light = clock:light(holder, { Range = l.range * math.sqrt(s), Color = keyAt(pal, l.color or "light", 0) })
+			-- soft: one bright light lights a floor as a flat oval with an edge (its falloff is flat over most of its
+			-- range and the centre clips), so the light is three at one point, ranges 0.4, 0.65 and 1 of range with
+			-- 0.55, 0.3 and 0.15 of the brightness: the floor fades from the centre out, same peak in the middle
+			local tiers = if l.soft then { { 0.4, 0.55 }, { 0.65, 0.3 }, { 1, 0.15 } } else { { 1, 1 } }
+			local lights = {}
+			for _, tier in tiers do
+				local pl = clock:light(holder, { Range = l.range * math.sqrt(s) * tier[1], Color = keyAt(pal, l.color or "light", 0) })
+				table.insert(lights, { pl, tier[2] })
+			end
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			-- hold: ramps in, holds and ramps out (ramp {in, out}, default 0.15 and 0.25); grow: rises to its peak at
 			-- the end of its span, then goes out (a tell); shape {{u, share of peak}, ...}: any curve over the span;
@@ -1274,9 +1286,11 @@ function FxRecipe.play(recipe, target, opts)
 				if l.flicker then
 					b *= math.max(0, 1 + 2 * l.flicker * math.noise(t * 11, l.at * 7.3 + 0.5))
 				end
-				light.Brightness = b
-				if cools then
-					light.Color = keyAt(pal, l.color, u)
+				for _, x in lights do
+					x[1].Brightness = b * x[2]
+					if cools then
+						x[1].Color = keyAt(pal, l.color, u)
+					end
 				end
 			end)
 		else
