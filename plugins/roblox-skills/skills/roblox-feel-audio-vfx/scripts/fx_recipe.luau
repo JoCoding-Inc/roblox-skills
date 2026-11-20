@@ -27,7 +27,8 @@
 --           along (true: stretched along its velocity), squash {{t, v}, ...}
 --   stream: the burst fields with from, to (s) and rate (per s) in place of at and count
 --   ring  : at, dur, r0, r1, w0, w1, segments, color {from key, to key}, emission, brightness, z,
---           twin (true: a dark ring under it, a little behind in time)
+--           twin (true: a dark ring under it, a little behind in time), arcs (n: n broken arcs with pointed ends
+--           and soft edges instead of a clean circle, each with its own start, length, radius, life and turn; no twin)
 --   light : at, dur, peak, range, hold (true: ramps in, holds and ramps out, for an aura), shape ({{u, share of
 --           peak}, ...}: any curve over its span), flicker (0-0.5: the brightness jitters like a flame), color (a
 --           palette key, or a ramp {{u, key}, ...} read over its span; default "light")
@@ -81,7 +82,8 @@
 -- FxRecipe.travel(from, to, opts) -> clock: something flies from `from` to `to` (Vector3, CFrame, part, attachment
 -- or model; a moving `to` is chased) in opts.time s (default 0.6), opts.arc studs high at the middle, opts.ease
 -- "linear" (default), "in" (already moving, then faster: a fall) or "out". opts.body (an anchored part or model) is
--- moved along the path facing it, or turned by opts.spin (Vector3, turns per second about its own axes), and is
+-- moved along the path facing it, or turned by opts.spin (Vector3, turns per second about its own axes), arrives
+-- when its front reaches `to` (its path ends opts.reach studs short; default half its longest side), and is
 -- destroyed on arrival unless opts.keepBody. opts.trail (recipe; default "trail", false for none) follows it;
 -- opts.tell (recipe) plays at `to` for the flight; opts.impact (a recipe or a list) plays on arrival with LookVector
 -- along the flight (a recipe whose anchor is not "feet" is set back opts.impactLift studs, default 1, along the
@@ -527,7 +529,7 @@ FxRecipe.recipes = {
 			-- tell 0-0.4
 			L.floorRing({ name = "Closing", at = 0, dur = 0.4, r0 = 7, r1 = 2, w0 = 0.15, w1 = 0.5, twin = false }),
 			L.floorGlow({ kind = "stream", name = "Heat", from = 0, to = 0.42, rate = 14, disc = { 3, 1 }, life = { 0.2, 0.3 }, size = { { 0, 1.5 }, { 1, 4 } }, color = "hot", alpha = { { 0, 1 }, { 0.4, 0.4 }, { 1, 1 } } }),
-			L.embers({ name = "TellEmbers", from = 0, to = 0.42, rate = 45, disc = { 3.5, 1 }, up = 0.3, speed = { 8, 16 }, spread = 25, squash = { { 0, 1.8 }, { 1, 1.1 } }, size = { { 0, 0.3, 0.1 }, { 1, 0.08 } } }),
+			L.embers({ name = "TellEmbers", from = 0, to = 0.42, rate = 45, slot = "glow", along = false, squash = false, rotation = 0, disc = { 3.5, 1 }, up = 0.3, speed = { 8, 16 }, spread = 25, size = { { 0, 0.2, 0.06 }, { 1, 0.05 } } }),
 			L.light({ name = "TellLight", at = 0, dur = 0.42, up = 1, peak = 2.5, range = 7.7, hold = true, color = "mid" }),
 			-- burst 0.4: the floor answers on the same frame as the flash (the hot spot's spike, floor glow)
 			L.flash({ at = 0.4, up = 2, size = { { 0, 1.5 }, { 0.25, 3 }, { 1, 2 } }, color = { { 0, "white" }, { 0.5, "hot" }, { 1, "hot" } }, brightness = 3 }),
@@ -538,8 +540,10 @@ FxRecipe.recipes = {
 			L.scorch({ at = 0.42, size = { { 0, 8 }, { 0.2, 13 }, { 1, 14 } }, life = { 1.4, 1.4 } }),
 			L.floorGlow({ at = 0.4, color = "hot", size = { { 0, 6 }, { 1, 17 } } }),
 			L.fireball({ at = 0.42, up = 1.5, count = 7, emission = 1, size = { { 0, 3, 0.5 }, { 1, 7, 0.8 } } }),
-			L.floorRing({ at = 0.42, dur = 0.4, r0 = 1, r1 = 11, w0 = 1.7, w1 = 0.15, segments = 20, times = 2, every = 0.11, color = { "hot", "mid" }, twin = false }),
-			L.debris({ at = 0.43, count = 40, speed = { 45, 80 }, spread = 28, accel = { 0, -95, 0 } }),
+			-- broken arcs, not clean circles (a clean ring read as a UI ring or a target); chips in a wide cone, hot not white
+			-- (40 white streaks in a 28 degree cone read as a bundle of needles)
+			L.floorRing({ at = 0.42, dur = 0.4, r0 = 1, r1 = 11, w0 = 1.7, w1 = 0.15, segments = 20, times = 2, every = 0.11, color = { "hot", "mid" }, twin = false, arcs = 5 }),
+			L.debris({ at = 0.43, count = 26, speed = { 30, 75 }, spread = 45, accel = { 0, -95, 0 }, squash = { { 0, 1 }, { 1, 0.4 } }, size = { { 0, 0.4, 0.1 }, { 1, 0.15 } }, color = { { 0, "hot" }, { 0.4, "mid" }, { 1, "deep" } } }),
 			L.sparks({ at = 0.43, up = 1, count = 30, speed = { 30, 60 }, spread = 75, drag = 5, accel = { 0, -30, 0 } }),
 			L.dust({ at = 0.45, count = 20, speed = { 14, 24 } }),
 			L.light({ at = 0.4, up = 2, peak = 7, range = 15.4, dur = 0.4, color = { { 0, "hot" }, { 1, "mid" } } }),
@@ -552,7 +556,8 @@ FxRecipe.recipes = {
 			-- tail
 			L.flames({ name = "Dying", from = 1.3, to = 1.85, rate = 16, disc = { 1.5, 1 }, speed = { 10, 18 }, emission = 1, size = { { 0, 1, 0.2 }, { 1, 2.4, 0.4 } } }),
 			L.smoke({ kind = "stream", name = "Plume", from = 0.6, to = 1.7, rate = 6, up = 2, disc = { 2.5, 1 }, speed = { 6, 11 }, spread = 14, life = { 0.7, 1.0 }, size = { { 0, 2, 0.4 }, { 1, 5, 0.8 } }, alpha = { { 0, 1 }, { 0.15, 0.5 }, { 1, 1 } } }),
-			L.embers({ from = 0.5, to = 1.85, rate = 70, disc = { 5, 1 }, up = 0.5, speed = { 8, 18 }, spread = 25, squash = { { 0, 1.8 }, { 1, 1.1 } }, size = { { 0, 0.3, 0.1 }, { 1, 0.08 } }, color = { { 0, "hot" }, { 1, "mid" } }, brightness = 3 }),
+			-- embers as small round dots: streaks rising slowly read as sticks standing on the floor
+			L.embers({ from = 0.5, to = 1.85, rate = 70, slot = "glow", along = false, squash = false, rotation = 0, disc = { 5, 1 }, up = 0.5, speed = { 8, 18 }, spread = 25, size = { { 0, 0.2, 0.06 }, { 1, 0.05 } }, color = { { 0, "hot" }, { 1, "mid" } }, brightness = 3 }),
 		},
 	},
 
@@ -994,7 +999,11 @@ function FxRecipe.play(recipe, target, opts)
 				parent = moves(clock:attachment(CFrame.fromMatrix(at, side, spray)))
 			end
 			local e = clock:emitter(parent, emitterProps(l, pal, s))
-			FxTextures.apply(e, l.slot)
+			local lead = FxTextures.apply(e, l.slot).lead
+			local function setAlpha(seq)
+				e.Transparency = if lead then FxTextures.hideLead(seq, lead) else seq
+			end
+			setAlpha(e.Transparency)
 			if l.kind == "burst" then
 				for i = 0, repeats(l) - 1 do
 					clock:at(l.at + i * (l.every or 0), function()
@@ -1054,7 +1063,7 @@ function FxRecipe.play(recipe, target, opts)
 						if k < 0.999 then
 							table.insert(pts, { 1, 1 })
 						end
-						e.Transparency = FxClock.ns(pts)
+						setAlpha(FxClock.ns(pts))
 					end)
 				end
 			end
@@ -1074,6 +1083,43 @@ function FxRecipe.play(recipe, target, opts)
 			end
 			local c0, c1, dark = key(pal, l.color[1]), key(pal, l.color[2]), key(pal, "dark")
 			local r0, r1, w0, w1 = l.r0 * s, l.r1 * s, l.w0 * s, l.w1 * s
+			if l.arcs then
+				-- arcs: broken arcs instead of a clean circle, each with its own start, length (0.55-1.15 of its share of
+				-- the turn), radius (0.95-1.05), life (0.65-1) and turn (up to 0.8 rad/s), pointed ends and the soft band
+				-- texture across its width; no twin
+				local rng = Random.new()
+				local share = math.pi * 2 / l.arcs
+				local per = math.max(3, math.ceil(segs / l.arcs * 1.15))
+				local dur = if l.dur == "end" then endAt - l.at else l.dur
+				local ease = if l.ease == "in" then function(u) return u * u end elseif l.ease == "linear" then function(u) return u end else FxClock.outQuart
+				for k = 1, l.arcs do
+					local start = (k - 1 + rng:NextNumber(-0.3, 0.3)) * share
+					local len = share * rng:NextNumber(0.55, 1.15)
+					local rk, life, turn = rng:NextNumber(0.95, 1.05), dur * rng:NextNumber(0.65, 1), rng:NextNumber(-0.8, 0.8)
+					local arc = clock:ribbon(per, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s, TextureMode = Enum.TextureMode.Wrap, TextureLength = 0.07 })
+					for _, b in arc.beams do
+						FxTextures.apply(b, "band")
+					end
+					clock:span(l.at, l.at + life, function(u)
+						local e = ease(u)
+						local r, w = lerp(r0, r1, e) * rk, lerp(w0, w1, e)
+						local col, y = c0:Lerp(c1, smooth(0, 0.25, u)), lerp(y0, y1, u)
+						local a = if l.alpha then curve(l.alpha, u) else smooth(0.35, 1, u)
+						local from = start + turn * u * life
+						arc.update(function(j)
+							local v = (j - 1) / per
+							local ang = from + v * len
+							local radial = b1 * math.cos(ang) + b2 * math.sin(ang)
+							local tan = -b1 * math.sin(ang) + b2 * math.cos(ang)
+							return { cf = CFrame.fromMatrix(p + shift + n * y + radial * r, tan, radial), width = w * math.sin(math.pi * v) ^ 0.6, alpha = a, color = col }
+						end)
+						if u >= 1 then
+							arc.hide()
+						end
+					end)
+				end
+				continue
+			end
 			local ring = clock:ribbon(segs, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s })
 			local twin = l.twin and clock:ribbon(segs, { LightEmission = 0, Brightness = 1, ZOffset = -0.3 * s })
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
@@ -1291,9 +1337,21 @@ function FxRecipe.travel(from, to, opts)
 	local ease = EASE[opts.ease or "linear"] or error(`fx_recipe: no ease "{opts.ease}"`, 2)
 	local s = opts.scale or 1
 	local a = posOf(from)
+	-- a body arrives when its front reaches `to`, not its centre: its path ends opts.reach studs short (default half
+	-- its longest side). With the centre sent to a floor point, a 7-stud rock sank half into the floor for 0.04 s
+	-- before its impact played, which read as the flash coming early (2026-11-21)
+	local reach = opts.reach or 0
+	if not opts.reach and opts.body then
+		local size = if opts.body:IsA("Model") then opts.body:GetExtentsSize() else opts.body.Size
+		reach = math.max(size.X, size.Y, size.Z) / 2
+	end
 	local function path(t)
 		local u = ease(math.clamp(t / time, 0, 1))
-		return a:Lerp(posOf(to), u) + Vector3.yAxis * arc * 4 * u * (1 - u)
+		local b = posOf(to)
+		if reach > 0 then
+			b -= (b - a).Unit * math.min(reach, (b - a).Magnitude / 2)
+		end
+		return a:Lerp(b, u) + Vector3.yAxis * arc * 4 * u * (1 - u)
 	end
 	local function dirAt(t)
 		local v = path(math.min(t + 0.01, time)) - path(math.max(t - 0.01, 0))
@@ -1355,7 +1413,7 @@ function FxRecipe.travel(from, to, opts)
 		impacts = { impacts }
 	end
 	clock:at(time, function()
-		local land, dir = path(time), dirAt(time)
+		local land, dir = posOf(to), dirAt(time)
 		if body and not opts.keepBody and body.Parent then
 			body:Destroy()
 		end
