@@ -585,13 +585,13 @@ Failed first: lobes with thin outlines and hand-placed round holes read as soap 
 
 ## 3i. An effect as a recipe (data, not code)
 
-For the short effects a game needs in dozens: a hit per element, a pickup, a level-up, an aura, a ground hit, a heal, a spawn, a puff, an explosion. Each is a stack of a few bursts, streams, rings and one light, so it is written as a table and played by one module. Slashes, beams, a floor that breaks and cutscenes stay code (3d-3h).
+For the short effects a game needs in dozens: a hit per element, a pickup, a level-up, an aura, a ground hit, a heal, a spawn, a puff, an explosion. Each is a stack of a few bursts, streams, rings and one light, so it is written as a table and played by one module. Skill-size effects (2-4 s over 8-12 studs: a nova, a strike from the sky, a zone, an eruption) are recipes too, see "Skill-size recipes" below. Slashes, a floor that breaks and cutscenes stay code (3d-3h).
 
 Files: `scripts/fx_recipe.luau` with `scripts/fx_clock.luau` and `scripts/fx_textures.luau`, copied as ModuleScripts into one folder. `FxRecipe.play("hit_fire", targetModel or impactCFrame, { scale = 1, direction = d })` returns the clock; a CFrame's LookVector is the direction the hit travels, and sparks fly back against it. `FxRecipe.play("aura", characterModel, { duration = 6 })` holds an aura for 6 s. Client only.
 
-Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) as data: built side by side in Studio 0.748 Play on 2026-11-20, all 8 emitters matched on 19 properties and the beam and light counts matched. The six element hits were judged good by the owner at real speed in Studio on a desktop (2026-11-20). `hit_water` and the nine recipes that are not hits ran with no errors in Studio Play and were looked at frozen at 0.08, 0.3 and 0.7 s (`level_up`, `aura`, `heal` and `spawn_in` once more at 0.6 s after their streaks and dots were made smaller); the last size changes to `wisps`, `debris` and `embers` were not captured again, and nobody has judged these ten at real speed. Nothing was checked on a phone or in a published game.
+Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) as data: built side by side in Studio 0.748 Play on 2026-11-20, all 8 emitters matched on 19 properties and the beam and light counts matched. The six element hits were judged good by the owner at real speed in Studio on a desktop (2026-11-20). `hit_water` and the nine recipes that are not hits ran with no errors in Studio Play and were looked at frozen at 0.08, 0.3 and 0.7 s (`level_up`, `aura`, `heal` and `spawn_in` once more at 0.6 s after their streaks and dots were made smaller); the last size changes to `wisps`, `debris` and `embers` were not captured again, and the owner then watched them at real speed and called them good (2026-11-20). The four skill recipes ran with no errors in Studio 0.748 Play, were looked at frozen at 0.3, 0.62, 1.0, 1.2 and 1.6 s and seen running at real speed from 34 studs; nobody else has judged them. Nothing was checked on a phone or in a published game.
 
-**Four layer kinds.** Sizes, speeds and radii are studs at scale 1; `opts.scale` multiplies them and leaves the times alone.
+**Five layer kinds.** Sizes, speeds and radii are studs at scale 1; `opts.scale` multiplies them and leaves the times alone.
 
 | Kind | Fields | Use |
 |---|---|---|
@@ -599,6 +599,9 @@ Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) 
 | `stream` | the burst fields with `from`, `to`, `rate` in place of `at`, `count`; `to = "end"` runs until the effect ends | Embers, rising streaks, an aura: anything that keeps coming, ramped in and out |
 | `ring` | `at`, `dur`, `r0`, `r1`, `w0`, `w1`, `segments`, `color` {from, to}, `twin`; `plane = "floor"` lays it flat, `y0`, `y1` move it up or down the body, `dur = "end"` with `r0 = r1` holds it | The shock ring with a dark twin under it, a floor ring, a ring that climbs the body |
 | `light` | `at`, `dur`, `peak`, `range`, `up`; `hold = true` ramps in, holds and ramps out; `dur = "end"` | One PointLight: a pulse, or held for an aura |
+| `column` | `at`, `dur`, `y0`, `y1`, `w0`, `w1`, `color` {from, to}, `alpha`, `slot` (`band` soft beam, `electric` or `smoke` with `length` and `speed` for a moving skin); `hold = true` opens, holds its width and closes by narrowing | One camera-facing vertical beam: without `hold` it widens and fades (a strike) |
+
+Every kind also takes `times` and `every`: the layer plays `times` times, `every` seconds apart (`times = "end"` repeats until the effect ends). A burst or stream also takes `gather = radius` (emitted on a sphere of that radius and thrown at its centre: a charge; give it a speed of about radius / life) and `dir = "down"` (thrown down: rain inside a column).
 
 **Anchor** (`recipe.anchor`): `"hit"` (default) is the contact point, and sparks go back at the attacker; `"up"` is the same point with world up as the spray direction (pickups, puffs, explosions); `"feet"` is the floor under a model, or the CFrame's position (auras, level-ups, ground hits, heals). `opts.duration` replaces the recipe's duration, which is how long an aura holds.
 
@@ -617,6 +620,23 @@ Evidence: `hit_electric` is `scripts/hit_impact.luau` (owner-approved form, 3d) 
 | `explosion` | up | fire | a big flash, a fireball flipbook, sparks every way, a wide ring, heavy smoke, embers | 1.5 s |
 
 Any recipe plays in any palette: `FxRecipe.play("aura", model, { palette = "fire" })`.
+
+**Skill-size recipes** (anchor feet; pass the caster's model or a floor CFrame). Each has three parts: a tell the player can read (0.4-0.55 s: a closing ring, a thin line, embers), a release, and a tail made of streams.
+
+| Recipe | Palette | Tell | Release | Tail | Length | Counted in Studio |
+|---|---|---|---|---|---|---|
+| `skill_nova` | electric | streaks gather to chest height, a ring closes from 10 studs | flash, big bolts, three floor rings to 12 studs, 44 sparks every way | bolts crackle over an 8-stud disc, two smaller aftershocks | 2.4 s | 15 emitters, 176 beams, 3 lights |
+| `skill_pillar` | holy | a thin line from the sky, a 5-stud mark, a closing ring | a beam slams down (0.3 s), two floor rings, chips | a held column 2.2 studs wide with light raining inside it, three pulse rings, then two rings that climb | 2.7 s | 9 emitters, 198 beams, 2 lights |
+| `skill_zone` | poison | none: it opens at once | a ring out to 8 studs | a held border, a pulse ring every 0.6 s, patches, dots and streaks all over the disc, for as long as `opts.duration` | 4 s by default | 8 emitters, 180 beams, 1 light |
+| `skill_eruption` | fire | the floor glows and spits embers, a ring closes from 7 studs | flash, fire lumps, 40 chips thrown 10+ studs up, two floor rings, dust | a fountain of small fire lumps about 10 studs tall that shrinks before it stops, embers, a thin plume | 2.8 s | 15 emitters, 96 beams, 3 lights |
+
+Rules found while building them (2026-11-20, judgment from frozen frames):
+- Size comes from count, radius and time, not from bigger pieces: every piece keeps its 0.06-0.35 s life and its small size, and the rates go up 2-4 times (a crackle at 60 per second, rising streaks at 90-110 per second). A first pass with hit-size rates left the tails nearly empty.
+- A long effect is several short ones in a row: repeat rings and small bursts with `times` and `every` (aftershocks 0.4 s apart, pulse rings 0.3-0.6 s apart) instead of stretching one layer.
+- Keep a beam narrow and brief: the strike is 4.5 studs wide for 0.3 s, the held column 2.2 studs with an inner white beam of 0.9 and a moving `electric` skin, with the rain and the rising streaks carrying most of the picture. A 7-stud beam read as a flat white slab.
+- A fire that ends shrinks first: the eruption adds a smaller, slower `flames` stream for the last half second (same rule as 3g).
+- Keep dark smoke thin at this size (5-6 puffs per second, at least half transparent): ten opaque puffs read as one black mass.
+- Beams add up: a 20-segment ring with its twin is 40 beams, and `times = 3` makes 120. One skill is 100-200 beams; that is fine for one caster's skill and too much for something every player has running.
 
 **Templates** (`FxRecipe.layers`): call one with a table of the fields to change, for example `L.sparks({ count = 16 })`.
 
@@ -644,6 +664,12 @@ Any recipe plays in any palette: `FxRecipe.play("aura", model, { palette = "fire
 | `dust` | smoke thrown out along the floor | 0.5-0.8 s |
 | `debris` | chips thrown up that fall back | 0.28-0.35 s |
 | `fireball` | lumps of the explosion flipbook | 0.28-0.35 s |
+| `gather` | streaks pulled in to one point from 8 studs: the charge before a release | 0.24-0.3 s each, 0.5 s long |
+| `strike` | a vertical beam that widens to 4.5 studs and fades | 0.3 s |
+| `column` | a vertical beam that opens, holds 2.2 studs and closes | 1.2 s |
+| `crackle` | bolts at random places over a floor disc | 0.06-0.1 s each |
+| `rain` | streaks that fall 18-24 studs inside a column | 0.22-0.3 s each |
+| `flames` | small lumps of fire that rise from a floor disc: a fire column built from short-lived pieces | 0.25-0.34 s each |
 
 **Palette.** A layer names keys, never colours, so one recipe plays in any palette (`opts.palette`). Seven keys: `white` (the contact frame, near white), `hot` (a light tint, the bright edge), `mid` (the saturated body), `dark` (the same hue, almost black), `smoke0` to `smoke1` (smoke over its life), `light` (the PointLight). Shipped: electric, fire, ice, holy, shadow, poison, water, gold, heal, earth.
 
