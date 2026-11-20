@@ -35,7 +35,12 @@
 -- (played `times` times, `every` seconds apart; times = "end" repeats until the effect ends); a fifth kind:
 --   column: at, dur, y0, y1, w0, w1, color {from key, to key}, alpha, slot ("band" | "electric" | "smoke"),
 --           length, speed, emission, brightness, z, hold (true: opens, holds its width and closes; dur may be "end")
---           one camera-facing vertical beam; without hold it widens from w0 to w1 and fades (a strike)
+--           one camera-facing vertical beam; without hold it widens from w0 to w1 and fades (a strike);
+--           flicker (0-0.5: the width jitters), drop (s: the beam's lower end comes down from the top in that time)
+--   helix : at, dur, r, y0, y1, turns, w, spin (turns per s; negative scrolls down), phase (0-1), segments,
+--           color {from key, to key}, alpha: a band wound around the vertical axis that keeps turning, so a
+--           column moves for as long as it holds
+-- A burst or stream also takes tube {radius, height}: emitted anywhere in a box that tall above the anchor.
 -- recipe.anchor: "hit" (default: the contact point, sparks go back at the attacker), "up" (the same point, up is
 -- world up: pickups, explosions) or "feet" (the floor under a model, or the CFrame's position: auras, level-ups,
 -- ground hits).
@@ -55,8 +60,10 @@
 -- aura, heal and spawn_in once more at 0.6 s after their streaks and dots were made smaller); the last size changes
 -- to wisps, debris and embers were not captured again; the owner watched them at real speed and called them good
 -- (2026-11-20). The four skill recipes ran with no errors in Studio 0.748 Play, were looked at frozen at 0.3, 0.62,
--- 1.0, 1.2 and 1.6 s and seen running at real speed from 34 studs; nobody else has judged them. Nothing here was
--- checked on a phone or in a published game.
+-- 1.0, 1.2 and 1.6 s and seen running at real speed from 34 studs. The owner rejected the first pillar at real
+-- speed (a held beam: a still picture); its hold was rebuilt from moving pieces (helix, glowfall, falling rings)
+-- and looked at frozen at 0.56, 1.0 and 1.35 s, not yet judged again. Nothing here was checked on a phone or in a
+-- published game.
 
 local FxClock = require(script.Parent.fx_clock)
 local FxTextures = require(script.Parent.fx_textures)
@@ -142,14 +149,18 @@ L.fireball = layer({ kind = "burst", name = "Fireball", at = 0.02, count = 5, sl
 -- Skill-size layers (2-4 s effects over 8-12 studs; every piece is still small and short-lived) ------------------
 -- streaks pulled in to one point: the charge before a release
 L.gather = layer({ kind = "stream", name = "Gather", from = 0, to = 0.5, rate = 160, slot = "streak", where = "hit", up = 3, gather = 8, life = { 0.24, 0.3 }, speed = { 24, 30 }, along = true, rotation = 90, squash = { { 0, 1.6 }, { 1, 0.8 } }, size = { { 0, 0.4, 0.08 }, { 1, 0.55, 0.1 } }, alpha = { { 0, 1 }, { 0.3, 0.1 }, { 1, 0 } }, color = { { 0, "mid" }, { 0.5, "hot" }, { 1, "white" } }, emission = 1, brightness = 3.5, z = 0.6 })
--- a vertical beam that strikes: widens and fades in 0.3 s
-L.strike = layer({ kind = "column", name = "Strike", at = 0, dur = 0.3, y0 = 0, y1 = 40, w0 = 1, w1 = 4.5, color = { "white", "hot" }, alpha = 0.3, emission = 1, brightness = 3, z = 0.2 })
+-- a vertical beam that strikes: its end comes down from the sky in 0.06 s, then it widens and fades
+L.strike = layer({ kind = "column", name = "Strike", at = 0, dur = 0.3, y0 = 0, y1 = 40, w0 = 0.8, w1 = 3.2, drop = 0.06, color = { "white", "hot" }, alpha = 0.3, emission = 1, brightness = 3, z = 0.2 })
 -- a vertical beam that holds: opens, keeps its width, closes
 L.column = layer({ kind = "column", name = "Column", at = 0, dur = 1.2, y0 = 0, y1 = 40, w0 = 0, w1 = 2.2, hold = true, color = { "hot", "mid" }, alpha = 0.45, emission = 1, brightness = 2.5, z = 0.1 })
+-- a band wound around the column that keeps turning: the motion of a held column
+L.helix = layer({ kind = "helix", name = "Helix", at = 0, dur = 1.2, r = 1.5, y0 = 0.3, y1 = 30, turns = 2.5, w = 0.7, spin = -1.6, segments = 24, color = { "white", "hot" }, alpha = 0.15, emission = 1, brightness = 3, z = 0.3 })
+-- soft pieces that fall down the column: its glowing body, redrawn every 0.15 s instead of one held beam
+L.glowfall = layer({ kind = "stream", name = "Glowfall", from = 0, to = 1, rate = 90, slot = "glow", where = "hit", up = 1, tube = { 0.9, 27 }, dir = "down", life = { 0.12, 0.2 }, speed = { 35, 55 }, rotation = 0, squash = { { 0, 1.8 }, { 1, 2.6 } }, size = { { 0, 1.5, 0.3 }, { 1, 0.9, 0.2 } }, alpha = { { 0, 1 }, { 0.3, 0.55 }, { 1, 1 } }, color = { { 0, "white" }, { 0.4, "hot" }, { 1, "mid" } }, emission = 0.9, brightness = 2.5, z = 0.2 })
 -- bolts that crackle at random places over a floor disc
 L.crackle = layer({ kind = "stream", name = "Crackle", from = 0, to = 1, rate = 60, slot = "electric", where = "hit", up = 0.8, disc = { 8, 1 }, life = { 0.06, 0.1 }, size = { { 0, 3.5, 1 }, { 1, 5.5, 1 } }, alpha = { { 0, 0 }, { 1, 0.6 } }, color = { { 0, "white" }, { 1, "hot" } }, emission = 1, brightness = 4, z = 0.8 })
--- streaks that fall inside a column
-L.rain = layer({ kind = "stream", name = "Rain", from = 0, to = 1, rate = 150, slot = "streak", where = "hit", up = 22, disc = { 2.6, 1 }, dir = "down", life = { 0.22, 0.3 }, speed = { 60, 85 }, spread = 2, along = true, rotation = 90, squash = { { 0, 2 }, { 1, 1.2 } }, size = { { 0, 0.45, 0.1 }, { 1, 0.2 } }, alpha = { { 0, 0.5 }, { 0.2, 0 }, { 1, 1 } }, color = { { 0, "white" }, { 0.5, "hot" }, { 1, "mid" } }, emission = 1, brightness = 4, z = 0.5 })
+-- streaks that fall inside a column, born at every height of it
+L.rain = layer({ kind = "stream", name = "Rain", from = 0, to = 1, rate = 240, slot = "streak", where = "hit", up = 5, tube = { 1.9, 27 }, dir = "down", life = { 0.14, 0.2 }, speed = { 60, 90 }, spread = 2, along = true, rotation = 90, squash = { { 0, 2 }, { 1, 1.2 } }, size = { { 0, 0.45, 0.1 }, { 1, 0.2 } }, alpha = { { 0, 0.5 }, { 0.2, 0 }, { 1, 1 } }, color = { { 0, "white" }, { 0.5, "hot" }, { 1, "mid" } }, emission = 1, brightness = 4, z = 0.5 })
 -- small lumps of fire that rise from a floor disc: a column of fire built from short-lived pieces
 L.flames = layer({ kind = "stream", name = "Flames", from = 0, to = 0.9, rate = 50, slot = "fire", where = "hit", up = 0.6, disc = { 2.4, 1 }, life = { 0.25, 0.34 }, speed = { 30, 52 }, spread = 10, drag = 1.5, size = { { 0, 1.6, 0.3 }, { 1, 4.2, 0.5 } }, alpha = { { 0, 0 }, { 0.7, 0.15 }, { 1, 1 } }, color = { { 0, "white" }, { 0.35, "hot" }, { 1, "mid" } }, emission = 0.7, brightness = 2.5, z = 0.4 })
 
@@ -394,20 +405,27 @@ FxRecipe.recipes = {
 			L.floorRing({ name = "Closing", at = 0, dur = 0.5, r0 = 5, r1 = 0.8, w0 = 0.12, w1 = 0.5, twin = false }),
 			L.motes({ name = "TellMotes", from = 0, to = 0.5, rate = 40, disc = { 5, 0 }, speed = { 6, 10 } }),
 			-- strike 0.5
-			L.strike({ at = 0.5, w0 = 1.5, w1 = 4.5 }),
-			L.strike({ name = "StrikeCore", at = 0.5, w0 = 0.6, w1 = 1.8, color = { "white", "white" }, alpha = 0, brightness = 4, z = 0.3 }),
-			L.flash({ at = 0.5, up = 1, size = { { 0, 5 }, { 0.25, 11 }, { 1, 7 } } }),
+			L.strike({ at = 0.5 }),
+			L.strike({ name = "StrikeCore", at = 0.5, w0 = 0.4, w1 = 1.3, color = { "white", "white" }, alpha = 0, brightness = 4, z = 0.3 }),
+			L.glowfall({ kind = "burst", name = "StrikeBody", at = 0.52, count = 36, tube = { 1.4, 27 }, size = { { 0, 2.2, 0.4 }, { 1, 1.2, 0.3 } } }),
+			L.flash({ at = 0.5, up = 2.2, size = { { 0, 4 }, { 0.25, 8 }, { 1, 5 } } }),
 			L.scorch({ at = 0.52, size = { { 0, 6 }, { 0.2, 10 }, { 1, 11 } }, life = { 0.9, 0.9 } }),
 			L.floorGlow({ at = 0.51, size = { { 0, 5 }, { 1, 15 } } }),
 			L.floorRing({ at = 0.51, dur = 0.38, r0 = 1, r1 = 9.5, w0 = 1.5, w1 = 0.15, segments = 20, times = 2, every = 0.1 }),
 			L.debris({ at = 0.52, count = 30, speed = { 30, 55 }, spread = 50, accel = { 0, -60, 0 } }),
 			L.light({ at = 0.5, up = 2, peak = 6, range = 26, dur = 0.35 }),
 			-- hold 0.6-1.9
-			L.column({ at = 0.6, dur = 1.35, w1 = 2.2 }),
-			L.column({ name = "ColumnSkin", at = 0.6, dur = 1.35, w1 = 3.4, slot = "electric", length = 22, speed = 3, color = { "white", "hot" }, alpha = 0.45, brightness = 3, z = 0.3 }),
-			L.column({ name = "ColumnCore", at = 0.6, dur = 1.35, w1 = 0.9, color = { "white", "white" }, alpha = 0.1, brightness = 4, z = 0.25 }),
-			L.rain({ from = 0.6, to = 1.85 }),
-			L.floorRing({ name = "Pulse", at = 0.9, dur = 0.4, r0 = 1.5, r1 = 7.5, w0 = 0.8, w1 = 0.1, twin = false, times = 3, every = 0.32 }),
+			-- nothing here is a held picture: a thin core that flickers, bands that turn, rings and pieces that fall
+			L.column({ name = "CoreLine", at = 0.58, dur = 1.37, w1 = 0.5, color = { "white", "white" }, alpha = 0.05, brightness = 4, flicker = 0.35, z = 0.3 }),
+			L.helix({ at = 0.6, dur = 1.32 }),
+			L.helix({ name = "Helix2", at = 0.6, dur = 1.32, phase = 0.5, color = { "hot", "mid" }, brightness = 2.2 }),
+			L.helix({ name = "HelixOuter", at = 0.66, dur = 1.24, r = 2.5, turns = 1.5, w = 0.22, spin = 1.1, segments = 16, color = { "hot", "mid" }, alpha = 0.3 }),
+			L.glowfall({ from = 0.6, to = 1.88 }),
+			L.rain({ from = 0.6, to = 1.88 }),
+			L.riseRing({ name = "Descend", at = 0.62, dur = 0.34, y0 = 24, y1 = 0.4, r0 = 2.1, r1 = 2.7, w0 = 0.3, w1 = 0.1, segments = 12, times = 6, every = 0.2, color = { "white", "mid" } }),
+			L.sparks({ kind = "stream", name = "Splash", from = 0.6, to = 1.88, rate = 70, up = 0.3, speed = { 18, 34 }, spread = 80, drag = 4, accel = { 0, -40, 0 }, life = { 0.18, 0.3 }, size = { { 0, 0.6, 0.12 }, { 1, 0.15 } } }),
+			L.floorGlow({ kind = "stream", name = "BaseFlicker", from = 0.6, to = 1.88, rate = 14, disc = { 2.4, 1 }, life = { 0.15, 0.25 }, size = { { 0, 2 }, { 1, 4.5 } }, color = "hot", alpha = { { 0, 1 }, { 0.4, 0.4 }, { 1, 1 } } }),
+			L.floorRing({ name = "Pulse", at = 0.9, dur = 0.4, r0 = 1.5, r1 = 7.5, w0 = 0.8, w1 = 0.1, twin = false, times = 2, every = 0.45 }),
 			L.motes({ from = 0.6, to = 1.85, rate = 100, disc = { 3.4, 0 }, speed = { 10, 16 } }),
 			L.wisps({ from = 0.6, to = 1.9, rate = 50, disc = { 4.5, 1 } }),
 			L.light({ name = "HoldLight", at = 0.8, up = 3, peak = 3, range = 20, dur = 1.2, hold = true }),
@@ -640,7 +658,10 @@ function FxRecipe.play(recipe, target, opts)
 		if l.kind == "burst" or l.kind == "stream" then
 			local parent = atts[l.where or "hit"]
 			local at = parent.WorldPosition + spray * (l.up or 0) * s
-			if l.gather then
+			if l.tube then
+				local r, h = l.tube[1] * s, l.tube[2] * s
+				parent = clock:part({ Size = Vector3.new(r * 2, h, r * 2), CFrame = CFrame.new(at + Vector3.yAxis * h / 2) })
+			elseif l.gather then
 				local r = l.gather * s
 				parent = clock:part({ Size = Vector3.new(r * 2, r * 2, r * 2), CFrame = CFrame.new(at) })
 			elseif l.disc then
@@ -724,19 +745,56 @@ function FxRecipe.play(recipe, target, opts)
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
 			local w0, w1, base = l.w0 * s, l.w1 * s, l.alpha or 0.15
 			local dur = if l.dur == "end" then duration - l.at - 0.1 else l.dur
-			clock:span(l.at, l.at + dur, function(u)
+			local bottom, top = a0.WorldPosition, a1.WorldPosition
+			clock:span(l.at, l.at + dur, function(u, t)
 				local w, a
+				if l.drop then
+					a0.WorldPosition = top:Lerp(bottom, math.clamp((t - l.at) / l.drop, 0, 1))
+				end
 				if l.hold then
 					-- opens in the first 12%, closes in the last 20% by narrowing, not by fading
 					w, a = w1 * smooth(0, 0.12, u) * (1 - smooth(0.8, 1, u)), base
 				else
 					w, a = lerp(w0, w1, FxClock.outQuart(u)), base + (1 - base) * smooth(0.35, 1, u)
 				end
+				if l.flicker then
+					w *= 1 + 2 * l.flicker * math.noise(t * 31, l.at * 7.3)
+				end
 				beam.Width0, beam.Width1 = w, w
 				beam.Color = ColorSequence.new(c0:Lerp(c1, smooth(0, 0.3, u)))
 				-- the top fades out so the beam has no cut end
 				beam.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, a), NumberSequenceKeypoint.new(0.7, a), NumberSequenceKeypoint.new(1, 1) })
 				beam.Enabled = u < 1 and w > 0.01
+			end)
+		elseif l.kind == "helix" then
+			local segs = l.segments or 24
+			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
+			local y0, y1, r, w = (l.y0 or 0) * s, l.y1 * s, l.r * s, l.w * s
+			local turns, spin, phase, base = l.turns or 2, l.spin or -1.5, l.phase or 0, l.alpha or 0.15
+			local ribbon = clock:ribbon(segs, { LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = l.z or 0.3 })
+			local dur = if l.dur == "end" then duration - l.at - 0.1 else l.dur
+			local function point(f, turn)
+				local ang = (turns * f + turn) * math.pi * 2
+				local radial = Vector3.new(math.cos(ang), 0, math.sin(ang))
+				return p + radial * r + Vector3.yAxis * lerp(y0, y1, f), radial
+			end
+			clock:span(l.at, l.at + dur, function(u, t)
+				-- opens and closes by width; the whole band turns about the axis, which reads as stripes that travel
+				local open = smooth(0, 0.12, u) * (1 - smooth(0.8, 1, u))
+				local turn = phase + spin * (t - l.at)
+				local col = c0:Lerp(c1, smooth(0, 0.3, u))
+				ribbon.update(function(j)
+					local f = (j - 1) / segs
+					local pos, radial = point(f, turn)
+					local tan = (point(f + 0.01, turn) - pos).Unit
+					-- the band lies on the cylinder: its width runs across the path, its face looks outward
+					local across = radial:Cross(tan).Unit
+					local ends = math.min(1, math.sin(math.pi * f) * 3)
+					return { cf = CFrame.fromMatrix(pos, tan, across), width = w * open, alpha = 1 - (1 - base) * ends, color = col }
+				end)
+				if u >= 1 then
+					ribbon.hide()
+				end
 			end)
 		elseif l.kind == "light" then
 			local holder = if l.up then clock:attachment(CFrame.new(p + spray * l.up * s)) else atts.front
