@@ -6090,6 +6090,13 @@
                 "time_scale_range",
                 "defaults",
                 "draws_with_beta_off",
+                "draws_with_beta_on",
+                "emit_draws",
+                "burst_rate_pulse_s",
+                "spawn_area",
+                "emission_angle_axes",
+                "acceleration_plus_y",
+                "uiscale_scales_size_and_travel",
                 "clipped_in_surface_and_billboard_gui",
                 "styling_supported",
                 "vanish_when_parent_culled"
@@ -6323,6 +6330,117 @@
                   ]
                 },
                 "draws_with_beta_off": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "draws_with_beta_on": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "emit_draws": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "burst_rate_pulse_s": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "number",
+                          "minimum": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                "spawn_area": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "emission_angle_axes": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "object",
+                          "required": [
+                            "0",
+                            "90"
+                          ],
+                          "properties": {
+                            "0": {
+                              "type": "string"
+                            },
+                            "90": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "acceleration_plus_y": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                },
+                "uiscale_scales_size_and_travel": {
                   "allOf": [
                     {
                       "$ref": "#/$defs/leaf"

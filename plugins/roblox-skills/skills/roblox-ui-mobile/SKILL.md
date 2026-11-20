@@ -11,7 +11,7 @@ sources:
   - RoDesigner research library, 2026-11-12, 84 phone frames with an open panel from 28 top games, 45 phone HUD frames from 29 top games, 50 tablet frames from 17 games and 24 row-list panels from 16 games (frames private; numbers and method only)
   - original (test set, recipes and thresholds marked judgment)
   - original motion reads, 2026-11-05 and 2026-11-19 (60 fps captures of five live games and 33 more UI clips, measured frame by frame; clips private, numbers and method only)
-  - ParticleEmitter2D: DevForum staff post t/4996850 (Studio beta UI Particles, 2026-11-19), creator docs reference ParticleEmitter2D and ui/2D-particle-emitters (read 2026-11-20); property reads in Studio 0.748 with the beta off (2026-11-20)
+  - ParticleEmitter2D: DevForum staff post t/4996850 (Studio beta UI Particles, 2026-11-19), creator docs reference ParticleEmitter2D and ui/2D-particle-emitters (read 2026-11-20); property reads in Studio 0.748 with the beta off, and a five-effect HUD build run in Play with the beta on (2026-11-20)
 ---
 
 # Mobile-first UI (phone, tablet, desktop)
@@ -379,11 +379,15 @@ Panels and the HUD that leaves for them: section 4. A stud-style game may keep i
 | What it replaces once live | The burst and sparkle layers: ring and spray bursts, confetti, button sparkle, hit sparks, the particles a level-up banner leaves behind. The flight to the counter stays scripted: particles move by speed, acceleration and drag and cannot home on a target | judgment |
 | Units | `Size` is a half size in offset px (32 draws 64 px across); `Speed` in px a second; `Acceleration` in px a second squared on the parent's X and Y; `EmissionOffset` and `EmissionSpread` are fractions of the parent's size | docs |
 | Direction | Emits up by default; `EmissionAngle` in degrees adds to the parent's rotation; `SpreadAngle` 360 sends particles every way; `EmissionMode` Point (centre) or BoundingBox (the whole parent) | docs |
-| Look | `Color`, `Transparency` and `Size` follow the particle's age; `Squash` stretches it; `Blend` 0 is normal, 1 additive; `Brightness` above 1 glows; `TimeScale` 0-1 slows or freezes; `Emit()` sends 16; flipbooks 2x2, 4x4, 8x8 or Custom at up to 30 frames a second; `FlipbookStartRandom` with a framerate of 0 gives each particle one random frame | docs |
+| Look | `Color`, `Transparency` and `Size` follow the particle's age; `Squash` stretches it; `Blend` 0 is normal, 1 additive; `Brightness` above 1 glows; `TimeScale` 0-1 slows or freezes; `Emit()` sends 16 (it drew nothing in our test: see Bursts below); flipbooks 2x2, 4x4, 8x8 or Custom at up to 30 frames a second; `FlipbookStartRandom` with a framerate of 0 gives each particle one random frame | docs |
 | Layering | Particles draw above the parent's strokes and inset shadows; `ZIndex` orders only emitters on the same parent | docs |
 | Known limits | Not clipped in a SurfaceGui or BillboardGui; styling (`StyleSheet`) does not apply; particles vanish at once when the parent is culled | docs (release notes) |
 | Defaults of a new emitter | Enabled, `Rate` 20, `Lifetime` 5-10 s, `Speed` 64, `Size` 32, BoundingBox, the built-in sparkle texture: it streams until you turn it off, so set `Enabled` false for a burst-only emitter. Writes clamp `Blend` and `TimeScale` to 0-1, `Brightness` to 0 or more and the flipbook grid to 1-64 | measured (property reads, Studio 0.748, beta off) |
-| Cost on a phone, clipping by `ClipsDescendants` or a `CanvasGroup`, recipes | Not measured: the beta was off in our Studio, and with it off the class exists but draws nothing. Before relying on it, compare live particle counts against a pooled-ImageLabel baseline in the Device Simulator | not measured yet |
+| Beta off or on | With the beta off the class exists and takes every property but draws nothing. With it on, emitters draw in Play | measured (Studio 0.748, 2026-11-20) |
+| Bursts | `Emit(n)` drew nothing: with `Rate` 0, 0.01 or set to 0 later, with and without a flipbook. A short `Rate` pulse works: set `Rate = n / 0.12`, set it back to 0 after 0.12 s, and about n particles come out (give or take a frame). For a burst-only emitter keep `Enabled` true and `Rate` 0 between bursts | measured (Studio 0.748, beta on, Play, 2026-11-20) |
+| Spawn and direction | Particles start at a random point inside the parent (the default BoundingBox), so the size of the parent frame is the spawn area. `EmissionAngle` 0 sends them up and 90 to the right; `Acceleration` +Y pulls them down the screen; `Blend` 1 adds light | measured (same build) |
+| Scale | A `UIScale` above the emitter scales particle size and travel alike. Build the effect at one design size (for example a 1280x720 stage), fit the stage to the screen with one `UIScale`, and it keeps its look on every screen | measured (same build) |
+| Cost on a phone, clipping by `ClipsDescendants` or a `CanvasGroup` | Not measured yet. Before relying on it, compare live particle counts against a pooled-ImageLabel baseline in the Device Simulator | not measured yet |
 
 The rows marked not measured yet (HP bar loss, cooldown sweep, ready pop) have no measured clip behind them: the captured games are simulators and show neither, so they need 60 fps captures of combat or RPG games. Build them from the starting values, capture your build at 60 fps and count frames against the rules above.
 
