@@ -62,8 +62,9 @@
 -- (2026-11-20). The four skill recipes ran with no errors in Studio 0.748 Play, were looked at frozen at 0.3, 0.62,
 -- 1.0, 1.2 and 1.6 s and seen running at real speed from 34 studs. The owner rejected the first pillar at real
 -- speed (a held beam: a still picture); its hold was rebuilt from moving pieces (helix, glowfall, falling rings)
--- and looked at frozen at 0.56, 1.0 and 1.35 s, not yet judged again. Nothing here was checked on a phone or in a
--- published game.
+-- and looked at frozen at 0.56, 1.0 and 1.35 s; the owner then watched it at real speed and called it fairly
+-- satisfying (2026-11-20). Nova, zone and eruption have no owner verdict yet. Nothing here was checked on a phone
+-- or in a published game.
 
 local FxClock = require(script.Parent.fx_clock)
 local FxTextures = require(script.Parent.fx_textures)
