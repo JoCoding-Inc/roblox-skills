@@ -11,6 +11,8 @@ sources:
   - https://create.roblox.com/docs/generative-AI (responsibility for AI-made content)
   - DevForum staff posts t/1701697 (2022 audio privacy change), t/2980704 (2024-05 public SFX distribution), t/3164792 (2024-09 DistroKid music)
   - Studio MCP search_asset tool schema (read 2026-11-09)
+  - https://devforum.roblox.com/t/4950480 (text-to-speech asset creation, Studio beta, staff post 2026-10-22) and https://create.roblox.com/docs/ai/accelerated-workflows (audio items), read 2026-11-20
+  - field notes from generated sound-effect and music runs and vendor licence terms read (2026-11-20; vendors not named)
   - field notes from live Creator Store searches and loudness measurements (2026-11-09)
   - original (event map, volumes, ducking values and budgets are judgment)
 ---
@@ -137,6 +139,7 @@ Ducking, two ways:
 - Crossfade with two players: tween one down and the other up over 0.5-1.5 s, then stop the silent one (judgment).
 - Keep music in a client script that does not reset on respawn (the section 3 sketch). Never restart the track when the character dies.
 - Seam check: listen to 3 loops, or compare the first and last 50 ms with `GetWaveformAsync` (section 8). A click or gap at the seam means trimming with `LoopRegion` or picking another track.
+- **Generated music loops** (field notes, 2026-11-20; not yet judged by ear by a person). None of the generators we tried offered a seamless-loop option, and tracks asked for at 90 s came back at 86-93 s with a quiet intro (up to 6 s) and a fading end. A recipe that produced 64-75 s loops: cut the intro and the fade where the 0.5 s level is more than 6 dB under the track's median; in the last 24 s find the position whose onset pattern over 8 s best matches the start; crossfade 2 s with equal power there; export FLAC or OGG (both accepted for import, section 7), not MP3, because MP3 encoders commonly add padding at both ends, which breaks a gapless loop. Then run the seam check above.
 - Beat sync: `AudioPlayer:Play` takes an optional time scheduled against `SoundService:GetMixerTime()` for sample-accurate starts (docs); useful for rhythm games.
 
 ## 5. Sound vs the Audio API
@@ -184,6 +187,11 @@ Importing (docs, audio/assets):
 
 AI-made audio: no audio-specific rule was found in the docs (searched 2026-11-09). The generative-AI page says "You are responsible for the content delivered to users, even if it is AI-generated." Treat it like any import: confirm the AI vendor's licence gives you the rights, and expect the same moderation and copyright checks (judgment).
 
+- **What Roblox generates:** no sound-effect or music generator. Its generated audio is text-to-speech: `AssetService:CreateAssetAsync` with an `AudioTextToSpeech` object and `Enum.AssetType.Audio` creates a speech asset in Studio, with no play-time rate limit (Studio beta, DevForum t/4950480, 2026-10-22). Only the text, voice id, pitch (-12 to 12) and speed (0.5 to 2) are read; assets are named `TTS_Asset_<id>`, with no name, description or creator option yet. The docs AI workflows page lists text-to-speech and speech-to-text as its audio items, and the Studio MCP generate tools include no audio tool (tool list read 2026-11-20). Effects and music come from outside generators.
+- **Licence check before using a generator** (judgment, from vendor terms we read on 2026-11-20): read the terms for (a) commercial use in a game; (b) whether output may be redistributed as isolated audio files or sample libraries: some terms forbid that while allowing use inside your own game, so check before distributing a generated effect on the Creator Store; (c) plan or revenue limits on the licence. Record the generator and licence per cue (Records, below).
+- **Generated effects** (field notes, 2026-11-20): describe the cue in words as in section 1, ask for an isolated, dry sound with no music, voice or background, and set the length (we used 1.5 s for an impact, 2.5 s for a roar, 3.5 s for a death). 24 clips from two generators arrived with 0-211 ms of leading silence: trim to the first sample above about -40 dBFS, add a 3 ms fade-in and a 30 ms fade-out, and set the peak to -1 dBFS before upload; a hit that starts late reads as lag. One clip needed +12.6 dB to reach that peak: listen for raised noise.
+- **Generation runs** (field notes, 2026-11-20): generation time differed by more than 100x between two providers on the same day (seconds against half an hour in a queue), so do not put generation in a blocking step of a pipeline (judgment from one day's runs). One prompt for a calm instrumental track was refused by a content filter and passed after rewording: retry with plainer words before assuming the idea is blocked. Generated music loops: section 4.
+
 Records: one line per cue in `assets/LICENSES.md` with the event id, asset id, creator account and source (licensed catalog, acquired, own upload, or AI vendor and licence). Never rip audio from videos, other games or charts, and never re-upload Store audio.
 
 ## 8. Measuring and review
@@ -196,6 +204,7 @@ In Studio (docs):
 - `AudioAnalyzer.PeakLevel` and `RmsLevel` measure a live stream (`GetSpectrum` with `SpectrumEnabled`). On the server they are always 0, so read them on the client. To measure a positional rolloff, isolate one listener and an analyzer and move a steady clip away from it: one game measured shares of 1.00, 1.00, 0.70, 0.52, 0.15, 0.04 and 0 at 0.5, 5, 10, 25, 45, 60 and 70 studs for its emitter curve, then logged real step levels by distance in a chase to compare (field note, 2026-11-16).
 - A game still on `Sound` and `SoundGroup` cannot feed an `AudioAnalyzer`: a `Wire` connects only the audio objects (docs, Wire). Measure each asset by id with an `AudioPlayer` (the sketch below), then add its playback volume: change in dB = 20 * log10(`Sound.Volume` * `SoundGroup.Volume`) (judgment). Or move the game to the Audio API first (section 5).
 - `Sound.PlaybackLoudness` (0 to 1000, docs) is the only live meter on a `Sound`. It ignores `Sound.Volume`, lags behind playback and under-reads clips shorter than about 100 ms (field note, 2026-11-11), so use it to compare, not to measure.
+- In-viewport visualizations for `AudioEmitter`s and `Sound`s in the Visualization Modes menu (release notes 748, Pending; `roblox-studio-ai-tools` section 8).
 - Short SFX: integrated LUFS is meaningless (a short UI click measured -70 LUFS because of the 400 ms gate). Compare peak and the loudest 50 ms RMS instead; compare music by integrated LUFS (field note, 2026-11-09).
 
 Measuring sketch (untested; written from the docs on 2026-11-09):
