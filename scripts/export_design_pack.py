@@ -73,7 +73,7 @@ GUIDES = [
     ("roblox-fun-effects", None, "effects"),
     ("roblox-character-design", None, "art-direction"),
     ("roblox-store-art-pack", None, "store-art"),
-    ("roblox-feel-audio-vfx", ["1", "3", "3b", "3c", "3d", "3e", "3f", "3g", "3h", "3i", "3j", "4", "5"], "effects"),
+    ("roblox-feel-audio-vfx", ["1", "3k", "3", "3b", "3c", "3d", "3e", "3f", "3g", "3h", "3i", "3j", "4", "5"], "effects"),
     ("roblox-character-motion", ["2b"], "effects"),
     ("roblox-audio", None, "audio"),
     ("roblox-engine-2026", ["2"], "ui-engine"),

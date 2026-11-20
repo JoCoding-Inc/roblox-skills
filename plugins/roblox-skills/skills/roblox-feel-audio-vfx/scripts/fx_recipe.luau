@@ -53,6 +53,29 @@
 -- its twin as many again. An effect that is not a hit sets recipe.anchor ("up" or "feet"), so speed and spread fan
 -- out from world up; spread 180 sends particles every way.
 --
+-- Targets: a character model (above), a CFrame, or a part, an attachment or another model (its own frame; a hit
+-- travels into its front unless opts.direction says otherwise).
+-- Moving things: opts.follow = true moves the whole effect with its target every frame; opts.follow = function(t)
+-- -> Vector3 | CFrame moves it along a path in clock time. Emitter parents move with it; rings, columns, helices and
+-- lights move by the same shift. recipe.anchor "trail": spray points back along the motion and turns with it.
+-- A burst or stream takes path (width in studs): it is emitted from a box over the distance its anchor moved this
+-- step, so a fast trail has no gaps between frames. opts.emitUntil (s): "end" streams, rings, columns, helices and
+-- lights stop there while the clock runs on to opts.duration, so the last pieces finish their lives.
+-- A stream takes density (particles per stud the anchor moved, on top of rate, while following: a trail stays as
+-- full at any speed; alive per layer = rate x life + density x speed x life, so mind it on fast things), ramp {in,
+-- out} (shares of its span; default 0.15 each) and grow (true: it builds toward its end and stops there at full
+-- rate); a light takes grow (rises to its peak at the end, then goes out) and, with hold,
+-- ramp; a ring takes ease ("out" default, "in": slow then fast, closing on a beat, "linear") and alpha {{u,
+-- transparency}, ...} over its span (default: fades over the last 65%).
+-- FxRecipe.travel(from, to, opts) -> clock: something flies from `from` to `to` (Vector3, CFrame, part, attachment
+-- or model; a moving `to` is chased) in opts.time s (default 0.6), opts.arc studs high at the middle, opts.ease
+-- "linear" (default), "in" (already moving, then faster: a fall) or "out". opts.body (an anchored part or model) is
+-- moved along the path facing it, or turned by opts.spin (Vector3, turns per second about its own axes), and is
+-- destroyed on arrival unless opts.keepBody. opts.trail (recipe; default "trail", false for none) follows it;
+-- opts.tell (recipe) plays at `to` for the flight; opts.impact (a recipe or a list) plays on arrival with LookVector
+-- along the flight (a recipe whose anchor is not "feet" is set back opts.impactLift studs, default 1, along the
+-- flight); opts.palette, opts.scale, opts.tellScale, opts.impactScale; opts.onArrive(position, direction).
+--
 -- hit_electric reproduces scripts/hit_impact.luau layer for layer: built side by side in Studio 0.748 Play on
 -- 2026-11-20, all 8 emitters had the same 19 properties and the beam and light counts matched. The six element
 -- hits were judged good by the owner at real speed in Studio on a desktop (2026-11-20). hit_water and the recipes
@@ -65,6 +88,15 @@
 -- and looked at frozen at 0.56, 1.0 and 1.35 s; the owner then watched it at real speed and called it fairly
 -- satisfying (2026-11-20). Nova, zone and eruption have no owner verdict yet. Nothing here was checked on a phone
 -- or in a published game.
+-- Moving things (2026-11-20, Studio 0.748 Play, desktop view, slow motion at 0.04 and 0.2 and frozen frames):
+-- travel with trail (scale 3), tell (1.5) and impacts over 94 studs in 1 s ("in" ease, about 38 to 150 studs/s),
+-- a lobbed fireball of particles only (arc 10) and a holy bolt at 131 studs/s into a wall. Fixed on the way: a
+-- core 4.5 studs wide read as a white disc over the body (now under the body's size, white only at birth); fire
+-- cards laid along their velocity read as paper scraps (flames now face the camera); a rate per second left gaps
+-- at high speed and the bolt's glow read as a string of dots (now density per stud); explosion at a floor point
+-- was cut by the floor into a white dome and a half ring (travel now sets non-"feet" impacts back along the flight;
+-- on a floor, play a "feet" recipe). All 22 recipes then played with no errors, and part, attachment and moving
+-- part targets (one destroyed while followed) worked. No owner verdict yet.
 
 local FxClock = require(script.Parent.fx_clock)
 local FxTextures = require(script.Parent.fx_textures)
@@ -492,6 +524,54 @@ FxRecipe.recipes = {
 			L.embers({ from = 0.5, to = 2.2, rate = 70, disc = { 5, 1 }, up = 0.5, speed = { 8, 18 }, spread = 25, squash = { { 0, 1.8 }, { 1, 1.1 } }, size = { { 0, 0.3, 0.1 }, { 1, 0.08 } }, color = { { 0, "hot" }, { 1, "mid" } }, brightness = 3 }),
 		},
 	},
+
+	-- Moving things: play them with opts.follow, or through FxRecipe.travel. "end" streams run until opts.emitUntil
+	-- at full rate (ramp out 0: the impact covers the cut). Sizes are for a projectile of 1-2 studs at scale 1. -----
+	-- a fire trail: a bright core that tapers behind the body, small fire tongues, streaks thrown back, embers that
+	-- drift up, a thin smoke line, a light that rides along
+	trail = {
+		palette = "fire",
+		anchor = "trail",
+		duration = 1.5,
+		layers = {
+			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 20, density = 2.5, ramp = { 0.05, 0 }, path = 0.4, where = "hit", life = { 0.06, 0.1 }, size = { { 0, 0.8, 0.15 }, { 1, 0.25 } }, alpha = { { 0, 0.15 }, { 1, 1 } }, color = { { 0, "white" }, { 0.15, "hot" }, { 1, "mid" } }, emission = 1, brightness = 2, z = 0.5 }),
+			L.body({ kind = "stream", name = "Body", from = 0, to = "end", rate = 8, density = 1, ramp = { 0.05, 0 }, path = 0.6, where = "hit", life = { 0.1, 0.18 }, size = { { 0, 1.6, 0.2 }, { 1, 0.8 } }, alpha = { { 0, 0.55 }, { 1, 1 } }, color = "mid", emission = 0.5, brightness = 1.5, z = 0.2 }),
+			L.fireball({ kind = "stream", name = "Flames", from = 0, to = "end", rate = 20, density = 2, ramp = { 0.05, 0 }, path = 0.6, life = { 0.12, 0.2 }, speed = { 2, 5 }, spread = 25, drag = 2, rotSpeed = { -90, 90 }, size = { { 0, 1.1, 0.2 }, { 1, 0.4, 0.1 } }, alpha = { { 0, 0.1 }, { 0.7, 0.35 }, { 1, 1 } }, color = { { 0, "hot" }, { 0.5, "mid" }, { 1, "mid" } }, emission = 0.5, brightness = 2.5, z = 0.3 }),
+			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 24, density = 0.2, ramp = { 0.05, 0 }, path = 0.5, life = { 0.08, 0.16 }, speed = { 12, 20 }, spread = 30, drag = 3, accel = { 0, -12, 0 }, size = { { 0, 0.5, 0.1 }, { 1, 0.12 } }, color = { { 0, "hot" }, { 1, "mid" } }, emission = 1, brightness = 3 }),
+			L.wisps({ name = "Embers", from = 0, to = "end", rate = 20, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.3, 0.6 }, speed = { 2, 6 }, spread = 70, drag = 2, accel = { 0, 4, 0 }, size = { { 0, 0.3, 0.1 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 1, 0.3 } }, emission = 1, brightness = 3 }),
+			L.smoke({ kind = "stream", name = "Smoke", from = 0, to = "end", rate = 6, density = 0.8, ramp = { 0.05, 0 }, path = 0.9, up = 0.8, life = { 0.5, 0.9 }, speed = { 1, 3 }, spread = 40, drag = 2, accel = { 0, 2, 0 }, size = { { 0, 0.7, 0.2 }, { 1, 2.2, 0.4 } }, alpha = { { 0, 1 }, { 0.15, 0.68 }, { 1, 1 } } }),
+			L.light({ at = 0, dur = "end", peak = 2.5, range = 12, hold = true, ramp = { 0.05, 0 } }),
+		},
+	},
+	-- an energy trail (a bolt, a magic missile): a white-hot core, a saturated glow around it, sparks and glints;
+	-- no fire and no smoke. Change the colour with opts.palette.
+	trail_glow = {
+		palette = "electric",
+		anchor = "trail",
+		duration = 1.5,
+		layers = {
+			L.body({ kind = "stream", name = "Core", from = 0, to = "end", rate = 20, density = 3, ramp = { 0.05, 0 }, path = 0.3, where = "hit", life = { 0.06, 0.1 }, size = { { 0, 1.0, 0.15 }, { 1, 0.3 } }, alpha = { { 0, 0.1 }, { 1, 1 } }, color = { { 0, "white" }, { 0.2, "hot" }, { 1, "mid" } }, emission = 1, brightness = 3, z = 0.5 }),
+			L.body({ kind = "stream", name = "Glow", from = 0, to = "end", rate = 10, density = 2.5, ramp = { 0.05, 0 }, path = 0.6, where = "hit", life = { 0.1, 0.16 }, size = { { 0, 1.5, 0.2 }, { 1, 0.5 } }, alpha = { { 0, 0.5 }, { 1, 1 } } }),
+			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 24, density = 0.1, ramp = { 0.05, 0 }, path = 0.4, life = { 0.1, 0.2 }, speed = { 6, 14 }, spread = 90, drag = 5, accel = { 0, 0, 0 }, size = { { 0, 0.4, 0.08 }, { 1, 0.1 } }, color = { { 0, "hot" }, { 1, "mid" } } }),
+			L.pops({ kind = "stream", name = "Glints", from = 0, to = "end", rate = 10, ramp = { 0.05, 0 }, path = 1, speed = { 1, 3 }, spread = 90, life = { 0.18, 0.28 }, size = { { 0, 0 }, { 0.3, 0.6 }, { 1, 0 } } }),
+			L.light({ at = 0, dur = "end", peak = 2.5, range = 12, hold = true, ramp = { 0.05, 0 } }),
+		},
+	},
+	-- a tell on the floor where something will land, for the flight time (opts.emitUntil): a ring that closes on the
+	-- point and is gone at the impact, a mark that flickers and builds, heat spots, motes on the rim, a light that
+	-- grows. The impact itself is another recipe.
+	tell = {
+		palette = "fire",
+		anchor = "feet",
+		duration = 1.3,
+		layers = {
+			L.floorRing({ name = "Closing", at = 0, dur = "end", r0 = 6, r1 = 0.6, w0 = 0.22, w1 = 0.5, segments = 24, ease = "in", alpha = { { 0, 1 }, { 0.12, 0.15 }, { 1, 0 } }, color = { "hot", "mid" } }),
+			L.floorGlow({ kind = "stream", name = "Mark", from = 0, to = "end", rate = 14, grow = true, life = { 0.2, 0.3 }, size = { { 0, 3.5 }, { 1, 4.2 } }, alpha = { { 0, 1 }, { 0.3, 0.5 }, { 1, 1 } } }),
+			L.floorGlow({ kind = "stream", name = "Heat", from = 0, to = "end", rate = 18, grow = true, disc = { 3, 1 }, life = { 0.15, 0.25 }, size = { { 0, 0.6 }, { 1, 1.6 } }, color = "hot", alpha = { { 0, 1 }, { 0.4, 0.3 }, { 1, 1 } } }),
+			L.motes({ name = "RimMotes", from = 0, to = "end", rate = 40, grow = true, disc = { 5, 0 }, speed = { 6, 12 } }),
+			L.light({ at = 0, up = 1, dur = "end", peak = 3, range = 16, grow = true }),
+		},
+	},
 }
 
 local function key(pal, k)
@@ -569,6 +649,10 @@ local function emitterProps(l, pal, s)
 	if l.dir == "down" then
 		props.EmissionDirection = Enum.NormalId.Bottom
 	end
+	if l.path then
+		props.Shape = Enum.ParticleEmitterShape.Box
+		props.ShapeStyle = Enum.ParticleEmitterShapeStyle.Volume
+	end
 	if l.flat then
 		-- a particle is drawn across its velocity: a tiny upward speed lays it on the floor
 		props.EmissionDirection = Enum.NormalId.Top
@@ -579,25 +663,83 @@ local function emitterProps(l, pal, s)
 	return props
 end
 
+-- The frame of a target: a CFrame, a Vector3, an attachment, a part or a model (its pivot).
+local function frameOf(target)
+	if typeof(target) == "CFrame" then
+		return target
+	elseif typeof(target) == "Vector3" then
+		return CFrame.new(target)
+	elseif target:IsA("Attachment") then
+		return target.WorldCFrame
+	elseif target:IsA("BasePart") then
+		return target.CFrame
+	end
+	return target:GetPivot()
+end
+
+-- p (the anchor point), d (the direction the hit travels) and the instance the effect is on
 local function resolve(target, opts)
 	if typeof(target) == "CFrame" then
 		return target.Position, target.LookVector, nil
 	end
 	local root = target:FindFirstChild("HumanoidRootPart")
+	if not root then
+		-- a part, an attachment or a model without a humanoid: its own frame, hit from the front
+		local cf = frameOf(target)
+		return cf.Position, (opts.direction or -cf.LookVector).Unit, target
+	end
 	local torso = target:FindFirstChild("UpperTorso") or root
 	local d = (opts.direction or -root.CFrame.LookVector).Unit
 	return torso.Position - d * 0.6, d, target
 end
 
+local function recipeOf(recipe)
+	if type(recipe) == "string" then
+		return FxRecipe.recipes[recipe] or error(`fx_recipe: no recipe "{recipe}"`, 3)
+	end
+	return recipe
+end
+
+-- a unit vector at right angles to v
+local function across(v)
+	return (if math.abs(v.Y) < 0.9 then v:Cross(Vector3.yAxis) else v:Cross(Vector3.xAxis)).Unit
+end
+
+-- the box a path layer emits from: it spans a -> b plus `width` each way, its Y axis is `up` (the emission direction)
+local function pathBox(part, a, b, up, side, width)
+	local m = b - a
+	local along = m:Dot(up)
+	local perp = m - up * along
+	local x = if perp.Magnitude > 1e-3 then perp.Unit else side
+	part.Size = Vector3.new(perp.Magnitude + width, math.abs(along) + width, width)
+	part.CFrame = CFrame.fromMatrix((a + b) / 2, x, up)
+end
+
+-- a piecewise-linear curve {{u, v}, ...} read at u
+local function curve(points, u)
+	for i = 2, #points do
+		local a, b = points[i - 1], points[i]
+		if u <= b[1] then
+			return FxClock.lerp(a[2], b[2], math.clamp((u - a[1]) / math.max(b[1] - a[1], 1e-6), 0, 1))
+		end
+	end
+	return points[#points][2]
+end
+
+-- how far a stream's rate or a held light is open at u: in over ramp[1] of its span, out over ramp[2]
+local function rampAt(ramp, u, out)
+	local r0 = if ramp then ramp[1] else 0.15
+	local r1 = if ramp then ramp[2] else out
+	local k = if r0 > 0 then FxClock.smooth(0, r0, u) else 1
+	if r1 > 0 then
+		k *= 1 - FxClock.smooth(1 - r1, 1, u)
+	end
+	return k
+end
+
 function FxRecipe.play(recipe, target, opts)
 	opts = opts or {}
-	if type(recipe) == "string" then
-		local r = FxRecipe.recipes[recipe]
-		if not r then
-			error(`fx_recipe: no recipe "{recipe}"`, 2)
-		end
-		recipe = r
-	end
+	recipe = recipeOf(recipe)
 	local pal = opts.palette or recipe.palette
 	if type(pal) == "string" then
 		pal = FxRecipe.palettes[pal] or error(`fx_recipe: no palette "{pal}"`, 2)
@@ -606,22 +748,97 @@ function FxRecipe.play(recipe, target, opts)
 	local p, d, model = resolve(target, opts)
 	local anchor = recipe.anchor or "hit"
 	local duration = opts.duration or recipe.duration
+	-- "end" streams stop at stopAt; "end" rings, columns, helices and lights end at endAt
+	local stopAt = opts.emitUntil or duration - 0.35
+	local endAt = opts.emitUntil or duration - 0.1
 	local clock = FxClock.new(recipe.name or "FxRecipe", duration)
 	local smooth, lerp = FxClock.smooth, FxClock.lerp
 	local spray = -d
-	if anchor ~= "hit" then
+	if anchor == "trail" then
+		-- back along the motion; a CFrame, part or model moves along its LookVector unless opts.direction says
+		spray = -(opts.direction or frameOf(target).LookVector).Unit
+	elseif anchor ~= "hit" then
 		spray = Vector3.yAxis
-		if anchor == "feet" and model then
+		if anchor == "feet" and model and model:IsA("Model") then
 			local cf, size = model:GetBoundingBox()
 			p = cf.Position - Vector3.new(0, size.Y / 2, 0)
+		elseif anchor == "feet" and model and model:IsA("BasePart") then
+			p = model.Position - Vector3.new(0, model.Size.Y / 2, 0)
 		elseif model then
-			p = model:GetPivot().Position
+			p = frameOf(model).Position
 		end
 	end
-	local side = (math.abs(spray.Y) < 0.9 and spray:Cross(Vector3.yAxis) or spray:Cross(Vector3.xAxis)).Unit
+	local side = across(spray)
+	local frame0 = CFrame.fromMatrix(p, side, spray)
+
+	-- follow: the effect moves with its target (opts.follow = true) or along opts.follow(t) (clock time -> Vector3 or
+	-- CFrame). Emitter parents move with it, rings, columns, helices and lights by the same shift; with anchor
+	-- "trail" the parents also turn so spray keeps pointing back along the motion.
+	local follow = opts.follow
+	if follow == true and typeof(target) == "CFrame" then
+		error("fx_recipe: follow = true needs a part, an attachment or a model", 2)
+	end
+	local function track(t)
+		if type(follow) == "function" then
+			local v = follow(t)
+			return if typeof(v) == "CFrame" then v.Position else v
+		end
+		return if target.Parent then frameOf(target).Position else nil
+	end
+	local track0 = if follow then track(0) else nil
+	local shift = Vector3.zero
+	local movers = {}
+	local syncedAt = nil
+	local speed = 0 -- studs per clock second, for density streams
+	local function sync(t)
+		if not follow or t == syncedAt then
+			return
+		end
+		local pos = track(t)
+		if not pos then
+			syncedAt, speed = t, 0
+			return -- the target is gone: the effect stays where it was
+		end
+		local moved = pos - track0 - shift
+		if syncedAt and t > syncedAt then
+			speed = moved.Magnitude / (t - syncedAt)
+		end
+		syncedAt = t
+		shift = pos - track0
+		if anchor == "trail" and moved.Magnitude > 1e-3 then
+			spray = -moved.Unit
+			side = across(spray)
+		end
+		local frame = CFrame.fromMatrix(p + shift, side, spray)
+		for _, m in movers do
+			local cf = frame * m.rel
+			if m.path then
+				pathBox(m.inst, m.last or cf.Position, cf.Position, spray, side, m.path)
+				m.last = cf.Position
+			elseif m.inst:IsA("Attachment") then
+				m.inst.WorldCFrame = cf
+			else
+				m.inst.CFrame = cf
+			end
+		end
+	end
+	local function moves(inst, path)
+		if follow then
+			local cf = if inst:IsA("Attachment") then inst.WorldCFrame else inst.CFrame
+			table.insert(movers, { inst = inst, rel = frame0:ToObjectSpace(cf), path = path })
+		end
+		return inst
+	end
+	if follow then
+		-- the first span, so it runs before every layer's span and stream in a step (bursts call sync themselves)
+		clock:span(0, duration, function(_, t)
+			sync(t)
+		end)
+	end
+
 	local atts = {
-		hit = clock:attachment(CFrame.fromMatrix(p, side, spray)),
-		front = clock:attachment(CFrame.new(p + spray * 0.4 * s)),
+		hit = moves(clock:attachment(frame0)),
+		front = moves(clock:attachment(CFrame.new(p + spray * 0.4 * s))),
 	}
 
 	-- times / every: a burst reuses its emitter; every other kind is played as copies shifted in time
@@ -630,7 +847,7 @@ function FxRecipe.play(recipe, target, opts)
 			return 1
 		end
 		if l.times == "end" then
-			return math.max(1, math.floor((duration - 0.35 - (l.at or l.from or 0)) / l.every))
+			return math.max(1, math.floor((stopAt - (l.at or l.from or 0)) / l.every))
 		end
 		return l.times
 	end
@@ -659,32 +876,43 @@ function FxRecipe.play(recipe, target, opts)
 		if l.kind == "burst" or l.kind == "stream" then
 			local parent = atts[l.where or "hit"]
 			local at = parent.WorldPosition + spray * (l.up or 0) * s
-			if l.tube then
+			if l.path then
+				-- emitted over the distance the anchor moved this step, so a fast trail has no gaps between frames
+				local w = l.path * s
+				parent = moves(clock:part({ Size = Vector3.new(w, w, w), CFrame = CFrame.fromMatrix(at, side, spray) }), w)
+			elseif l.tube then
 				local r, h = l.tube[1] * s, l.tube[2] * s
-				parent = clock:part({ Size = Vector3.new(r * 2, h, r * 2), CFrame = CFrame.new(at + Vector3.yAxis * h / 2) })
+				parent = moves(clock:part({ Size = Vector3.new(r * 2, h, r * 2), CFrame = CFrame.new(at + Vector3.yAxis * h / 2) }))
 			elseif l.gather then
 				local r = l.gather * s
-				parent = clock:part({ Size = Vector3.new(r * 2, r * 2, r * 2), CFrame = CFrame.new(at) })
+				parent = moves(clock:part({ Size = Vector3.new(r * 2, r * 2, r * 2), CFrame = CFrame.new(at) }))
 			elseif l.disc then
 				local r = l.disc[1] * s
-				parent = clock:part({ Size = Vector3.new(r * 2, 0.2, r * 2), CFrame = CFrame.fromMatrix(at, side, spray) })
+				parent = moves(clock:part({ Size = Vector3.new(r * 2, 0.2, r * 2), CFrame = CFrame.fromMatrix(at, side, spray) }))
 			elseif l.up then
-				parent = clock:attachment(CFrame.fromMatrix(at, side, spray))
+				parent = moves(clock:attachment(CFrame.fromMatrix(at, side, spray)))
 			end
 			local e = clock:emitter(parent, emitterProps(l, pal, s))
 			FxTextures.apply(e, l.slot)
 			if l.kind == "burst" then
 				for i = 0, repeats(l) - 1 do
 					clock:at(l.at + i * (l.every or 0), function()
+						sync(clock.t)
 						e:Emit(l.count)
 					end)
 				end
 			else
-				-- the rate ramps in and out over 15% of the span, so the stream has no seam
-				local to = if l.to == "end" then duration - 0.35 else l.to
+				-- the rate ramps in and out (ramp {in, out}: shares of the span, default 0.15 each), so the stream has no
+				-- seam; grow: it builds toward its end and stops there at full rate (a tell, a charge). density: more
+				-- per stud the anchor moved (while following), so a trail is as full at any speed
+				local to = if l.to == "end" then stopAt else l.to
 				clock:stream(e, l.from, to, function(t)
 					local u = (t - l.from) / (to - l.from)
-					return l.rate * smooth(0, 0.15, u) * (1 - smooth(0.85, 1, u))
+					local rate = (l.rate or 0) + (l.density or 0) * speed / s
+					if l.grow then
+						return rate * rampAt(l.ramp, u, 0) * (0.2 + 0.8 * u * u)
+					end
+					return rate * rampAt(l.ramp, u, 0.15)
 				end)
 			end
 		elseif l.kind == "ring" then
@@ -699,25 +927,28 @@ function FxRecipe.play(recipe, target, opts)
 				local ang = (j - 1) / segs * math.pi * 2
 				local radial = b1 * math.cos(ang) + b2 * math.sin(ang)
 				local tan = -b1 * math.sin(ang) + b2 * math.cos(ang)
-				return { cf = CFrame.fromMatrix(p + n * y + radial * r, tan, radial), width = w, alpha = a, color = col }
+				return { cf = CFrame.fromMatrix(p + shift + n * y + radial * r, tan, radial), width = w, alpha = a, color = col }
 			end
 			local c0, c1, dark = key(pal, l.color[1]), key(pal, l.color[2]), key(pal, "dark")
 			local r0, r1, w0, w1 = l.r0 * s, l.r1 * s, l.w0 * s, l.w1 * s
 			local ring = clock:ribbon(segs, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = l.z or 0.5 })
 			local twin = l.twin and clock:ribbon(segs, { LightEmission = 0, Brightness = 1, ZOffset = -0.3 })
-			local dur = if l.dur == "end" then duration - l.at - 0.1 else l.dur
+			local dur = if l.dur == "end" then endAt - l.at else l.dur
+			-- ease: "out" (default) fast then slow, "in" slow then fast (closes on a beat), "linear"
+			local ease = if l.ease == "in" then function(u) return u * u end elseif l.ease == "linear" then function(u) return u end else FxClock.outQuart
 			clock:span(l.at, l.at + dur, function(u)
-				local e = FxClock.outQuart(u)
+				local e = ease(u)
 				local col = c0:Lerp(c1, smooth(0, 0.25, u))
 				local y = lerp(y0, y1, u)
 				ring.update(function(j)
-					return joint(j, lerp(r0, r1, e), lerp(w0, w1, e), smooth(0.35, 1, u), col, y)
+					return joint(j, lerp(r0, r1, e), lerp(w0, w1, e), if l.alpha then curve(l.alpha, u) else smooth(0.35, 1, u), col, y)
 				end)
 				if twin then
 					local u2 = math.max(u - 0.08, 0)
-					local e2 = FxClock.outQuart(u2)
+					local e2 = ease(u2)
+					local a2 = if l.alpha then curve(l.alpha, u2) else smooth(0.3, 1, u2)
 					twin.update(function(j)
-						return joint(j, lerp(r0, r1 * 0.92, e2), lerp(w0 * 1.6, w1 * 1.67, e2), 0.5 + 0.5 * smooth(0.3, 1, u2), dark, lerp(y0, y1, u2))
+						return joint(j, lerp(r0, r1 * 0.92, e2), lerp(w0 * 1.6, w1 * 1.67, e2), 0.5 + 0.5 * a2, dark, lerp(y0, y1, u2))
 					end)
 				end
 				if u >= 1 then
@@ -745,13 +976,12 @@ function FxRecipe.play(recipe, target, opts)
 			FxTextures.apply(beam, slot)
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
 			local w0, w1, base = l.w0 * s, l.w1 * s, l.alpha or 0.15
-			local dur = if l.dur == "end" then duration - l.at - 0.1 else l.dur
+			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			local bottom, top = a0.WorldPosition, a1.WorldPosition
 			clock:span(l.at, l.at + dur, function(u, t)
 				local w, a
-				if l.drop then
-					a0.WorldPosition = top:Lerp(bottom, math.clamp((t - l.at) / l.drop, 0, 1))
-				end
+				a1.WorldPosition = top + shift
+				a0.WorldPosition = (if l.drop then top:Lerp(bottom, math.clamp((t - l.at) / l.drop, 0, 1)) else bottom) + shift
 				if l.hold then
 					-- opens in the first 12%, closes in the last 20% by narrowing, not by fading
 					w, a = w1 * smooth(0, 0.12, u) * (1 - smooth(0.8, 1, u)), base
@@ -773,11 +1003,11 @@ function FxRecipe.play(recipe, target, opts)
 			local y0, y1, r, w = (l.y0 or 0) * s, l.y1 * s, l.r * s, l.w * s
 			local turns, spin, phase, base = l.turns or 2, l.spin or -1.5, l.phase or 0, l.alpha or 0.15
 			local ribbon = clock:ribbon(segs, { LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = l.z or 0.3 })
-			local dur = if l.dur == "end" then duration - l.at - 0.1 else l.dur
+			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			local function point(f, turn)
 				local ang = (turns * f + turn) * math.pi * 2
 				local radial = Vector3.new(math.cos(ang), 0, math.sin(ang))
-				return p + radial * r + Vector3.yAxis * lerp(y0, y1, f), radial
+				return p + shift + radial * r + Vector3.yAxis * lerp(y0, y1, f), radial
 			end
 			clock:span(l.at, l.at + dur, function(u, t)
 				-- opens and closes by width; the whole band turns about the axis, which reads as stripes that travel
@@ -798,11 +1028,16 @@ function FxRecipe.play(recipe, target, opts)
 				end
 			end)
 		elseif l.kind == "light" then
-			local holder = if l.up then clock:attachment(CFrame.new(p + spray * l.up * s)) else atts.front
+			local holder = if l.up then moves(clock:attachment(CFrame.new(p + spray * l.up * s))) else atts.front
 			local light = clock:light(holder, { Range = l.range * s, Color = key(pal, "light") })
-			local dur = if l.dur == "end" then duration - l.at - 0.1 else l.dur
+			local dur = if l.dur == "end" then endAt - l.at else l.dur
+			-- hold: ramps in, holds and ramps out (ramp {in, out}, default 0.15 and 0.25); grow: rises to its peak at
+			-- the end of its span, then goes out (a tell); otherwise it starts at its peak and falls
 			clock:span(l.at, l.at + dur, function(u)
-				light.Brightness = if l.hold then l.peak * smooth(0, 0.15, u) * (1 - smooth(0.75, 1, u)) else l.peak * (1 - u) ^ 2
+				light.Brightness = if u >= 1 then 0
+					elseif l.hold then l.peak * rampAt(l.ramp, u, 0.25)
+					elseif l.grow then l.peak * u * u
+					else l.peak * (1 - u) ^ 2
 			end)
 		else
 			error(`fx_recipe: unknown layer kind "{l.kind}"`, 2)
@@ -829,6 +1064,128 @@ function FxRecipe.play(recipe, target, opts)
 	if opts.noPlay then
 		return clock
 	end
+	return clock:play()
+end
+
+-- Travel ----------------------------------------------------------------------------------------------------
+local EASE = {
+	linear = function(u)
+		return u
+	end,
+	-- already moving at the start (0.4x the mean speed) and 1.6x at the end: a fall, a dive
+	["in"] = function(u)
+		return 0.4 * u + 0.6 * u * u
+	end,
+	out = function(u)
+		return 1 - (0.4 * (1 - u) + 0.6 * (1 - u) ^ 2)
+	end,
+}
+
+local function posOf(x)
+	return if typeof(x) == "Vector3" then x else frameOf(x).Position
+end
+
+local function facing(pos, dir)
+	return CFrame.lookAt(pos, pos + dir, if math.abs(dir.Y) > 0.99 then Vector3.zAxis else Vector3.yAxis)
+end
+
+local function longestLife(r)
+	local m = 0
+	for _, l in r.layers do
+		if l.life then
+			m = math.max(m, l.life[2])
+		end
+	end
+	return m
+end
+
+-- Something flies from `from` to `to` (a moving `to` is chased): the trail follows it, the tell waits at `to`,
+-- the impact plays on arrival. Returns the flight's clock (clock.tell is the tell's clock).
+function FxRecipe.travel(from, to, opts)
+	opts = opts or {}
+	local time = opts.time or 0.6
+	local arc = opts.arc or 0
+	local ease = EASE[opts.ease or "linear"] or error(`fx_recipe: no ease "{opts.ease}"`, 2)
+	local s = opts.scale or 1
+	local a = posOf(from)
+	local function path(t)
+		local u = ease(math.clamp(t / time, 0, 1))
+		return a:Lerp(posOf(to), u) + Vector3.yAxis * arc * 4 * u * (1 - u)
+	end
+	local function dirAt(t)
+		local v = path(math.min(t + 0.01, time)) - path(math.max(t - 0.01, 0))
+		return if v.Magnitude > 1e-4 then v.Unit else (posOf(to) - a).Unit
+	end
+
+	local trail = if opts.trail == nil then "trail" else opts.trail
+	local clock
+	if trail then
+		local r = recipeOf(trail)
+		clock = FxRecipe.play(r, facing(a, dirAt(0)), {
+			follow = path,
+			emitUntil = time,
+			duration = time + longestLife(r) + 0.1,
+			scale = s,
+			palette = opts.palette,
+			noPlay = true,
+		})
+	else
+		clock = FxClock.new("Travel", time + 0.05)
+	end
+
+	local body = opts.body
+	if body then
+		local rot0 = body:GetPivot().Rotation
+		clock:every(function(t)
+			if t >= time or not body.Parent then
+				return
+			end
+			local turn = if opts.spin then opts.spin * (t * math.pi * 2) else nil
+			local rot = if turn then rot0 * CFrame.Angles(turn.X, turn.Y, turn.Z) else facing(Vector3.zero, dirAt(t))
+			body:PivotTo(CFrame.new(path(t)) * rot)
+		end)
+		if not opts.keepBody then
+			clock:onCleanup(function()
+				if body.Parent then
+					body:Destroy()
+				end
+			end)
+		end
+	end
+
+	if opts.tell then
+		local r = recipeOf(opts.tell)
+		local chase = typeof(to) == "Instance"
+		clock.tell = FxRecipe.play(r, if chase then to else CFrame.new(posOf(to)), {
+			follow = if chase then true else nil,
+			emitUntil = time,
+			duration = time + longestLife(r) + 0.1,
+			scale = opts.tellScale or s,
+			palette = opts.palette,
+		})
+	end
+
+	local impacts = opts.impact
+	if type(impacts) == "string" or (type(impacts) == "table" and impacts.layers) then
+		impacts = { impacts }
+	end
+	clock:at(time, function()
+		local land, dir = path(time), dirAt(time)
+		if body and not opts.keepBody and body.Parent then
+			body:Destroy()
+		end
+		local is = opts.impactScale or s
+		for _, imp in impacts or {} do
+			-- a "feet" recipe sits on the landing point; any other is set back along the flight (opts.impactLift
+			-- studs at scale 1, default 1), so its glows are not cut in half by the surface it hit
+			local r = recipeOf(imp)
+			local at = if r.anchor == "feet" then land else land - dir * (opts.impactLift or 1) * is
+			FxRecipe.play(r, facing(at, dir), { scale = is, palette = opts.palette })
+		end
+		if opts.onArrive then
+			opts.onArrive(land, dir)
+		end
+	end)
 	return clock:play()
 end
 
