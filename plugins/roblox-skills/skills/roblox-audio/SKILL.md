@@ -4,6 +4,7 @@ description: "Use when adding sound effects, music or ambience to a Roblox game:
 last_reviewed: 2026-11-09
 sources:
   - https://create.roblox.com/docs/audio/assets (updated 2026-11-06; Creator Store audio, import rules, classification)
+  - https://create.roblox.com/docs/cloud/guides/usage-assets (Open Cloud upload limits per asset type, read 2026-11-20)
   - https://create.roblox.com/docs/audio/objects and /audio/effects (Sound, SoundGroup and SoundEffect discouraged; wiring; ListenerLocation)
   - https://create.roblox.com/docs/reference/engine/classes/AudioPlayer, AudioFader, AudioCompressor, AudioAnalyzer (ranges, pins, GetWaveformAsync)
   - https://create.roblox.com/docs/projects/assets/privacy (grants; game grants are permanent)
@@ -178,6 +179,7 @@ Importing (docs, audio/assets):
 - You must hold the legal rights. One track in `.mp3`, `.ogg`, `.wav` or `.flac`, under 20 MB and under 7 minutes, 48 kHz or less, mono, stereo, 3.0 or 5.1.
 - 2,000 free imports per 30 days if ID verified, 100 if not. Imports go through moderation and are classified automatically as sound effect or song.
 - Through the Asset Manager, the Creator Dashboard or Open Cloud (`POST https://apis.roblox.com/assets/v1/assets`, `assetType` Audio). New uploads are private; grant other games as in the table.
+- The two docs pages differ on Open Cloud: audio/assets names Open Cloud among the import paths under the 2,000 / 100 limit above, while the Open Cloud assets guide (cloud/guides/usage-assets, read 2026-11-20) gives audio "up to 100 uploads per month if you're ID-verified" and "up to 10 total uploads per month if you aren't". Assume the lower numbers for API uploads until tested.
 - Distributing your own SFX on the Creator Store: under 10 s, no music or speech, uploader 13+ and ID verified, plus copyright and moderation checks (DevForum staff post t/2980704, 2024; check the current rules before relying on them).
 
 AI-made audio: no audio-specific rule was found in the docs (searched 2026-11-09). The generative-AI page says "You are responsible for the content delivered to users, even if it is AI-generated." Treat it like any import: confirm the AI vendor's licence gives you the rights, and expect the same moderation and copyright checks (judgment).
