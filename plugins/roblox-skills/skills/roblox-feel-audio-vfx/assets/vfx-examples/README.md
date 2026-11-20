@@ -68,3 +68,17 @@ Captures of `scripts/ground_slam.luau`, every frame from the served code with th
 | `ground_slam_kit_top.jpg` | the slab kit from above in Blender, one random colour per slab: 76 cells, small in the middle, uneven on purpose | - |
 
 Weak points visible on the sheets (also in section 3h, Known limits): the slabs are thin and the middle of the crater is shallow; the dark walls of two long outer slabs read as black slivers; around 0.45-0.6 s the plume and the puffs overlap into one dark grey mass above the centre; the outer hairline cracks trace the kit's round outline in the last frames. The checker continues across the slab tops, checked on this unrotated floor only. No sound. Not checked on a phone preset, a real phone or in a published game.
+
+## Blade fan (section 3j)
+
+A real-speed capture of `scripts/blade_fan.luau` on a dual-blade combo demo: two fans, one per blade, fed only by the blades' guard and tip positions recorded once per game frame. No frame was edited.
+
+- Date and engine: 2026-11-20, Roblox Studio 0.748, Play, client view, Studio MCP `video_capture`.
+- Method: game frames of 1/60 s emulated at 0.2x speed (the body and the fans step once per 1/60 s of skill time), recorded, then cut back to real speed at 60 fps; each label is the skill time of the frame. The finisher's hit-stop holds the fans with `setSpeed(0)`.
+- Stage: a dark floor in blue fog with dark pillars, a block hero with two slim blades (a span of 3.25 studs per blade), default options (7 bands, life 0.15 s, core 0.014 s, crimson). The camera orbits the hero slowly, about 12-14 studs away, FOV 50 (44 under the finisher's kick).
+
+| File | Shows | Times (s) |
+|---|---|---|
+| `blade_fan_strip.jpg` | the first cut (seen nearly edge-on, the thinnest sheet of the clip), a flat sweep, one overhead cut frame by frame (sheet with the white core, tails parting, the last points), a high cut, the spin, the crossed finisher held and then fading to tails | 0.300, 0.600, 1.583, 1.600, 1.633, 1.667, 2.033, 3.133, 3.433, 3.500, 3.533, 3.567 |
+
+Weak points visible on the strip (also in section 3j, Known limits): the overhead cut and the finisher hide the head and torso for a few frames; thin rings show between bands as the tails part (1.633, 3.533). No sound. Not checked on a phone preset, a real phone or in a published game.

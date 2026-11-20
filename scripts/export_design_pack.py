@@ -73,7 +73,7 @@ GUIDES = [
     ("roblox-fun-effects", None, "effects"),
     ("roblox-character-design", None, "art-direction"),
     ("roblox-store-art-pack", None, "store-art"),
-    ("roblox-feel-audio-vfx", ["1", "3", "3b", "3c", "3d", "3e", "3f", "3g", "3h", "3i", "4", "5"], "effects"),
+    ("roblox-feel-audio-vfx", ["1", "3", "3b", "3c", "3d", "3e", "3f", "3g", "3h", "3i", "3j", "4", "5"], "effects"),
     ("roblox-character-motion", ["2b"], "effects"),
     ("roblox-audio", None, "audio"),
     ("roblox-engine-2026", ["2"], "ui-engine"),
@@ -89,7 +89,7 @@ ASSET_DIRS = [
     ("roblox-game-pipeline/assets/ui-styles/icons", "ui-styles", "roblox-game-pipeline/assets/ui-styles/README.md"),
     ("roblox-game-pipeline/assets/part-looks", "art-direction", "roblox-game-pipeline/assets/part-looks/README.md"),
     ("roblox-game-pipeline/assets/examples", "store-art", "roblox-store-art-pack/SKILL.md#7"),
-    ("roblox-feel-audio-vfx/assets/vfx-examples", "effects", "roblox-feel-audio-vfx/SKILL.md#3d,3f,3g,3h"),
+    ("roblox-feel-audio-vfx/assets/vfx-examples", "effects", "roblox-feel-audio-vfx/SKILL.md#3d,3f,3g,3h,3j"),
     ("roblox-feel-audio-vfx/assets/cutscene-examples", "effects", "roblox-feel-audio-vfx/SKILL.md#3e"),
 ]
 IMAGE_EXT = {".jpg", ".jpeg", ".png", ".webp"}
@@ -104,6 +104,7 @@ SCRIPTS = [
     ("roblox-feel-audio-vfx/scripts/hit_impact.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
     ("roblox-feel-audio-vfx/scripts/fx_recipe.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3i"),
     ("roblox-feel-audio-vfx/scripts/hit_stop.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3b"),
+    ("roblox-feel-audio-vfx/scripts/blade_fan.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3j"),
     ("roblox-feel-audio-vfx/scripts/spring.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3b"),
     ("roblox-feel-audio-vfx/scripts/level_up_aura.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d"),
     ("roblox-feel-audio-vfx/scripts/fx_capture.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d,3e,3f,3g"),
