@@ -299,14 +299,18 @@ local function textLabel(parent: Instance, size: number, color: Color3, stroke: 
 end
 
 -- A number that climbs through the whole cutscene and lands on a beat: the odds of a roll, a score, damage.
--- It climbs in log space (every second about as many new digits), slows so that only the last digits tick
--- at the end, never passes its last value, and lands with a punch (1 -> 1.3 -> 1 in 0.25 s) and the last
--- colour. Land it on the peak's flash frame or together with the title, never a second after it.
+-- It climbs in log space (every second about as many new digits), eased out, and never passes its last value.
+-- The last stretch is read, not blurred: over the last `stretch` s before `land` it holds 4-5 values that close
+-- in on the last one (the last 0.1%, at least one unit a step), each with a small tick. On `land` it turns white
+-- for 2 frames and back to its last colour over 0.25 s, punches to `punch` (up in 0.05 s, back in 0.25 s) and
+-- two four-point glints open on its corners. Land it on the peak's flash frame or together with the title, never
+-- a second after it.
 -- opts: to (the last value), from (default 1), land (clock s at which it is reached), dur (s on screen,
 --   default land + 2), format (function(n) -> string, default "1 in 12,345"), pos (screen fraction,
 --   default 0.5, 0.92: inside the lower letterbox bar), size (fraction of the screen height, default 0.07,
 --   never under 20 px), colors ({ Color3 }: stepped along the climb, the last one from the landing),
---   onLand (function), clock / at
+--   stretch (s, default 0.9, at most 0.3 of `land`; 0: one smooth climb), steps (values in it, default 5),
+--   punch (default 1.2), flare (false: no glints), onLand (function), clock / at
 function ScreenOverlays.counter(opts)
 	opts = opts or {}
 	local to, from = opts.to or 1000000, math.max(opts.from or 1, 1)
@@ -317,38 +321,132 @@ function ScreenOverlays.counter(opts)
 	end
 	local colors = opts.colors or { Color3.fromRGB(235, 244, 255), Color3.fromRGB(170, 200, 255), Color3.fromRGB(214, 170, 255), Color3.fromRGB(255, 214, 110) }
 	local pos = opts.pos or Vector2.new(0.5, 0.92)
+	local punch = opts.punch or 1.2
+	-- the last stretch: offsets below `to`, each at least one unit under the one before
+	local offs = {}
+	local stretch = math.min(opts.stretch or 0.9, land * 0.3)
+	if stretch > 0 and to - from >= 2 then
+		local steps = math.max(2, math.floor(opts.steps or 5))
+		local gap = math.min(math.max(steps, math.floor((to - from) * 0.001 + 0.5)), math.floor(to - from))
+		local last = gap + 1
+		for k = 0, steps - 1 do
+			local o = math.max(1, math.min(last - 1, math.ceil(gap * (1 - k / steps) ^ 2)))
+			if o < last then
+				table.insert(offs, o)
+				last = o
+			end
+		end
+	end
+	if #offs == 0 then
+		stretch = 0
+	end
+	local climbEnd = land - stretch
+	local climbTo = if stretch > 0 then to - offs[1] else to - 1
 	local c, root, own = FxClock.attach("Counter", dur + 0.02, opts)
-	local label, scale, landed
+	local label, scale, landed, flare, step, tickAt
 	c:at(0, function()
 		local layer = ScreenOverlays.layer(c, "Counter", 8)
 		local px = math.max(20, workspace.CurrentCamera.ViewportSize.Y * (opts.size or 0.07))
 		label = textLabel(layer, px, colors[1], Color3.fromRGB(10, 12, 30))
 		label.Position = UDim2.fromScale(pos.X, pos.Y)
+		label.ZIndex = 2
 		scale = label:FindFirstChildOfClass("UIScale")
+		if opts.flare ~= false then
+			-- two four-point glints on the number's corners (top right, then a smaller one bottom left): a long streak
+			-- through the middle of the number read as a strike-through on a still frame
+			flare = {}
+			for _, spec in { { Vector2.new(0.5, -0.55), 1, 0 }, { Vector2.new(-0.47, 0.5), 0.6, 0.07 } } do
+				local k = spec[2]
+				local spark = Instance.new("Frame")
+				spark.Name = "Glint"
+				spark.AnchorPoint = Vector2.new(0.5, 0.5)
+				spark.BackgroundTransparency = 1
+				spark.Size = UDim2.fromOffset(px * 2 * k, px * 2 * k)
+				spark.Visible = false
+				spark.ZIndex = 3
+				local thin = math.max(2, px * 0.1 * k)
+				for _, size in { UDim2.new(1, 0, 0, thin), UDim2.new(0, thin, 1.3, 0) } do
+					local bar = Instance.new("Frame")
+					bar.AnchorPoint = Vector2.new(0.5, 0.5)
+					bar.Position = UDim2.fromScale(0.5, 0.5)
+					bar.Size = size
+					bar.BorderSizePixel = 0
+					bar.BackgroundColor3 = colors[#colors]:Lerp(Color3.new(1, 1, 1), 0.6)
+					bar.ZIndex = 3
+					local g = Instance.new("UIGradient")
+					g.Rotation = if size.X.Scale > 0 then 0 else 90
+					g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1) })
+					g.Parent = bar
+					bar.Parent = spark
+				end
+				local core = Instance.new("Frame")
+				core.AnchorPoint = Vector2.new(0.5, 0.5)
+				core.Position = UDim2.fromScale(0.5, 0.5)
+				core.Size = UDim2.fromOffset(px * 0.24 * k, px * 0.24 * k)
+				core.Rotation = 45
+				core.BorderSizePixel = 0
+				core.BackgroundColor3 = Color3.new(1, 1, 1)
+				core.ZIndex = 4
+				core.Parent = spark
+				Instance.new("UIScale").Parent = spark
+				spark.Parent = layer
+				table.insert(flare, { spark = spark, at = spec[1], delay = spec[3] })
+			end
+		end
 	end)
 	c:every(function(t)
 		if not label then
 			return
 		end
-		local u = math.clamp(t / land, 0, 1)
-		local g = 1 - (1 - u) ^ 3 -- log space, eased out: the last second ticks the last digits only
-		local value = u >= 1 and to or math.min(from * (to / from) ^ g, to - 1)
+		local value
+		if t >= land then
+			value = to
+		elseif stretch > 0 and t >= climbEnd then
+			local k = math.min(#offs, math.floor((t - climbEnd) / stretch * #offs) + 1)
+			if k ~= step then
+				step, tickAt = k, t
+			end
+			value = to - offs[k]
+		else
+			local g = 1 - (1 - math.clamp(t / climbEnd, 0, 1)) ^ 3 -- log space, eased out
+			value = math.min(from * (climbTo / from) ^ g, climbTo)
+		end
 		label.Text = format(value)
-		if u < 1 then
+		if t < land then
 			local span = math.max(#colors - 1, 1)
-			local k = math.clamp(g * span, 0, span - 1e-3)
+			local k = math.clamp((1 - (1 - t / land) ^ 3) * span, 0, span - 1e-3)
 			label.TextColor3 = colors[math.floor(k) + 1]:Lerp(colors[math.min(math.floor(k) + 2, #colors)], (k % 1) ^ 3)
-			scale.Scale = 1
+			local tick = if tickAt then math.clamp(1 - (t - tickAt) / 0.12, 0, 1) else 0
+			scale.Scale = 1 + 0.07 * tick * tick
 		else
 			if not landed then
 				landed = t
-				label.TextColor3 = colors[#colors]
 				if opts.onLand then
 					opts.onLand()
 				end
 			end
-			local p = math.clamp((t - landed) / 0.25, 0, 1)
-			scale.Scale = 1 + 0.3 * math.sin(p * math.pi) * (1 - p * 0.5)
+			local dt = t - landed
+			label.TextColor3 = if dt < 0.034 then Color3.new(1, 1, 1) else Color3.new(1, 1, 1):Lerp(colors[#colors], FxClock.outCubic(math.clamp((dt - 0.034) / 0.25, 0, 1)))
+			scale.Scale = 1 + (punch - 1) * (if dt < 0.05 then FxClock.outCubic(dt / 0.05) else 1 - FxClock.outCubic(math.clamp((dt - 0.05) / 0.25, 0, 1)))
+			if flare then
+				local size = label.AbsoluteSize / scale.Scale
+				for _, g in flare do
+					local d = dt - g.delay
+					local spark = g.spark
+					spark.Visible = d >= 0 and d < 0.42
+					if spark.Visible then
+						spark.Position = UDim2.new(pos.X, g.at.X * size.X * scale.Scale, pos.Y, g.at.Y * size.Y * scale.Scale)
+						;(spark:FindFirstChildOfClass("UIScale") :: UIScale).Scale = if d < 0.08 then 1.15 * FxClock.outCubic(d / 0.08) else 1.15 - 0.45 * FxClock.outCubic((d - 0.08) / 0.34)
+						spark.Rotation = 50 * FxClock.outCubic(d / 0.42)
+						local a = math.clamp((d - 0.12) / 0.3, 0, 1) ^ 1.5
+						for _, part in spark:GetChildren() do
+							if part:IsA("Frame") then
+								part.BackgroundTransparency = a
+							end
+						end
+					end
+				end
+			end
 		end
 		local out = math.clamp((t - (dur - 0.3)) / 0.3, 0, 1) -- gone before the world is back
 		label.TextTransparency = out
