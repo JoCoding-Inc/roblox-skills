@@ -17,6 +17,8 @@
 --                                          -- a middle distance in every shot ({ along = dir, length = 200 } for a flight)
 -- local face = sky:portrait(character)     -- key and two rim lights on the head for a close-up in the dark
 -- face.stop(0.3)
+-- sky:tunnel({ subject = character, dur = 1.3, owner = clock })   -- the peak: a speed tunnel behind the subject
+--                                          -- that leaves in a burst of light (see its comment)
 -- sky:leave()                              -- everything back as it was
 --
 -- Presets (Sky.PRESETS; copy one and change it for your own):
@@ -71,6 +73,7 @@ local TweenService = game:GetService("TweenService")
 
 local FxClock = require(script.Parent.fx_clock)
 local FxTextures = require(script.Parent.fx_textures)
+local Safety = require(script.Parent.flash_safety)
 
 local Sky = {}
 
@@ -640,9 +643,208 @@ function Sky.enter(preset: string, opts)
 		return pieces
 	end
 
+	-- A speed tunnel for the peak (1-1.5 s): the sky is replaced by a dark backdrop with a glowing core behind the
+	-- subject and streaks of light that rush out of the core past every edge of the frame, so the subject reads as
+	-- flying at the camera. It is placed from the camera every frame: the core sits on the line from the camera through
+	-- the subject, `back` studs past it, so it stays behind the subject in any shot (from above, an orbit, a push-in).
+	-- The clouds, the sea, the drift and the haze go while it runs and come back when it ends.
+	-- The way out (opts.exit): "burst" (default) swells the core to a white disc over the middle of the frame and
+	-- lights the backdrop in the last 0.25 s, so the subject flies out of the dark into the light, in front of it,
+	-- with the streaks still running (a core swollen past the corners was a white frame with a speck in it); the sky
+	-- comes back on the next frame. The burst is a screen-wide change, so it asks flash_safety first (with the return
+	-- to the sky) and fades instead when it would be a fourth flash in a second. "fade": the backdrop and the lines
+	-- fade out over the sky in the last 0.25 s. "cut": none, for a cut to the next shot on its last frame.
+	-- With reduced motion (flash_safety) the lines stand still and the way out is "fade".
+	-- opts: subject (a part or a model; default the camera's Focus), dur (s, default 1.3), count (streaks, default 44;
+	--   about half on a phone), rays (still lines that turn slowly, default 20), back (studs past the subject, default
+	--   40), rush (streaks leave the core this many times a second each, default 2.4), colors ({ back, core, streak,
+	--   streak2 }), exit, owner (a clock: the tunnel ends with it). Returns the tunnel's clock.
+	local tunnels = {}
+	function self:tunnel(o)
+		o = o or {}
+		local dur = o.dur or 1.3
+		local c = FxClock.new("SkyTunnel", dur)
+		local root = if o.owner then o.owner.root or o.owner else c
+		if o.owner then
+			table.insert(root.cleanups, function()
+				c:stop()
+			end)
+		end
+		tunnels[c] = true
+		local still = Safety.reduced()
+		local exit = if still and o.exit ~= "cut" then "fade" else o.exit or "burst"
+		local exitT = if exit == "cut" then 0 else math.min(0.25, dur * 0.3)
+		local exitAt = dur - exitT
+		local burstAsked = false
+		local colors = o.colors or {}
+		local backColor = colors.back or C(30, 12, 62)
+		local coreColor = colors.core or C(255, 236, 190)
+		local hues = { colors.streak or C(255, 204, 116), colors.streak2 or C(200, 168, 255) }
+		local count, rayCount = o.count or 44, o.rays or 20
+		local back, rush = o.back or 40, o.rush or 2.4
+		local rng = Random.new(o.seed or 7)
+
+		-- what the tunnel replaces, put back when it ends
+		local was = { clouds = clouds.Enabled, density = atmosphere.Density, haze = atmosphere.Haze, glare = atmosphere.Glare }
+		clouds.Enabled = false
+		atmosphere.Density, atmosphere.Haze, atmosphere.Glare = 0, 0, 0
+		if driftRefresh then
+			driftRefresh()
+		end
+		if seaRefresh then
+			seaRefresh()
+		end
+		local restored = false
+		local function restore()
+			if restored or not self.alive then
+				return
+			end
+			restored = true
+			clouds.Enabled = was.clouds
+			atmosphere.Density, atmosphere.Haze, atmosphere.Glare = was.density, was.haze, was.glare
+			if driftRefresh then
+				driftRefresh()
+			end
+			if seaRefresh then
+				seaRefresh()
+			end
+		end
+		c:onCleanup(function()
+			tunnels[c] = nil
+			if burstAsked then
+				Safety.request(root, root.t or 0, Safety.SCENE_L, "tunnel end")
+			end
+			restore()
+		end)
+
+		-- the backdrop: one unlit dark plate square to the camera (Neon: the sun does not shade it)
+		local wall = c:part({ Name = "TunnelBack", Size = Vector3.new(1, 1, 0.2), Material = Enum.Material.Neon, Color = backColor, Transparency = 0 })
+		local function quad(texture: string?, props)
+			local a0, a1 = c:attachment(), c:attachment()
+			local b = c:beam(a0, a1, props)
+			b.FaceCamera = true
+			b.Segments = 1
+			if texture then
+				FxTextures.apply(b, texture)
+			end
+			return { a0 = a0, a1 = a1, b = b }
+		end
+		-- the core: a wide soft glow and a hot centre on the plate
+		local halo = quad("glow", { LightEmission = 1, Brightness = 1.4, Color = ColorSequence.new(hues[2]:Lerp(coreColor, 0.3)), Transparency = NumberSequence.new(0.35) })
+		local core = quad("glow", { LightEmission = 1, Brightness = 3, Color = ColorSequence.new(coreColor), Transparency = NumberSequence.new(0.05) })
+		-- still rays: thin lines from the core to past the edges that turn slowly (the tunnel's walls)
+		local rays = {}
+		for i = 1, rayCount do
+			local r = quad(nil, { LightEmission = 1, Brightness = 1.5, Color = ColorSequence.new(hues[(i % 2) + 1]) })
+			r.b.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.35, 0.72), NumberSequenceKeypoint.new(1, 0.55) })
+			r.angle = (i + rng:NextNumber(-0.3, 0.3)) / rayCount * math.pi * 2
+			table.insert(rays, r)
+		end
+		-- streaks: each leaves the core, speeds up and widens as it flies out (radius grows by the same factor every
+		-- frame, as a point coming at the lens at a steady speed does) and starts again at a new angle
+		local streaks = {}
+		for i = 1, count do
+			local s = quad(nil, { LightEmission = 1, Brightness = 2.6, Color = ColorSequence.new(hues[(i % 2) + 1]:Lerp(Color3.new(1, 1, 1), 0.25)) })
+			s.b.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.6, 0.2), NumberSequenceKeypoint.new(1, 0) })
+			s.angle = rng:NextNumber(0, math.pi * 2)
+			s.phase = (i - 1) / count + rng:NextNumber(-0.4, 0.4) / count
+			s.lap = -1
+			table.insert(streaks, s)
+		end
+
+		local function subjectPos(): Vector3?
+			local subject = o.subject
+			if typeof(subject) == "Instance" then
+				if subject:IsA("Model") then
+					local root = subject:FindFirstChild("HumanoidRootPart")
+					return if root then (root :: BasePart).Position else subject:GetPivot().Position
+				end
+				return (subject :: BasePart).Position
+			end
+			local cam = workspace.CurrentCamera
+			return cam and cam.Focus.Position
+		end
+		local function set(q, from: Vector3, to: Vector3, w0: number, w1: number)
+			q.a0.WorldPosition, q.a1.WorldPosition = from, to
+			q.b.Width0, q.b.Width1 = w0, w1
+		end
+		c:every(function(t)
+			local cam = workspace.CurrentCamera
+			local target = subjectPos()
+			if not cam or not target then
+				return
+			end
+			local view = cam.CFrame
+			local eye, look, right, up = view.Position, view.LookVector, view.RightVector, view.UpVector
+			local dir = target - eye
+			if dir.Magnitude < 1e-3 then
+				return
+			end
+			-- the plate stands square to the camera, `back` studs past the subject on the camera's line through it
+			local depth = math.max(dir:Dot(look), 1) + back
+			local centre = eye + dir * (depth / math.max(dir:Dot(look), 1))
+			local half = depth * math.tan(math.rad(cam.FieldOfView) / 2)
+			local aspect = cam.ViewportSize.X / math.max(cam.ViewportSize.Y, 1)
+			local off = centre - (eye + look * depth)
+			local reach = (Vector2.new(half * aspect, half).Magnitude + off.Magnitude) * 1.15
+			wall.Size = Vector3.new(reach * 2.4, reach * 2.4, 0.2)
+			wall.CFrame = CFrame.fromMatrix(centre + look * 2, right, up)
+			-- the way out: e runs 0 -> 1 over the last exitT seconds
+			local e = if exitT > 0 then FxClock.smooth(exitAt, dur, t) else 0
+			if e > 0 and exit == "burst" and not burstAsked then
+				local t0 = root.t or t
+				local seq = { { t = t0, L = 0.9, label = "tunnel burst" }, { t = t0 + dur - t, L = Safety.SCENE_L, label = "tunnel end" } }
+				if Safety.fits(root, seq) and Safety.request(root, t0, 0.9, "tunnel burst") then
+					burstAsked = true
+				else
+					exit = "fade"
+				end
+			end
+			if e > 0 and exit == "fade" then
+				restore()
+			end
+			local fade = if exit == "fade" then 1 - e else 1
+			local burst = if exit == "burst" then e else 0
+			wall.Transparency = 1 - fade
+			wall.Color = backColor:Lerp(hues[2], burst * 0.6)
+			-- the core opens from 40 % in 0.12 s (from nothing, the first frame was the dark plate alone) and pulses
+			-- once a third of a second; the burst swells it over the middle of the frame
+			local open = (0.4 + 0.6 * FxClock.outCubic(math.clamp(t / 0.12, 0, 1))) * fade
+			local pulse = 1 + 0.12 * math.sin(t * math.pi * 6)
+			local h = half * (0.9 * open + 1.4 * burst)
+			set(halo, centre - up * h, centre + up * h, h * 2, h * 2)
+			local k = half * (0.22 * open * pulse + 0.9 * burst)
+			set(core, centre - up * k, centre + up * k, k * 2, k * 2)
+			local inner = half * 0.08
+			for _, r in rays do
+				local a = r.angle + (if still then 0 else t * 0.35)
+				local d = right * math.cos(a) + up * math.sin(a)
+				set(r, centre + d * inner, centre + d * reach, half * 0.004 * fade, half * 0.03 * open)
+			end
+			for _, s in streaks do
+				local u = (if still then 0 else t * rush) + s.phase
+				local lap = math.floor(u)
+				if lap ~= s.lap then
+					s.lap = lap
+					s.angle = rng:NextNumber(0, math.pi * 2)
+				end
+				local f = u - lap
+				local r1 = inner * (reach / inner) ^ f
+				local r0 = r1 * 0.55
+				local d = right * math.cos(s.angle) + up * math.sin(s.angle)
+				local w = r1 * 0.022 * open
+				set(s, centre + d * r0, centre + d * r1, w * 0.3, w)
+			end
+		end)
+		return c:play()
+	end
+
 	function self:leave()
 		if not self.alive then
 			return
+		end
+		for tunnel in tunnels do
+			tunnel:stop()
 		end
 		self.alive = false
 		if driftConn then

@@ -116,6 +116,8 @@
 -- along the flight (a recipe whose anchor is not "feet" is set back opts.impactLift studs, default 1, along the
 -- flight); opts.palette, opts.scale, opts.tellScale, opts.impactScale, opts.tail (multiplies the trail's len);
 -- opts.onArrive(position, direction).
+-- FxRecipe.orbit(subject, opts) -> clock: comets (or any recipe: "emblem" for a ring of stars at a peak) that circle
+-- a part or a character on rings that close in step by step (see its comment).
 -- A burst or stream takes locked (true: its particles move with their anchor: a glow that rides on a moving body).
 -- A locked stream takes clear (true: while following, it shrinks once a surface below or ahead of the anchor is
 -- nearer than its radius, so the floor never cuts a big glow in a straight line; a particle has no soft edge where
@@ -661,6 +663,20 @@ FxRecipe.recipes = {
 			L.ring({ name = "Halo", at = 0.05, dur = "end", plane = "camera", segments = 24, r0 = 2.7, r1 = 2.7, w0 = 0.07, w1 = 0.07, twin = false, color = { "mid", "mid" } }),
 			L.ring({ name = "Pulse", at = 0, plane = "camera", segments = 24, r0 = 1.2, r1 = 3.4, w0 = 0.4, w1 = 0.04, dur = 0.35, twin = false, color = { "hot", "mid" } }),
 			L.light({ peak = 1.4, range = 9, dur = "end", hold = true }),
+		},
+	},
+	-- an emblem: a held four-point star, taller than wide, with a coloured rim and a small one turned 45 degrees
+	-- inside it, for a ring of them round a hero at the peak: FxRecipe.orbit(character, { recipe = "emblem",
+	-- count = 9, turns = 0.12, tilt = 0, every = 0, r0 = 6, r1 = 5 }). Plain rays, not crystals: crystal arms with
+	-- their lit facets read as throwing stars in a ring (side by side over the tunnel, 2026-11-22). No light layer:
+	-- a ring holds nine of them
+	emblem = {
+		palette = "gold",
+		anchor = "up",
+		duration = 1.5,
+		layers = {
+			{ kind = "spikes", name = "Star", at = 0, dur = "end", arms = 4, long = { 1, 0.75 }, len = 2.2, w = 0.6, turn = 90, spin = 25, open = 0.08, close = 0.9, color = { "white", "hot" }, tip = "mid", rim = "mid", emission = 1, brightness = 3, z = 0.4 },
+			{ kind = "spikes", name = "Inner", at = 0.04, dur = "end", arms = 4, len = 0.9, w = 0.35, turn = 45, spin = 25, open = 0.1, close = 0.88, color = { "white", "hot" }, tip = "hot", emission = 1, brightness = 3.5, z = 0.5 },
 		},
 	},
 	-- the big star of a reveal: long thin cross rays, a second star turned 45 degrees, two rings, held for a second
@@ -2049,6 +2065,77 @@ function FxRecipe.travel(from, to, opts)
 			opts.onArrive(land, dir)
 		end
 	end)
+	return clock:play()
+end
+
+-- Comets that circle a part or a character (a flight, a charge, a buff): `count` ribbons with a star at the head
+-- (trail_star, or opts.recipe), each on its own ring round the subject's long axis (its frame's UpVector: up the
+-- body of a standing character, along the body of a flyer laid along its flight), the rings leaning `tilt` degrees
+-- each a different way, the comets evenly spaced and turning `turns` times a second. The rings close from r0 to r1
+-- in steps `every` s apart (each eased over 0.25 s: one step per cut), so the motif tightens as the scene builds. A
+-- ribbon keeps the path it flew, so round a flyer each one draws a helix round the flight.
+-- FxRecipe.orbit(character, { count = 3, dur = 3, palettes = { "ice", "holy", "shadow" }, owner = c }) -> clock
+-- subject: a model (its HumanoidRootPart, else its pivot), a part, or a function() -> CFrame (a flyer's own space).
+-- opts: count (3), dur (s, 3), r0 (studs at scale 1, 3.2), r1 (1.8), turns (per s, 0.8), tilt (deg, 30), every (s,
+--   0.8; 0: one smooth close), up (studs along the axis from the frame's centre, 0), recipe ("trail_star"), palette
+--   or palettes (one per comet, in turn), scale, light (share of each comet's light, 0.4), owner (a clock)
+function FxRecipe.orbit(subject, opts)
+	opts = opts or {}
+	local count = math.max(1, math.floor(opts.count or 3))
+	local dur = opts.dur or 3
+	local s = opts.scale or 1
+	local r0, r1 = (opts.r0 or 3.2) * s, (opts.r1 or 1.8) * s
+	local turns = opts.turns or 0.8
+	local tilt = math.rad(opts.tilt or 30)
+	local every = opts.every or 0.8
+	local steps = if every > 0 then math.max(1, math.floor(dur / every)) else 0
+	local up = (opts.up or 0) * s
+	local r = recipeOf(opts.recipe or "trail_star")
+	local root = subject
+	if typeof(subject) == "Instance" and subject:IsA("Model") then
+		root = subject:FindFirstChild("HumanoidRootPart") or subject
+	end
+	local function frame(): CFrame
+		return if type(root) == "function" then root() else frameOf(root)
+	end
+	local function radius(t)
+		if steps == 0 then
+			return FxClock.lerp(r0, r1, FxClock.inOutSine(math.clamp(t / dur, 0, 1)))
+		end
+		local level = 0
+		for k = 1, steps do
+			level += FxClock.outCubic(math.clamp((t - k * every) / 0.25, 0, 1))
+		end
+		return FxClock.lerp(r0, r1, level / steps)
+	end
+	local clock = FxClock.new("Orbit", dur + longestLife(r) + 0.6)
+	if opts.owner then
+		table.insert((opts.owner.root or opts.owner).cleanups, function()
+			clock:stop()
+		end)
+	end
+	for i = 1, count do
+		-- each ring leans a different way (its plane turned about the axis by `yaw`); the angle on the ring adds the
+		-- same yaw back, so the comets stay evenly spaced round the axis (without it nine emblems stood at six places)
+		local yaw = math.pi * (i - 1) / count
+		local plane = CFrame.Angles(0, yaw, 0) * CFrame.Angles(tilt, 0, 0)
+		local phase = (i - 1) / count
+		local function path(t)
+			local a = math.pi * 2 * (turns * t + phase) + yaw
+			local rr = radius(t)
+			return (frame() * CFrame.new(0, up, 0) * plane * CFrame.new(math.cos(a) * rr, 0, math.sin(a) * rr)).Position
+		end
+		local p0, ahead = path(0), path(0.02) - path(0)
+		FxRecipe.play(r, facing(p0, if ahead.Magnitude > 1e-4 then ahead.Unit else frame().LookVector), {
+			follow = path,
+			emitUntil = dur,
+			duration = dur + longestLife(r) + 0.5,
+			scale = s,
+			palette = if opts.palettes then opts.palettes[(i - 1) % #opts.palettes + 1] else opts.palette,
+			light = opts.light or 0.4,
+			owner = clock,
+		})
+	end
 	return clock:play()
 end
 
