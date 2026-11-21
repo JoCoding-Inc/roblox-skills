@@ -40,17 +40,17 @@ local rgb = Color3.fromRGB
 local C = {
 	window = rgb(46, 52, 148),
 	header = rgb(98, 92, 255),
-	well = rgb(30, 33, 104),
-	row = rgb(62, 70, 178),
-	rowSelected = rgb(96, 108, 240),
+	well = rgb(24, 26, 88),
+	row = rgb(54, 84, 196),
+	rowSelected = rgb(84, 124, 246),
 	rowDone = rgb(44, 48, 122),
-	card = rgb(233, 236, 255),
+	card = rgb(244, 246, 255),
 	cardHead = rgb(212, 218, 255),
 	coinTile = rgb(255, 238, 184),
 	gemTile = rgb(244, 224, 255),
 	tileDone = rgb(222, 225, 240),
 	ink = rgb(26, 28, 74),
-	inkMuted = rgb(92, 98, 150),
+	inkMuted = rgb(74, 80, 134),
 	text = rgb(255, 255, 255),
 	muted = rgb(190, 198, 255),
 	accent = rgb(255, 196, 60),
@@ -802,7 +802,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 					arc = -0.3, -- out over the window's edge, not across the card's title
 					onArrive = function(i)
 						if i == 1 then
-							Kit.count(counters[kind].amount, wallet[kind], wallet[kind] + amount)
+							Kit.count(counters[kind].amount, wallet[kind], wallet[kind] + amount, { rise = 8 }) -- the window's close button is right under the counters
 							wallet[kind] += amount
 						end
 					end,
@@ -821,6 +821,23 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			select(id)
 		end)
 	end
+
+	-- under the last row: when more missions come. A short tab does not end in an empty well.
+	local foot = Instance.new("Frame")
+	foot.Name = "Foot"
+	foot.BackgroundTransparency = 1
+	foot.Size = UDim2.new(1, -pick(18, 22), 0, pick(30, 44))
+	foot.Position = UDim2.fromOffset(pick(6, 8), 0)
+	Kit.icon(foot, icons.timer, { name = "Clock", size = pick(16, 22), position = UDim2.new(0.5, -pick(84, 104), 0.5, 0), anchor = Vector2.new(0, 0.5) })
+	local footText = text(foot, {
+		Name = "Next",
+		Size = UDim2.new(0, pick(150, 190), 1, 0),
+		Position = UDim2.new(0.5, -pick(62, 76), 0, 0),
+		Text = "New missions in " .. timeLeft("Daily"),
+		TextColor3 = C.muted,
+		TextSize = pick(14, 16),
+	})
+	list:foot(foot)
 	Kit.press(main, function()
 		if state.selected then
 			claim(state.selected)
@@ -832,6 +849,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			local r = state.selected and rows[state.selected]
 			if r and state.open then
 				timer.Text = timeLeft(r.mission.tab)
+				footText.Text = "New missions in " .. timeLeft(state.tab == "Weekly" and "Weekly" or "Daily")
 			end
 			task.wait(1)
 		end
