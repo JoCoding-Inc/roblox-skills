@@ -6,8 +6,11 @@
 -- LocalScript: require(ReplicatedStorage.Ui.WindowKitDemo).run()   -- loops the tour until the gui is destroyed
 -- It lays out twice: a phone layout in device px (window 532 x 236, text 14 px and up, 44 px tap
 -- areas, HUD clear of the thumbstick and the jump button) and a larger layout for tablet and desktop
--- that Kit.stage sizes by its share of the screen. Read it for the structure and the calls; the
--- palette, the font and the icons are one example.
+-- that Kit.stage sizes by its share of the screen. Read it for the structure and the calls.
+-- The look is a skin, not the kit: Demo.SKINS holds three (arcade, grim, tech), each one table of
+-- colours, two fonts, a Kit.look and a Kit.tone. The same build runs under all three:
+-- Demo.run(nil, { skin = "grim" }). Write your game's skin first, from its own palette and font
+-- pair; do not ship one of these.
 -- Icons: image ids of a free Creator Store icon pack (the simulator pack the icon guide names). Use
 -- your game's pack: Demo.build(playerGui, { icons = { coin = "rbxassetid://...", ... } }).
 local GuiService = game:GetService("GuiService")
@@ -36,38 +39,134 @@ local ICONS = {
 }
 
 local rgb = Color3.fromRGB
--- Three levels of value: a dark well, a mid window, one bright card. The eye goes to the card first.
-local C = {
-	window = rgb(46, 52, 148),
-	header = rgb(98, 92, 255),
-	well = rgb(24, 26, 88),
-	row = rgb(54, 84, 196),
-	rowSelected = rgb(84, 124, 246),
-	rowDone = rgb(44, 48, 122),
-	card = rgb(244, 246, 255),
-	cardHead = rgb(212, 218, 255),
-	coinTile = rgb(255, 238, 184),
-	gemTile = rgb(244, 224, 255),
-	tileDone = rgb(222, 225, 240),
-	ink = rgb(26, 28, 74),
-	inkMuted = rgb(74, 80, 134),
-	text = rgb(255, 255, 255),
-	muted = rgb(190, 198, 255),
-	accent = rgb(255, 196, 60),
-	ready = rgb(92, 224, 110),
-	go = rgb(58, 196, 92),
-	idle = rgb(100, 108, 176),
-	done = rgb(142, 146, 172),
-	ribbon = rgb(126, 84, 255),
-	daily = rgb(64, 190, 255),
-	weekly = rgb(190, 136, 255),
-	dark = rgb(16, 18, 56),
-	hud = rgb(36, 40, 112),
-	empty = rgb(196, 203, 236),
+local function face(family: string, weight: Enum.FontWeight)
+	return Font.new("rbxasset://fonts/families/" .. family .. ".json", weight)
+end
+-- A skin. Colours keep three levels of value under every look: a dark well, a mid window, one
+-- light card. The eye goes to the card first.
+local SKINS = {
+	-- bright arcade: round, glossy, outlined, bouncy
+	arcade = {
+		colors = {
+			window = rgb(46, 52, 148),
+			header = rgb(98, 92, 255),
+			well = rgb(24, 26, 88),
+			row = rgb(54, 84, 196),
+			rowSelected = rgb(84, 124, 246),
+			rowDone = rgb(44, 48, 122),
+			select = rgb(255, 255, 255),
+			card = rgb(244, 246, 255),
+			cardHead = rgb(212, 218, 255),
+			coinTile = rgb(255, 238, 184),
+			gemTile = rgb(244, 224, 255),
+			tileDone = rgb(222, 225, 240),
+			dailyTile = rgb(24, 70, 124),
+			weeklyTile = rgb(70, 40, 128),
+			ink = rgb(26, 28, 74),
+			inkMuted = rgb(74, 80, 134),
+			text = rgb(255, 255, 255),
+			muted = rgb(190, 198, 255),
+			accent = rgb(255, 196, 60),
+			gold = rgb(255, 196, 60),
+			ready = rgb(92, 224, 110),
+			go = rgb(58, 196, 92),
+			idle = rgb(100, 108, 176),
+			done = rgb(142, 146, 172),
+			ribbon = rgb(126, 84, 255),
+			daily = rgb(64, 190, 255),
+			weekly = rgb(190, 136, 255),
+			dark = rgb(16, 18, 56),
+			hud = rgb(36, 40, 112),
+			empty = rgb(196, 203, 236),
+		},
+		-- one family, two weights
+		black = face("Nunito", Enum.FontWeight.Heavy),
+		bold = face("Nunito", Enum.FontWeight.ExtraBold),
+		look = { radius = 1, outline = 1, depth = 1, shine = true, textOutline = 1 },
+		tone = "playful",
+	},
+	-- horror, survival: charcoal and aged paper, tight corners, matte, no bounce, slower
+	grim = {
+		colors = {
+			window = rgb(40, 37, 34),
+			header = rgb(96, 24, 22),
+			well = rgb(20, 19, 18),
+			row = rgb(60, 55, 50),
+			rowSelected = rgb(98, 86, 70),
+			rowDone = rgb(34, 32, 30),
+			select = rgb(222, 208, 180),
+			card = rgb(216, 204, 180),
+			cardHead = rgb(190, 176, 150),
+			coinTile = rgb(230, 212, 164),
+			gemTile = rgb(204, 196, 188),
+			tileDone = rgb(172, 164, 150),
+			dailyTile = rgb(44, 52, 46),
+			weeklyTile = rgb(70, 30, 26),
+			ink = rgb(34, 26, 22),
+			inkMuted = rgb(92, 78, 66),
+			text = rgb(234, 226, 210),
+			muted = rgb(164, 154, 140),
+			accent = rgb(222, 64, 48),
+			gold = rgb(218, 186, 112),
+			ready = rgb(176, 196, 104),
+			go = rgb(132, 152, 62),
+			idle = rgb(86, 80, 74),
+			done = rgb(112, 106, 98),
+			ribbon = rgb(26, 22, 20),
+			daily = rgb(156, 176, 156),
+			weekly = rgb(200, 132, 88),
+			dark = rgb(12, 11, 10),
+			hud = rgb(30, 28, 26),
+			empty = rgb(162, 152, 132),
+		},
+		black = face("SpecialElite", Enum.FontWeight.Regular),
+		bold = face("SourceSansPro", Enum.FontWeight.Bold),
+		look = { radius = 0.25, outline = 1, depth = 0.5, shine = false, textOutline = 0, lift = 0.06 },
+		tone = "heavy",
+	},
+	-- sci-fi, racing: near-black blue, one thin cyan line on every surface, flat, quick
+	tech = {
+		colors = {
+			window = rgb(14, 22, 34),
+			header = rgb(18, 46, 68),
+			well = rgb(8, 13, 22),
+			row = rgb(20, 34, 52),
+			rowSelected = rgb(26, 66, 94),
+			rowDone = rgb(14, 22, 32),
+			select = rgb(120, 240, 255),
+			card = rgb(202, 228, 238),
+			cardHead = rgb(164, 202, 218),
+			coinTile = rgb(238, 224, 172),
+			gemTile = rgb(192, 216, 250),
+			tileDone = rgb(152, 174, 186),
+			dailyTile = rgb(12, 52, 72),
+			weeklyTile = rgb(58, 28, 76),
+			ink = rgb(10, 26, 40),
+			inkMuted = rgb(50, 82, 104),
+			text = rgb(222, 244, 255),
+			muted = rgb(124, 172, 198),
+			accent = rgb(64, 230, 255),
+			gold = rgb(255, 214, 110),
+			ready = rgb(90, 255, 190),
+			go = rgb(30, 200, 150),
+			idle = rgb(50, 76, 100),
+			done = rgb(80, 100, 116),
+			ribbon = rgb(0, 130, 170),
+			daily = rgb(64, 200, 255),
+			weekly = rgb(255, 120, 220),
+			dark = rgb(4, 8, 14),
+			hud = rgb(12, 20, 32),
+			empty = rgb(132, 162, 178),
+		},
+		black = face("TitilliumWeb", Enum.FontWeight.Bold),
+		bold = face("TitilliumWeb", Enum.FontWeight.SemiBold),
+		look = { radius = 0.3, outline = 0.75, depth = 0, shine = false, textOutline = 0, lift = 0.05, stroke = rgb(44, 128, 164) },
+		tone = "crisp",
+	},
 }
--- one family, two weights
-local BLACK = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Heavy)
-local BOLD = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.ExtraBold)
+Demo.SKINS = SKINS
+local C = table.clone(SKINS.arcade.colors)
+local BLACK, BOLD = SKINS.arcade.black, SKINS.arcade.bold
 
 local MISSIONS = {
 	{ id = "d1", tab = "Daily", icon = "egg", title = "Hatch 5 eggs", info = "Any egg counts. Golden eggs count twice.", have = 5, need = 5, coins = 250, gems = 5 },
@@ -97,7 +196,8 @@ end
 local function outline(label: TextLabel, color: Color3?, width: number?)
 	local s = Instance.new("UIStroke")
 	s.Color = color or C.dark
-	s.Thickness = width or 2
+	s.Thickness = (width or 2) * math.max(Kit.LOOK.textOutline, 0.01)
+	s.Enabled = Kit.LOOK.textOutline > 0
 	s.Parent = label
 	return label
 end
@@ -119,7 +219,19 @@ local function timeLeft(tab: string): string
 	return string.format("%02d:%02d:%02d", left // 3600, left % 3600 // 60, left % 60)
 end
 
-function Demo.build(playerGui: Instance, options: { icons: { [string]: string }? }?)
+function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?, skin: (string | { [string]: any })? }?)
+	-- the skin first: every colour, both fonts, the finish and the motion character come from it
+	local skin = options and options.skin or "arcade"
+	local chosen = (type(skin) == "string" and SKINS[skin] or skin) :: any
+	assert(type(chosen) == "table", "Demo.build: skin is a name of Demo.SKINS or a skin table")
+	for k, v in SKINS.arcade.colors do
+		(C :: any)[k] = (chosen.colors and chosen.colors[k]) or v
+	end
+	BLACK, BOLD = chosen.black or SKINS.arcade.black, chosen.bold or SKINS.arcade.bold
+	Kit.look({ radius = 1, outline = 1, depth = 1, shine = true, textOutline = 1, fontFace = BLACK })
+	Kit.LOOK.stroke, Kit.LOOK.lift = nil, nil
+	Kit.look(chosen.look or {})
+	Kit.tone(chosen.tone or "playful")
 	local icons = table.clone(ICONS)
 	for k, v in (options and options.icons) or {} do
 		icons[k] = v
@@ -391,7 +503,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	local rowH = pick(46, 70)
 	-- the row cut by the frame fades into the well: there is more below
 	local list = Kit.list(scroll, { gap = pick(6, 8), pad = pick(5, 7), fade = C.well, fadeSize = pick(20, 30) })
-	local tileOf = { Daily = rgb(24, 70, 124), Weekly = rgb(70, 40, 128) }
+	local tileOf = { Daily = C.dailyTile, Weekly = C.weeklyTile }
 	local rows = {}
 	for _, m in MISSIONS do
 		local ready = m.have >= m.need
@@ -451,7 +563,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 				Size = UDim2.fromOffset(50, 18),
 				Position = UDim2.new(1, -55, 0, 39),
 				Text = Kit.comma(m.coins),
-				TextColor3 = C.accent,
+				TextColor3 = C.gold,
 				FontFace = BLACK,
 			})
 		end
@@ -610,8 +722,9 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			FontFace = BLACK,
 			TextColor3 = C.ink,
 		})
+		local name: TextLabel? = nil
 		if not phone then -- room for the reward's name: it fills a wide tile when there is only one
-			text(tileContent, {
+			name = text(tileContent, {
 				Name = "Caption",
 				Size = UDim2.new(0, 70, 1, 0),
 				Position = UDim2.new(1, -82, 0, 0),
@@ -620,7 +733,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 				TextXAlignment = Enum.TextXAlignment.Right,
 			})
 		end
-		tiles[kind] = { tile = tile, icon = picture, amount = amount }
+		tiles[kind] = { tile = tile, icon = picture, amount = amount, name = name }
 	end
 	local main, mainLabel = Kit.button(detail, {
 		name = "Main",
@@ -692,6 +805,10 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			if m[kind] > 0 then
 				table.insert(shown, t)
 				t.amount.Text = "+" .. pick(short(m[kind]), Kit.comma(m[kind]))
+				if t.name then -- a long amount in a wide font takes the name's room: the number stays, the name goes
+					local nameLeft = t.name.AbsolutePosition.X + t.name.AbsoluteSize.X - t.name.TextBounds.X
+					t.name.Visible = t.amount.AbsolutePosition.X + t.amount.TextBounds.X + 6 < nameLeft
+				end
 				local fill = kind == "gems" and C.gemTile or C.coinTile
 				t.amount.TextColor3 = claimed and C.inkMuted or C.ink
 				t.icon.ImageTransparency = claimed and 0.55 or 0
@@ -717,7 +834,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		local r = rows[id]
 		local m = r.mission
 		-- selected: a lighter fill and a bright outline that belong to the row, so they travel with it
-		Kit.recolor(r.row, C.rowSelected, Color3.new(1, 1, 1))
+		Kit.recolor(r.row, C.rowSelected, C.select)
 		list:reveal(id)
 		-- the card changes on the same frame as the row
 		artImage.Image = icons[m.icon]
@@ -781,7 +898,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		r.count.Text = "DONE"
 		local function resort()
 			if gui.Parent then
-				Kit.recolor(r.row, C.rowDone, state.selected == id and Color3.new(1, 1, 1) or C.dark)
+				Kit.recolor(r.row, C.rowDone, state.selected == id and C.select or C.dark)
 				r.fill.BackgroundColor3 = C.idle
 				r.title.TextColor3 = C.muted
 				list:order(keysFor(state.tab)) -- the claimed row leaves and comes back at the bottom; the others close the gap
@@ -898,7 +1015,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 end
 
 -- the tour: every motion once, about 15 s, then again
-function Demo.run(playerGui: Instance?, options: { icons: { [string]: string }? }?)
+function Demo.run(playerGui: Instance?, options: { icons: { [string]: string }?, skin: (string | { [string]: any })? }?)
 	local target = playerGui or Players.LocalPlayer:WaitForChild("PlayerGui")
 	local ui = Demo.build(target, options)
 	local function tap(button: GuiObject, fn: () -> ())

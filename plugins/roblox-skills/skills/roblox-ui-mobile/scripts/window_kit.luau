@@ -9,6 +9,9 @@
 -- refresh() changes a pane's content in place, press() squashes a button about its middle before
 -- its state changes, fly() and count() send rewards to a counter, list() keeps keyed rows that
 -- tween to their new places, burst() and stamp() make a bigger moment for a bigger reward.
+-- One kit, many games: Kit.look() sets the finish every surface shares (corner size, outline, shine,
+-- depth, label font) and Kit.tone() the character of every motion (bounce, pace). Call both once,
+-- before you build, with values that fit the game; the defaults are a bright arcade window.
 -- Shapes are Frames; icons are image ids you pass in.
 -- Client ModuleScript. The ScreenGui must use ZIndexBehavior Sibling. Honours Reduced Motion.
 -- Use its own dim and sizing (scrim, stage) or PanelStage for a window, not both.
@@ -42,6 +45,42 @@ Kit.TIMES = {
 	count = 0.5,
 	sort = 0.28,
 }
+
+-- The finish every surface shares. A call's own option wins over radius, stroke, lift and fontFace;
+-- shine = false wins over every call (a matte screen has no gloss anywhere).
+Kit.LOOK = {
+	radius = 1, -- multiplies every corner radius: 1 chunky, 0.3 tight, 0 square
+	outline = 1, -- multiplies every outline width: 0 = no outlines
+	stroke = nil :: Color3?, -- one outline colour for every surface (a thin light line on a dark screen); default: each fill, darker
+	lift = nil :: number?, -- how much lighter the top of a surface is than its bottom, default 0.14; 0 = flat fills
+	depth = 1, -- multiplies every shadow drop: 0 = flat
+	shine = true, -- false: no gloss, rim, glass streak, top light or sheen (paper, rust, a terminal)
+	textOutline = 1, -- multiplies the outline of the kit's own labels: 0 = plain text
+	fontFace = nil :: Font?, -- the label font of buttons, tabs and badges when a call names none
+}
+function Kit.look(values: { [string]: any })
+	for k, v in values do
+		(Kit.LOOK :: any)[k] = v
+	end
+	return Kit.LOOK
+end
+
+-- The character of every motion. bounce scales the overshoot of each pop, open and rebound (0 = it
+-- eases in and stops); pace multiplies every duration and delay. "playful" is the measured default;
+-- the other two are starting values to tune by eye.
+Kit.TONES = {
+	playful = { bounce = 1, pace = 1 }, -- arcade, simulator, pets
+	crisp = { bounce = 0.25, pace = 0.85 }, -- sci-fi, racing, a tool-like menu
+	heavy = { bounce = 0, pace = 1.3 }, -- horror, survival, a grim story
+}
+Kit.TONE = { bounce = 1, pace = 1 }
+function Kit.tone(tone: string | { bounce: number?, pace: number? })
+	local t = type(tone) == "string" and Kit.TONES[tone] or tone
+	assert(type(t) == "table", "Kit.tone: a name of Kit.TONES or { bounce, pace }")
+	Kit.TONE.bounce = t.bounce or 1
+	Kit.TONE.pace = t.pace or 1
+	return Kit.TONE
+end
 
 local Quad, Back, Sine, Linear = Enum.EasingStyle.Quad, Enum.EasingStyle.Back, Enum.EasingStyle.Sine, Enum.EasingStyle.Linear
 local Out, In, InOut = Enum.EasingDirection.Out, Enum.EasingDirection.In, Enum.EasingDirection.InOut
@@ -86,7 +125,12 @@ local function tick()
 				table.remove(active, i)
 				finishAnim(a)
 			elseif t >= 0 then
-				a.step(TweenService:GetValue(t, a.style, a.dir), t)
+				local e = TweenService:GetValue(t, a.style, a.dir)
+				if a.style == Back and Kit.TONE.bounce ~= 1 then
+					local q = TweenService:GetValue(t, Quad, a.dir)
+					e = q + (e - q) * Kit.TONE.bounce
+				end
+				a.step(e, t)
 			end
 		end
 	end
@@ -109,7 +153,8 @@ local function run(owner: Instance, channel: string, delay: number, dur: number,
 		end
 		finishAnim(slot[channel])
 	end
-	local a = { owner = owner, channel = channel, t0 = os.clock() + delay, dur = math.max(dur, 0.001), style = style, dir = dir, step = step, done = done }
+	local pace = Kit.TONE.pace
+	local a = { owner = owner, channel = channel, t0 = os.clock() + delay * pace, dur = math.max(dur * pace, 0.001), style = style, dir = dir, step = step, done = done }
 	if reduced() and channel ~= "fade" and channel ~= "count" then
 		a.dur = 0.001
 	end
@@ -412,9 +457,12 @@ export type CardOptions = {
 -- outer, and the kit's scale motions (press, pop, pulse) scale them: a card always moves about its middle.
 function Kit.card(parent: Instance, o: CardOptions?)
 	local opt: CardOptions = o or {}
+	local L = Kit.LOOK
+	local shine = L.shine ~= false
 	local fill = opt.fill or Color3.fromRGB(44, 52, 78)
-	local radius = opt.radius or 12
-	local depth = opt.depth or 0
+	local radius = math.floor((opt.radius or 12) * L.radius + 0.5)
+	local depth = math.floor((opt.depth or 0) * L.depth + 0.5)
+	local edge = opt.strokeWidth == 0 and 0 or (opt.strokeWidth or 2) * L.outline
 	local outer = make(opt.button and "TextButton" or "Frame", {
 		Name = opt.name or (opt.button and "Button" or "Card"),
 		BackgroundTransparency = 1,
@@ -432,7 +480,7 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		-- the body covers all but the drop. Under an outline the shadow is 1 px larger all round (hidden by the
 		-- outline), so it wholly holds the body at any scale: a lint that reads a small frame crossing a stroke
 		-- as an icon on the stroke passes it.
-		local grow = opt.strokeWidth ~= 0 and 1 or 0
+		local grow = edge > 0 and 1 or 0
 		local shadow = make("Frame", {
 			Name = "Shadow",
 			ZIndex = 0,
@@ -457,20 +505,20 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		BorderSizePixel = 0,
 	}, outer)
 	make("UICorner", { CornerRadius = UDim.new(0, radius) }, body)
-	if opt.strokeWidth ~= 0 then
+	if edge > 0 then
 		make("UIStroke", {
-			Color = opt.stroke or shade(fill, -0.55),
-			Thickness = opt.strokeWidth or 2,
+			Color = opt.stroke or L.stroke or shade(fill, -0.55),
+			Thickness = edge,
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 		}, body)
 	end
-	local lift = opt.lift or 0.14
+	local lift = opt.lift or L.lift or 0.14
 	make("UIGradient", {
 		Rotation = 90,
 		Color = ColorSequence.new(shade(Color3.new(1, 1, 1), 0), Color3.new(1 - lift, 1 - lift, 1 - lift)),
 	}, body)
 	body.BackgroundColor3 = shade(fill, lift * 0.5) -- the gradient darkens the bottom; keep the middle on the asked colour
-	if opt.topLight ~= false and radius <= 24 then -- a straight line does not sit inside a round shape
+	if shine and opt.topLight ~= false and radius <= 24 then -- a straight line does not sit inside a round shape
 		local line = make("Frame", {
 			Name = "TopLight",
 			Size = UDim2.new(1, -2 * radius, 0, 2),
@@ -481,8 +529,7 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		}, body)
 		make("UICorner", { CornerRadius = UDim.new(1, 0) }, line)
 	end
-	local edge = opt.strokeWidth == 0 and 0 or (opt.strokeWidth or 2)
-	if opt.gloss and opt.gloss > 0 then
+	if shine and opt.gloss and opt.gloss > 0 then
 		-- decoration: named as the lint's decor names are, so it is never read as a control or an icon
 		local inset = math.max(2, math.floor(edge * 0.5 + 1.5))
 		local gloss = make("Frame", {
@@ -496,7 +543,7 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		make("UICorner", { CornerRadius = UDim.new(0, math.max(radius - inset, 2)) }, gloss)
 		make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(0, 0.7) }, gloss)
 	end
-	if opt.rim then
+	if shine and opt.rim then
 		local inset = math.max(3, math.floor(edge * 0.5 + 2.5))
 		local rim = make("Frame", {
 			Name = "Shine",
@@ -509,7 +556,7 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		local line = make("UIStroke", { Color = Color3.new(1, 1, 1), Thickness = 1.5, Transparency = 0.72, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rim)
 		make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(0, 0.85) }, line)
 	end
-	if opt.glass then
+	if shine and opt.glass then
 		-- decoration, under a decor name: a wide and a thin hard-edged band across the body
 		local t = type(opt.glass) == "number" and opt.glass or 0.9
 		local streak = make("Frame", { Name = "Streak", Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0 }, body)
@@ -530,7 +577,7 @@ function Kit.card(parent: Instance, o: CardOptions?)
 			}),
 		}, streak)
 	end
-	if opt.sheen then
+	if shine and opt.sheen then
 		Kit.sheen(outer, { once = true, rest = true })
 	end
 	local content = make("Frame", {
@@ -607,12 +654,14 @@ function Kit.button(parent: Instance, o: ButtonOptions?)
 		TextSize = opt.textSize or 20,
 		Font = opt.font or Enum.Font.GothamBold,
 	}, content)
-	if opt.fontFace then
-		label.FontFace = opt.fontFace
+	local face = opt.fontFace or (opt.font == nil and Kit.LOOK.fontFace or nil)
+	if face then
+		label.FontFace = face
 	end
 	label:SetAttribute("KitInk", opt.textColor == nil) -- recolor() keeps the label readable on the new fill
 	-- the outline is 8% of the text size: from 5% a UI lint counts it for contrast, over 13% it calls it heavy
-	make("UIStroke", { Color = line or color, Thickness = math.clamp(label.TextSize * 0.08, 1.5, 3), Enabled = opt.textColor ~= nil or line ~= nil }, label)
+	local outlineK = Kit.LOOK.textOutline
+	make("UIStroke", { Color = line or color, Thickness = math.clamp(label.TextSize * 0.08, 1.5, 3) * math.max(outlineK, 0.01), Enabled = outlineK > 0 and (opt.textColor ~= nil or line ~= nil) }, label)
 	return outer, label, content
 end
 
@@ -642,7 +691,7 @@ function Kit.recolor(card: Instance, fill: Color3, stroke: Color3?)
 		local color, outline = ink(fill)
 		label.TextColor3 = color
 		if labelStroke then
-			labelStroke.Enabled = outline ~= nil
+			labelStroke.Enabled = outline ~= nil and Kit.LOOK.textOutline > 0
 			labelStroke.Color = outline or color
 		end
 	elseif labelStroke then
@@ -654,17 +703,18 @@ end
 function Kit.finish(gui: GuiObject, o: { radius: number?, stroke: Color3?, strokeWidth: number?, lift: number? }?)
 	local opt = o or {}
 	if not gui:FindFirstChildOfClass("UICorner") then
-		make("UICorner", { CornerRadius = UDim.new(0, opt.radius or 12) }, gui)
+		make("UICorner", { CornerRadius = UDim.new(0, math.floor((opt.radius or 12) * Kit.LOOK.radius + 0.5)) }, gui)
 	end
-	if not gui:FindFirstChildOfClass("UIStroke") then
+	local width = (opt.strokeWidth or 2) * Kit.LOOK.outline
+	if width > 0 and not gui:FindFirstChildOfClass("UIStroke") then
 		make("UIStroke", {
-			Color = opt.stroke or shade(gui.BackgroundColor3, -0.55),
-			Thickness = opt.strokeWidth or 2,
+			Color = opt.stroke or Kit.LOOK.stroke or shade(gui.BackgroundColor3, -0.55),
+			Thickness = width,
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 		}, gui)
 	end
 	if not gui:FindFirstChildOfClass("UIGradient") then
-		local lift = opt.lift or 0.14
+		local lift = opt.lift or Kit.LOOK.lift or 0.14
 		make("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.new(1 - lift, 1 - lift, 1 - lift)) }, gui)
 	end
 	return gui
@@ -711,7 +761,7 @@ function Kit.press(button: GuiButton, fn: (() -> ())?)
 		Kit.squash(button, function()
 			busy = false
 		end)
-		task.delay(reduced() and 0 or Kit.TIMES.press, function()
+		task.delay(reduced() and 0 or Kit.TIMES.press * Kit.TONE.pace, function()
 			if fn then
 				fn()
 			end
@@ -1441,7 +1491,7 @@ function Kit.burst(anchor: GuiObject, options: { tier: number?, color: Color3?, 
 			g:Destroy()
 		end)
 	end
-	task.delay(life + 0.2, function()
+	task.delay(life * Kit.TONE.pace + 0.2, function()
 		root:Destroy()
 	end)
 	return root
@@ -1601,6 +1651,10 @@ function Kit.sparkle(parent: Instance, position: UDim2, size: number?, color: Co
 	star.Name = "Shine"
 	star.Position = position
 	star.ZIndex = 6
+	if Kit.LOOK.shine == false then -- a matte screen has no glints at rest
+		star.Visible = false
+		return star
+	end
 	local s = scaleOf(star)
 	local shift = (position.X.Offset * 0.37 + position.Y.Offset * 0.11) % 1 -- each star on its own beat
 	loop(star, "twinkle", period or 2.4, function(p)
@@ -1625,6 +1679,9 @@ end
 -- period seconds (default 3.2). The card must come from Kit.card or Kit.button (the band lives in its Body).
 function Kit.sheen(card: Instance, o: { period: number?, once: boolean?, rest: boolean? }?)
 	local opt = o or {}
+	if Kit.LOOK.shine == false then
+		return
+	end
 	local body = card:FindFirstChild("Body") or card
 	local band = body:FindFirstChild("Sheen") :: Frame?
 	local grad: UIGradient
@@ -1864,7 +1921,7 @@ function Kit.tabs(parent: Instance, items: { { key: string, text: string, count:
 		for key, button in self.buttons do
 			button.TextColor3 = key == self.key and on or off
 			local line = button:FindFirstChildOfClass("UIStroke") :: UIStroke
-			line.Enabled = key == self.key and onLine ~= nil
+			line.Enabled = key == self.key and onLine ~= nil and Kit.LOOK.textOutline > 0
 		end
 	end
 	for i, item in items do
@@ -1879,8 +1936,9 @@ function Kit.tabs(parent: Instance, items: { { key: string, text: string, count:
 			Font = opt.font or Enum.Font.GothamBold,
 			ZIndex = 2,
 		}, content)
-		if opt.fontFace then
-			button.FontFace = opt.fontFace
+		local face = opt.fontFace or (opt.font == nil and Kit.LOOK.fontFace or nil)
+		if face then
+			button.FontFace = face
 		end
 		make("UIStroke", { Color = onLine or on, Thickness = 1.5, Enabled = false }, button)
 		if opt.hit then
@@ -1960,8 +2018,8 @@ function Kit.badge(host: GuiObject, value: number, o: { size: number?, fill: Col
 		TextSize = opt.textSize or math.max(12, math.floor(size * 0.66)),
 		Font = Enum.Font.GothamBold,
 	}, content)
-	if opt.fontFace then
-		label.FontFace = opt.fontFace
+	if opt.fontFace or Kit.LOOK.fontFace then
+		label.FontFace = (opt.fontFace or Kit.LOOK.fontFace) :: Font
 	end
 	make("UIStroke", { Color = shade(fill, -0.75), Thickness = 1.5 }, label) -- small text over the world: the outline carries it
 	local self = { root = outer, value = -1 }
