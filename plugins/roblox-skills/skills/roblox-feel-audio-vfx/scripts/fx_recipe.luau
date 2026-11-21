@@ -30,6 +30,7 @@
 --           along (true: stretched along its velocity), squash {{t, v}, ...}
 --   stream: the burst fields with from, to (s) and rate (per s) in place of at and count
 --   ring  : at, dur, r0, r1, w0, w1, segments, color {from key, to key}, emission, brightness, z,
+--           plane ("floor": flat on the ground; "camera": flat to the camera; default: tilted half way between),
 --           twin (true: a dark ring under it, a little behind in time), arcs (n: n broken arcs with pointed ends
 --           and soft edges instead of a clean circle, each with its own start, length, radius, life and turn; no twin)
 --   light : at, dur, peak, range, hold (true: ramps in, holds and ramps out, for an aura), shape ({{u, share of
@@ -40,6 +41,8 @@
 --           four-point star), turn (deg), spin (deg per s), jitter (deg), vary (0-1, length), stagger (0-1, share of
 --           the span an arm may start late), fly (the arm leaves the centre and travels that many lengths: shards),
 --           open, close (shares of its span: opens by `open`, shrinks from `close`), plane ("floor"), color {from, to},
+--           gap (studs from the centre to each arm's tail: the arms stand in a ring round the anchor), seq (true: with
+--           stagger, the arms start one after another round the ring instead of in a random order),
 --           alpha, emission, brightness, z, up. Pointed rays drawn as tapered beams, no texture.
 --           kite (0-0.5): the arm is a crystal, pointed at both ends with its widest place that share of its
 --           length from the tail, and its bright facet lies to one side of the coloured body. Without it a shard
@@ -639,6 +642,21 @@ FxRecipe.recipes = {
 			L.light({ peak = 3.5, range = 14, dur = 0.35 }),
 		},
 	},
+	-- crystals standing in a ring round the anchor, points out, dealt one after another and turning slowly, with a
+	-- thin ring through their tails: one motif to repeat through a reveal. FxRecipe.crown(count) gives it with that
+	-- many crystals (3 at the first beat, 6 at the middle, 12 at the peak): the same element growing is a signature,
+	-- where a new loose burst at every beat is not (two judges, two sittings: "loose sparkles, no signature")
+	crown = {
+		palette = "ice",
+		anchor = "up",
+		duration = 2.4,
+		layers = {
+			{ kind = "spikes", name = "Crown", at = 0, dur = "end", arms = 6, gap = 2.7, len = 2.0, w = 0.4, kite = 0.3, turn = 90, stagger = 0.22, seq = true, spin = 36, open = 0.1, close = 0.88, color = { "white", "hot" }, tip = "mid", rim = "deep", emission = 1, brightness = 3.2, z = 0.5 },
+			L.ring({ name = "Halo", at = 0.05, dur = "end", plane = "camera", segments = 24, r0 = 2.7, r1 = 2.7, w0 = 0.07, w1 = 0.07, twin = false, color = { "mid", "mid" } }),
+			L.ring({ name = "Pulse", at = 0, plane = "camera", segments = 24, r0 = 1.2, r1 = 3.4, w0 = 0.4, w1 = 0.04, dur = 0.35, twin = false, color = { "hot", "mid" } }),
+			L.light({ peak = 1.4, range = 9, dur = "end", hold = true }),
+		},
+	},
 	-- the big star of a reveal: long thin cross rays, a second star turned 45 degrees, two rings, held for a second
 	reveal_star = {
 		palette = "gold",
@@ -1191,7 +1209,8 @@ function FxRecipe.play(recipe, target, opts)
 		elseif l.kind == "ring" then
 			local cam = workspace.CurrentCamera
 			local toCam = if cam then (cam.CFrame.Position - p).Unit else spray
-			local n = if l.plane == "floor" then Vector3.yAxis else (spray + toCam).Unit
+			-- plane "camera": flat to the camera as it stands when the effect starts, the plane spikes are drawn in
+			local n = if l.plane == "floor" then Vector3.yAxis elseif l.plane == "camera" and cam then -cam.CFrame.LookVector else (spray + toCam).Unit
 			local y0, y1 = (l.y0 or (l.plane == "floor" and 0.15 or 0)) * s, (l.y1 or l.y0 or (l.plane == "floor" and 0.15 or 0)) * s
 			local b1 = (math.abs(n.Y) < 0.9 and n:Cross(Vector3.yAxis) or n:Cross(Vector3.xAxis)).Unit
 			local b2 = n:Cross(b1).Unit
@@ -1415,7 +1434,7 @@ function FxRecipe.play(recipe, target, opts)
 					under = under,
 					ang = math.rad(l.turn or 0) + (k - 1) / arms * math.pi * 2 + rng:NextNumber(-1, 1) * math.rad(l.jitter or 0),
 					len = len * long[(k - 1) % #long + 1] * (1 + rng:NextNumber(-1, 1) * (l.vary or 0)),
-					wait = rng:NextNumber(0, l.stagger or 0),
+					wait = if l.seq then (k - 1) / arms * (l.stagger or 0) else rng:NextNumber(0, l.stagger or 0),
 				}
 			end
 			local openBy, closeFrom = l.open or 0.2, l.close or 0.6
@@ -1434,7 +1453,7 @@ function FxRecipe.play(recipe, target, opts)
 					local open = FxClock.outQuart(math.min(v / openBy, 1)) * (1 - smooth(closeFrom, 1, v))
 					local dir = right * math.cos(arm.ang + turn) + top * math.sin(arm.ang + turn)
 					-- fly: the shard leaves the centre and travels that many times its own length
-					local out = arm.len * (l.fly or 0) * FxClock.outQuart(v)
+					local out = arm.len * (l.fly or 0) * FxClock.outQuart(v) + (l.gap or 0) * s
 					local wide = w * (0.35 + 0.65 * open)
 					if kite then
 						-- tail at `out`, the widest place `kite` of the way along, the point at the far end; the lit
@@ -1670,6 +1689,32 @@ end
 
 -- Something flies from `from` to `to` (a moving `to` is chased): the trail follows it, the tell waits at `to`,
 -- the impact plays on arrival. Returns the flight's clock (clock.tell is the tell's clock).
+-- The crown recipe with `count` crystals: more crystals stand further out and are a little longer, so three
+-- calls with a rising count read as one thing growing. over: fields for the Crown layer (spin, len, w, gap).
+-- FxRecipe.play(FxRecipe.crown(8), character, { palette = "shadow", duration = 3, depth = -2 })
+function FxRecipe.crown(count: number, over)
+	local base = FxRecipe.recipes.crown
+	local recipe = table.clone(base)
+	recipe.layers = table.clone(base.layers)
+	local gap = 2.3 + count * 0.07
+	local crown = table.clone(base.layers[1])
+	crown.arms = count
+	crown.gap = gap
+	crown.len = 1.7 + count * 0.05
+	crown.long = if count >= 8 then { 1, 0.62 } else { 1 }
+	for k, v in over or {} do
+		crown[k] = v
+	end
+	recipe.layers[1] = crown
+	local halo = table.clone(base.layers[2])
+	halo.r0, halo.r1 = crown.gap, crown.gap
+	recipe.layers[2] = halo
+	local pulse = table.clone(base.layers[3])
+	pulse.r1 = crown.gap + 0.7
+	recipe.layers[3] = pulse
+	return recipe
+end
+
 function FxRecipe.travel(from, to, opts)
 	opts = opts or {}
 	local time = opts.time or 0.6
