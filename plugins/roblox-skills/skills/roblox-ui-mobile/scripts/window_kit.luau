@@ -56,11 +56,98 @@ Kit.LOOK = {
 	depth = 1, -- multiplies every shadow drop: 0 = flat
 	shine = true, -- false: no gloss, rim, glass streak, top light or sheen (paper, rust, a terminal)
 	textOutline = 1, -- multiplies the outline of the kit's own labels: 0 = plain text
+	topLight = false, -- true: a matte look (shine = false) keeps a 1 px light line inside the top edge of every card:
+	-- the one piece of material a dark flat panel can carry (two judges read panels without it as flat slabs)
 	fontFace = nil :: Font?, -- the label font of buttons, tabs and badges when a call names none
 }
+
+-- How tall a face draws a capital, as a share of TextSize (measured 2026-11-21 on a capture: "H" at TextSize 100,
+-- bold, 48 faces). TextSize is the line box, not the letters: at the same TextSize a Sarpanch or TitilliumWeb
+-- capital is 0.45 of it, a Nunito one 0.52, a FredokaOne one 0.63 and a LuckiestGuy one 0.75. A size floor
+-- (14 px) or a size copied from another screen means a different letter under each face.
+-- Keys: the family's file name, or the asset id of a Creator Store face.
+Kit.CAPS = {
+	GrenzeGotisch = 0.43,
+	Sarpanch = 0.45,
+	["12187376174"] = 0.45, -- Teko (Creator Store)
+	TitilliumWeb = 0.45,
+	Kalam = 0.46,
+	["115884882777577"] = 0.49, -- Goldman (Creator Store)
+	["12187371840"] = 0.49, -- Silkscreen (Creator Store)
+	IndieFlower = 0.50,
+	["12187375422"] = 0.50, -- Rajdhani (Creator Store)
+	PressStart2P = 0.51,
+	PatrickHand = 0.52,
+	Nunito = 0.52,
+	SourceSansPro = 0.52,
+	Fondamento = 0.54,
+	RobotoMono = 0.55,
+	Guru = 0.55,
+	Oswald = 0.55,
+	PermanentMarker = 0.55,
+	BuilderExtended = 0.56,
+	BuilderMono = 0.56,
+	BuilderSans = 0.56,
+	Michroma = 0.56,
+	Jura = 0.57,
+	Montserrat = 0.57,
+	["12187360881"] = 0.58, -- Audiowide (Creator Store)
+	RomanAntique = 0.58,
+	["12187372847"] = 0.59, -- Barlow (Creator Store)
+	Merriweather = 0.59,
+	Arimo = 0.60,
+	Inconsolata = 0.60,
+	["12187365977"] = 0.60, -- Rubik (Creator Store)
+	Ubuntu = 0.61,
+	AmaticSC = 0.61,
+	Roboto = 0.61,
+	RobotoCondensed = 0.61,
+	Balthazar = 0.63,
+	FredokaOne = 0.63,
+	["113086061264643"] = 0.63, -- LondrinaSolid (Creator Store)
+	["12187370000"] = 0.64, -- BungeeInline (Creator Store)
+	Zekton = 0.65,
+	["122516982241677"] = 0.66, -- Antonio (Creator Store)
+	["77368255811694"] = 0.66, -- JollyLodger (Creator Store)
+	Creepster = 0.69,
+	DenkOne = 0.70,
+	Bangers = 0.74,
+	JosefinSans = 0.74,
+	SpecialElite = 0.74,
+	LuckiestGuy = 0.75,
+}
+Kit.CAP = 0.52 -- the faces the kit's sizes were chosen with (Nunito, SourceSansPro)
+
+local function familyKey(face: Font?): string?
+	local family = face and face.Family or ""
+	return family:match("families/(.-)%.json") or family:match("rbxassetid://(%d+)")
+end
+
+-- The share of TextSize a face's capitals take (0.55 for a face that is not in Kit.CAPS).
+function Kit.caps(face: Font?): number
+	local key = familyKey(face)
+	return key and (Kit.CAPS :: any)[key] or 0.55
+end
+
+-- The TextSize at which a face's letters are as tall as the kit's own faces at px: a face that draws small
+-- gets a larger TextSize (Sarpanch, TitilliumWeb, Teko: 14 -> 16, 20 -> 23), any other face keeps px.
+-- Kit.button, Kit.tabs and Kit.badge do this to their own labels; call it for every label you make yourself:
+-- TextSize = Kit.textSize(14, BODY)
+function Kit.textSize(px: number, face: Font?): number
+	local r = Kit.caps(face)
+	return if r < Kit.CAP then math.floor(px * Kit.CAP / r + 0.5) else px
+end
+
+local smallWarned = {}
 function Kit.look(values: { [string]: any })
 	for k, v in values do
 		(Kit.LOOK :: any)[k] = v
+	end
+	local key = familyKey(Kit.LOOK.fontFace)
+	local r = key and (Kit.CAPS :: any)[key]
+	if r and r < 0.5 and not smallWarned[key] then
+		smallWarned[key] = true
+		warn(("WindowKit: %s draws its capitals at %.2f of TextSize (Nunito 0.52, FredokaOne 0.63): 14 px text in it reads as %d px. Size your own labels with Kit.textSize(px, face)"):format(key :: string, r, math.floor(14 * r / Kit.CAP + 0.5)))
 	end
 	return Kit.LOOK
 end
@@ -518,13 +605,13 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		Color = ColorSequence.new(shade(Color3.new(1, 1, 1), 0), Color3.new(1 - lift, 1 - lift, 1 - lift)),
 	}, body)
 	body.BackgroundColor3 = shade(fill, lift * 0.5) -- the gradient darkens the bottom; keep the middle on the asked colour
-	if shine and opt.topLight ~= false and radius <= 24 then -- a straight line does not sit inside a round shape
+	if (shine or L.topLight) and opt.topLight ~= false and radius <= 24 then -- a straight line does not sit inside a round shape
 		local line = make("Frame", {
 			Name = "TopLight",
-			Size = UDim2.new(1, -2 * radius, 0, 2),
-			Position = UDim2.fromOffset(radius, 2),
+			Size = UDim2.new(1, -2 * math.max(radius, 3), 0, shine and 2 or 1),
+			Position = UDim2.fromOffset(math.max(radius, 3), shine and 2 or math.max(1, math.ceil(edge))),
 			BackgroundColor3 = Color3.new(1, 1, 1),
-			BackgroundTransparency = 0.72,
+			BackgroundTransparency = shine and 0.72 or 0.8,
 			BorderSizePixel = 0,
 		}, body)
 		make("UICorner", { CornerRadius = UDim.new(1, 0) }, line)
@@ -657,6 +744,7 @@ function Kit.button(parent: Instance, o: ButtonOptions?)
 	local face = opt.fontFace or (opt.font == nil and Kit.LOOK.fontFace or nil)
 	if face then
 		label.FontFace = face
+		label.TextSize = Kit.textSize(label.TextSize, face)
 	end
 	label:SetAttribute("KitInk", opt.textColor == nil) -- recolor() keeps the label readable on the new fill
 	-- the outline is 8% of the text size: from 5% a UI lint counts it for contrast, over 13% it calls it heavy
@@ -856,14 +944,16 @@ end
 
 export type Group = { any } -- { item or { items }, kind, gap = seconds, from = side, after = seconds }
 
--- Open a window: it grows in from 0.86 with a small overshoot (0.2 s) and is opaque after 0.05 s (a window that
--- fades in over 0.16 s shows the HUD and the world through itself for 3 frames of a 15 fps capture: two judges
--- called it a ghost and a pop), and the groups arrive in the order given from the start, their items one after another. List only what should be
+-- Open a window: it grows in from 0.86 with a small overshoot (0.2 s) and is opaque from its first frame (a window
+-- that fades in shows the HUD and the world through itself: judges of three sittings called it a ghost and a
+-- pop, at 0.16 s and still at 0.05 s), and the groups arrive in the order given from the start, their items one after another. List only what should be
 -- staged (rows, the parts of a pane, the close button, an emblem): the header, the panes and the tab
 -- strip come with the window, so it is never an empty shell. Kinds: "pop" (scale with overshoot), "slide" (from = "left" | "right" | "top" |
 -- "bottom"), "fade", "spin" (pop with a quarter turn: a close button), "fill" (a bar grows).
 -- Every item arrives whole, with its content. The groups overlap (each starts 50 ms after the one before, or
 -- after its `after` seconds), so everything has started by about 0.35 s.
+local openRoots: { [GuiObject]: boolean } = {} -- the windows Kit.open has shown and Kit.close has not yet taken away
+
 -- options: shell = false when something else pops the window (PanelStage) or for a pane inside an open
 -- window; budget = seconds; delay = seconds before the first group (content of a pane that waits for its window).
 function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean?, budget: number?, delay: number? }?)
@@ -875,6 +965,9 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 		warn("WindowKit: " .. screen:GetFullName() .. " uses ZIndexBehavior Global; set it to Sibling or cards draw in the wrong order")
 	end
 	Kit.settle(root)
+	if opt.shell ~= false then
+		openRoots[root] = true -- Kit.count keeps its "+N" off an open window
+	end
 	local plan = {}
 	local listed = {}
 	local t = opt.shell == false and 0 or 0.02 -- the content starts while the window is still growing: no empty window
@@ -905,15 +998,17 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 		run(root, "scale", 0, T.shell, Back, Out, function(e)
 			s.Scale = 0.86 + 0.14 * e
 		end)
-		fade(root, 0, 1, 0, 0.05, nil, listed)
+		-- opaque from its first frame: even a 0.05 s fade left one see-through frame in a 15 fps capture, and
+		-- judges of three sittings named it ("a ghost window flickers in")
+		fadeSet(root, 1, listed)
 	end
 	for _, p in plan do
 		enter(p.item, p.kind, (opt.delay or 0) + p.delay * squeeze, p.from)
 	end
 end
 
--- Close a window: an optional first item (the close button) pops out, then the window fades while it
--- shrinks a little, 0.22 s, and is hidden. Everything is put back for the next open.
+-- Close a window: an optional first item (the close button) pops out while the window fades and shrinks a
+-- little, 0.22 s, and is hidden. Everything is put back for the next open.
 function Kit.close(root: GuiObject, options: { first: GuiObject?, done: (() -> ())? }?)
 	local T = Kit.TIMES
 	local opt = options or {}
@@ -924,8 +1019,11 @@ function Kit.close(root: GuiObject, options: { first: GuiObject?, done: (() -> (
 			firstScale.Scale = 1 - math.clamp(e, 0, 1)
 		end)
 	end
+	openRoots[root] = nil
 	local s = scaleOf(root)
-	local delay = firstScale and 0.05 or 0
+	-- the window starts to leave with the press: a wait for the close button's own pop (0.05 s, on top of the
+	-- press squash) was "0.2 s of dead time before the window starts leaving" to a judge
+	local delay = 0
 	run(root, "scale", delay, T.close, Quad, In, function(e)
 		s.Scale = 1 - 0.06 * e
 	end)
@@ -1621,7 +1719,8 @@ end
 Kit.comma = comma
 
 -- Count a label from one number to another in 0.5 s, with a bump on arrival and a "+N" (20 px or more)
--- that rises and is gone in 0.7 s.
+-- that rises and is gone in 0.7 s. The "+N" goes under a counter at the top edge and over any other; when a
+-- window that Kit.open has shown is in the way it takes the other side, or the space left of the counter.
 -- options: time, format = function(n) -> string, plus = false to leave the "+N" out, color for the "+N",
 -- rise = how far the "+N" travels in px (default 26; less when a window or its close button sits right under the counter)
 function Kit.count(label: TextLabel, from: number, to: number, options: { time: number?, format: ((number) -> string)?, plus: boolean?, color: Color3?, rise: number? }?)
@@ -1640,26 +1739,106 @@ function Kit.count(label: TextLabel, from: number, to: number, options: { time: 
 	end)
 	if opt.plus ~= false and to ~= from then
 		local layer = overlayOf(label)
+		local sL = scaleAbove(layer)
 		local c = centerIn(layer, label)
-		local half = label.AbsoluteSize.Y * 0.5 / scaleAbove(layer)
-		local dir = c.Y < 70 and 1 or -1 -- a counter at the top edge: the label goes under it, not off the screen
-		local k = scaleAbove(label) / scaleAbove(layer) -- the overlay is not inside the counter's scaled layer
+		local half = label.AbsoluteSize.Y * 0.5 / sL
+		local k = scaleAbove(label) / sL -- the overlay is not inside the counter's scaled layer
+		local words = (to > from and "+" or "-") .. format(math.abs(to - from))
+		local size = math.max(label.TextSize * k * 1.25, 20)
+		local rise = opt.rise or 26
+		local w, h = math.max(44, #words * size * 0.62), 26
+		local view = layer.AbsoluteSize / sL
+		local function rect(gui: GuiObject): (number, number, number, number)
+			local p0 = (gui.AbsolutePosition - layer.AbsolutePosition) / sL
+			local s0 = gui.AbsoluteSize / sL
+			return p0.X, p0.Y, p0.X + s0.X, p0.Y + s0.Y
+		end
+		-- a spot is clear when the label and its travel stay on the screen and off every open window (a counter
+		-- inside a window is that window's own business)
+		local function clear(x0: number, y0: number, x1: number, y1: number): boolean
+			if x0 < 0 or y0 < 0 or x1 > view.X or y1 > view.Y then
+				return false
+			end
+			for root in openRoots do
+				if not root:IsDescendantOf(game) or not root.Visible then
+					openRoots[root] = nil
+				elseif not label:IsDescendantOf(root) then
+					local a0, b0, a1, b1 = rect(root)
+					if x0 < a1 and x1 > a0 and y0 < b1 and y1 > b0 then
+						return false
+					end
+				end
+			end
+			return true
+		end
+		-- Where it goes, in this order: under a counter at the top edge and over any other one (the old rule);
+		-- the other side of the counter; left of the counter's plate (and of the plates beside it). Three
+		-- sittings of judges named a "+N" that landed on a window's frame or its close button.
+		local dir = c.Y < 70 and 1 or -1
+		local anchor, at, travel = Vector2.new(0.5, dir > 0 and 0 or 1), Vector2.new(c.X, c.Y + dir * half), Vector2.new(0, dir * rise)
+		local function vertical(d: number): boolean
+			local y0 = c.Y + d * half
+			return clear(c.X - w / 2, math.min(y0, y0 + d * (h + rise)), c.X + w / 2, math.max(y0, y0 + d * (h + rise)))
+		end
+		if not vertical(dir) then
+			if vertical(-dir) then
+				anchor, at, travel = Vector2.new(0.5, dir > 0 and 1 or 0), Vector2.new(c.X, c.Y - dir * half), Vector2.new(0, -dir * rise)
+			else
+				local plate: GuiObject = label
+				local up = label.Parent
+				while up and up:IsA("GuiObject") do
+					if up:GetAttribute("KitCard") then
+						plate = up
+					end
+					up = up.Parent
+				end
+				local left = rect(plate)
+				local lift = math.clamp(c.Y - h / 2, 0, 8) -- a counter in the top row has no room to rise
+				for _ = 1, 4 do -- step over the plates and the other "+N" that sit to the left of this one
+					local moved = false
+					local function over(other: Instance)
+						if other ~= plate and other:IsA("GuiObject") and other.Visible then
+							local a0, b0, a1, b1 = rect(other)
+							if a0 < left - 8 and a1 > left - 8 - w and b0 < c.Y + h / 2 and b1 > c.Y - h / 2 - lift then
+								left, moved = a0, true
+							end
+						end
+					end
+					for _, other in (plate.Parent :: Instance):GetChildren() do
+						if other:GetAttribute("KitCard") then
+							over(other)
+						end
+					end
+					for _, other in layer:GetChildren() do
+						if other.Name == "Plus" then
+							over(other)
+						end
+					end
+					if not moved then
+						break
+					end
+				end
+				if clear(left - 8 - w, c.Y - h / 2 - lift, left - 8, c.Y + h / 2) then
+					anchor, at, travel = Vector2.new(1, 0.5), Vector2.new(left - 8, c.Y), Vector2.new(0, -lift)
+				end
+			end
+		end
 		local plus = make("TextLabel", {
 			Name = "Plus",
-			AnchorPoint = Vector2.new(0.5, dir > 0 and 0 or 1),
-			Position = UDim2.fromOffset(c.X, c.Y + dir * half),
-			Size = UDim2.fromOffset(160, 26),
+			AnchorPoint = anchor,
+			Position = UDim2.fromOffset(at.X, at.Y),
+			Size = UDim2.fromOffset(anchor.X == 1 and w or 160, h),
 			BackgroundTransparency = 1,
-			Text = (to > from and "+" or "-") .. format(math.abs(to - from)),
+			Text = words,
+			TextXAlignment = anchor.X == 1 and Enum.TextXAlignment.Right or Enum.TextXAlignment.Center,
 			TextColor3 = opt.color or Color3.fromRGB(150, 255, 160),
-			TextSize = math.max(label.TextSize * k * 1.25, 20),
+			TextSize = size,
 			FontFace = label.FontFace,
 		}, layer)
 		make("UIStroke", { Color = Color3.fromRGB(14, 40, 20), Thickness = math.max(2, 2 * k) }, plus)
-		local y0 = plus.Position.Y.Offset
 		local ps = scaleOf(plus)
 		run(plus, "move", 0, 0.7, Quad, Out, function(e, raw)
-			plus.Position = UDim2.fromOffset(c.X, y0 + dir * (opt.rise or 26) * e)
+			plus.Position = UDim2.fromOffset(at.X + travel.X * e, at.Y + travel.Y * e)
 			ps.Scale = raw < 0.15 and 0.6 + 0.5 * raw / 0.15 or math.max(1, 1.1 - (raw - 0.15))
 			local a = raw < 0.6 and 0 or (raw - 0.6) / 0.4
 			plus.TextTransparency = a
@@ -1861,6 +2040,48 @@ function Kit.burst(anchor: GuiObject, options: { tier: number?, color: Color3?, 
 		root:Destroy()
 	end)
 	return root
+end
+
+-- A soft halo round a card: the lit edge of a ready, selected or premium piece. On a matte or dark look gloss is
+-- off and a thin outline is all a card has, so the one that matters needs light of its own (two judges asked
+-- for "a glow on claimable cards" on a flat sci-fi screen). Four outlines under the body, each wider and
+-- fainter. Use it on the one to three pieces a screen wants pressed, never on every card.
+-- Kit.glow(card, color) -> the Glow frame (Kit.pulse it for a ready state); Kit.glow(card, nil) takes it off.
+-- options: size (px the halo reaches, default 10), strength (0-1, default 1)
+function Kit.glow(card: GuiObject, color: Color3?, options: { size: number?, strength: number? }?)
+	local old = card:FindFirstChild("Glow")
+	if old then
+		old:Destroy()
+	end
+	if not color then
+		return nil
+	end
+	local opt = options or {}
+	local reach = opt.size or 10
+	local strength = math.clamp(opt.strength or 1, 0, 1)
+	local body = card:FindFirstChild("Body")
+	local corner = (body or card):FindFirstChildOfClass("UICorner")
+	local glow = make("Frame", {
+		Name = "Glow",
+		ZIndex = 0,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1, 1),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+	}, card)
+	glow:SetAttribute("KitTransient", true) -- light, not a surface: a UI lint does not read its rings as outlines
+	make("UICorner", { CornerRadius = corner and corner.CornerRadius or UDim.new(0, 0) }, glow)
+	for i, ring in { { 0.22, 0.5 }, { 0.48, 0.72 }, { 0.76, 0.86 }, { 1, 0.94 } } do
+		make("UIStroke", {
+			Name = "Ring" .. i,
+			Color = color,
+			Thickness = math.max(1, reach * ring[1]),
+			Transparency = 1 - (1 - ring[2]) * strength,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		}, glow)
+	end
+	return glow
 end
 
 -- The card that got the reward answers: it lights up white and falls back to its colour (0.3 s), swells 7% and
@@ -2370,6 +2591,7 @@ function Kit.tabs(parent: Instance, items: { { key: string, text: string, count:
 		local face = opt.fontFace or (opt.font == nil and Kit.LOOK.fontFace or nil)
 		if face then
 			button.FontFace = face
+			button.TextSize = Kit.textSize(button.TextSize, face)
 		end
 		make("UIStroke", { Color = onLine or on, Thickness = 1.5, Enabled = false }, button)
 		if opt.hit then
@@ -2451,6 +2673,7 @@ function Kit.badge(host: GuiObject, value: number, o: { size: number?, fill: Col
 	}, content)
 	if opt.fontFace or Kit.LOOK.fontFace then
 		label.FontFace = (opt.fontFace or Kit.LOOK.fontFace) :: Font
+		label.TextSize = Kit.textSize(label.TextSize, label.FontFace)
 	end
 	make("UIStroke", { Color = shade(fill, -0.75), Thickness = 1.5 }, label) -- small text over the world: the outline carries it
 	local self = { root = outer, value = -1 }

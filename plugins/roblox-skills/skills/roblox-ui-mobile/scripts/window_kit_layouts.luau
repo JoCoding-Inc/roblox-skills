@@ -70,6 +70,7 @@ local function scaffold(playerGui: Instance, name: string, options: Options?, sm
 		for k, v in props do
 			(label :: any)[k] = v
 		end
+		label.TextSize = Kit.textSize(label.TextSize, label.FontFace) -- a face that draws small gets a larger size
 		label.Parent = parent
 		return label
 	end
