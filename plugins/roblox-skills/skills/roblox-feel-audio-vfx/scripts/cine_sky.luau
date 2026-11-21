@@ -537,7 +537,7 @@ function Sky.enter(preset: string, opts)
 		-- one crystal: a tall diamond with its widest place above the middle, and a narrower lit one on the sun's side
 		local function crystal(at: Vector3, h: number, up: Vector3, haze: number, phase: number)
 			local w = h * rng:NextNumber(0.3, 0.42)
-			local side = sunSide * (w * 0.2)
+			local side = sunSide * (w * 0.14)
 			local low, mid, top = at - up * h * 0.6, at + up * h * 0.1, at + up * h * 0.4
 			local atts = {}
 			for k = 1, 6 do
@@ -549,7 +549,7 @@ function Sky.enter(preset: string, opts)
 				atts = atts,
 				points = { low, mid, top, low + up * h * 0.1 + side, mid + side, top - up * h * 0.06 + side },
 				body = { beam(atts[1], atts[2], 0, w), beam(atts[2], atts[3], w, 0) },
-				lit = { beam(atts[4], atts[5], 0, w * 0.42), beam(atts[5], atts[6], w * 0.42, 0) },
+				lit = { beam(atts[4], atts[5], 0, w * 0.5), beam(atts[5], atts[6], w * 0.5, 0) },
 				haze = haze,
 				amp = math.sqrt(h) * 0.35,
 				rate = rng:NextNumber(0.7, 1.2),
@@ -586,15 +586,21 @@ function Sky.enter(preset: string, opts)
 			local show = clouds.Enabled and 1 or 0
 			for _, piece in pieces do
 				local alpha = 1 - (1 - piece.haze * 0.45) * show
+				-- the body runs from a dark lower point to a lighter top: one flat colour is a paper cut-out
+				local tone = base:Lerp(far, piece.haze)
+				local low, high = tone:Lerp(Color3.new(0, 0, 0), 0.35), tone:Lerp(clouds.Color, 0.3)
+				piece.body[1].Color = ColorSequence.new(low, tone)
+				piece.body[2].Color = ColorSequence.new(tone, high)
 				for _, b in piece.body do
-					b.Color = ColorSequence.new(base:Lerp(far, piece.haze))
 					b.Transparency = NumberSequence.new(alpha)
 					b.LightEmission = 0
 				end
-				for _, b in piece.lit do
+				for k, b in piece.lit do
 					b.Color = ColorSequence.new(clouds.Color:Lerp(white, 0.85):Lerp(far, piece.haze * 0.5))
 					b.Brightness = 1.6
-					b.Transparency = NumberSequence.new(alpha)
+					-- the lit facet is strongest at the widest place and thins out toward both points
+					local soft = 1 - (1 - alpha) * 0.25
+					b.Transparency = if k == 1 then NumberSequence.new(soft, alpha + (1 - alpha) * 0.2) else NumberSequence.new(alpha + (1 - alpha) * 0.2, soft)
 					b.LightEmission = 0.35
 				end
 			end
