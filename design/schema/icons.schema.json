@@ -169,7 +169,8 @@
                 "votes",
                 "icon_count",
                 "look",
-                "fits"
+                "fits",
+                "paint"
               ],
               "properties": {
                 "asset_id": {
@@ -254,6 +255,20 @@
                           "items": {
                             "type": "string"
                           }
+                        }
+                      }
+                    }
+                  ]
+                },
+                "paint": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/leaf"
+                    },
+                    {
+                      "properties": {
+                        "v": {
+                          "type": "string"
                         }
                       }
                     }
