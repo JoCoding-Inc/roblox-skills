@@ -17,6 +17,9 @@
 --   name             label printed with the cut ("CUT|t|name|len")
 -- opts.returnTime    seconds of the ease back to the player (default 0.6; 0 = instant)
 -- opts.noReturn      leave the camera Scriptable at the end (the caller restores with CineCamera.restore())
+-- CineCamera.fit(height, fov, share) -> studs: how far away something that tall fills that share of the frame.
+-- CineCamera.audit(shots, height?) -> { string }: shots where the subject is a dot (under 15% of the frame
+--   height) or the camera is inside it; run it on every shot list before the first capture.
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -181,6 +184,39 @@ function CineCamera.length(shots): number
 		e = math.max(e, s.t + s.len)
 	end
 	return e
+end
+
+-- The distance at which something `height` studs tall fills `share` of the frame height at `fov` (vertical
+-- degrees). A character is about 5.5 studs: CineCamera.fit(5.5, 50, 0.4) = 14.7 studs.
+function CineCamera.fit(height: number, fov: number, share: number): number
+	return height / share / (2 * math.tan(math.rad(fov) / 2))
+end
+
+-- Read a shot list before playing it: returns (and warns about) the shots whose subject would fill under 15% of
+-- the frame height at either end of the move (a dot in an empty frame), or whose camera comes within 1.6 studs of
+-- the subject's origin (inside the hair or the body). height: the subject's height in studs (default 5.5).
+-- Two blind judges marked down exactly these frames in a cutscene whose shots were set by offsets alone.
+function CineCamera.audit(shots, height: number?): { string }
+	local h = height or 5.5
+	local out = {}
+	for i, shot in shots do
+		local fov = shot.fov
+		for k, framing in { shot.from, shot.to } do -- a shot without a move is read once
+			local f = if type(fov) == "table" then fov[k] or fov[1] else fov or 70
+			local dist = (framing.offset :: Vector3).Magnitude
+			local share = h / (2 * dist * math.tan(math.rad(f) / 2))
+			local label = string.format("shot %d %s (%s)", i, tostring(shot.name or ""), k == 1 and "start" or "end")
+			if share < 0.15 then
+				table.insert(out, string.format("%s: the subject fills %d%% of the frame height; at fov %d come within %.0f studs or narrow the fov", label, share * 100, f, CineCamera.fit(h, f, 0.2)))
+			elseif dist < 1.6 then
+				table.insert(out, string.format("%s: the camera is %.1f studs from the subject's origin, inside the hair or the body", label, dist))
+			end
+		end
+	end
+	for _, line in out do
+		warn("CineCamera.audit: " .. line)
+	end
+	return out
 end
 
 function CineCamera.play(shots, opts)
