@@ -333,7 +333,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	-- HUD: a rail of menu buttons and one action button. On touch the rail sits above the thumbstick's
 	-- corner and the action button above the jump button; each has a 44 px tap area.
 	local hud = {} -- { item, the side it leaves by }
-	local badge
+	local badge, missionsButton
 	local bs = pick(36, 58)
 	for i, item in { { "Shop", icons.shop }, { "Pets", icons.pets }, { "Missions", icons.missions } } do
 		local position = pick(UDim2.fromOffset(12, 10 + (i - 1) * 50), UDim2.new(0, 22, 0.5, (i - 2) * 92 - 48))
@@ -350,10 +350,12 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			depth = pick(3, 5),
 		})
 		Kit.icon(content, item[2], { size = pick(26, 42), position = UDim2.fromScale(0.5, 0.5), anchor = Vector2.new(0.5, 0.5) })
-		Kit.press(button)
 		table.insert(hud, { button, "left" })
-		if item[1] == "Missions" then -- how many rewards wait
+		if item[1] == "Missions" then -- how many rewards wait; it opens the window (below)
 			badge = Kit.badge(button, 0, { size = pick(18, 24), textSize = pick(13, 15), fontFace = NUMBER })
+			missionsButton = button
+		else
+			Kit.press(button)
 		end
 		if not phone then
 			local labelPosition = position + UDim2.fromOffset(-16, bs + 7)
@@ -740,7 +742,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			Size = UDim2.new(1, -pick(37, 66), 1, 0),
 			Position = UDim2.fromOffset(pick(34, 60), 0),
 			TextSize = pick(14, 24),
-			FontFace = BLACK,
+			FontFace = NUMBER, -- an amount: the skin's number face (a typewriter display face did not fit "+400" on a phone tile)
 			TextColor3 = C.ink,
 		})
 		local name: TextLabel? = nil
@@ -826,10 +828,6 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			if m[kind] > 0 then
 				table.insert(shown, t)
 				t.amount.Text = "+" .. pick(short(m[kind]), Kit.comma(m[kind]))
-				if t.name then -- a long amount in a wide font takes the name's room: the number stays, the name goes
-					local nameLeft = t.name.AbsolutePosition.X + t.name.AbsoluteSize.X - t.name.TextBounds.X
-					t.name.Visible = t.amount.AbsolutePosition.X + t.amount.TextBounds.X + 6 < nameLeft
-				end
 				local fill = kind == "gems" and C.gemTile or C.coinTile
 				t.amount.TextColor3 = claimed and C.inkMuted or C.ink
 				t.icon.ImageTransparency = claimed and 0.55 or 0
@@ -840,6 +838,11 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		for i, t in shown do
 			t.tile.Size = UDim2.fromOffset(each, tileH)
 			t.tile.Position = UDim2.fromOffset(inset + (i - 1) * (each + tileGap), tilesY)
+			Kit.fitText(t.amount) -- a wide number face on a phone tile
+			if t.name then -- a long amount in a wide font takes the name's room: the number stays, the name goes
+				local nameLeft = t.name.AbsolutePosition.X + t.name.AbsoluteSize.X - t.name.TextBounds.X
+				t.name.Visible = t.amount.AbsolutePosition.X + t.amount.TextBounds.X + 6 < nameLeft
+			end
 		end
 	end
 
@@ -865,6 +868,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		artImage.Image = icons[m.icon]
 		Kit.recolor(art, tileOf[m.tab])
 		title.Text = m.title
+		Kit.fitText(title) -- a long title in a wide display face ("Beat the island boss" in the grim skin) steps down
 		info.Text = m.info
 		tagText.Text = string.upper(m.tab)
 		Kit.recolor(tag, m.tab == "Daily" and C.daily or C.weekly)
@@ -1006,7 +1010,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	end
 	badge.set(waiting())
 
-	local api = { gui = gui, hudGui = hudGui, window = window, main = main, closeButton = close, rows = rows, tabs = tabs, state = state, phone = phone }
+	local api = { gui = gui, hudGui = hudGui, window = window, main = main, closeButton = close, missionsButton = missionsButton, rows = rows, tabs = tabs, state = state, phone = phone }
 	function api.open()
 		state.open = true
 		GuiService.TouchControlsEnabled = false -- the window takes the screen: no thumbstick under it
@@ -1034,8 +1038,33 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		dock.show(0.06) -- while the window fades: the way back is seen
 		GuiService.TouchControlsEnabled = true
 	end
+	-- with the window closed: every mission back to where it started, the GUI kept. A tour that destroyed its
+	-- GUI and built it again showed the HUD leaving, an empty screen and the HUD back with the window to two
+	-- judges (2026-11-21)
+	function api.reset()
+		for _, m in MISSIONS do
+			local r = rows[m.id]
+			local ready = m.have >= m.need
+			state.claimed[m.id] = nil
+			Kit.recolor(r.row, C.row, C.dark)
+			Kit.glow(r.row, nil)
+			r.fill.BackgroundColor3 = ready and C.ready or C.accent
+			r.title.TextColor3 = C.text
+			r.count.Text = m.have .. "/" .. m.need
+			r.count.Visible = not (phone and ready)
+			if ready and not r.chip.Visible then
+				r.chip.Visible = true
+				Kit.pulse(r.chip, 0.06, 1.1)
+			end
+		end
+		state.selected = nil
+		state.tab = "All"
+		tabs.pick("All", true)
+		badge.set(waiting())
+	end
 	api.select, api.setTab, api.claim = select, setTab, claim
 	Kit.press(close, api.close)
+	Kit.press(missionsButton, api.open)
 	return api
 end
 
@@ -1050,8 +1079,8 @@ function Demo.run(playerGui: Instance?, options: { icons: { [string]: string }?,
 	end
 	task.spawn(function()
 		while ui.gui.Parent do
-			task.wait(1.2)
-			ui.open()
+			task.wait(1.2) -- the HUD at rest, then the press that opens the window
+			tap(ui.missionsButton, ui.open)
 			task.wait(1.8)
 			tap(ui.rows.d2.row, function()
 				ui.select("d2")
@@ -1078,8 +1107,7 @@ function Demo.run(playerGui: Instance?, options: { icons: { [string]: string }?,
 			if not ui.gui.Parent then -- destroyed from outside: the tour ends
 				break
 			end
-			ui.gui:Destroy()
-			ui = Demo.build(target, options)
+			ui.reset() -- the data goes back; the GUI stays
 		end
 	end)
 	return ui

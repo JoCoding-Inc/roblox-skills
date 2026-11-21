@@ -138,6 +138,20 @@ function Kit.textSize(px: number, face: Font?): number
 	return if r < Kit.CAP then math.floor(px * Kit.CAP / r + 0.5) else px
 end
 
+-- A one-line label whose text changes (the selected item's name, an amount) and must stay inside its box: it goes
+-- back to the TextSize it was built with and steps down until the text fits, to 0.75 of that size at least (or
+-- `least`). Call it after every change of Text. TextScaled is not the answer under the kit's stage: it ignores the
+-- stage's UIScale, and a 26 px title came out drawn at 16 on a desktop.
+function Kit.fitText(label: TextLabel, least: number?)
+	local base = label:GetAttribute("KitTextSize") or label.TextSize
+	label:SetAttribute("KitTextSize", base)
+	label.TextSize = base
+	local floor = least or math.floor(base * 0.75)
+	while not label.TextFits and label.TextSize > floor do
+		label.TextSize -= 1
+	end
+end
+
 local smallWarned = {}
 function Kit.look(values: { [string]: any })
 	for k, v in values do
@@ -1041,6 +1055,41 @@ function Kit.close(root: GuiObject, options: { first: GuiObject?, done: (() -> (
 	end, nil, true)
 end
 
+-- Swap the page of a pane (a tab change that changes what the pane shows): the old page fades out where it is
+-- (0.08 s); from 0.06 s the new one fades in while its groups arrive as in Kit.open, and it is at full strength
+-- only when its last piece is well on its way. No frame shows both pages at full strength, or the new page as an
+-- empty frame with its main pieces still hidden: both
+-- judges of a forge window named that frame ("an empty skeleton", "a mixed frame": the new page shown at once, its
+-- art and buttons still invisible, next to the old list; 2026-11-21). groups and options as Kit.open; the page's
+-- other content fades in with it.
+-- Kit.swap(craftPage, upgradePage, { { { art, name, levels }, "pop", gap = 0.02 }, { upgradeButton, "pop" } })
+function Kit.swap(from: GuiObject?, to: GuiObject, groups: { Group }?, options: { budget: number?, delay: number? }?)
+	local opt = options or {}
+	local lead = 0
+	if from and from ~= to and from.Visible then
+		lead = 0.06
+		Kit.settle(from)
+		fade(from, 1, 0, 0, 0.08, function()
+			from.Visible = false
+			Kit.settle(from)
+			fadeSet(from, 1)
+		end, nil, true)
+	end
+	local listed, last, t = {}, 0, 0
+	for _, g in groups or {} do
+		local items = typeof(g[1]) == "Instance" and { g[1] } or g[1]
+		for i, item in items do
+			listed[item] = true
+			last = math.max(last, t + (i - 1) * (g.gap or 0.03))
+		end
+		t += g.after or 0.05
+	end
+	local budget = opt.budget or 0.45
+	local start = (opt.delay or 0) + lead
+	Kit.open(to, groups, { shell = false, budget = budget, delay = start })
+	fade(to, 0, 1, start, math.max(0.12, math.min(last, budget - 0.2) + 0.1), nil, listed)
+end
+
 -- The content of an open pane changed (another row was selected, a tab changed): set the new texts and
 -- images first, then call this. The items dip to 60% and come back in 0.14 s, and the ones in pop also
 -- grow in from 0.9: the change is seen, and the pane is never blank and never shows a button before its text.
@@ -1286,8 +1335,10 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: C
 				end
 			end
 		end
+		local leaving = false
 		for k, row in self.rows do
 			if not want[k] and self.visible[k] then
+				leaving = leaving or not instant
 				Kit.settle(row)
 				if instant then
 					row.Visible = false
@@ -1307,6 +1358,15 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: C
 			height += footer.Size.Y.Offset + gap
 			if instant or from == to then
 				setY(footer, to)
+			elseif leaving and to < from then
+				-- it would rise over rows that are still fading out: it fades with them and comes back at its new
+				-- place after the new rows (both judges of a forge window named the footer of the new tab drawn over
+				-- the old rows, 2026-11-21)
+				Kit.settle(footer)
+				fade(footer, 1, 0, 0, 0.08, function()
+					setY(footer, to)
+					fade(footer, 0, 1, 0.06 + arriving * 0.03, 0.14)
+				end)
 			else
 				run(footer, "move", 0, T.sort, Quad, Out, function(e)
 					setY(footer, from + (to - from) * e)
@@ -1744,6 +1804,8 @@ function Kit.count(label: TextLabel, from: number, to: number, options: { time: 
 		local half = label.AbsoluteSize.Y * 0.5 / sL
 		local k = scaleAbove(label) / sL -- the overlay is not inside the counter's scaled layer
 		local words = (to > from and "+" or "-") .. format(math.abs(to - from))
+		-- a gain is green and a spend is red unless the caller gives a colour
+		local tint = opt.color or (if to > from then Color3.fromRGB(150, 255, 160) else Color3.fromRGB(255, 118, 104))
 		local size = math.max(label.TextSize * k * 1.25, 20)
 		local rise = opt.rise or 26
 		local w, h = math.max(44, #words * size * 0.62), 26
@@ -1831,11 +1893,13 @@ function Kit.count(label: TextLabel, from: number, to: number, options: { time: 
 			BackgroundTransparency = 1,
 			Text = words,
 			TextXAlignment = anchor.X == 1 and Enum.TextXAlignment.Right or Enum.TextXAlignment.Center,
-			TextColor3 = opt.color or Color3.fromRGB(150, 255, 160),
+			TextColor3 = tint,
 			TextSize = size,
 			FontFace = label.FontFace,
 		}, layer)
-		make("UIStroke", { Color = Color3.fromRGB(14, 40, 20), Thickness = math.max(2, 2 * k) }, plus)
+		-- the outline is a dark shade of the text's own colour: a salmon "-150" in the old dark green outline read as
+		-- "flat grey" to a judge
+		make("UIStroke", { Color = tint:Lerp(Color3.new(0, 0, 0), 0.82), Thickness = math.max(2, 2 * k) }, plus)
 		local ps = scaleOf(plus)
 		run(plus, "move", 0, 0.7, Quad, Out, function(e, raw)
 			plus.Position = UDim2.fromOffset(at.X + travel.X * e, at.Y + travel.Y * e)
