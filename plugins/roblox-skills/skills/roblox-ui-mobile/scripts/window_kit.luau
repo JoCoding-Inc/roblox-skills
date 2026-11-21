@@ -737,22 +737,20 @@ function Kit.press(button: GuiButton, fn: (() -> ())?)
 	local body = (button:FindFirstChild("Body") or button) :: GuiObject
 	local busy = false
 	local target = Kit.target(button)
-	button.MouseEnter:Connect(function()
-		if not busy then
-			local from = s.Scale
-			run(button, "scale", 0, 0.09, Quad, Out, function(e)
-				s.Scale = from + (1.03 - from) * e
-			end)
+	-- a mouse only: on a touch screen MouseEnter fires with the tap and MouseLeave waits for the next tap
+	-- somewhere else, so a tapped button would stay lifted
+	local function hover(to: number)
+		return function(input: InputObject)
+			if input.UserInputType == Enum.UserInputType.MouseMovement and not busy then
+				local from = s.Scale
+				run(button, "scale", 0, 0.09, Quad, Out, function(e)
+					s.Scale = from + (to - from) * e
+				end)
+			end
 		end
-	end)
-	button.MouseLeave:Connect(function()
-		if not busy then
-			local from = s.Scale
-			run(button, "scale", 0, 0.09, Quad, Out, function(e)
-				s.Scale = from + (1 - from) * e
-			end)
-		end
-	end)
+	end
+	target.InputBegan:Connect(hover(1.03))
+	target.InputEnded:Connect(hover(1))
 	target.Activated:Connect(function()
 		if busy then
 			return
@@ -768,6 +766,25 @@ function Kit.press(button: GuiButton, fn: (() -> ())?)
 		end)
 	end)
 	return body
+end
+
+-- "No": a press that cannot go through (not enough coins, locked, full). The button swings sideways three
+-- times and stops (0.26 s, 6 px, each swing smaller); pair it with a colour on what is missing (the counter
+-- turns to the warning colour for the same time). Position is used, so not for an item under a layout object.
+function Kit.shake(gui: GuiObject, o: { reach: number?, time: number? }?)
+	local opt = o or {}
+	local reach = opt.reach or 6
+	stop(gui, "shake")
+	local home = gui.Position
+	if reduced() then
+		return
+	end
+	run(gui, "shake", 0, opt.time or 0.26, Linear, Out, function(_, raw)
+		local k = math.clamp(raw, 0, 1)
+		gui.Position = home + UDim2.fromOffset(math.sin(k * math.pi * 6) * reach * (1 - k), 0)
+	end, function()
+		gui.Position = home
+	end)
 end
 
 -- the press motion alone (a scripted tour, or a press you handle yourself)
@@ -939,8 +956,10 @@ function Kit.refresh(items: { GuiObject }, pop: { GuiObject }?)
 	end
 end
 
--- HUD that gives way to a window. Each item slides off its side while it fades (0.2 s, one after another)
--- and comes back with a small overshoot (0.3 s, 45 ms apart), so the way back is seen, not a pop.
+-- HUD that gives way to a window. Each item slides off its side (0.2 s, one after another) and is faded out
+-- in the first 0.1 s of that, so a window that grows in over the item's place (0.2 s) never has a HUD button
+-- showing past its corner; it comes back with a small overshoot (0.3 s, 45 ms apart), so the way back is
+-- seen, not a pop.
 -- local dock = Kit.dock({ { shopButton, "left" }, { petsButton, "left" }, { playButton, "right" } })
 -- dock.hide() as the window opens; dock.show(0.06) as it closes (while the window fades, not after)
 function Kit.dock(items: { { any } })
@@ -955,7 +974,7 @@ function Kit.dock(items: { { any } })
 		local reach = math.max(size.X, size.Y) + 48
 		local to = on and homes[i] or homes[i] + UDim2.fromOffset(dir.X * reach, dir.Y * reach)
 		local state = fades[gui]
-		fade(gui, state and state.alpha or 1, on and 1 or 0, delay, on and 0.12 or 0.16)
+		fade(gui, state and state.alpha or 1, on and 1 or 0, delay, on and 0.12 or 0.1)
 		local from: UDim2? = nil
 		run(gui, "dock", delay, on and 0.3 or 0.2, on and Back or Quad, on and Out or In, function(e)
 			from = from or gui.Position
@@ -964,8 +983,12 @@ function Kit.dock(items: { { any } })
 	end
 	return {
 		hide = function(delay: number?)
-			for i in items do
-				move(i, false, (delay or 0) + (i - 1) * 0.025)
+			-- each side leaves in its own order: an action button on the right does not wait for the menu on the left
+			local nth = {}
+			for i, it in items do
+				local side = it[2] or "left"
+				nth[side] = (nth[side] or 0) + 1
+				move(i, false, (delay or 0) + math.min((nth[side] - 1) * 0.02, 0.06))
 			end
 		end,
 		show = function(delay: number?)
@@ -1217,6 +1240,290 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: C
 		for _, k in self.keys do
 			if self.visible[k] and self.rows[k] then
 				table.insert(out, self.rows[k])
+			end
+		end
+		return out
+	end
+
+	return self
+end
+
+-- ---------- keyed grid: cards that move to their new cells, a selection ring that follows ----------
+
+-- A grid without a UIGridLayout: the kit sets each card's cell, so a filter or a category change is seen
+-- (a card that stays slides to a neighbour cell, the others leave and arrive) and a selection ring can travel.
+-- container: a ScrollingFrame (its CanvasSize follows) or a Frame, with no layout object in it.
+-- local grid = Kit.grid(scroll, { columns = 3, cell = Vector2.new(120, 136), gap = 8, pad = 6, ring = C.select })
+-- grid:add("medkit", card)          -- card: any GuiObject; the grid gives it the cell's size and its place
+-- grid:show({ "medkit", "flare" })  -- these cards, in reading order. The cards that leave fade in 0.1 s. A
+--                                      card that stays slides (0.22 s) when its new cell is the next one in its
+--                                      row, or when whole rows went and every card moves straight up; any other
+--                                      move would pass over a neighbour, so that card fades where it is and
+--                                      arrives at its new cell. New cards arrive one after another from 0.1 s
+--                                      (30 ms apart, 0.9 to 1 with the fade): no two cards ever overlap.
+--                                      The grid scrolls to its top. instant = true skips the motion.
+-- grid:select("flare")              -- the ring travels to that card (0.14 s) when the old and the new one are
+--                                      both shown, else it arrives on it; nil hides it. A show() takes the ring
+--                                      away at once and brings it back on the selected card when the cells are
+--                                      in place: a ring that follows a moving card reads its place mid-slide.
+-- grid:reveal(key)                  -- scroll so the card's whole row is in view (a selection made by code)
+-- grid:shown()                      -- the cards on show, in reading order (for Kit.open)
+-- The ring lies ringOut px (default 3) outside its card with a line of ringWidth px (default 2), so pad is
+-- raised to leave it room: a ring cut by the scroll frame's edge is the defect this prevents.
+function Kit.grid(
+	container: GuiObject,
+	o: { columns: number?, cell: Vector2?, gap: number?, pad: number?, ring: Color3?, ringOut: number?, ringWidth: number? }?
+)
+	local opt = o or {}
+	local columns, cell, gap = math.max(opt.columns or 3, 1), opt.cell or Vector2.new(120, 136), opt.gap or 8
+	local ringOut, ringWidth = opt.ringOut or 3, opt.ringWidth or 2
+	local pad = opt.pad or 0
+	if opt.ring then
+		pad = math.max(pad, ringOut + ringWidth + 1)
+	end
+	local T = Kit.TIMES
+	local self = {
+		cards = {} :: { [string]: GuiObject },
+		keys = {} :: { string },
+		visible = {} :: { [string]: boolean },
+		index = {} :: { [string]: number },
+		selected = nil :: string?,
+		ring = nil :: Frame?,
+	}
+	local serial = 0 -- a show() or select() that came later cancels what an earlier one scheduled
+
+	local function spot(i: number): Vector2 -- the middle of cell i
+		local c, r = (i - 1) % columns, (i - 1) // columns
+		return Vector2.new(pad + c * (cell.X + gap) + cell.X / 2, pad + r * (cell.Y + gap) + cell.Y / 2)
+	end
+	local function place(gui: GuiObject, at: Vector2)
+		gui.Position = UDim2.fromOffset(at.X, at.Y)
+	end
+	local function fit(count: number)
+		if container:IsA("ScrollingFrame") then
+			local rows = math.ceil(count / columns)
+			container.CanvasSize = UDim2.new(0, 0, 0, rows > 0 and pad * 2 + rows * cell.Y + (rows - 1) * gap or 0)
+		end
+	end
+	local function arrive(card: GuiObject, delay: number)
+		local sc = scaleOf(card)
+		card.Visible = true
+		sc.Scale = 0.9
+		fade(card, 0, 1, delay, T.fade)
+		run(card, "scale", delay, T.pop, Back, Out, function(e)
+			sc.Scale = 0.9 + 0.1 * e
+		end)
+	end
+
+	local function ringOn(key: string, travel: boolean)
+		local card = self.cards[key]
+		if not (opt.ring and card and self.visible[key]) then
+			return
+		end
+		local ring = self.ring
+		if not ring then
+			ring = make("Frame", {
+				Name = "Ring",
+				Active = false,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				BackgroundTransparency = 1,
+				Size = UDim2.fromOffset(cell.X + ringOut * 2, cell.Y + ringOut * 2),
+				Visible = false,
+				ZIndex = 40,
+			}, container)
+			local corner = card:FindFirstChildOfClass("UICorner") or card:FindFirstChildWhichIsA("UICorner", true)
+			make("UICorner", { CornerRadius = UDim.new(0, (corner and corner.CornerRadius.Offset or 8) + ringOut) }, ring)
+			make("UIStroke", { Color = opt.ring, Thickness = ringWidth, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, ring)
+			ring:SetAttribute("KitTransient", true)
+			self.ring = ring
+		end
+		local stroke = ring:FindFirstChildOfClass("UIStroke") :: UIStroke
+		local to = Vector2.new(card.Position.X.Offset, card.Position.Y.Offset)
+		local sc = ownScale(ring)
+		stop(ring, "move")
+		stop(ring, "scale")
+		if travel and ring.Visible then
+			local from = Vector2.new(ring.Position.X.Offset, ring.Position.Y.Offset)
+			run(ring, "move", 0, 0.14, Quad, Out, function(e)
+				place(ring, from:Lerp(to, math.clamp(e, 0, 1)))
+			end)
+		else
+			-- arrives a little large and closes on the card
+			place(ring, to)
+			ring.Visible = true
+			sc.Scale = 1.1
+			stroke.Transparency = 1
+			run(ring, "scale", 0, 0.16, Quad, Out, function(e)
+				local k = math.clamp(e, 0, 1)
+				sc.Scale = 1.1 - 0.1 * k
+				stroke.Transparency = 1 - k
+			end)
+		end
+	end
+	local function ringOff()
+		local ring = self.ring
+		if ring then
+			stop(ring, "move")
+			stop(ring, "scale")
+			ring.Visible = false
+		end
+	end
+
+	function self:add(key: string, card: GuiObject)
+		card.AnchorPoint = Vector2.new(0.5, 0.5)
+		card.Size = UDim2.fromOffset(cell.X, cell.Y)
+		card.Parent = container
+		self.cards[key] = card
+		self.visible[key] = true
+		table.insert(self.keys, key)
+		self.index[key] = #self.keys
+		place(card, spot(#self.keys))
+		fit(#self.keys)
+		return card
+	end
+
+	function self:get(key: string): GuiObject?
+		return self.cards[key]
+	end
+
+	function self:show(keys: { string }, instant: boolean?)
+		serial += 1
+		local mine = serial
+		local want, list = {}, {}
+		for _, k in keys do
+			if self.cards[k] and not want[k] then
+				want[k] = true
+				table.insert(list, k)
+			end
+		end
+		ringOff()
+		-- Which moves may slide. Two slides on different lines cover each other half-way (one card leaving a
+		-- cell sideways while another comes up into it), so a card slides only along its own row to the next
+		-- cell, or, when every move is straight up or down (whole rows went), along its column. Any other
+		-- move fades where it is and arrives at its new cell.
+		local straight = true
+		for i, k in list do
+			local old = self.index[k]
+			if self.visible[k] and old and old ~= i and (i - 1) % columns ~= (old - 1) % columns then
+				straight = false
+			end
+		end
+		local slow = 0
+		for i, k in list do
+			local card = self.cards[k]
+			local to = spot(i)
+			local delay = 0.1 + math.min((i - 1) * 0.03, 0.24) -- the cards that leave are gone by 0.1 s
+			Kit.settle(card)
+			if not self.visible[k] then
+				place(card, to)
+				if instant then
+					card.Visible = true
+				else
+					arrive(card, delay)
+					slow = math.max(slow, delay + T.pop)
+				end
+			else
+				local old = self.index[k] or i
+				local from = Vector2.new(card.Position.X.Offset, card.Position.Y.Offset)
+				local dc, dr = math.abs((i - 1) % columns - (old - 1) % columns), math.abs((i - 1) // columns - (old - 1) // columns)
+				if instant or old == i then
+					place(card, to)
+				elseif (dr == 0 and dc == 1) or (straight and dc == 0) then
+					-- after the cards that leave have mostly gone (0.06 s): a slide over a card at full strength reads as a pile
+					run(card, "move", 0.06, T.sort * 0.8, Quad, Out, function(e)
+						place(card, from:Lerp(to, e))
+					end)
+					slow = math.max(slow, 0.06 + T.sort * 0.8)
+				else
+					-- it would pass over other cards: it leaves where it is and arrives with the new ones
+					fade(card, 1, 0, 0, 0.1, function()
+						place(card, to)
+						arrive(card, math.max(delay - 0.1, 0))
+					end)
+					slow = math.max(slow, delay + T.pop)
+				end
+			end
+			self.index[k] = i
+		end
+		for k, card in self.cards do
+			if not want[k] and self.visible[k] then
+				Kit.settle(card)
+				if instant then
+					card.Visible = false
+				else
+					local sc = scaleOf(card)
+					run(card, "scale", 0, 0.1, Quad, In, function(e)
+						sc.Scale = 1 - 0.08 * math.clamp(e, 0, 1)
+					end)
+					fade(card, 1, 0, 0, 0.1, function()
+						card.Visible = false
+						sc.Scale = 1
+						fadeSet(card, 1)
+					end)
+				end
+			end
+			self.visible[k] = want[k] == true
+		end
+		self.keys = list
+		fit(#list)
+		if container:IsA("ScrollingFrame") and container.CanvasPosition.Y > 0 then
+			local from = container.CanvasPosition.Y
+			if instant then
+				container.CanvasPosition = Vector2.zero
+			else
+				run(container, "scroll", 0, 0.12, Quad, Out, function(e)
+					container.CanvasPosition = Vector2.new(0, from * (1 - math.clamp(e, 0, 1)))
+				end)
+			end
+		end
+		local key = self.selected
+		if key and want[key] then
+			if instant then
+				ringOn(key, false)
+			else
+				task.delay((reduced() and 0 or slow * Kit.TONE.pace) + 0.04, function()
+					if serial == mine and self.selected == key then
+						ringOn(key, false)
+					end
+				end)
+			end
+		end
+	end
+
+	function self:select(key: string?, instant: boolean?)
+		local last = self.selected
+		self.selected = key
+		serial += 1
+		if not (key and self.visible[key]) then
+			ringOff()
+			return
+		end
+		ringOn(key, not instant and last ~= nil and self.visible[last] == true)
+	end
+
+	-- scroll so the card's whole row (and the ring around it) is inside the view
+	function self:reveal(key: string)
+		local i = self.visible[key] and self.index[key]
+		if not (i and container:IsA("ScrollingFrame")) then
+			return
+		end
+		local k = scaleAbove(self.cards[key]) -- CanvasPosition is in screen px
+		local y = spot(i).Y
+		local top, bottom = (y - cell.Y / 2 - pad) * k, (y + cell.Y / 2 + pad) * k
+		local from, view = container.CanvasPosition.Y, container.AbsoluteWindowSize.Y
+		local to = math.clamp(from, bottom - view, top)
+		if to ~= from then
+			run(container, "scroll", 0, 0.2, Quad, Out, function(e)
+				container.CanvasPosition = Vector2.new(0, from + (to - from) * math.clamp(e, 0, 1))
+			end)
+		end
+	end
+
+	function self:shown(): { GuiObject }
+		local out = {}
+		for _, k in self.keys do
+			if self.visible[k] and self.cards[k] then
+				table.insert(out, self.cards[k])
 			end
 		end
 		return out
@@ -1740,6 +2047,19 @@ function Kit.slideTo(marker: GuiObject, target: GuiObject, time: number?)
 end
 
 -- ---------- the screen: size by share, dim, icons, tabs ----------
+
+-- The real screen size and whether it is a phone. A client's first frames report a placeholder viewport
+-- (a 1 px or a default size), and a layout chosen from it is the wrong one: this waits until the size is real.
+-- Choose the layout from it once, when the screen is built; build again if the device can change under you.
+function Kit.screen(): (Vector2, boolean)
+	local camera = workspace.CurrentCamera
+	while not camera or camera.ViewportSize.X < 300 or camera.ViewportSize.Y < 200 do
+		task.wait()
+		camera = workspace.CurrentCamera
+	end
+	local view = camera.ViewportSize
+	return view, math.min(view.X, view.Y) < 500
+end
 
 -- A full-screen layer that sizes what it holds by its share of the screen, not by a device class. Lay the
 -- window out at `design` px (a phone design and a larger desktop design are two calls with two sizes); the

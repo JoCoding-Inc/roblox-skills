@@ -25,19 +25,26 @@ type Options = { icons: { [string]: string }?, skin: (string | { [string]: any }
 
 -- What every window here shares: the skin, one ScreenGui, a stage, two counters that stay bright.
 local function scaffold(playerGui: Instance, name: string, options: Options?, small: Vector2, large: Vector2, share: Vector2, dimTo: number)
-	local C, BLACK, BOLD = Demo.skin(options and options.skin)
+	-- NUMBER: the skin's `number` face for prices on a coloured button, when its display face is too light for them
+	local C, BLACK, BOLD, NUMBER = Demo.skin(options and options.skin)
 	local icons = table.clone(Demo.ICONS)
 	for k, v in (options and options.icons) or {} do
 		icons[k] = v
 	end
-	local view = workspace.CurrentCamera.ViewportSize
-	local phone = math.min(view.X, view.Y) < 500
+	local _, phone = Kit.screen()
 	local function pick(a, b)
 		if phone then
 			return a
 		end
 		return b
 	end
+	-- two layers: the HUD under the dim, and the window with the counters that stay bright
+	local hudGui = Instance.new("ScreenGui")
+	hudGui.Name = name .. "Hud"
+	hudGui.ResetOnSpawn = false
+	hudGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	hudGui.DisplayOrder = 1
+	hudGui.Parent = playerGui
 	local gui = Instance.new("ScreenGui")
 	gui.Name = name
 	gui.ResetOnSpawn = false
@@ -45,6 +52,7 @@ local function scaffold(playerGui: Instance, name: string, options: Options?, sm
 	gui.DisplayOrder = 3
 	gui.Parent = playerGui
 	gui.Destroying:Once(function()
+		hudGui:Destroy()
 		GuiService.TouchControlsEnabled = true
 	end)
 	-- 0.45 under a window; 0.7 and no blur under a sheet: the world stays in view, the sheet still reads as open
@@ -108,6 +116,68 @@ local function scaffold(playerGui: Instance, name: string, options: Options?, sm
 		counters[kind] = { pill = pill, icon = icon, amount = amount }
 	end
 
+	-- The HUD a window opens over: menu buttons down the left, one action at the bottom right (on touch above
+	-- the jump button). It leaves by its sides as the window opens and is back while it closes: a window that
+	-- appears over a HUD with no way in, and a HUD that does not react, were both named by judges.
+	local hudLayer = Kit.stage(hudGui, Vector2.new(1100, 620), { share = Vector2.one, max = 1.6, name = "Hud" })
+	local hud = {}
+	local bs = pick(36, 58)
+	for i, item in { { "Shop", icons.shop }, { "Pets", icons.pets }, { "Missions", icons.missions } } do
+		local position = pick(UDim2.fromOffset(12, 10 + (i - 1) * 50), UDim2.new(0, 22, 0.5, (i - 2) * 92 - 48))
+		local button, _, content = Kit.button(hudLayer, {
+			name = item[1],
+			role = "menu",
+			hit = 44,
+			fill = C.hud,
+			stroke = C.dark,
+			size = UDim2.fromOffset(bs, bs),
+			position = position,
+			radius = pick(12, 16),
+			strokeWidth = pick(2, 3),
+			depth = pick(3, 5),
+		})
+		Kit.icon(content, item[2], { size = pick(26, 42), position = UDim2.fromScale(0.5, 0.5), anchor = Vector2.new(0.5, 0.5) })
+		Kit.press(button)
+		table.insert(hud, { button, "left" })
+		if not phone then
+			local label = outline(
+				text(hudLayer, {
+					Name = item[1] .. "Label",
+					Size = UDim2.fromOffset(90, 18),
+					Position = position + UDim2.fromOffset(-16, bs + 7),
+					Text = item[1],
+					FontFace = BLACK,
+					TextXAlignment = Enum.TextXAlignment.Center,
+				}),
+				1.5
+			)
+			table.insert(hud, { label, "left" })
+		end
+	end
+	local action, actionLabel, actionContent = Kit.button(hudLayer, {
+		name = "Action",
+		role = "action",
+		text = "PLAY",
+		textSize = pick(18, 26),
+		textColor = C.text,
+		fontFace = BLACK,
+		fill = C.go,
+		size = pick(UDim2.fromOffset(128, 54), UDim2.fromOffset(170, 64)),
+		position = pick(UDim2.new(1, -12, 1, -98), UDim2.new(1, -24, 1, -28)),
+		anchor = Vector2.new(1, 1),
+		radius = pick(16, 20),
+		strokeWidth = pick(3, 4),
+		depth = pick(4, 6),
+		sheen = true,
+	})
+	Kit.icon(actionContent, icons.play, { size = pick(32, 40), position = UDim2.new(0, pick(10, 14), 0.5, 0), anchor = Vector2.new(0, 0.5) })
+	actionLabel.Size = UDim2.new(1, -pick(48, 60), 1, 0)
+	actionLabel.Position = UDim2.fromOffset(pick(42, 54), 0)
+	Kit.press(action)
+	Kit.sheen(action, { period = 3.4 })
+	table.insert(hud, { action, "right" })
+	local dock = Kit.dock(hud)
+
 	-- a round close button with a 44 px tap area
 	local function closeButton(parent: Instance, position: UDim2)
 		local size = pick(24, 36)
@@ -129,17 +199,32 @@ local function scaffold(playerGui: Instance, name: string, options: Options?, sm
 		return close
 	end
 
-	-- pay from the coin counter: the number runs down, no "+N"
+	-- pay from the coin counter: the number runs down in 0.35 s; on a large screen a "-N" drops from it (on a
+	-- phone the window's top edge and its close button sit right under the counter, so there is none)
 	local function spend(amount: number)
 		local from = wallet.coins
 		wallet.coins = from - amount
-		Kit.count(counters.coins.amount, from, wallet.coins, { plus = false })
+		Kit.count(counters.coins.amount, from, wallet.coins, { time = 0.35, plus = not phone, color = C.warn, rise = 16 })
+	end
+	-- not enough: the counter turns to the warning colour for as long as the button shakes
+	local function short()
+		local pill = counters.coins.pill
+		Kit.recolor(pill, C.warn)
+		Kit.shake(pill, { reach = 4 })
+		task.delay(0.45, function()
+			if pill.Parent then
+				Kit.recolor(pill, C.hud, C.dark)
+			end
+		end)
 	end
 
 	return {
 		C = C,
 		BLACK = BLACK,
 		BOLD = BOLD,
+		NUMBER = NUMBER,
+		dock = dock,
+		short = short,
 		icons = icons,
 		phone = phone,
 		pick = pick,
@@ -164,11 +249,13 @@ end
 
 -- ---------- shop: a rail of categories, a featured offer, a grid of cards ----------
 
+-- { icon, name, price, tag }: one card per item, keyed "<shelf><n>". The featured shelf shows six of the
+-- others' cards, so a change to or from it has cards that stay (they slide) beside cards that leave and arrive.
 local SHOP = {
-	{ key = "featured", text = "Featured", icon = "shop", items = { { "egg", "Egg Crate", 250 }, { "race", "Speed Boots", 400 }, { "feed", "Pet Treats", 120 }, { "chest", "Gift Box", 300 }, { "boss", "Iron Blade", 900 }, { "wins", "Trophy Case", 1500 } } },
-	{ key = "pets", text = "Pets", icon = "pets", items = { { "egg", "Mystery Egg", 500 }, { "feed", "Treat Bag", 150 }, { "trade", "Pet Swap", 350 }, { "pets", "Paw Charm", 800 }, { "race", "Race Pass", 600 }, { "chest", "Gift Pet", 1200 } } },
-	{ key = "boosts", text = "Boosts", icon = "play", items = { { "coin", "Double Coins", 450 }, { "race", "Fast Feet", 300 }, { "wins", "Lucky Hour", 700 }, { "feed", "Auto Feed", 250 }, { "trade", "Trade Slot", 550 }, { "boss", "Boss Key", 950 } } },
-	{ key = "gems", text = "Gems", icon = "gem", items = { { "gem", "Gem Pouch", 400 }, { "gem", "Gem Sack", 900 }, { "chest", "Gem Chest", 1800 }, { "trade", "Gem Trade", 300 }, { "play", "Gem Rush", 650 }, { "wins", "Gem Crown", 2400 } } },
+	{ key = "featured", text = "Featured", icon = "shop", show = { "boosts1", "pets1", "gems2", "pets4", "boosts3", "gems6" } },
+	{ key = "pets", text = "Pets", icon = "pets", items = { { "egg", "Mystery Egg", 500, "NEW" }, { "feed", "Treat Bag", 150 }, { "trade", "Pet Swap", 350 }, { "pets", "Paw Charm", 800 }, { "race", "Race Pass", 600 }, { "chest", "Gift Pet", 1200 } } },
+	{ key = "boosts", text = "Boosts", icon = "play", items = { { "coin", "Double Coins", 450, "BEST" }, { "race", "Fast Feet", 300 }, { "wins", "Lucky Hour", 700 }, { "feed", "Auto Feed", 250, "NEW" }, { "trade", "Trade Slot", 550 }, { "boss", "Boss Key", 950 } } },
+	{ key = "gems", text = "Gems", icon = "gem", items = { { "gem", "Gem Pouch", 400 }, { "gem", "Gem Sack", 900 }, { "chest", "Gem Chest", 1800, "NEW" }, { "trade", "Gem Trade", 300 }, { "play", "Gem Rush", 650 }, { "wins", "Gem Crown", 2400, "BEST" } } },
 }
 
 function Layouts.shop(playerGui: Instance, options: Options?)
@@ -207,8 +294,8 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 	if not phone then
 		x.outline(text(rail, { Name = "Title", Size = UDim2.fromOffset(railW - 28, 34), Position = UDim2.fromOffset(16, 10), Text = "SHOP", TextSize = 28, FontFace = x.BLACK }))
 	end
-	local catH, catGap, catPad = pick(44, 54), pick(6, 8), pick(6, 10)
-	local catTop = pick(catPad, 58)
+	local catH, catGap, catPad = pick(44, 60), pick(6, 10), pick(6, 10)
+	local catTop = pick(catPad, 60)
 	local cats = {}
 	for i, cat in SHOP do
 		local button, label, content = Kit.button(rail, {
@@ -295,7 +382,7 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 			text = "0",
 			textSize = textSize,
 			textColor = C.text,
-			fontFace = x.BLACK,
+			fontFace = x.NUMBER,
 			radius = pick(9, 12),
 			depth = pick(3, 4),
 		})
@@ -315,100 +402,125 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 	featured.art = bannerArt
 	setPrice(featured, 1200, false)
 
-	-- the grid: three columns of cards, placed by hand so each can pop on its own
+	-- the grid: three columns of keyed cards. Kit.grid places them, so a shelf change is seen (the cards of
+	-- the old shelf fade in 0.1 s, the ones that stay slide to their new cell, the new ones are dealt in)
 	local gy = by + bh + pick(6, 10)
 	local gh = H - gy - pad
-	local grid = Instance.new("ScrollingFrame")
-	grid.Name = "Grid"
-	grid.BackgroundTransparency = 1
-	grid.BorderSizePixel = 0
-	grid.Size = UDim2.fromOffset(rw, gh)
-	grid.Position = UDim2.fromOffset(rx, gy)
-	grid.ScrollBarThickness = 4
-	grid.ScrollBarImageColor3 = C.muted
-	grid.ScrollingDirection = Enum.ScrollingDirection.Y
-	grid.Parent = body
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Name = "Grid"
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.Size = UDim2.fromOffset(rw, gh)
+	scroll.Position = UDim2.fromOffset(rx, gy)
+	scroll.ScrollBarThickness = 4
+	scroll.ScrollBarImageColor3 = C.muted
+	scroll.ScrollingDirection = Enum.ScrollingDirection.Y
+	scroll.Parent = body
 	local gap = pick(6, 10)
 	local cw = math.floor((rw - 8 - 2 * gap) / 3)
 	local ch = pick(86, 136)
-	local slots = {}
-	for i = 1, 6 do
-		local col, row = (i - 1) % 3, math.floor((i - 1) / 3)
-		local card, content = Kit.card(grid, {
-			name = "Item" .. i,
-			size = UDim2.fromOffset(cw, ch),
-			position = UDim2.fromOffset(2 + col * (cw + gap), 2 + row * (ch + gap)),
-			fill = C.card,
-			stroke = C.dark,
-			radius = pick(10, 14),
-			depth = pick(2, 4),
-		})
-		local art, picture = Kit.icon(content, icons.egg, {
-			name = "Art",
-			size = pick(38, 56),
-			position = pick(UDim2.fromOffset(6, 6), UDim2.new(0.5, 0, 0, 8)),
-			anchor = pick(Vector2.zero, Vector2.new(0.5, 0)),
-			tile = C.cardHead,
-		})
-		local name = text(content, {
-			Name = "Name",
-			Size = pick(UDim2.new(1, -54, 0, 38), UDim2.new(1, -12, 0, 20)),
-			Position = pick(UDim2.fromOffset(50, 6), UDim2.fromOffset(6, 67)),
-			TextColor3 = C.ink,
-			TextSize = pick(14, 16),
-			FontFace = x.BLACK,
-			TextWrapped = true,
-			TextXAlignment = pick(Enum.TextXAlignment.Left, Enum.TextXAlignment.Center),
-		})
-		local slot = priceButton(content, UDim2.new(1, -pick(12, 20), 0, pick(30, 36)), UDim2.new(0.5, 0, 1, -pick(6, 8)), Vector2.new(0.5, 1), pick(14, 16))
-		slot.card, slot.art, slot.picture, slot.name = card, art, picture, name
-		slots[i] = slot
-	end
-	grid.CanvasSize = UDim2.fromOffset(0, 4 + 2 * ch + gap + 4)
-
-	local state = { cat = 1, owned = {} }
-	local function fill(instant: boolean?)
-		local cat = SHOP[state.cat]
-		heading.Text = cat.text
-		for i, slot in slots do
-			local item = cat.items[i]
-			slot.picture.Image = icons[item[1]]
-			slot.name.Text = item[2]
-			setPrice(slot, item[3], state.owned[cat.key .. i] == true)
-		end
-		if not instant then
-			local cards, arts = {}, {}
-			for i, slot in slots do
-				cards[i], arts[i] = slot.card, slot.art
+	local grid = Kit.grid(scroll, { columns = 3, cell = Vector2.new(cw, ch), gap = gap, pad = 2 })
+	local slots = {} -- by key
+	local shelves = {} -- per category: the keys it shows
+	for c, cat in SHOP do
+		shelves[c] = cat.show or {}
+		for i, item in cat.items or {} do
+			local key = cat.key .. i
+			local card, content = Kit.card(scroll, {
+				name = key,
+				size = UDim2.fromOffset(cw, ch),
+				fill = C.card,
+				stroke = C.dark,
+				radius = pick(10, 14),
+				depth = pick(2, 4),
+			})
+			local art = Kit.icon(content, icons[item[1]], {
+				name = "Art",
+				size = pick(38, 56),
+				position = pick(UDim2.fromOffset(6, 6), UDim2.new(0.5, 0, 0, 8)),
+				anchor = pick(Vector2.zero, Vector2.new(0.5, 0)),
+				tile = C.cardHead,
+			})
+			text(content, {
+				Name = "Name",
+				Size = pick(UDim2.new(1, -54, 0, 38), UDim2.new(1, -12, 0, 20)),
+				Position = pick(UDim2.fromOffset(50, 6), UDim2.fromOffset(6, 67)),
+				Text = item[2],
+				TextColor3 = C.ink,
+				TextSize = pick(14, 16),
+				FontFace = x.BLACK,
+				TextWrapped = true,
+				TextXAlignment = pick(Enum.TextXAlignment.Left, Enum.TextXAlignment.Center),
+			})
+			if item[4] and not phone then -- a tag in the card's corner: what is new, what sells best
+				local best = item[4] == "BEST"
+				local _, tagContent = Kit.card(content, {
+					name = "Tag",
+					size = UDim2.fromOffset(46, 20),
+					position = UDim2.fromOffset(5, 5),
+					fill = best and C.accent or C.ready,
+					stroke = C.dark,
+					radius = 7,
+					strokeWidth = 1.5,
+					topLight = false,
+				})
+				text(tagContent, {
+					Name = "Label",
+					Size = UDim2.fromScale(1, 1),
+					Text = item[4],
+					TextSize = 13,
+					TextColor3 = (Kit.ink(best and C.accent or C.ready)),
+					FontFace = x.BOLD,
+					TextXAlignment = Enum.TextXAlignment.Center,
+				})
 			end
-			Kit.refresh(cards, arts)
+			local slot = priceButton(content, UDim2.new(1, -pick(12, 20), 0, pick(30, 36)), UDim2.new(0.5, 0, 1, -pick(6, 8)), Vector2.new(0.5, 1), pick(14, 16))
+			slot.key, slot.card, slot.art = key, card, art
+			setPrice(slot, item[3], false)
+			slots[key] = slot
+			grid:add(key, card)
+			if not cat.show then
+				table.insert(shelves[c], key)
+			end
 		end
 	end
+
+	local state = { cat = 1 }
 	local function setCat(index: number, instant: boolean?)
 		state.cat = index
 		for i, button in cats do
 			Kit.recolor(button, i == index and C.rowSelected or C.row, i == index and C.select or C.dark)
 		end
-		grid.CanvasPosition = Vector2.zero
-		fill(instant)
+		-- the heading changes with the cards, not before them: it dips while the old shelf fades
+		heading.Text = SHOP[index].text
+		if not instant then
+			Kit.refresh({ heading })
+		end
+		grid:show(shelves[index], instant)
 	end
-	-- buy: the price runs off the counter, coins fly to the item, it bursts and the button reads OWNED
-	local function buy(slot, key: string?)
-		if slot.owned or x.wallet.coins < slot.price then
+	-- Buy: the result is on screen 0.4 s after the press. The price runs off the counter and five coins leave
+	-- for the item at once (0.3 s each, 40 ms apart); as the first lands the item bursts and its button reads
+	-- OWNED. A press that cannot pay shakes the button and turns the counter to the warning colour.
+	local function buy(slot)
+		if slot.owned then
 			Kit.squash(slot.button)
 			return
 		end
-		slot.owned = true -- at once: a second tap cannot pay twice
-		if key then
-			state.owned[key] = true
+		if x.wallet.coins < slot.price then
+			Kit.shake(slot.button)
+			x.short()
+			return
 		end
+		slot.owned = true -- at once: a second tap cannot pay twice
 		x.spend(slot.price)
 		Kit.fly(x.counters.coins.icon, slot.art, {
-			count = 4,
+			count = 5,
+			time = 0.3,
+			gap = 0.04,
 			lift = false,
 			scatter = 0,
 			onArrive = function(n)
-				if n == 4 then
+				if n == 1 then
 					Kit.burst(slot.art, { tier = slot == featured and 3 or 2, color = C.accent })
 					Kit.squash(slot.art)
 					setPrice(slot, slot.price, true)
@@ -421,9 +533,9 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 			setCat(i)
 		end)
 	end
-	for i, slot in slots do
+	for _, slot in slots do
 		Kit.press(slot.button, function()
-			buy(slot, SHOP[state.cat].key .. i)
+			buy(slot)
 		end)
 	end
 	Kit.press(featured.button, function()
@@ -433,45 +545,49 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 	local api = { gui = x.gui, window = window, phone = phone, closeButton = close, state = state }
 	function api.open()
 		GuiService.TouchControlsEnabled = false
+		x.dock.hide()
 		x.dim.show()
 		setCat(state.cat, true)
-		local cards = {}
-		for i, slot in slots do
-			cards[i] = slot.card
-		end
 		-- the rail and the offer come with the window (it is never an empty frame); the buttons and cards are staged
 		Kit.open(window, {
 			{ close, "spin" },
 			{ cats, "slide", from = "left", gap = 0.03 },
-			{ cards, "pop", gap = 0.03 },
+			{ grid:shown(), "pop", gap = 0.03 },
 		})
 	end
 	function api.close()
 		Kit.close(window, { first = close })
 		x.dim.hide()
+		x.dock.show(0.06)
 		GuiService.TouchControlsEnabled = true
 	end
 	function api.setCat(index: number)
 		setCat(index)
 	end
+	-- index: the nth card of the shelf on show
 	function api.buy(index: number)
-		buy(slots[index], SHOP[state.cat].key .. index)
+		buy(slots[shelves[state.cat][index]])
 	end
 	function api.buyFeatured()
 		buy(featured)
 	end
 	function api.tour()
 		api.open()
-		task.wait(1.6)
-		tap(slots[2].button)
+		task.wait(1.4)
+		tap(slots[shelves[1][2]].button)
 		api.buy(2)
-		task.wait(1.7)
+		task.wait(1.5)
 		tap(cats[2])
 		api.setCat(2)
 		task.wait(1.2)
 		tap(featured.button)
 		api.buyFeatured()
-		task.wait(2)
+		task.wait(1.6)
+		tap(cats[4])
+		api.setCat(4)
+		task.wait(1.1)
+		api.buy(6) -- 2,400 with less than that left: the "no"
+		task.wait(1.1)
 		tap(close)
 		api.close()
 		task.wait(0.9)
@@ -687,6 +803,7 @@ function Layouts.daily(playerGui: Instance, options: Options?)
 	local api = { gui = x.gui, window = window, phone = phone, closeButton = close, main = main, state = state }
 	function api.open()
 		GuiService.TouchControlsEnabled = false
+		x.dock.hide()
 		x.dim.show()
 		local cards = {}
 		for i, t in tiles do
@@ -706,6 +823,7 @@ function Layouts.daily(playerGui: Instance, options: Options?)
 		Kit.still(main)
 		Kit.close(window, { first = close })
 		x.dim.hide()
+		x.dock.show(0.06)
 		GuiService.TouchControlsEnabled = true
 	end
 	api.claim = claim
@@ -926,6 +1044,7 @@ function Layouts.sheet(playerGui: Instance, options: Options?)
 	local api = { gui = x.gui, window = sheet, phone = phone, closeButton = close, state = state }
 	function api.open()
 		GuiService.TouchControlsEnabled = false -- on touch the sheet covers the jump button: the controls give way while it is open
+		x.dock.hide()
 		x.dim.show()
 		local fills = {}
 		for i, bar in bars do
@@ -949,6 +1068,7 @@ function Layouts.sheet(playerGui: Instance, options: Options?)
 			sheet.Position = home
 		end)
 		x.dim.hide()
+		x.dock.show(0.06)
 		GuiService.TouchControlsEnabled = true
 	end
 	api.upgrade, api.equip = doUpgrade, doEquip

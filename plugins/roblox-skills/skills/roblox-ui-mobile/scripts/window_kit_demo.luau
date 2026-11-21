@@ -44,6 +44,7 @@ local function face(family: string, weight: Enum.FontWeight)
 end
 -- A skin. Colours keep three levels of value under every look: a dark well, a mid window, one
 -- light card. The eye goes to the card first.
+-- Optional: number = a heavier face for prices and amounts on a coloured button, when the display face is light.
 local SKINS = {
 	-- bright arcade: round, glossy, outlined, bouncy
 	arcade = {
@@ -68,6 +69,7 @@ local SKINS = {
 			muted = rgb(190, 198, 255),
 			accent = rgb(255, 196, 60),
 			gold = rgb(255, 196, 60),
+			warn = rgb(236, 64, 82),
 			ready = rgb(92, 224, 110),
 			go = rgb(58, 196, 92),
 			idle = rgb(100, 108, 176),
@@ -108,8 +110,9 @@ local SKINS = {
 			muted = rgb(164, 154, 140),
 			accent = rgb(222, 64, 48),
 			gold = rgb(218, 186, 112),
+			warn = rgb(222, 64, 48),
 			ready = rgb(176, 196, 104),
-			go = rgb(132, 152, 62),
+			go = rgb(86, 110, 46),
 			idle = rgb(86, 80, 74),
 			done = rgb(112, 106, 98),
 			ribbon = rgb(26, 22, 20),
@@ -121,6 +124,7 @@ local SKINS = {
 		},
 		black = face("SpecialElite", Enum.FontWeight.Regular),
 		bold = face("SourceSansPro", Enum.FontWeight.Bold),
+		number = face("SourceSansPro", Enum.FontWeight.Bold), -- prices and amounts on a coloured button: a typewriter face is too light there
 		look = { radius = 0.25, outline = 1, depth = 0.5, shine = false, textOutline = 0, lift = 0.06 },
 		tone = "heavy",
 	},
@@ -147,6 +151,7 @@ local SKINS = {
 			muted = rgb(124, 172, 198),
 			accent = rgb(64, 230, 255),
 			gold = rgb(255, 214, 110),
+			warn = rgb(255, 86, 110),
 			ready = rgb(90, 255, 190),
 			go = rgb(30, 200, 150),
 			idle = rgb(50, 76, 100),
@@ -167,6 +172,7 @@ local SKINS = {
 Demo.SKINS = SKINS
 local C = table.clone(SKINS.arcade.colors)
 local BLACK, BOLD = SKINS.arcade.black, SKINS.arcade.bold
+local NUMBER = BLACK -- prices, amounts on a coloured button, badge counts: the skin's `number` face, else the display face
 
 Demo.ICONS = ICONS
 
@@ -231,11 +237,12 @@ function Demo.skin(skin: (string | { [string]: any })?)
 		(C :: any)[k] = (chosen.colors and chosen.colors[k]) or v
 	end
 	BLACK, BOLD = chosen.black or SKINS.arcade.black, chosen.bold or SKINS.arcade.bold
+	NUMBER = chosen.number or BLACK
 	Kit.look({ radius = 1, outline = 1, depth = 1, shine = true, textOutline = 1, fontFace = BLACK })
 	Kit.LOOK.stroke, Kit.LOOK.lift = nil, nil
 	Kit.look(chosen.look or {})
 	Kit.tone(chosen.tone or "playful")
-	return C, BLACK, BOLD
+	return C, BLACK, BOLD, NUMBER
 end
 
 function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?, skin: (string | { [string]: any })? }?)
@@ -245,8 +252,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	for k, v in (options and options.icons) or {} do
 		icons[k] = v
 	end
-	local view = workspace.CurrentCamera.ViewportSize
-	local phone = math.min(view.X, view.Y) < 500
+	local _, phone = Kit.screen()
 	local function pick(small, large)
 		if phone then
 			return small
@@ -341,7 +347,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		Kit.press(button)
 		table.insert(hud, { button, "left" })
 		if item[1] == "Missions" then -- how many rewards wait
-			badge = Kit.badge(button, 0, { size = pick(18, 24), textSize = pick(13, 15), fontFace = BLACK })
+			badge = Kit.badge(button, 0, { size = pick(18, 24), textSize = pick(13, 15), fontFace = NUMBER })
 		end
 		if not phone then
 			local labelPosition = position + UDim2.fromOffset(-16, bs + 7)
