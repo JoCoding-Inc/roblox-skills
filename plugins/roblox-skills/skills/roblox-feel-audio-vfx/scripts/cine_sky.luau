@@ -14,7 +14,8 @@
 -- sky:leave()                              -- everything back as it was
 --
 -- Presets (Sky.PRESETS; copy one and change it for your own):
---   void    black, no sky: the dark start of a reveal. Light the character with your own rim lights.
+--   void    black, no sky: the dark start of a reveal. A low neutral ambient keeps skin its own colour; add your
+--           own rim lights for the colour.
 --   sunset  low sun, peach clouds over a blue sky, warm light on the character (ClockTime 17.5)
 --   gold    the same sky pushed warmer and brighter: the peak
 --   day     noon, white clouds
@@ -52,7 +53,9 @@ local C = Color3.fromRGB
 -- every value a preset sets; a cross-fade tweens the numbers and colours and sets the rest at its start
 Sky.PRESETS = {
 	void = {
-		lighting = { ClockTime = 0, Brightness = 0, Ambient = C(0, 0, 0), OutdoorAmbient = C(0, 0, 0), ColorShift_Top = C(0, 0, 0), ExposureCompensation = 0 },
+		-- a low neutral ambient, not none: with Ambient 0 the only light on a face was an effect's own coloured light,
+		-- and the skin took that one hue (two judges: "a flat purple blob"); at about 70 the skin kept its colour
+		lighting = { ClockTime = 0, Brightness = 0, Ambient = C(70, 64, 62), OutdoorAmbient = C(0, 0, 0), ColorShift_Top = C(0, 0, 0), ExposureCompensation = 0 },
 		atmosphere = { Density = 1, Offset = 1, Color = C(0, 0, 0), Decay = C(0, 0, 0), Glare = 0, Haze = 0 },
 		clouds = { Enabled = false, Cover = 0, Density = 0, Color = C(0, 0, 0) },
 		grade = { Brightness = 0, Contrast = 0.1, Saturation = 0, TintColor = C(255, 255, 255) },

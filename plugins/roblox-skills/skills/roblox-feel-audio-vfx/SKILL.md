@@ -449,6 +449,18 @@ A fourth build made with these modules scored 62 against 54 for the third and 72
 | The title hold was 2.2 s of a still frame, blown out by bloom | Every hold moves: a push-in of 5-10% or a slow orbit, drifting glints behind the character. Check the face and the outfit on a capture of the hold; the `gold` preset was toned down after this |
 | The cloud edges stepped when the clouds were tinted purple | Keep the preset's cloud colour; grade the scene with `sky:to()` instead of tinting the `Clouds` object |
 
+A fifth build scored 69 against 62 for the fourth and 81 for the artist's cut (2026-11-21, one sitting, the same method). It loaded `fx_recipe` and ran `CineCamera.audit`; the judges named the star shapes of its dark start, its shot variety and the title landing with the number. What both still marked down:
+
+| Named defect | Rule, or what changed |
+|---|---|
+| "Effects are almost all white", "flat white wedges" on every palette | Changed in `fx_recipe`: a ray (star, shard, the head of a trail) now runs from a white heart to the palette's body colour at its point (`tip`) over a wider, non-additive ray in that colour (`rim`), and the rings and ribbons of the cutscene recipes carry the body colour. Choose two palettes for a cutscene (one for the build, one for the peak) and check them against the sky: `ice` on a cyan sky has no contrast, `gold` and `shadow` have |
+| The face close-up in the dark start read as "a flat purple blob" | One coloured light paints skin one flat hue. `void` now keeps a low neutral ambient; light a face with a neutral or warm fill and put the colour on the rim only. A light added on the cut itself showed late in the builder's captures: place it a shot earlier |
+| The result hold was 4 s with a still camera | A result hold is 2.5-3 s, and it moves (the rule above) |
+| Bars, title and counter snapped off before the fade, then the default baseplate | The overlays stay until the black of `ScreenOverlays.fade` is full; end them and restore the game under it |
+| Nothing below the character, no props for scale | Open. The engine gives no cloud sea (measured in `cine_sky`). Depth comes from things at three distances drifting past the flight: use the game's own props (coins, crates, shards of the item) |
+
+Its report also found that an overlay made inside a running clock event with `at = 0` built and ended in one step, with no error: an element without `at` now starts at the clock's current time, and a past `at` warns (`FxClock.attach`).
+
 Still the builder's own work: the shots, the camera, and one climax (the largest burst belongs to the peak; an earlier one fills half the frame at most, so the character stays readable under it). Both judges asked for a smile at the peak: `PoseBeats.face` (added after that verdict, not judged yet).
 
 ## 3f. An effect built from a reference clip (formation seal, sky pillar)

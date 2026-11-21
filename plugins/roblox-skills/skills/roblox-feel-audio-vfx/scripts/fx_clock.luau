@@ -497,11 +497,24 @@ function FxClock:sub(name: string, t0: number, len: number)
 	return s
 end
 
--- For an element's play(target, opts): embed in opts.clock at opts.at, or own a new clock (caller plays it).
+-- For an element's play(target, opts): embed in opts.clock at opts.at (seconds on that clock), or own a new
+-- clock (caller plays it). Without opts.at the element starts at the clock's current time: 0 while a
+-- timeline is being laid out, "now" when it is made inside a running event. An opts.at that is already
+-- wholly in the past would build and end in one step with nothing on screen, so that case warns.
+local late = {}
 function FxClock.attach(name: string, duration: number, opts)
 	opts = opts or {}
 	if opts.clock then
-		return opts.clock:sub(name, opts.at or 0, duration), opts.clock.root or opts.clock, false
+		local root = opts.clock.root or opts.clock
+		local now = math.max(0, (root.t or 0) - (opts.clock.t0 or 0))
+		local at = opts.at
+		if at == nil then
+			at = now
+		elseif at + duration <= now and not late[name] then
+			late[name] = true
+			warn(string.format("FxClock.attach: %s at %.2f s was already over at clock time %.2f s and will not show; leave at out to start now", name, at, now))
+		end
+		return opts.clock:sub(name, at, duration), root, false
 	end
 	local root = FxClock.new(name, duration)
 	return root:sub(name, 0, duration), root, true

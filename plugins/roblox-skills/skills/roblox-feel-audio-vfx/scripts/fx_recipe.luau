@@ -37,8 +37,13 @@
 --           four-point star), turn (deg), spin (deg per s), jitter (deg), vary (0-1, length), stagger (0-1, share of
 --           the span an arm may start late), fly (the arm leaves the centre and travels that many lengths: shards),
 --           open, close (shares of its span: opens by `open`, shrinks from `close`), plane ("floor"), color {from, to},
---           alpha, emission, brightness, z, up. Pointed rays drawn as tapered beams, no texture
---   tail  : at, to (s or "end"), w, life (s of path it keeps), taper (1 = straight taper), segments, color {head, end}, alpha,
+--           alpha, emission, brightness, z, up. Pointed rays drawn as tapered beams, no texture.
+--           tip (a palette key: the arm runs from its colour at the centre to this one at its point) and rim (a
+--           palette key: a wider arm in that colour under each ray, not additive) give a ray a white heart and a
+--           coloured body. Without them an additive ray at brightness 3-4 is white on any palette, and on a bright
+--           sky it is a white wedge (two judges, 2026-11-21)
+--   tail  : at, to (s or "end"), w, life (s of path it keeps), taper (1 = straight taper), segments, color {head, end},
+--           cool (2: the ribbon reaches its end colour by half its length; default 1), alpha,
 --           emission, brightness, z, up. A ribbon along the path a followed anchor flew (opts.follow), on the clock
 -- More fields: a burst or stream takes up (studs above the anchor; on a "trail" anchor it runs back along the
 -- flight, so a negative up sits ahead of the body), disc {radius, partial} (emit from a flat disc
@@ -199,11 +204,11 @@ L.ring = layer({ kind = "ring", name = "Ring", at = 0.05, dur = 0.21, r0 = 0.5, 
 -- the world answers: one light pulse that starts at its peak
 L.light = layer({ kind = "light", name = "Light", at = 0, dur = 0.2, peak = 4, range = 10 })
 -- a four-point star drawn with tapered beams: two long arms, two short
-L.star = layer({ kind = "spikes", name = "Star", at = 0, dur = 0.5, arms = 4, long = { 1, 0.42 }, turn = 90, len = 3, w = 0.34, color = { "white", "hot" }, emission = 1, brightness = 4, z = 1 })
+L.star = layer({ kind = "spikes", name = "Star", at = 0, dur = 0.5, arms = 4, long = { 1, 0.42 }, turn = 90, len = 3, w = 0.34, color = { "white", "hot" }, tip = "mid", rim = "mid", emission = 1, brightness = 4, z = 1 })
 -- a ribbon behind a moving anchor that tapers to nothing
-L.tail = layer({ kind = "tail", name = "Tail", at = 0, to = "end", w = 0.5, life = 0.45, taper = 1.2, color = { "white", "hot" }, alpha = 0, emission = 1, brightness = 3, z = 0.4 })
+L.tail = layer({ kind = "tail", name = "Tail", at = 0, to = "end", w = 0.5, life = 0.45, taper = 1.2, color = { "white", "mid" }, cool = 2.5, alpha = 0, emission = 1, brightness = 2.2, z = 0.4 })
 -- pointed shards thrown out of the centre
-L.shards = layer({ kind = "spikes", name = "Shards", at = 0, dur = 0.45, arms = 12, long = { 1, 0.6, 0.8 }, jitter = 10, vary = 0.25, stagger = 0.15, fly = 1.4, len = 1.6, w = 0.36, open = 0.3, close = 0.5, color = { "white", "hot" }, emission = 1, brightness = 3.5, z = 0.8 })
+L.shards = layer({ kind = "spikes", name = "Shards", at = 0, dur = 0.45, arms = 12, long = { 1, 0.6, 0.8 }, jitter = 10, vary = 0.25, stagger = 0.15, fly = 1.4, len = 1.6, w = 0.36, open = 0.3, close = 0.5, color = { "white", "hot" }, tip = "mid", rim = "deep", emission = 1, brightness = 3.5, z = 0.8 })
 
 -- Floor and body layers (recipes with anchor "feet" or "up") --------------------------------------------------
 -- a shock ring lying on the floor
@@ -623,7 +628,7 @@ FxRecipe.recipes = {
 			L.star({ len = 4.2, w = 0.5, dur = 0.45, open = 0.18, close = 0.4 }),
 			L.shards({ at = 0.03 }),
 			L.shards({ name = "Shards2", at = 0.1, arms = 9, len = 1.1, w = 0.26, fly = 2.4, dur = 0.55, turn = 20, color = { "hot", "mid" } }),
-			L.ring({ at = 0.04, r0 = 0.6, r1 = 5.2, w0 = 0.5, w1 = 0.05, dur = 0.4, twin = false }),
+			L.ring({ at = 0.04, r0 = 0.6, r1 = 5.2, w0 = 0.5, w1 = 0.05, dur = 0.4, twin = false, color = { "hot", "mid" } }),
 			L.pops({ at = 0.12, count = 10, speed = { 4, 10 }, spread = 180, life = { 0.3, 0.45 } }),
 			L.light({ peak = 3.5, range = 14, dur = 0.35 }),
 		},
@@ -638,8 +643,8 @@ FxRecipe.recipes = {
 			L.star({ len = 14, w = 0.7, dur = 1.8, long = { 1, 0.55 }, open = 0.12, close = 0.75, spin = 6 }),
 			L.star({ name = "Cross", turn = 45, len = 5, w = 0.5, dur = 1.6, long = { 1 }, open = 0.15, close = 0.7, spin = 6, color = { "white", "mid" } }),
 			L.shards({ at = 0.02, arms = 16, len = 2.2, fly = 2, dur = 0.6 }),
-			L.ring({ at = 0.03, r0 = 1, r1 = 9, w0 = 0.6, w1 = 0.08, dur = 0.6, twin = false }),
-			L.ring({ name = "Ring2", at = 0.18, r0 = 1, r1 = 13, w0 = 0.35, w1 = 0.05, dur = 0.8, twin = false }),
+			L.ring({ at = 0.03, r0 = 1, r1 = 9, w0 = 0.6, w1 = 0.08, dur = 0.6, twin = false, color = { "hot", "mid" } }),
+			L.ring({ name = "Ring2", at = 0.18, r0 = 1, r1 = 13, w0 = 0.35, w1 = 0.05, dur = 0.8, twin = false, color = { "mid", "deep" } }),
 			L.pops({ at = 0.2, count = 14, speed = { 5, 12 }, spread = 180, life = { 0.4, 0.6 } }),
 			L.light({ peak = 4, range = 22, dur = 1.6, hold = true }),
 		},
@@ -650,9 +655,9 @@ FxRecipe.recipes = {
 		anchor = "trail",
 		duration = 3,
 		layers = {
-			L.tail({ name = "Glow", w = 1.3, life = 0.5, alpha = 0.55, color = { "hot", "mid" }, z = 0.2 }),
+			L.tail({ name = "Glow", w = 1.3, life = 0.5, alpha = 0.5, color = { "mid", "deep" }, cool = 1.6, emission = 0.45, brightness = 1.6, z = 0.2 }),
 			L.tail(),
-			{ kind = "spikes", name = "Head", at = 0, dur = "end", arms = 4, long = { 1, 0.5 }, turn = 90, spin = 120, len = 2, w = 0.3, open = 0.03, close = 0.97, color = { "white", "hot" }, emission = 1, brightness = 4, z = 0.9 },
+			{ kind = "spikes", name = "Head", at = 0, dur = "end", arms = 4, long = { 1, 0.5 }, turn = 90, spin = 120, len = 2, w = 0.3, open = 0.03, close = 0.97, color = { "white", "hot" }, tip = "mid", rim = "mid", emission = 1, brightness = 4, z = 0.9 },
 			L.embers({ from = 0, to = "end", rate = 14, slot = "glow", along = false, squash = false, rotation = 0, speed = { 0.5, 2 }, accel = { 0, 0, 0 }, life = { 0.3, 0.5 }, size = { { 0, 0.22, 0.06 }, { 1, 0 } } }),
 			L.light({ dur = "end", peak = 1.5, range = 7, hold = true }),
 		},
@@ -1328,11 +1333,27 @@ function FxRecipe.play(recipe, target, opts)
 			local long = l.long or { 1 }
 			local rng = Random.new(l.seed or math.floor(p.X * 7 + p.Z * 13 + (l.at or 0) * 1000) % 100000)
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
+			local tipColor = l.tip and key(pal, l.tip)
+			local rimColor = l.rim and key(pal, l.rim)
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			local len, w = l.len * s, (l.w or l.len * 0.12) * s
 			local list = {}
 			for k = 1, arms do
 				local base, tip = clock:attachment(CFrame.new(p)), clock:attachment(CFrame.new(p))
+				-- the rim: the same ray drawn wider in the body colour and not additive, under the bright one. On a
+				-- dark stage it is a coloured halo, on a bright sky it is what keeps the ray a coloured shape
+				local under = rimColor
+					and clock:beam(base, tip, {
+						FaceCamera = true,
+						Segments = 1,
+						Width1 = 0,
+						LightEmission = 0.2,
+						Brightness = 1.3,
+						Color = ColorSequence.new(rimColor),
+						Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.75, 0.3), NumberSequenceKeypoint.new(1, 1) }),
+						ZOffset = ((l.z or 0.6) - 0.06) * s,
+						Enabled = false,
+					})
 				local beam = clock:beam(base, tip, {
 					FaceCamera = true,
 					Segments = 1,
@@ -1346,6 +1367,7 @@ function FxRecipe.play(recipe, target, opts)
 					base = base,
 					tip = tip,
 					beam = beam,
+					under = under,
 					ang = math.rad(l.turn or 0) + (k - 1) / arms * math.pi * 2 + rng:NextNumber(-1, 1) * math.rad(l.jitter or 0),
 					len = len * long[(k - 1) % #long + 1] * (1 + rng:NextNumber(-1, 1) * (l.vary or 0)),
 					wait = rng:NextNumber(0, l.stagger or 0),
@@ -1371,9 +1393,20 @@ function FxRecipe.play(recipe, target, opts)
 					arm.base.WorldPosition = here + dir * out
 					arm.tip.WorldPosition = here + dir * (out + arm.len * open)
 					arm.beam.Width0 = w * (0.35 + 0.65 * open)
-					arm.beam.Color = ColorSequence.new(col)
-					arm.beam.Transparency = NumberSequence.new(l.alpha or 0)
+					if tipColor then
+						arm.beam.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, col), ColorSequenceKeypoint.new(0.3, col:Lerp(tipColor, 0.45)), ColorSequenceKeypoint.new(1, tipColor) })
+					else
+						arm.beam.Color = ColorSequence.new(col)
+					end
+					-- with a tip colour the bright ray thins out toward its point, so the outer half shows the body colour
+					arm.beam.Transparency = if tipColor
+						then NumberSequence.new({ NumberSequenceKeypoint.new(0, l.alpha or 0), NumberSequenceKeypoint.new(0.3, l.alpha or 0), NumberSequenceKeypoint.new(1, 0.6 + 0.4 * (l.alpha or 0)) })
+						else NumberSequence.new(l.alpha or 0)
 					arm.beam.Enabled = u < 1 and open > 0.01
+					if arm.under then
+						arm.under.Width0 = w * (0.35 + 0.65 * open) * 2.1
+						arm.under.Enabled = arm.beam.Enabled
+					end
 				end
 			end)
 		elseif l.kind == "tail" then
@@ -1417,7 +1450,7 @@ function FxRecipe.play(recipe, target, opts)
 						cf = CFrame.fromMatrix(pos, tan, across(tan)),
 						width = w * (1 - f) ^ (l.taper or 1),
 						alpha = (l.alpha or 0) + (1 - (l.alpha or 0)) * f * f,
-						color = c0:Lerp(c1, f),
+						color = c0:Lerp(c1, math.min(1, f * (l.cool or 1))),
 					}
 				end)
 			end)
