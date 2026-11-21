@@ -13,7 +13,9 @@
 -- sizes, speeds and radii, and a light's range by its square root (times stay; a range grown with the scale lit the
 -- whole floor as one flat oval at scale 4); opts.palette overrides the recipe's palette (a name in
 -- FxRecipe.palettes or a table with the same keys); opts.duration replaces the recipe's duration (how long an aura
--- holds); opts.noPlay returns the clock unstarted.
+-- holds); opts.noPlay returns the clock unstarted; opts.depth moves the whole effect toward the camera (studs, added
+-- to every layer's z) or, negative, behind its anchor: a reveal star at depth -(1.2 + scale) stands behind a head
+-- instead of covering the face (its layers have z up to 1 x scale, so at depth 0 it is drawn in front).
 --
 -- Palette keys: white (the contact frame), hot (bright edge), mid (the saturated body), dark (the underlayer),
 -- smoke0 -> smoke1 (smoke over its life), light (the PointLight). A layer names keys, never colours.
@@ -38,6 +40,9 @@
 --           the span an arm may start late), fly (the arm leaves the centre and travels that many lengths: shards),
 --           open, close (shares of its span: opens by `open`, shrinks from `close`), plane ("floor"), color {from, to},
 --           alpha, emission, brightness, z, up. Pointed rays drawn as tapered beams, no texture.
+--           kite (0-0.5): the arm is a crystal, pointed at both ends with its widest place that share of its
+--           length from the tail, and its bright facet lies to one side of the coloured body. Without it a shard
+--           that flies is a flat triangle with a blunt end (two judges: "flat cone primitives").
 --           tip (a palette key: the arm runs from its colour at the centre to this one at its point) and rim (a
 --           palette key: a wider arm in that colour under each ray, not additive) give a ray a white heart and a
 --           coloured body. Without them an additive ray at brightness 3-4 is white on any palette, and on a bright
@@ -208,7 +213,7 @@ L.star = layer({ kind = "spikes", name = "Star", at = 0, dur = 0.5, arms = 4, lo
 -- a ribbon behind a moving anchor that tapers to nothing
 L.tail = layer({ kind = "tail", name = "Tail", at = 0, to = "end", w = 0.5, life = 0.45, taper = 1.2, color = { "white", "mid" }, cool = 2.5, alpha = 0, emission = 1, brightness = 2.2, z = 0.4 })
 -- pointed shards thrown out of the centre
-L.shards = layer({ kind = "spikes", name = "Shards", at = 0, dur = 0.45, arms = 12, long = { 1, 0.6, 0.8 }, jitter = 10, vary = 0.25, stagger = 0.15, fly = 1.4, len = 1.6, w = 0.36, open = 0.3, close = 0.5, color = { "white", "hot" }, tip = "mid", rim = "deep", emission = 1, brightness = 3.5, z = 0.8 })
+L.shards = layer({ kind = "spikes", name = "Shards", at = 0, dur = 0.45, arms = 10, long = { 1, 0.6, 0.8 }, jitter = 10, vary = 0.25, stagger = 0.15, fly = 1.4, len = 1.6, w = 0.36, kite = 0.3, open = 0.3, close = 0.5, color = { "white", "hot" }, tip = "mid", rim = "deep", emission = 1, brightness = 3.5, z = 0.8 })
 
 -- Floor and body layers (recipes with anchor "feet" or "up") --------------------------------------------------
 -- a shock ring lying on the floor
@@ -921,6 +926,9 @@ function FxRecipe.play(recipe, target, opts)
 		pal = FxRecipe.palettes[pal] or error(`fx_recipe: no palette "{pal}"`, 2)
 	end
 	local s = opts.scale or 1
+	-- depth: studs added to every layer's z. Negative puts the whole effect behind its anchor as the camera sees it
+	-- (a star behind a head: about -(1.2 + scale)); a layer's own z still orders the layers among themselves
+	local depth = opts.depth or 0
 	local p, d, model = resolve(target, opts)
 	local anchor = recipe.anchor or "hit"
 	local duration = opts.duration or recipe.duration
@@ -1099,7 +1107,9 @@ function FxRecipe.play(recipe, target, opts)
 			elseif l.up then
 				parent = moves(clock:attachment(CFrame.fromMatrix(at, side, spray)))
 			end
-			local e = clock:emitter(parent, emitterProps(l, pal, s))
+			local props = emitterProps(l, pal, s)
+			props.ZOffset = (props.ZOffset or 0) + depth
+			local e = clock:emitter(parent, props)
 			local lead = FxTextures.apply(e, l.slot).lead
 			local function setAlpha(seq)
 				e.Transparency = if lead then FxTextures.hideLead(seq, lead) else seq
@@ -1205,7 +1215,7 @@ function FxRecipe.play(recipe, target, opts)
 					-- "end" arcs (a tell) all last until the arrival, which covers their cut
 					local rk, turn = rng:NextNumber(0.95, 1.05), rng:NextNumber(-0.8, 0.8)
 					local life = if l.dur == "end" then dur else dur * rng:NextNumber(0.65, 1)
-					local arc = clock:ribbon(per, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s, TextureMode = Enum.TextureMode.Wrap, TextureLength = 0.07 })
+					local arc = clock:ribbon(per, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s + depth, TextureMode = Enum.TextureMode.Wrap, TextureLength = 0.07 })
 					for _, b in arc.beams do
 						FxTextures.apply(b, "band")
 					end
@@ -1229,8 +1239,8 @@ function FxRecipe.play(recipe, target, opts)
 				end
 				continue
 			end
-			local ring = clock:ribbon(segs, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s })
-			local twin = l.twin and clock:ribbon(segs, { LightEmission = 0, Brightness = 1, ZOffset = -0.3 * s })
+			local ring = clock:ribbon(segs, { LightEmission = l.emission or 0.8, Brightness = l.brightness or 2.5, ZOffset = (l.z or 0.5) * s + depth })
+			local twin = l.twin and clock:ribbon(segs, { LightEmission = 0, Brightness = 1, ZOffset = -0.3 * s + depth })
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			-- ease: "out" (default) fast then slow, "in" slow then fast (closes on a beat), "linear"
 			local ease = if l.ease == "in" then function(u) return u * u end elseif l.ease == "linear" then function(u) return u end else FxClock.outQuart
@@ -1265,7 +1275,7 @@ function FxRecipe.play(recipe, target, opts)
 				Segments = 1,
 				LightEmission = l.emission or 1,
 				Brightness = l.brightness or 3,
-				ZOffset = (l.z or 0.2) * s,
+				ZOffset = (l.z or 0.2) * s + depth,
 				TextureMode = Enum.TextureMode.Wrap,
 				TextureLength = l.length or (if slot == "band" then 0.07 else 16 * s),
 				TextureSpeed = l.speed or 0,
@@ -1300,7 +1310,7 @@ function FxRecipe.play(recipe, target, opts)
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
 			local y0, y1, r, w = (l.y0 or 0) * s, l.y1 * s, l.r * s, l.w * s
 			local turns, spin, phase, base = l.turns or 2, l.spin or -1.5, l.phase or 0, l.alpha or 0.15
-			local ribbon = clock:ribbon(segs, { LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.3) * s })
+			local ribbon = clock:ribbon(segs, { LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.3) * s + depth })
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			local function point(f, turn)
 				local ang = (turns * f + turn) * math.pi * 2
@@ -1338,8 +1348,13 @@ function FxRecipe.play(recipe, target, opts)
 			local dur = if l.dur == "end" then endAt - l.at else l.dur
 			local len, w = l.len * s, (l.w or l.len * 0.12) * s
 			local list = {}
+			local kite = l.kite
 			for k = 1, arms do
 				local base, tip = clock:attachment(CFrame.new(p)), clock:attachment(CFrame.new(p))
+				-- a crystal: tail -> shoulder -> point, so two beams per colour (0 -> w, w -> 0)
+				local tail = kite and clock:attachment(CFrame.new(p))
+				local tailLit = kite and clock:attachment(CFrame.new(p))
+				local baseLit, tipLit = kite and clock:attachment(CFrame.new(p)), kite and clock:attachment(CFrame.new(p))
 				-- the rim: the same ray drawn wider in the body colour and not additive, under the bright one. On a
 				-- dark stage it is a coloured halo, on a bright sky it is what keeps the ray a coloured shape
 				local under = rimColor
@@ -1351,21 +1366,47 @@ function FxRecipe.play(recipe, target, opts)
 						Brightness = 1.3,
 						Color = ColorSequence.new(rimColor),
 						Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 0.05), NumberSequenceKeypoint.new(0.75, 0.3), NumberSequenceKeypoint.new(1, 1) }),
-						ZOffset = ((l.z or 0.6) - 0.06) * s,
+						ZOffset = ((l.z or 0.6) - 0.06) * s + depth,
 						Enabled = false,
 					})
-				local beam = clock:beam(base, tip, {
-					FaceCamera = true,
-					Segments = 1,
-					Width1 = 0,
-					LightEmission = l.emission or 1,
-					Brightness = l.brightness or 3,
-					ZOffset = (l.z or 0.6) * s,
-					Enabled = false,
-				})
+				-- the bright ray of a plain spike; a crystal has its lit facet instead (below)
+				local beam = not kite
+					and clock:beam(base, tip, {
+						FaceCamera = true,
+						Segments = 1,
+						Width1 = 0,
+						LightEmission = l.emission or 1,
+						Brightness = l.brightness or 3,
+						ZOffset = (l.z or 0.6) * s + depth,
+						Enabled = false,
+					})
+				local backUnder = kite
+					and rimColor
+					and clock:beam(tail, base, {
+						FaceCamera = true,
+						Segments = 1,
+						Width0 = 0,
+						LightEmission = 0.2,
+						Brightness = 1.3,
+						Color = ColorSequence.new(rimColor),
+						Transparency = NumberSequence.new(0.05),
+						ZOffset = ((l.z or 0.6) - 0.06) * s + depth,
+						Enabled = false,
+					})
+				-- the lit facet: a narrower crystal to one side of the body, in the bright colours
+				local lit = kite and clock:beam(baseLit, tipLit, { FaceCamera = true, Segments = 1, Width1 = 0, LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.6) * s + depth, Enabled = false })
+				local backLit = kite and clock:beam(tailLit, baseLit, { FaceCamera = true, Segments = 1, Width0 = 0, LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.6) * s + depth, Enabled = false })
+				beam = beam or lit
 				list[k] = {
 					base = base,
 					tip = tip,
+					tail = tail,
+					tailLit = tailLit,
+					baseLit = baseLit,
+					tipLit = tipLit,
+					backUnder = backUnder,
+					backLit = backLit,
+					side = if k % 2 == 0 then 1 else -1,
 					beam = beam,
 					under = under,
 					ang = math.rad(l.turn or 0) + (k - 1) / arms * math.pi * 2 + rng:NextNumber(-1, 1) * math.rad(l.jitter or 0),
@@ -1390,9 +1431,32 @@ function FxRecipe.play(recipe, target, opts)
 					local dir = right * math.cos(arm.ang + turn) + top * math.sin(arm.ang + turn)
 					-- fly: the shard leaves the centre and travels that many times its own length
 					local out = arm.len * (l.fly or 0) * FxClock.outQuart(v)
-					arm.base.WorldPosition = here + dir * out
-					arm.tip.WorldPosition = here + dir * (out + arm.len * open)
-					arm.beam.Width0 = w * (0.35 + 0.65 * open)
+					local wide = w * (0.35 + 0.65 * open)
+					if kite then
+						-- tail at `out`, the widest place `kite` of the way along, the point at the far end; the lit
+						-- facet is 45% as wide, a little shorter, and sits a quarter of the width to one side
+						local across = (right * -math.sin(arm.ang + turn) + top * math.cos(arm.ang + turn)) * (wide * 0.5 * arm.side)
+						local reach = arm.len * open
+						arm.tail.WorldPosition = here + dir * out
+						arm.base.WorldPosition = here + dir * (out + reach * kite)
+						arm.tip.WorldPosition = here + dir * (out + reach)
+						arm.tailLit.WorldPosition = here + dir * (out + reach * 0.12) + across
+						arm.baseLit.WorldPosition = here + dir * (out + reach * (kite + 0.04)) + across
+						arm.tipLit.WorldPosition = here + dir * (out + reach * 0.9) + across
+						arm.backLit.Width1 = wide * 0.9
+						arm.backLit.Color = ColorSequence.new(col)
+						arm.backLit.Transparency = NumberSequence.new(l.alpha or 0)
+						arm.backLit.Enabled = u < 1 and open > 0.01
+						arm.beam.Width0 = wide * 0.9
+						if arm.backUnder then
+							arm.backUnder.Width1 = wide * 2.1
+							arm.backUnder.Enabled = u < 1 and open > 0.01
+						end
+					else
+						arm.base.WorldPosition = here + dir * out
+						arm.tip.WorldPosition = here + dir * (out + arm.len * open)
+						arm.beam.Width0 = wide
+					end
 					if tipColor then
 						arm.beam.Color = ColorSequence.new({ ColorSequenceKeypoint.new(0, col), ColorSequenceKeypoint.new(0.3, col:Lerp(tipColor, 0.45)), ColorSequenceKeypoint.new(1, tipColor) })
 					else
@@ -1404,7 +1468,7 @@ function FxRecipe.play(recipe, target, opts)
 						else NumberSequence.new(l.alpha or 0)
 					arm.beam.Enabled = u < 1 and open > 0.01
 					if arm.under then
-						arm.under.Width0 = w * (0.35 + 0.65 * open) * 2.1
+						arm.under.Width0 = wide * 2.1
 						arm.under.Enabled = arm.beam.Enabled
 					end
 				end
@@ -1415,7 +1479,7 @@ function FxRecipe.play(recipe, target, opts)
 			local segs = l.segments or 10
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
 			local w, life = l.w * s, l.life or 0.4
-			local ribbon = clock:ribbon(segs, { FaceCamera = true, LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.4) * s })
+			local ribbon = clock:ribbon(segs, { FaceCamera = true, LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.4) * s + depth })
 			local hist = {} -- { clock time, position }, newest last
 			local to = if l.to == "end" then stopAt else l.to
 			local function posAt(time)

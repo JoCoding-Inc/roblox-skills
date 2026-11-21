@@ -19,7 +19,9 @@
 -- opts.noReturn      leave the camera Scriptable at the end (the caller restores with CineCamera.restore())
 -- CineCamera.fit(height, fov, share) -> studs: how far away something that tall fills that share of the frame.
 -- CineCamera.audit(shots, height?) -> { string }: shots where the subject is a dot (under 15% of the frame
---   height) or the camera is inside it; run it on every shot list before the first capture.
+--   height), the camera is inside it, the head is larger than 45% of the frame height (an avatar's face is a flat
+--   shape at that size), or the subject stays under 25% of the frame for more than 1.2 s in a row; run it on
+--   every shot list before the first capture.
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -198,7 +200,9 @@ end
 -- Two blind judges marked down exactly these frames in a cutscene whose shots were set by offsets alone.
 function CineCamera.audit(shots, height: number?): { string }
 	local h = height or 5.5
+	local head = h * 0.22 -- 1.2 studs on a 5.5 stud avatar
 	local out = {}
+	local small, told = 0, false
 	for i, shot in shots do
 		local fov = shot.fov
 		for k, framing in { shot.from, shot.to } do -- a shot without a move is read once
@@ -210,7 +214,22 @@ function CineCamera.audit(shots, height: number?): { string }
 				table.insert(out, string.format("%s: the subject fills %d%% of the frame height; at fov %d come within %.0f studs or narrow the fov", label, share * 100, f, CineCamera.fit(h, f, 0.2)))
 			elseif dist < 1.6 then
 				table.insert(out, string.format("%s: the camera is %.1f studs from the subject's origin, inside the hair or the body", label, dist))
+			elseif head / (2 * dist * math.tan(math.rad(f) / 2)) > 0.45 then
+				-- an avatar's head is a smooth shape with a decal: at frame size it is a flat oval (named in two sittings)
+				table.insert(out, string.format("%s: the head fills %d%% of the frame height; an avatar's face is a flat shape at that size: stay at %.1f studs or more at fov %d (head under 40%%), or make the shot a close-up of the effect", label, head / (2 * dist * math.tan(math.rad(f) / 2)) * 100, CineCamera.fit(head, f, 0.4), f))
 			end
+		end
+		-- a stretch where the subject is small: a wide is a beat, not a place to stay
+		local f = if type(fov) == "table" then math.max(fov[1], fov[2] or fov[1]) else fov or 70
+		local far = math.max((shot.from.offset :: Vector3).Magnitude, (shot.to.offset :: Vector3).Magnitude)
+		if h / (2 * far * math.tan(math.rad(f) / 2)) < 0.25 then
+			small += shot.len or 0
+			if small > 1.2 and not told then
+				told = true
+				table.insert(out, string.format("shot %d %s: the subject has been under 25%% of the frame height for %.1f s in a row; keep a wide to 1 s or less, or bring effects and movement into it", i, tostring(shot.name or ""), small))
+			end
+		else
+			small, told = 0, false
 		end
 	end
 	for _, line in out do

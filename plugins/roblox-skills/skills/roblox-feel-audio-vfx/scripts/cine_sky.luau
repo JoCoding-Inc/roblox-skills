@@ -266,7 +266,7 @@ function Sky.enter(preset: string, opts)
 	-- A cloud sea under the stage. It takes the preset's cloud colour, crosses with sky:to() and is hidden while
 	-- the preset has no clouds (void), so call it once after Sky.enter, also when the cutscene starts in the dark.
 	-- opts: depth (studs from the stage down to the highest banks, default 38), reach (how far the banks spread,
-	-- default 900), density (0.3-1.5, default 1: about 660 particles), color (instead of the preset's), seed
+	-- default 900), density (0.3-1.5, default 1: about 1,600 particles in 149 emitters), color (instead of the preset's), seed
 	local seaParts = nil
 	function self:sea(o)
 		o = o or {}
@@ -276,7 +276,7 @@ function Sky.enter(preset: string, opts)
 		local depth, reach, density = o.depth or 38, o.reach or 900, math.clamp(o.density or 1, 0.3, 1.5)
 		local rng = Random.new(o.seed or 7)
 		local layers = {} -- { emitter, alpha, kind }
-		local function puffs(cf: CFrame, size: Vector3, puff: number, count: number, alpha: number, emission: number, kind: string)
+		local function puffs(cf: CFrame, size: Vector3, puff: number, count: number, alpha: number, emission: number, kind: string, haze: number)
 			local part = Instance.new("Part")
 			part.Name = "CineSkySea"
 			part.Anchored, part.CanCollide, part.CanQuery, part.CanTouch = true, false, false, false
@@ -297,26 +297,50 @@ function Sky.enter(preset: string, opts)
 			e.Parent = part
 			e:Emit(count)
 			table.insert(windParts, part)
-			table.insert(layers, { emitter = e, alpha = alpha, kind = kind })
+			table.insert(layers, { emitter = e, alpha = alpha, kind = kind, haze = haze })
 		end
 		local at = self.origin.Position
-		-- the floor: one wide, pale, even layer far below
-		puffs(CFrame.new(at - Vector3.new(0, depth + 100, 0)), Vector3.new(2200, 8, 2200), 150, math.ceil(240 * density), 0.15, 0.3, "floor")
-		-- the banks: clusters with gaps between them, nearer and lighter, each with a brighter crown
-		for _ = 1, math.ceil(30 * density) do
-			local a, r, w = rng:NextNumber(0, math.pi * 2), rng:NextNumber(70, reach), rng:NextNumber(120, 260)
-			local cf = CFrame.new(at + Vector3.new(math.cos(a) * r, -rng:NextNumber(depth, depth + 47), math.sin(a) * r)) * CFrame.Angles(0, rng:NextNumber(0, math.pi), 0)
-			local puff = rng:NextNumber(36, 58)
-			puffs(cf, Vector3.new(w, 10, w * 0.45), puff, 9, 0.2, 0.45, "bank")
-			puffs(cf + Vector3.new(0, 10, 0), Vector3.new(w * 0.6, 6, w * 0.25), 22, 5, 0.2, 0.6, "crown")
+		-- The floor far below is the sea's shadow tone: everything that stands on it is lighter than what lies
+		-- behind it. A pale floor under pale banks was "a flat pink fog floor, no forms or depth" to two judges.
+		-- (its puffs are 90 studs across, so its top lies about 45 studs over this part: the towers stand out of it by
+		-- 40-60 studs. Lower than this the haze takes it and the gaps between towers show empty sky; higher, or with
+		-- larger puffs, it swallows the towers: both measured)
+		puffs(CFrame.new(at - Vector3.new(0, depth + 122, 0)), Vector3.new(2600, 8, 2600), 90, math.ceil(420 * density), 0.08, 0.1, "floor", 0)
+		-- Towers in three bands of distance (near, middle, far). Each is three tiers that narrow upward: a wide
+		-- shadowed base, a lighter body, a small bright crown set a little off centre, so it has a lit top and a
+		-- dark foot like a cumulus. Far towers take some of the haze, which is what puts them far away.
+		local bands = { { 90, 260, 9 }, { 260, 560, 14 }, { 560, math.max(reach, 600), 14 } }
+		local sun = Sky.sunDirection()
+		local sunSide = Vector3.new(sun.X, 0, sun.Z)
+		sunSide = if sunSide.Magnitude > 0.05 then sunSide.Unit else Vector3.xAxis
+		for b, band in bands do
+			local haze = (b - 1) * 0.22
+			for _ = 1, math.ceil(band[3] * density) do
+				-- compact, so there is a dark valley between one tower and the next: wide sheets run together into fog
+				local a, r, w = rng:NextNumber(0, math.pi * 2), rng:NextNumber(band[1], band[2]), rng:NextNumber(70, 130)
+				local tall = rng:NextNumber(0.8, 1.4)
+				-- tops stay under the stage: the highest head ends about 10 studs below the character's feet
+				local cf = CFrame.new(at + Vector3.new(math.cos(a) * r, -rng:NextNumber(depth + 28, depth + 64), math.sin(a) * r)) * CFrame.Angles(0, rng:NextNumber(0, math.pi), 0)
+				local lean = sunSide * (w * 0.08) -- every tier a step toward the sun: the lit side is the same on all
+				puffs(cf, Vector3.new(w, 6, w * 0.6), rng:NextNumber(40, 50), 6, 0.1, 0.2, "base", haze)
+				puffs(cf + Vector3.new(0, 11 * tall, 0) + lean, Vector3.new(w * 0.7, 6, w * 0.42), rng:NextNumber(30, 36), 6, 0.08, 0.4, "lower", haze)
+				puffs(cf + Vector3.new(0, 21 * tall, 0) + lean * 2, Vector3.new(w * 0.5, 6, w * 0.34), rng:NextNumber(22, 28), 9, 0.06, 0.4, "upper", haze)
+				puffs(cf + Vector3.new(0, 30 * tall, 0) + lean * 3, Vector3.new(w * 0.36, 5, w * 0.26), rng:NextNumber(15, 21), 11, 0.04, 0.45, "head", haze)
+			end
 		end
-		local white, shade = Color3.new(1, 1, 1), Color3.fromRGB(255, 190, 215)
+		local white, shadow = Color3.new(1, 1, 1), Color3.fromRGB(138, 122, 176)
 		seaRefresh = function()
 			local base = o.color or clouds.Color
+			local far = atmosphere.Color
 			local show = clouds.Enabled and 1 or 0 -- no clouds in the preset (void): the sea waits unseen
 			for _, l in layers do
-				local c = if l.kind == "floor" then base:Lerp(shade, 0.25) elseif l.kind == "bank" then base:Lerp(white, 0.3) else base:Lerp(white, 0.85)
-				l.emitter.Color = ColorSequence.new(c)
+				local c = if l.kind == "floor"
+					then base:Lerp(shadow, 0.5)
+					elseif l.kind == "base" then base:Lerp(shadow, 0.3)
+					elseif l.kind == "lower" then base:Lerp(shadow, 0.1)
+					elseif l.kind == "upper" then base:Lerp(white, 0.6)
+					else base:Lerp(white, 0.96)
+				l.emitter.Color = ColorSequence.new(c:Lerp(far, l.haze))
 				local alpha = 1 - (1 - l.alpha) * show
 				l.emitter.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.03, alpha), NumberSequenceKeypoint.new(0.97, alpha), NumberSequenceKeypoint.new(1, 1) })
 			end
