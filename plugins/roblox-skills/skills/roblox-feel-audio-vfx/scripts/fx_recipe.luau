@@ -16,6 +16,7 @@
 -- holds); opts.noPlay returns the clock unstarted; opts.depth moves the whole effect toward the camera (studs, added
 -- to every layer's z) or, negative, behind its anchor: a reveal star at depth -(1.2 + scale) stands behind a head
 -- instead of covering the face (its layers have z up to 1 x scale, so at depth 0 it is drawn in front).
+-- opts.light scales every light layer's brightness (0-1; 0.4-0.5 next to a face in a close-up, 0 for none).
 --
 -- Palette keys: white (the contact frame), hot (bright edge), mid (the saturated body), dark (the underlayer),
 -- smoke0 -> smoke1 (smoke over its life), light (the PointLight). A layer names keys, never colours.
@@ -929,6 +930,9 @@ function FxRecipe.play(recipe, target, opts)
 	-- depth: studs added to every layer's z. Negative puts the whole effect behind its anchor as the camera sees it
 	-- (a star behind a head: about -(1.2 + scale)); a layer's own z still orders the layers among themselves
 	local depth = opts.depth or 0
+	-- light: a share of every light layer's brightness (0 = no lights). A recipe's lights are sized for a body seen
+	-- from 10 studs and more; on a face 1-3 studs from the camera they clip the skin (0.4-0.5 held in a close-up)
+	local lightShare = opts.light or 1
 	local p, d, model = resolve(target, opts)
 	local anchor = recipe.anchor or "hit"
 	local duration = opts.duration or recipe.duration
@@ -1593,10 +1597,15 @@ function FxRecipe.play(recipe, target, opts)
 					b *= k * k
 				end
 				for _, x in lights do
-					x[1].Brightness = b * x[2]
 					if cools then
 						x[1].Color = keyAt(pal, l.color, u)
 					end
+					local out = b * x[2] * lightShare
+					-- on a far stage the sky takes the light as a pulse of ambient light (FxClock.glow) and the PointLight stays dark
+					if FxClock.glow and FxClock.glow(x[1], x[1].Color, out, holder.WorldPosition, x[1].Range) then
+						out = 0
+					end
+					x[1].Brightness = out
 				end
 			end)
 		else

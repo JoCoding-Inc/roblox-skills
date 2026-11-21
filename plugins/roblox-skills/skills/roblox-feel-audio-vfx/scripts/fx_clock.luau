@@ -34,6 +34,10 @@ FxClock.breakpoints = nil :: { number }?
 FxClock.onBreak = nil :: ((clock: any, t: number, index: number) -> ())?
 FxClock.onStop = nil :: ((clock: any) -> ())?
 FxClock.active = {} :: { [any]: boolean }
+-- Light hook. A stage far from where the camera was has no local lights for 6.5-10 s (cine_sky), so the sky sets
+-- this while it is entered: a module sends each of its lights here every frame (any key, colour, brightness,
+-- world position, range) and leaves its PointLight dark when the hook returns true. nil: lights are PointLights.
+FxClock.glow = nil :: ((key: any, color: Color3, brightness: number, position: Vector3, range: number) -> boolean)?
 
 local function runtimeFolder(): Instance
 	local f = workspace:FindFirstChild("FxRuntime")
