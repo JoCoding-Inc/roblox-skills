@@ -15,13 +15,17 @@
 --   move             { t0, t1, ease } inside the shot (default whole shot, ease "outCubic")
 --   shake            { amp = deg, roll = deg, len = s, at = s into the shot, step = s (0 = smooth noise) }
 --   name             label printed with the cut ("CUT|t|name|len")
+--   clear            false: effects may cross the face in this shot; a BasePart: keep that part clear instead of
+--                    the subject's Head (found by itself when the subject is a character or one of its parts)
+--   hold             true: this shot is a held frame on purpose (the audit does not ask it for a move)
 -- opts.returnTime    seconds of the ease back to the player (default 0.6; 0 = instant)
 -- opts.noReturn      leave the camera Scriptable at the end (the caller restores with CineCamera.restore())
 -- CineCamera.fit(height, fov, share) -> studs: how far away something that tall fills that share of the frame.
 -- CineCamera.audit(shots, height?) -> { string }: shots where the subject is a dot (under 15% of the frame
 --   height), the camera is inside it, the head is larger than 45% of the frame height (an avatar's face is a flat
---   shape at that size), or the subject stays under 25% of the frame for more than 1.2 s in a row; run it on
---   every shot list before the first capture.
+--   shape at that size), the subject stays under 25% of the frame for more than 1.2 s in a row, the frame does not
+--   move for more than 0.5 s, or the last shot starts with the subject under 45% of the frame; run it on every
+--   shot list before the first capture.
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -221,7 +225,7 @@ function CineCamera.audit(shots, height: number?): { string }
 		end
 		-- a stretch where the subject is small: a wide is a beat, not a place to stay
 		local f = if type(fov) == "table" then math.max(fov[1], fov[2] or fov[1]) else fov or 70
-		local far = math.max((shot.from.offset :: Vector3).Magnitude, (shot.to.offset :: Vector3).Magnitude)
+		local far = math.max((shot.from.offset :: Vector3).Magnitude, ((shot.to or shot.from).offset :: Vector3).Magnitude)
 		if h / (2 * far * math.tan(math.rad(f) / 2)) < 0.25 then
 			small += shot.len or 0
 			if small > 1.2 and not told then
@@ -230,6 +234,37 @@ function CineCamera.audit(shots, height: number?): { string }
 			end
 		else
 			small, told = 0, false
+		end
+	end
+	-- a frame where nothing moves: the camera keeps its distance, angle, fov and roll for more than half a second
+	-- (two judges named a 0.8 s wide and a 0.6 s side shot "static hold, the energy drops")
+	local last, lastEnd = nil, -1
+	for i, shot in shots do
+		local a, b = shot.from, shot.to or shot.from
+		local dist = math.max((a.offset :: Vector3).Magnitude, 1e-3)
+		local function two(v)
+			return if type(v) == "table" then math.abs((v[2] or v[1]) - v[1]) else 0
+		end
+		local still = ((b.offset :: Vector3) - (a.offset :: Vector3)).Magnitude / dist < 0.08
+			and ((b.look or Vector3.zero) - (a.look or Vector3.zero)).Magnitude < 0.4
+			and math.abs(shot.orbit or 0) < 5
+			and two(shot.fov) < 3
+			and two(shot.roll) < 3
+		if still and (shot.len or 0) > 0.5 and not shot.shake and not shot.hold then
+			table.insert(out, string.format("shot %d %s: the frame does not move for %.1f s; push in or pull out 10-20%% of the distance, orbit 8-15 degrees, track or roll, or cut it to 0.4 s (hold = true marks a held frame meant as one)", i, tostring(shot.name or ""), shot.len))
+		end
+		if shot.t + shot.len > lastEnd then
+			last, lastEnd = i, shot.t + shot.len
+		end
+	end
+	-- the shot the name lands on: the payoff is a person, so it starts as a medium close and pulls out after
+	if last then
+		local shot = shots[last]
+		local fov = shot.fov
+		local f = if type(fov) == "table" then fov[1] else fov or 70
+		local share = h / (2 * (shot.from.offset :: Vector3).Magnitude * math.tan(math.rad(f) / 2))
+		if share < 0.45 then
+			table.insert(out, string.format("shot %d %s (the last shot): it starts with the subject at %d%% of the frame height; land the name on a medium close (55%% or more: %.1f studs at fov %d) and pull out after about 0.8 s", last, tostring(shots[last].name or ""), share * 100, CineCamera.fit(h, f, 0.55), f))
 		end
 	end
 	for _, line in out do
@@ -251,12 +286,41 @@ function CineCamera.play(shots, opts)
 	local lastCF, lastFov = cam.CFrame, cam.FieldOfView
 	local released = false
 	CineCamera.cutLog = {}
+	-- the head of the character a shot frames is kept clear of drawn shapes (FxClock.clear): a star, a shard or a
+	-- ribbon that would cross the face closes until it is past it. shot.clear = false turns it off for a shot, a
+	-- part there (or in opts.clear, for subjects given as a function or a CFrame) names what to keep clear
+	local kept: BasePart? = nil
+	local function keep(shot)
+		local part: any = nil
+		if shot and shot.clear ~= false then
+			part = shot.clear or opts.clear
+			if typeof(part) ~= "Instance" then
+				part = nil
+				local sub = shot.subject
+				if typeof(sub) == "Instance" then
+					local model = if sub:IsA("Model") then sub else sub:FindFirstAncestorWhichIsA("Model")
+					local head = model and model:FindFirstChild("Head")
+					part = if head and head:IsA("BasePart") then head else nil
+				end
+			end
+		end
+		if part ~= kept then
+			if kept then
+				FxClock.clear[kept] = nil
+			end
+			kept = part
+			if part then
+				FxClock.clear[part] = math.max(part.Size.X, part.Size.Y) * 0.9
+			end
+		end
+	end
 
 	local function release()
 		if released then
 			return
 		end
 		released = true
+		keep(nil)
 		if not opts.noReturn then
 			CineCamera.restore()
 		end
@@ -284,6 +348,7 @@ function CineCamera.play(shots, opts)
 				current = idx
 				local s = shots[idx]
 				table.insert(CineCamera.cutLog, { t = s.t, len = s.len, name = s.name or tostring(idx) })
+				keep(s)
 				print(string.format("CUT|%.3f|%s|%.3f", s.t, s.name or tostring(idx), s.len))
 			end
 			local s = shots[idx]
@@ -296,6 +361,7 @@ function CineCamera.play(shots, opts)
 			cam.FieldOfView = fov
 			lastCF, lastFov = cf, fov
 		elseif ret > 0 and t < listEnd + ret then
+			keep(nil)
 			local goal = playerView()
 			local u = FxClock.inOutSine(math.clamp((t - listEnd) / ret, 0, 1))
 			if goal then

@@ -37,6 +37,35 @@ FxClock.active = {} :: { [any]: boolean }
 -- Light hook. A stage far from where the camera was has no local lights for 6.5-10 s (cine_sky), so the sky sets
 -- this while it is entered: a module sends each of its lights here every frame (any key, colour, brightness,
 -- world position, range) and leaves its PointLight dark when the hook returns true. nil: lights are PointLights.
+-- Parts to keep clear (a face in a close shot): part -> radius in studs. Drawn shapes that the camera sees in front
+-- of such a part, within that radius of the line from the camera to it, close until they are past it (fx_recipe:
+-- spikes and tails). cine_camera fills it for the head of a character it frames; FxRecipe.keepClear adds your own.
+FxClock.clear = {} :: { [BasePart]: number }
+-- 1 = drawn, 0 = closed. pos: a point of the shape; toward: how far the shape is drawn toward the camera (ZOffset)
+function FxClock.clearAt(pos: Vector3, toward: number?): number
+	local share = 1
+	local cam = workspace.CurrentCamera
+	if not cam or next(FxClock.clear) == nil then
+		return share
+	end
+	local eye = cam.CFrame.Position
+	for part, radius in FxClock.clear do
+		if part.Parent then
+			local to = part.Position - eye
+			local far = to.Magnitude
+			local rel = pos - eye
+			local along = rel:Dot(to) / math.max(far, 1e-3)
+			-- in front of the part as drawn (a shape 0.4 studs behind its middle is behind the face)
+			if along > 0.2 and along - (toward or 0) < far + 0.4 then
+				-- its distance from the part as the camera sees it: the offset from the sight line, scaled to the part's depth
+				local off = (rel - to / far * along).Magnitude * far / along
+				share = math.min(share, FxClock.smooth(radius * 0.75, radius * 1.35, off))
+			end
+		end
+	end
+	return share
+end
+
 FxClock.glow = nil :: ((key: any, color: Color3, brightness: number, position: Vector3, range: number) -> boolean)?
 
 local function runtimeFolder(): Instance

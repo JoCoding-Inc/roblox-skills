@@ -217,7 +217,8 @@ L.star = layer({ kind = "spikes", name = "Star", at = 0, dur = 0.5, arms = 4, lo
 -- a ribbon behind a moving anchor that tapers to nothing
 L.tail = layer({ kind = "tail", name = "Tail", at = 0, to = "end", w = 0.5, life = 0.45, taper = 1.2, color = { "white", "mid" }, cool = 2.5, alpha = 0, emission = 1, brightness = 2.2, z = 0.4 })
 -- pointed shards thrown out of the centre
-L.shards = layer({ kind = "spikes", name = "Shards", at = 0, dur = 0.45, arms = 10, long = { 1, 0.6, 0.8 }, jitter = 10, vary = 0.25, stagger = 0.15, fly = 1.4, len = 1.6, w = 0.36, kite = 0.3, open = 0.3, close = 0.5, color = { "white", "hot" }, tip = "mid", rim = "deep", emission = 1, brightness = 3.5, z = 0.8 })
+-- gap 0.8: the shards start outside a head-sized middle, so a burst on a character does not start on its face
+L.shards = layer({ kind = "spikes", name = "Shards", at = 0, dur = 0.45, gap = 0.8, arms = 10, long = { 1, 0.6, 0.8 }, jitter = 10, vary = 0.25, stagger = 0.15, fly = 1.4, len = 1.6, w = 0.36, kite = 0.3, open = 0.3, close = 0.5, color = { "white", "hot" }, tip = "mid", rim = "deep", emission = 1, brightness = 3.5, z = 0.8 })
 
 -- Floor and body layers (recipes with anchor "feet" or "up") --------------------------------------------------
 -- a shock ring lying on the floor
@@ -1454,6 +1455,11 @@ function FxRecipe.play(recipe, target, opts)
 					local dir = right * math.cos(arm.ang + turn) + top * math.sin(arm.ang + turn)
 					-- fly: the shard leaves the centre and travels that many times its own length
 					local out = arm.len * (l.fly or 0) * FxClock.outQuart(v) + (l.gap or 0) * s
+					-- an arm that would cross a face (FxClock.clear) closes while it is in front of it
+					if next(FxClock.clear) ~= nil then
+						local zoff = (l.z or 0.6) * s + depth
+						open *= math.min(FxClock.clearAt(here + dir * out, zoff), FxClock.clearAt(here + dir * (out + arm.len * 0.5), zoff), FxClock.clearAt(here + dir * (out + arm.len), zoff))
+					end
 					local wide = w * (0.35 + 0.65 * open)
 					if kite then
 						-- tail at `out`, the widest place `kite` of the way along, the point at the far end; the lit
@@ -1502,7 +1508,8 @@ function FxRecipe.play(recipe, target, opts)
 			local segs = l.segments or 10
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
 			local w, life = l.w * s, l.life or 0.4
-			local ribbon = clock:ribbon(segs, { FaceCamera = true, LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = (l.z or 0.4) * s + depth })
+			local zoff = (l.z or 0.4) * s + depth
+			local ribbon = clock:ribbon(segs, { FaceCamera = true, LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = zoff })
 			local hist = {} -- { clock time, position }, newest last
 			local to = if l.to == "end" then stopAt else l.to
 			local function posAt(time)
@@ -1533,10 +1540,23 @@ function FxRecipe.play(recipe, target, opts)
 					local pos = posAt(time)
 					local back = posAt(time - span / segs) - posAt(time + span / segs)
 					local tan = if back.Magnitude > 1e-4 then back.Unit else spray
+					-- a band seen end-on is a flat slab across the frame and one near the lens covers it (a camera behind a
+					-- flyer, a ribbon that orbits a body in a close shot: named by a builder and by two judges): it goes out
+					-- as its direction nears the line of sight (under about 20 degrees) and within 4 studs of the lens
+					local seen = 1
+					local cam = workspace.CurrentCamera
+					if cam and l.lens ~= false then
+						local toCam = cam.CFrame.Position - pos
+						local d = toCam.Magnitude
+						if d > 1e-3 then
+							seen = smooth(0.12, 0.4, tan:Cross(toCam / d).Magnitude) * smooth(1.5, 4, d)
+						end
+						seen *= FxClock.clearAt(pos, zoff)
+					end
 					return {
 						cf = CFrame.fromMatrix(pos, tan, across(tan)),
 						width = w * (1 - f) ^ (l.taper or 1),
-						alpha = (l.alpha or 0) + (1 - (l.alpha or 0)) * f * f,
+						alpha = 1 - (1 - ((l.alpha or 0) + (1 - (l.alpha or 0)) * f * f)) * seen,
 						color = c0:Lerp(c1, math.min(1, f * (l.cool or 1))),
 					}
 				end)
@@ -1689,6 +1709,20 @@ end
 
 -- Something flies from `from` to `to` (a moving `to` is chased): the trail follows it, the tell waits at `to`,
 -- the impact plays on arrival. Returns the flight's clock (clock.tell is the tell's clock).
+-- Keep a part clear of drawn shapes: FxRecipe.keepClear(character.Head, 1.4) -> { stop() }. While it is on, the arms
+-- of stars, shards and crystals and the bands of trails that the camera sees in front of the part, within `radius`
+-- studs of it on screen, close until they are past it; shapes behind the part are untouched. cine_camera does this
+-- by itself for the head of a character it frames, so call it only for a shot you drive yourself or for another part
+-- (a held item, a pet). Two judges in two sittings marked a title shot down for a star crossing the face.
+function FxRecipe.keepClear(part: BasePart, radius: number?)
+	FxClock.clear[part] = radius or math.max(part.Size.X, part.Size.Y) * 0.9
+	return {
+		stop = function()
+			FxClock.clear[part] = nil
+		end,
+	}
+end
+
 -- The crown recipe with `count` crystals: more crystals stand further out and are a little longer, so three
 -- calls with a rising count read as one thing growing. over: fields for the Crown layer (spin, len, w, gap).
 -- FxRecipe.play(FxRecipe.crown(8), character, { palette = "shadow", duration = 3, depth = -2 })
