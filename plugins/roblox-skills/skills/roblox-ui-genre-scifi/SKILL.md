@@ -32,7 +32,7 @@ Starting points from our demo (judgment); replace them with the chosen mockup's 
 | Edge | a 1-2 px line in the accent color (Path2D), never a thick black outline |
 | Accents | one main (cyan 80, 220, 255), one warning (amber 255, 176, 32), red only for damage and lives |
 | Corner cut | 8-16 px; top bars cut top-left and bottom-right, panels all four, cards the other diagonal |
-| Text | the sci-fi pair in `roblox-ui-typography` section 2 (Michroma, Jura or Sarpanch for display; TitilliumWeb or Roboto for body), light on dark; a stroke only for text over the world |
+| Text | the sci-fi pair in `roblox-ui-typography` section 2 (Michroma, Jura or Sarpanch for display; TitilliumWeb or Roboto for body), light on dark; a stroke only for text over the world. Sarpanch and TitilliumWeb draw their letters small (capitals 0.45 of TextSize against 0.52-0.61 for most faces): raise their TextSize by about 1.16, or 14 px reads as 12 (`roblox-ui-typography` section 3) |
 | Detail | one or two per panel: a header tab, a 3-4 px role-color bar on each card, corner brackets; stripes only on warnings |
 
 ## 2. Shapes from primitives (`scripts/hud_shapes.luau`)

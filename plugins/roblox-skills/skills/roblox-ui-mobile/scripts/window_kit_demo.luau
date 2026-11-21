@@ -8,7 +8,7 @@
 -- areas, HUD clear of the thumbstick and the jump button) and a larger layout for tablet and desktop
 -- that Kit.stage sizes by its share of the screen. Read it for the structure and the calls.
 -- The look is a skin, not the kit: Demo.SKINS holds three (arcade, grim, tech), each one table of
--- colours, two fonts, a Kit.look and a Kit.tone. The same build runs under all three:
+-- colours, two fonts, a Kit.look and a Kit.tone (and `glow` for a dark matte one). The same build runs under all three:
 -- Demo.run(nil, { skin = "grim" }). Write your game's skin first, from its own palette and font
 -- pair; do not ship one of these.
 -- Icons: image ids of a free Creator Store icon pack (the simulator pack the icon guide names). Use
@@ -165,7 +165,10 @@ local SKINS = {
 		},
 		black = face("TitilliumWeb", Enum.FontWeight.Bold),
 		bold = face("TitilliumWeb", Enum.FontWeight.SemiBold),
-		look = { radius = 0.3, outline = 0.75, depth = 0, shine = false, textOutline = 0, lift = 0.05, stroke = rgb(44, 128, 164) },
+		-- matte is not flat: the panels keep a faint top-to-bottom fall and a 1 px light line inside the top edge,
+		-- and the selected row glows. TitilliumWeb draws small (capitals 0.45 of TextSize): Kit.textSize makes up for it
+		look = { radius = 0.3, outline = 0.75, depth = 0, shine = false, textOutline = 0, lift = 0.1, topLight = true, stroke = rgb(44, 128, 164) },
+		glow = true,
 		tone = "crisp",
 	},
 }
@@ -173,6 +176,7 @@ Demo.SKINS = SKINS
 local C = table.clone(SKINS.arcade.colors)
 local BLACK, BOLD = SKINS.arcade.black, SKINS.arcade.bold
 local NUMBER = BLACK -- prices, amounts on a coloured button, badge counts: the skin's `number` face, else the display face
+local GLOW = false -- the skin's `glow`: the selected row carries a halo (a dark matte skin, where gloss is off)
 
 Demo.ICONS = ICONS
 
@@ -197,6 +201,7 @@ local function text(parent: Instance, props)
 	for k, v in props do
 		(label :: any)[k] = v
 	end
+	label.TextSize = Kit.textSize(label.TextSize, label.FontFace) -- a face that draws small gets a larger size
 	label.Parent = parent
 	return label
 end
@@ -238,7 +243,8 @@ function Demo.skin(skin: (string | { [string]: any })?)
 	end
 	BLACK, BOLD = chosen.black or SKINS.arcade.black, chosen.bold or SKINS.arcade.bold
 	NUMBER = chosen.number or BLACK
-	Kit.look({ radius = 1, outline = 1, depth = 1, shine = true, textOutline = 1, fontFace = BLACK })
+	GLOW = chosen.glow == true
+	Kit.look({ radius = 1, outline = 1, depth = 1, shine = true, textOutline = 1, topLight = false, fontFace = BLACK })
 	Kit.LOOK.stroke, Kit.LOOK.lift = nil, nil
 	Kit.look(chosen.look or {})
 	Kit.tone(chosen.tone or "playful")
@@ -844,12 +850,16 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		local was = state.selected and rows[state.selected]
 		if was then
 			Kit.recolor(was.row, state.claimed[state.selected :: string] and C.rowDone or C.row, C.dark)
+			Kit.glow(was.row, nil)
 		end
 		state.selected = id
 		local r = rows[id]
 		local m = r.mission
 		-- selected: a lighter fill and a bright outline that belong to the row, so they travel with it
 		Kit.recolor(r.row, C.rowSelected, C.select)
+		if GLOW then
+			Kit.glow(r.row, C.select, { size = 8 })
+		end
 		list:reveal(id)
 		-- the card changes on the same frame as the row
 		artImage.Image = icons[m.icon]
