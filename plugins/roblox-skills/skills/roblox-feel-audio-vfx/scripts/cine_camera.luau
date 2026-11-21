@@ -24,10 +24,10 @@
 -- CineCamera.audit(shots, height?) -> { string }: shots where the subject is a dot (under 15% of the frame
 --   height), the camera is inside it, the head is larger than 45% of the frame height (an avatar's face is a flat
 --   shape at that size), the subject stays under 25% of the frame for more than 1.2 s in a row, the frame does not
---   move for more than 0.5 s, the last shot starts with the subject under 45% of the frame, runs over 2.1 s or is
---   a short wider shot after the one the name lands on,
+--   move for more than 0.5 s, the last shot starts with the subject under 45% of the frame, runs over 2.9 s or
+--   under 2 s or is a short wider shot after the one the name lands on, a shot right after a burst pulls out,
 --   there is no close shot, cuts keep one side and size for over 1.6 s, or a face close-up looks up from more than
---   15 degrees below; run it on every shot list before the first capture.
+--   15 degrees below, or a first shot from behind the head; run it on every shot list before the first capture.
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -326,6 +326,26 @@ function CineCamera.audit(shots, height: number?): { string }
 			local dist = math.max(rel.Magnitude, 0.1)
 			if head / (2 * dist * math.tan(math.rad(f) / 2)) > 0.25 and rel.Y / dist < -0.26 then
 				table.insert(out, string.format("shot %d %s (%s): a face close-up from %d degrees below the look point; on an avatar with a fringe the hair hides the eyes. Keep a face close-up within about 10 degrees of eye level or above it; the low camera belongs to the wides", i, tostring(shot.name or ""), k == 1 and "start" or "end", math.floor(math.deg(math.asin(-rel.Y / dist)) + 0.5)))
+				break
+			end
+		end
+	end
+	-- the opener: the first shot in time shows the face. A first shot from behind the head, over the shoulder at a
+	-- star in a dark void, was "a back-of-head opener, half the frame empty black" to the judges of the twelfth
+	-- build (2026-11-22). Offsets are in the subject's space, whose front is -Z
+	local first, firstT = nil, math.huge
+	for i, shot in shots do
+		if (shot.t or 0) < firstT then
+			first, firstT = i, shot.t or 0
+		end
+	end
+	if first then
+		local shot = shots[first]
+		for k, framing in { shot.from, shot.to or shot.from } do
+			local o = framing.offset :: Vector3
+			local flat = Vector3.new(o.X, 0, o.Z)
+			if flat.Magnitude > 0.1 and -o.Z / flat.Magnitude < -0.34 then
+				table.insert(out, string.format("shot %d %s (the first shot, %s): the camera is %d degrees round from the subject's front, so the cutscene opens on the back of the head. Open on the face, three-quarter front (20-50 degrees round), and keep the view from behind for a later shot of what the character sees", first, tostring(shot.name or ""), k == 1 and "start" or "end", math.floor(math.deg(math.acos(math.clamp(-o.Z / flat.Magnitude, -1, 1))) + 0.5)))
 				break
 			end
 		end

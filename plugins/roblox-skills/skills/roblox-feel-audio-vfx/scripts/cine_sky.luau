@@ -6,7 +6,9 @@
 -- Client only (Lighting changes made on a client stay on that client). roblox-feel-audio-vfx section 3e.
 --
 -- local Sky = require(script.Parent.cine_sky)
--- local sky = Sky.enter("sunset", { focus = rootPart.Position })   -- saves the game's look, applies the preset
+-- local sky = Sky.enter("sunset", { focus = rootPart.Position })   -- saves the game's look, applies the preset; while
+--                                          -- the camera faces the low sun it eases the bloom and the exposure down
+--                                          -- (sunGuard = false keeps the preset's values)
 -- sky:stage(character)                     -- the stage: 1,200 studs over the focus; the character anchored there
 --                                          -- (its ForceField hidden) and put back by leave()
 -- sky:to("gold", 0.5)                      -- cross to another preset (a tier colour step at the peak)
@@ -218,6 +220,30 @@ function Sky.enter(preset: string, opts)
 		glowing = any
 	end
 
+	-- Facing a low sun: the engine's cloud deck round the sun and the sea under it burned a third of the frame white
+	-- behind the character in two builds ("a calm shot blown out by the sun", "sun flare blows out the right half of
+	-- the frame"; one judge each, 2026-11-21 and 2026-11-22). While the camera looks within about 50 degrees of the
+	-- sun the bloom drops to a fifth and the exposure by 0.3, eased over 0.08 s: on a still 29 degrees off the sun the
+	-- white third came back as gold clouds round a bright sun (Studio Play, 2026-11-22). Off while a tunnel runs.
+	-- opts.sunGuard = false keeps the preset's values.
+	local tunnels = {}
+	local baseBloom, baseExposure = 0, 0
+	local sunK = 0
+	local function writeSun(dt: number)
+		local cam = workspace.CurrentCamera
+		local f = 0
+		if cam and opts.sunGuard ~= false and next(tunnels) == nil then
+			local sun = Lighting:GetSunDirection()
+			if sun.Y > -0.05 then
+				f = math.clamp((cam.CFrame.LookVector:Dot(sun) - 0.64) / 0.3, 0, 1) -- 0 at 50 degrees off the sun, 1 at 20
+				f = f * f * (3 - 2 * f)
+			end
+		end
+		sunK += (f - sunK) * math.clamp(dt / 0.08, 0, 1)
+		bloom.Intensity = baseBloom * (1 - 0.8 * sunK)
+		Lighting.ExposureCompensation = baseExposure - 0.3 * sunK
+	end
+
 	local seaRefresh: (() -> ())? = nil
 	local driftRefresh: (() -> ())? = nil
 	local function apply(from, to, k)
@@ -228,6 +254,8 @@ function Sky.enter(preset: string, opts)
 			end
 		end
 		baseAmbient, baseOutdoor = Lighting.Ambient, Lighting.OutdoorAmbient
+		baseBloom, baseExposure = bloom.Intensity, Lighting.ExposureCompensation
+		writeSun(0)
 		glowing = true
 		writeAmbient()
 		if driftRefresh then
@@ -260,6 +288,7 @@ function Sky.enter(preset: string, opts)
 		return true
 	end
 	local glowConn = RunService.PreRender:Connect(writeAmbient)
+	local sunConn = RunService.PreRender:Connect(writeSun)
 	local hook = nil
 	if (opts.lights or "ambient") == "ambient" then
 		hook = function(key, color, brightness, position, range)
@@ -821,11 +850,12 @@ function Sky.enter(preset: string, opts)
 	--   about half on a phone), rays (still lines that turn slowly, default 20), back (studs past the subject, default
 	--   40), rush (streaks leave the core this many times a second each, default 2.4), colors ({ back, core, streak,
 	--   streak2 }), exit, owner (a clock: the tunnel ends with it). Returns the tunnel's clock.
-	local tunnels = {}
 	function self:tunnel(o)
 		o = o or {}
 		local dur = o.dur or 1.3
-		local c = FxClock.new("SkyTunnel", dur)
+		-- with an owner the tunnel ends on the owner's time, so a hit stop, a slow motion or a pause in the owner
+		-- holds it instead of cutting its end short
+		local c = FxClock.new("SkyTunnel", if o.owner then math.huge else dur)
 		local root = if o.owner then o.owner.root or o.owner else c
 		if o.owner then
 			table.insert(root.cleanups, function()
@@ -900,7 +930,6 @@ function Sky.enter(preset: string, opts)
 		local nebula = {}
 		for i = 1, 6 do
 			local tone = (if i % 3 == 0 then hues[2] elseif i % 3 == 1 then C(176, 70, 214) else C(72, 92, 232)):Lerp(backColor, 0.3)
-			-- the glow texture: the smoke one has straight sides, which stood as vertical edges across the backdrop
 			local q = quad("glow", { LightEmission = 0.8, Brightness = 1.4, Color = ColorSequence.new(tone), Transparency = NumberSequence.new(0.5) })
 			q.angle = (i - 1) / 6 * math.pi * 2 + rng:NextNumber(-0.4, 0.4)
 			q.dist, q.size = rng:NextNumber(0.55, 1.2), rng:NextNumber(0.5, 0.85)
@@ -968,8 +997,14 @@ function Sky.enter(preset: string, opts)
 			local aspect = cam.ViewportSize.X / math.max(cam.ViewportSize.Y, 1)
 			local off = centre - (eye + look * depth)
 			local reach = (Vector2.new(half * aspect, half).Magnitude + off.Magnitude) * 1.15
-			wall.Size = Vector3.new(reach * 2.4, reach * 2.4, 0.2)
-			wall.CFrame = CFrame.fromMatrix(centre + look * 2, right, up)
+			-- the plate stands well behind the soft quads: each one turns to face the eye, so a cloud off to the side
+			-- reaches back by up to half its width, and with the plate 2 studs behind the centre every cloud was cut
+			-- along a straight line where it went into the plate ("hard-edged vertical panels" in one build; the
+			-- same frame with the plate moved back showed whole soft clouds, Studio Play, 2026-11-22)
+			local gap = half * 0.75
+			local grow = (depth + gap) / depth
+			wall.Size = Vector3.new(reach * 2.4 * grow, reach * 2.4 * grow, 0.2)
+			wall.CFrame = CFrame.fromMatrix(centre + look * gap, right, up)
 			-- the way out: e runs 0 -> 1 over the last exitT seconds
 			local e = if exitT > 0 then FxClock.smooth(exitAt, dur, t) else 0
 			if e > 0 and exit == "burst" and not burstAsked then
@@ -1037,7 +1072,11 @@ function Sky.enter(preset: string, opts)
 		if o.owner then
 			local t0 = root.t or 0
 			root:every(function(rt: number)
-				if not c.stopped and rt - t0 <= dur then
+				if c.stopped then
+					return
+				elseif rt - t0 > dur then
+					c:stop()
+				else
 					place(rt - t0)
 				end
 			end)
@@ -1107,6 +1146,7 @@ function Sky.enter(preset: string, opts)
 			fadeConn:Disconnect()
 		end
 		glowConn:Disconnect()
+		sunConn:Disconnect()
 		if hook and FxClock.glow == hook then
 			FxClock.glow = nil
 		end

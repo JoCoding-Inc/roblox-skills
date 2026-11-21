@@ -16,7 +16,7 @@
 -- ScreenOverlays.counter(opts) -> clock    a number that climbs through the cutscene and lands on a beat
 -- ScreenOverlays.title(text, opts) -> clock a name card that lands and holds; the fade keeps it on until the black is full
 -- ScreenOverlays.fade(opts) -> clock        the way out: cover the screen (0.5 s), restore under it, fade the game in
--- ScreenOverlays.flash(opts) -> clock       the peak's flash: never a blank frame (the cover stops at 70%), 2 frames up,
+-- ScreenOverlays.flash(opts) -> clock       the peak's flash: never a blank frame (an exposure jump under a thin cover), 2 frames up,
 --                                           gone in 0.14 s, and refused by flash_safety when it would be the fourth in a second
 -- All take opts.clock / opts.at. With reduced motion the speed lines are drawn once and not re-shaped.
 --
@@ -33,6 +33,7 @@
 -- Frames re-laid every 1.5 frames, not measured on a real phone.
 
 local Players = game:GetService("Players")
+local Lighting = game:GetService("Lighting")
 local TextService = game:GetService("TextService")
 
 local FxClock = require(script.Parent.fx_clock)
@@ -545,17 +546,26 @@ function ScreenOverlays.title(text: string, opts)
 end
 
 -- The flash of the peak. A cover that goes to full white is a blank frame on a capture and in a player's eye
--- (named by both judges: "one completely blank white frame", "three frames without the hero"), so this one
--- stops at 70%: the character's outline stays in every frame. Up in 2 frames, a 1 frame hold, gone in 0.14 s on an
--- ease-out curve (under a third of the peak 0.05 s after the hold; a straight fade stayed over half of it for 0.07 s).
+-- (named by both judges: "one completely blank white frame", "three frames without the hero"), so nothing here
+-- goes to full white: the character's outline stays in every frame. The light is the world's exposure jumping
+-- (a ColorCorrectionEffect: bright parts burn to white, the character keeps its colours and its darks) under a
+-- thin cover (cover, default 0.3 of the peak) that lifts a dark scene. A cover alone at 60% turned a dark-clothed
+-- character grey and see-through on a cut into the sky: "a washed-out grey crossfade frame", "the character
+-- renders grey and semi-transparent" (both judges of one build, 2026-11-22; "a washed-out cross-dissolve" to
+-- another judge before). The same frame with the exposure read as a burst of light (Studio Play stills,
+-- 2026-11-22). Up in 2 frames, a 1 frame hold, gone in 0.14 s on an ease-out curve (under a third of the peak
+-- 0.05 s after the hold; a straight fade stayed over half of it for 0.07 s).
 -- flash_safety counts it and refuses a fourth flash inside a second (then nothing is drawn).
--- opts: color (default a warm white), peak (0..0.8, default 0.7), up (0.033), hold (0.017), down (0.14), clock / at
+-- opts: color (default a warm white), peak (0..0.8, default 0.7), cover (share of the peak on the cover, 0..1,
+-- default 0.3), up (0.033), hold (0.017), down (0.14), clock / at
 function ScreenOverlays.flash(opts)
 	opts = opts or {}
 	local up, hold, down = opts.up or 0.033, opts.hold or 0.017, opts.down or 0.14
 	local peak = math.clamp(opts.peak or 0.7, 0, 0.8)
+	local share = math.clamp(opts.cover or 0.3, 0, 1)
+	local tint = opts.color or Color3.fromRGB(255, 250, 236)
 	local c, root, own = FxClock.attach("Flash", up + hold + down + 0.02, opts)
-	local cover
+	local cover, grade
 	c:at(0, function()
 		if not Safety.request(root, root.t or 0, peak, "overlay flash") then
 			return
@@ -563,17 +573,32 @@ function ScreenOverlays.flash(opts)
 		local layer = ScreenOverlays.layer(c, "Flash", 4) -- under the letterbox bars, the counter and the title: black bars that turn grey for a frame were named twice
 		cover = Instance.new("Frame")
 		cover.BorderSizePixel = 0
-		cover.BackgroundColor3 = opts.color or Color3.fromRGB(255, 250, 236)
+		cover.BackgroundColor3 = tint
 		cover.BackgroundTransparency = 1
 		cover.Size = UDim2.fromScale(1, 1)
 		cover.Parent = layer
+		grade = Instance.new("ColorCorrectionEffect")
+		grade.Name = "OverlayFlash"
+		grade.Parent = Lighting
+	end)
+	c:onCleanup(function()
+		if grade then
+			grade:Destroy()
+			grade = nil
+		end
 	end)
 	c:every(function(t)
 		if not cover then
 			return
 		end
 		local a = t < up and t / up or (t < up + hold and 1 or (1 - math.clamp((t - up - hold) / down, 0, 1)) ^ 3)
-		cover.BackgroundTransparency = 1 - peak * math.clamp(a, 0, 1)
+		a = math.clamp(a, 0, 1)
+		cover.BackgroundTransparency = 1 - peak * share * a
+		if grade then
+			local k = peak / 0.7 * a
+			grade.Brightness, grade.Contrast, grade.Saturation = 0.3 * k, 0.6 * k, 0.1 * k
+			grade.TintColor = Color3.new(1, 1, 1):Lerp(tint, a)
+		end
 	end)
 	c:at(up + hold + down, function()
 		if cover then
