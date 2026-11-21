@@ -24,7 +24,8 @@
 -- CineCamera.audit(shots, height?) -> { string }: shots where the subject is a dot (under 15% of the frame
 --   height), the camera is inside it, the head is larger than 45% of the frame height (an avatar's face is a flat
 --   shape at that size), the subject stays under 25% of the frame for more than 1.2 s in a row, the frame does not
---   move for more than 0.5 s, the last shot starts with the subject under 45% of the frame or runs over 2.1 s,
+--   move for more than 0.5 s, the last shot starts with the subject under 45% of the frame, runs over 2.1 s or is
+--   a short wider shot after the one the name lands on,
 --   there is no close shot, cuts keep one side and size for over 1.6 s, or a face close-up looks up from more than
 --   15 degrees below; run it on every shot list before the first capture.
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
@@ -261,16 +262,31 @@ function CineCamera.audit(shots, height: number?): { string }
 	-- the shot the name lands on: the payoff is a person, so it starts as a medium close and pulls out after
 	if last then
 		local shot = shots[last]
-		local fov = shot.fov
-		local f = if type(fov) == "table" then fov[1] else fov or 70
-		local share = h / (2 * (shot.from.offset :: Vector3).Magnitude * math.tan(math.rad(f) / 2))
-		if share < 0.45 then
+		local function shareOf(s, k)
+			local fov = s.fov
+			local f = if type(fov) == "table" then fov[k] or fov[1] else fov or 70
+			local framing = if k == 2 then s.to or s.from else s.from
+			return h / (2 * math.max((framing.offset :: Vector3).Magnitude, 0.1) * math.tan(math.rad(f) / 2)), f
+		end
+		-- the shot before the last one in time
+		local before, beforeEnd = nil, -1
+		for i, s in shots do
+			if i ~= last and s.t + s.len <= shot.t + 0.01 and s.t + s.len > beforeEnd then
+				before, beforeEnd = i, s.t + s.len
+			end
+		end
+		local share, f = shareOf(shot, 1)
+		if before and (shot.len or 0) < 0.8 and share < shareOf(shots[before], 2) then
+			-- a wider shot after the name: two judges of the tenth build called a 0.4 s pull-back after a 1.55 s title
+			-- shot "an anticlimactic ending, it just runs out"; the artist's cut fades from the shot the name is on
+			table.insert(out, string.format("shot %d %s (the last shot): a %.1f s wider shot after shot %d %s reads as the cutscene running out; end on the shot the name lands on, keep it moving 1.4-2 s and fade from it", last, tostring(shot.name or ""), shot.len or 0, before, tostring(shots[before].name or "")))
+		elseif share < 0.45 then
 			table.insert(out, string.format("shot %d %s (the last shot): it starts with the subject at %d%% of the frame height; land the name on a medium close (55%% or more: %.1f studs at fov %d) and pull out after about 0.8 s", last, tostring(shots[last].name or ""), share * 100, CineCamera.fit(h, f, 0.55), f))
 		end
 		-- the hold on the name: past about 2 s of one slow move the picture is a still (two judges of the ninth
 		-- build: "a 2.6 s near-static title hold"; the artist's cut holds its title 1.4-1.6 s)
 		if (shot.len or 0) > 2.1 then
-			table.insert(out, string.format("shot %d %s (the last shot): it runs %.1f s; one slow pull-out reads as a still after about 1.6 s. End it by 1.6-2 s, or cut it in two (the name lands on the medium close, then a second, wider or lower shot at about half time brings the last element in)", last, tostring(shot.name or ""), shot.len))
+			table.insert(out, string.format("shot %d %s (the last shot): it runs %.1f s; one slow pull-out reads as a still after about 1.6 s. End it by 1.6-2 s and fade from it, with a move the eye can follow (a push in or an orbit of 10-15 degrees); do not add a wider shot after it", last, tostring(shot.name or ""), shot.len))
 		end
 	end
 	-- a close shot: the judges of the eighth build marked a cutscene whose nearest shot showed the head at 14% of
@@ -391,6 +407,7 @@ function CineCamera.play(shots, opts)
 		end
 		released = true
 		keep(nil)
+		FxClock.focus = nil
 		if not opts.noReturn then
 			CineCamera.restore()
 		end
@@ -427,11 +444,15 @@ function CineCamera.play(shots, opts)
 			cam.CFrame = cf
 			-- Focus on the subject, not a point ahead of the camera: after a jump to a far stage the only local lights
 			-- that draw at once are those on a subject within about 3 studs of Focus and 8 studs of the camera (measured)
-			cam.Focus = CFrame.new(subjectCF(s.subject).Position)
+			local focus = subjectCF(s.subject).Position
+			cam.Focus = CFrame.new(focus)
+			-- shapes in the near part of the gap to the subject close (FxClock.frontAt), clear = false or not
+			FxClock.focus = focus
 			cam.FieldOfView = fov
 			lastCF, lastFov = cf, fov
 		elseif ret > 0 and t < listEnd + ret then
 			keep(nil)
+			FxClock.focus = nil
 			local goal = playerView()
 			local u = FxClock.inOutSine(math.clamp((t - listEnd) / ret, 0, 1))
 			if goal then
