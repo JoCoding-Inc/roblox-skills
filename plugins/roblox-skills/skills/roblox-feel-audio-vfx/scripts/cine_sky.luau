@@ -7,7 +7,8 @@
 --
 -- local Sky = require(script.Parent.cine_sky)
 -- local sky = Sky.enter("sunset", { focus = rootPart.Position })   -- saves the game's look, applies the preset
--- character:PivotTo(sky.origin)            -- the stage: 1,200 studs over the focus; anchor the root there
+-- sky:stage(character)                     -- the stage: 1,200 studs over the focus; the character anchored there
+--                                          -- (its ForceField hidden) and put back by leave()
 -- sky:to("gold", 0.5)                      -- cross to another preset (a tier colour step at the peak)
 -- local wind = sky:wind({ dir = Vector3.new(-1, 0, 0), speed = 150 })   -- wind streaks past a travel shot
 -- wind.stop()
@@ -36,7 +37,7 @@
 --   0.62, Density 0.8) drew a broken cloud deck with a lit and a shaded side, and the baseplate under the camera
 --   was hidden by the haze of an Atmosphere of Density 0.3.
 -- - Atmosphere Density 0.42 with Haze 2.2 and a warm Color turned the same view into flat pink with teal
---   patches (the haze replaced the sky). Keep Density at 0.3 or under and Haze near 1.2-1.4.
+--   patches (the haze replaced the sky). Keep Density at 0.3 or under and Haze near 1.1-1.4.
 -- - At ClockTime 17.5 the sun sits 5-7 degrees over the horizon; at 17.8 it is 3 degrees up and the cloud deck
 --   goes dull.
 -- - night: with saturated blue ambient colours the clouds and the skin went pure blue; the values here are the
@@ -93,9 +94,9 @@ Sky.PRESETS = {
 	},
 	sunset = {
 		lighting = { ClockTime = 17.5, Brightness = 2.4, Ambient = C(96, 78, 110), OutdoorAmbient = C(150, 122, 140), ColorShift_Top = C(255, 196, 140), ExposureCompensation = 0.1 },
-		atmosphere = { Density = 0.3, Offset = 0.2, Color = C(255, 190, 140), Decay = C(160, 96, 150), Glare = 0.45, Haze = 1.2 },
-		clouds = { Enabled = true, Cover = 0.62, Density = 0.8, Color = C(255, 220, 198) },
-		grade = { Brightness = 0, Contrast = 0.12, Saturation = 0.2, TintColor = C(255, 248, 242) },
+		atmosphere = { Density = 0.3, Offset = 0.2, Color = C(255, 176, 120), Decay = C(120, 100, 168), Glare = 0.3, Haze = 0.8 },
+		clouds = { Enabled = true, Cover = 0.62, Density = 0.8, Color = C(255, 206, 160) },
+		grade = { Brightness = 0, Contrast = 0.24, Saturation = 0.3, TintColor = C(255, 248, 242) },
 		bloom = { Intensity = 0.45, Size = 24, Threshold = 1.2 },
 	},
 	gold = {
@@ -425,9 +426,18 @@ function Sky.enter(preset: string, opts)
 	-- past a view distance that falls with the quality level (parts and particles alike, measured in Studio Play:
 	-- about 525 studs at level 1, 1,700 at levels 4-12, 3,000-4,000 at 14, over 8,000 at 21); a first bank
 	-- 1,800-2,300 studs out left the slabs showing at level 10.
-	-- opts: depth (studs from the stage down to the highest banks, default 38), reach (how far the banks spread,
-	-- default 900), density (0.3-1.5, default 1: about 1,600 particles on 149 parts, and 1,160 on 120 more for the
-	-- far bank; each part has two emitters), horizon (false: no far bank), color (instead of the preset's), seed
+	-- Two styles (opts.style). "full" (the default): a floor 160 studs under the stage and towers of four tiers.
+	-- "clear": only the top two tiers of each tower, as cloudlets over open air, a brighter far bank and a pale deck
+	-- 900 studs down that only shots looking down reach. Judged blind on one builder's cutscene recorded with each
+	-- (2026-11-22, sums of two judges out of 100): "clear" lost to "full" in both sittings (64 against 71 under the
+	-- same preset, 68 against 72 in the other: "a flat cyan floor with cotton puffs", "reads as a backdrop"), so it
+	-- is for a scene that needs open air below.
+	-- opts: style, depth (studs from the stage down to the highest banks, default 38), reach (how far the banks
+	-- spread, default 900), density (0.3-1.5, default 1; "full": about 1,600 particles on 149 parts, "clear": about
+	-- 1,100 on 75; and 1,160 on 120 more for the far bank; each part has two emitters), horizon (false: no far
+	-- bank), color (the lit tone, instead of the preset's cloud colour), shade (the shadow tone of the floor and the
+	-- tower feet, instead of the preset's Atmosphere Decay: keep it off the hue of the cutscene's hero effect, see
+	-- the colours below), seed
 	local seaParts = nil
 	local seaConn: RBXScriptConnection? = nil
 	function self:sea(o)
@@ -436,6 +446,7 @@ function Sky.enter(preset: string, opts)
 			return seaParts
 		end
 		local depth, reach, density = o.depth or 38, o.reach or 900, math.clamp(o.density or 1, 0.3, 1.5)
+		local full = o.style ~= "clear"
 		local rng = Random.new(o.seed or 7)
 		local stagger = Random.new((o.seed or 7) + 1)
 		local layers = {} -- { emitters = { two }, live, alpha, kind, count, due, fadeAt }
@@ -473,7 +484,17 @@ function Sky.enter(preset: string, opts)
 		-- (its puffs are 90 studs across, so its top lies about 45 studs over this part: the towers stand out of it by
 		-- 40-60 studs. Lower than this the haze takes it and the gaps between towers show empty sky; higher, or with
 		-- larger puffs, it swallows the towers: both measured)
-		puffs(CFrame.new(at - Vector3.new(0, depth + 122, 0)), Vector3.new(2600, 8, 2600), 90, math.ceil(420 * density), 0.08, 0.1, "floor", 0)
+		if full then
+			puffs(CFrame.new(at - Vector3.new(0, depth + 122, 0)), Vector3.new(2600, 8, 2600), 90, math.ceil(420 * density), 0.08, 0.1, "floor", 0)
+		else
+			-- a pale deck far below, there for the shots that look down: through clear air a straight-down shot showed
+			-- the map's baseplate 1,200 studs under the stage (Studio Play, 2026-11-22). 900 studs down it lies under
+			-- the bottom edge of a level shot (35 degrees down at the default field of view)
+			puffs(CFrame.new(at - Vector3.new(0, 900, 0)), Vector3.new(1600, 8, 1600), 160, math.ceil(360 * density), 0, 0, "deck", 0)
+			for _, e in layers[#layers].emitters do
+				FxTextures.apply(e, "glow")
+			end
+		end
 		-- Towers in three bands of distance (near, middle, far). Each is three tiers that narrow upward: a wide
 		-- shadowed base, a lighter body, a small bright crown set a little off centre, so it has a lit top and a
 		-- dark foot like a cumulus. Far towers take some of the haze, which is what puts them far away.
@@ -490,14 +511,18 @@ function Sky.enter(preset: string, opts)
 				-- tops stay under the stage: the highest head ends about 10 studs below the character's feet
 				local cf = CFrame.new(at + Vector3.new(math.cos(a) * r, -rng:NextNumber(depth + 28, depth + 64), math.sin(a) * r)) * CFrame.Angles(0, rng:NextNumber(0, math.pi), 0)
 				local lean = sunSide * (w * 0.08) -- every tier a step toward the sun: the lit side is the same on all
-				puffs(cf, Vector3.new(w, 6, w * 0.6), rng:NextNumber(40, 50), 6, 0.1, 0.2, "base", haze)
-				puffs(cf + Vector3.new(0, 11 * tall, 0) + lean, Vector3.new(w * 0.7, 6, w * 0.42), rng:NextNumber(30, 36), 6, 0.08, 0.4, "lower", haze)
-				puffs(cf + Vector3.new(0, 21 * tall, 0) + lean * 2, Vector3.new(w * 0.5, 6, w * 0.34), rng:NextNumber(22, 28), 9, 0.06, 0.4, "upper", haze)
-				puffs(cf + Vector3.new(0, 30 * tall, 0) + lean * 3, Vector3.new(w * 0.36, 5, w * 0.26), rng:NextNumber(15, 21), 11, 0.04, 0.45, "head", haze)
+				local base, lower, upper, head = rng:NextNumber(40, 50), rng:NextNumber(30, 36), rng:NextNumber(22, 28), rng:NextNumber(15, 21)
+				if full then
+					puffs(cf, Vector3.new(w, 6, w * 0.6), base, 6, 0.1, 0.15, "base", haze)
+					puffs(cf + Vector3.new(0, 11 * tall, 0) + lean, Vector3.new(w * 0.7, 6, w * 0.42), lower, 6, 0.08, 0.3, "lower", haze)
+				end
+				puffs(cf + Vector3.new(0, 21 * tall, 0) + lean * 2, Vector3.new(w * 0.5, 6, w * 0.34), upper, 9, 0.06, if full then 0.4 else 0.05, "upper", haze)
+				puffs(cf + Vector3.new(0, 30 * tall, 0) + lean * 3, Vector3.new(w * 0.36, 5, w * 0.26), head, 11, 0.04, if full then 0.5 else 0.1, "head", haze)
 			end
 		end
 		-- the far bank (see above): 40 banks of three tiers that overlap round the ring, so no gap shows the slabs
 		if o.horizon ~= false then
+			local glow = if full then 1 else 0.3
 			for i = 1, 40 do
 				local a = (i + rng:NextNumber(-0.25, 0.25)) / 40 * math.pi * 2
 				local r, w, tall = rng:NextNumber(440, 500), rng:NextNumber(150, 195), rng:NextNumber(1, 1.6)
@@ -505,9 +530,9 @@ function Sky.enter(preset: string, opts)
 				local toSun = math.clamp((dir:Dot(sunSide) + 0.2) / 1.2, 0, 1) ^ 1.5
 				local cf = CFrame.lookAt(at + dir * r - Vector3.new(0, 12, 0), at - Vector3.new(0, 12, 0))
 				local lean = sunSide * (w * 0.04)
-				puffs(cf, Vector3.new(w, 9, 14), rng:NextNumber(35, 42), math.ceil(10 * density), 0.14, 0.3, "far", 0, 0, toSun)
-				puffs(cf + Vector3.new(0, 20 * tall, 0) + lean, Vector3.new(w * 0.68, 9, 12), rng:NextNumber(28, 34), math.ceil(10 * density), 0.12, 0.45, "far", 0, 0.5, toSun)
-				puffs(cf + Vector3.new(0, 40 * tall, 0) + lean * 2, Vector3.new(w * 0.4, 7, 9), rng:NextNumber(21, 27), math.ceil(9 * density), 0.1, 0.55, "far", 0, 1, toSun)
+				puffs(cf, Vector3.new(w, 9, 14), rng:NextNumber(35, 42), math.ceil(10 * density), 0.14, 0.3 * glow, "far", 0, 0, toSun)
+				puffs(cf + Vector3.new(0, 20 * tall, 0) + lean, Vector3.new(w * 0.68, 9, 12), rng:NextNumber(28, 34), math.ceil(10 * density), 0.12, 0.45 * glow, "far", 0, 0.5, toSun)
+				puffs(cf + Vector3.new(0, 40 * tall, 0) + lean * 2, Vector3.new(w * 0.4, 7, 9), rng:NextNumber(21, 27), math.ceil(9 * density), 0.1, 0.55 * glow, "far", 0, 1, toSun)
 			end
 		end
 		-- The refill (see above). Every 18 s, at its own time, a layer's spare emitter emits a new set, which fades in
@@ -541,21 +566,36 @@ function Sky.enter(preset: string, opts)
 				end
 			end
 		end)
-		local white, shadow, cool = Color3.new(1, 1, 1), Color3.fromRGB(138, 122, 176), Color3.fromRGB(176, 192, 236)
+		local white, cool = Color3.new(1, 1, 1), Color3.fromRGB(176, 192, 236)
+		local dusk, lilac = Color3.fromRGB(206, 132, 160), Color3.fromRGB(214, 200, 230)
 		seaRefresh = function()
 			local base = o.color or clouds.Color
 			local far = atmosphere.Color
+			local decay = o.shade or atmosphere.Decay
 			local show = clouds.Enabled and 1 or 0 -- no clouds in the preset (void): the sea waits unseen
 			local night = Sky.sunDirection().Y < 0
 			for _, l in layers do
+				-- "full": every tier a tone of the preset's own light, from a top in the clouds' colour to a foot in the
+				-- glow (Atmosphere Color) turned a little toward the sky away from the sun (Decay). The grey-lilac
+				-- shadow it had through pack 1.77 measured saturation 0.06-0.17 on a builder's frame against 0.25-0.37
+				-- on the reference's, and two judges called it "lavender-grey, low contrast" and "muddy". Judged blind on
+				-- one builder's cutscene recorded with each (2026-11-22, two judges, out of 50): this palette 37 and 32, an
+				-- all-warm one (peach-cream tiers) 35 and 33, the grey-lilac 36 and 31. For this one: "violet clouds under an
+				-- orange sky give the most depth"; against it, the violet floor swallowed a violet burst. Against the warm
+				-- one, the gold title rays merged into the clouds. So pick the shadow tone (opts.shade) off the hue of the
+				-- cutscene's hero effect; only this lilac default and the warm one were judged
 				local c = if l.kind == "floor"
-					then base:Lerp(shadow, 0.5)
-					elseif l.kind == "base" then base:Lerp(shadow, 0.3)
-					elseif l.kind == "lower" then base:Lerp(shadow, 0.1)
-					elseif l.kind == "upper" then base:Lerp(white, 0.6)
+					then decay:Lerp(white, 0.25)
+					elseif l.kind == "base" then decay:Lerp(white, 0.45)
+					elseif l.kind == "lower" then far:Lerp(base, 0.5)
+					elseif l.kind == "upper" and not full then base:Lerp(dusk, 0.55)
+					elseif l.kind == "upper" then base:Lerp(white, 0.2)
+					elseif l.kind == "head" and full then base:Lerp(white, 0.55)
 					elseif l.kind == "far" and night then base:Lerp(far, 0.55 + 0.2 * (1 - l.lift))
+					elseif l.kind == "far" and not full then base:Lerp(lilac, 0.6):Lerp(base:Lerp(far, 0.6), l.toSun):Lerp(white, 0.5 * l.lift)
+					elseif l.kind == "deck" then base:Lerp(lilac, 0.7)
 					elseif l.kind == "far" then base:Lerp(white, 0.35 + 0.25 * l.lift):Lerp(far, 0.3 * l.toSun):Lerp(cool, 0.45 * (1 - l.toSun))
-					else base:Lerp(white, 0.96)
+					else base:Lerp(white, 0.3)
 				local color = ColorSequence.new(c:Lerp(far, l.haze))
 				l.shown = 1 - (1 - l.alpha) * show
 				for _, e in l.emitters do
@@ -912,9 +952,49 @@ function Sky.enter(preset: string, opts)
 		return c:play()
 	end
 
+	-- The character on the stage: anchors its root first, then moves it to cf (default the stage origin). A root
+	-- anchored and then moved by a client stayed in its place on the server (Studio Play, 2026-11-22), so other
+	-- players see the character standing where it was. Hides its ForceField: the bubble of a fresh spawn ringed the
+	-- character in every shot of one build. leave() puts the character where it was, its root's Anchored as it was
+	-- and the ForceField back, unless the character is gone. Returns cf.
+	local staged = {}
+	function self:stage(model: Model, cf: CFrame?)
+		local root = model:FindFirstChild("HumanoidRootPart") :: BasePart?
+		local at = cf or self.origin
+		if not root then
+			return at
+		end
+		local st = staged[model]
+		if not st then
+			st = { pivot = model:GetPivot(), anchored = root.Anchored, fields = {} }
+			staged[model] = st
+		end
+		root.Anchored = true
+		for _, d in model:GetChildren() do
+			if d:IsA("ForceField") and d.Visible then
+				st.fields[d] = true
+				d.Visible = false
+			end
+		end
+		model:PivotTo(at)
+		return at
+	end
+
 	function self:leave()
 		if not self.alive then
 			return
+		end
+		for model, st in staged do
+			if model.Parent then
+				model:PivotTo(st.pivot)
+				local root = model:FindFirstChild("HumanoidRootPart") :: BasePart?
+				if root then
+					root.Anchored = st.anchored
+				end
+			end
+			for field in st.fields do
+				field.Visible = true
+			end
 		end
 		for tunnel in tunnels do
 			tunnel:stop()

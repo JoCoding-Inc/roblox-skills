@@ -808,6 +808,7 @@ function Layouts.daily(playerGui: Instance, options: Options?)
 		Kit.win(t.tile, { color = C.accent })
 		Kit.burst(t.tile, { tier = 2, color = C.accent })
 		Kit.fly(t.icon, x.counters[kind].icon, {
+			amount = gift,
 			arc = -0.3,
 			onArrive = function(n)
 				if n == 1 then
