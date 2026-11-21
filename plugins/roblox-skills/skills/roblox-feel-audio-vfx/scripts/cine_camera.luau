@@ -220,7 +220,7 @@ function CineCamera.audit(shots, height: number?): { string }
 				table.insert(out, string.format("%s: the camera is %.1f studs from the subject's origin, inside the hair or the body", label, dist))
 			elseif head / (2 * dist * math.tan(math.rad(f) / 2)) > 0.45 then
 				-- an avatar's head is a smooth shape with a decal: at frame size it is a flat oval (named in two sittings)
-				table.insert(out, string.format("%s: the head fills %d%% of the frame height; an avatar's face is a flat shape at that size: stay at %.1f studs or more at fov %d (head under 40%%), or make the shot a close-up of the effect", label, head / (2 * dist * math.tan(math.rad(f) / 2)) * 100, CineCamera.fit(head, f, 0.4), f))
+				table.insert(out, string.format("%s: the head fills %d%% of the frame height; an avatar's face is a flat shape at that size: stay at %.1f studs or more at fov %d (head at 25-40%% is the close shot), or make the shot a close-up of the effect", label, head / (2 * dist * math.tan(math.rad(f) / 2)) * 100, CineCamera.fit(head, f, 0.4), f))
 			end
 		end
 		-- a stretch where the subject is small: a wide is a beat, not a place to stay
@@ -267,6 +267,56 @@ function CineCamera.audit(shots, height: number?): { string }
 			table.insert(out, string.format("shot %d %s (the last shot): it starts with the subject at %d%% of the frame height; land the name on a medium close (55%% or more: %.1f studs at fov %d) and pull out after about 0.8 s", last, tostring(shots[last].name or ""), share * 100, CineCamera.fit(h, f, 0.55), f))
 		end
 	end
+	-- a close shot: the judges of the eighth build marked a cutscene whose nearest shot showed the head at 14% of
+	-- the frame height ("no close-up anywhere, the peak lacks presence", four of four) under one that opened on
+	-- the face and cut to head and raised arms at the peak
+	local nearest, nearestAt = 0, 0
+	for i, shot in shots do
+		local fov = shot.fov
+		local stays = math.huge -- a close shot stays close: a whip that starts at the face and ends 20 studs away is not one
+		for k, framing in { shot.from, shot.to or shot.from } do
+			local f = if type(fov) == "table" then fov[k] or fov[1] else fov or 70
+			stays = math.min(stays, head / (2 * math.max((framing.offset :: Vector3).Magnitude, 0.1) * math.tan(math.rad(f) / 2)))
+		end
+		if stays > nearest then
+			nearest, nearestAt = stays, i
+		end
+	end
+	if #shots >= 4 and nearest < 0.22 then
+		table.insert(out, string.format("no close shot: the nearest one (shot %d) shows the head at %d%% of the frame height. Give the cutscene two close shots of 0.4-1.2 s, head at 25-40%% (%.1f to %.1f studs at fov 45): the face reacting near the start, and head and raised arms at the peak while the last digits run, then cut wider for the name", nearestAt, nearest * 100, CineCamera.fit(head, 45, 0.4), CineCamera.fit(head, 45, 0.25)))
+	end
+	-- cuts that change neither the side nor the size: two or three shots in a row from within 30 degrees of each
+	-- other at a like distance are one long shot to the eye ("2 s of the same side-flight angle", three judges)
+	local function sameView(a: Vector3, b: Vector3): boolean
+		if a.Magnitude < 0.1 or b.Magnitude < 0.1 then
+			return false
+		end
+		local ratio = b.Magnitude / a.Magnitude
+		return a.Unit:Dot(b.Unit) > 0.866 and ratio > 0.7 and ratio < 1.43
+	end
+	local run, runFrom = 0, 1
+	local function close(i: number)
+		if run > 1.6 then
+			table.insert(out, string.format("shots %d-%d: %.1f s from one side at one size; a cut inside a travel changes the side by 60 degrees or more or the size by half (a low flyby, a chase from behind, a top view), every 0.6-0.9 s", runFrom, i, run))
+		end
+		run = 0
+	end
+	for i, shot in shots do
+		local from, to = (shot.from.offset :: Vector3), ((shot.to or shot.from).offset :: Vector3)
+		local steady = sameView(from, to) and math.abs(shot.orbit or 0) < 30 and not shot.hold
+		local prev = shots[i - 1]
+		if not (run > 0 and prev and sameView(((prev.to or prev.from).offset :: Vector3), from)) then
+			close(i - 1)
+			runFrom = i
+		end
+		if steady then
+			run += shot.len or 0
+		else
+			close(i - 1)
+			runFrom = i + 1
+		end
+	end
+	close(#shots)
 	for _, line in out do
 		warn("CineCamera.audit: " .. line)
 	end
