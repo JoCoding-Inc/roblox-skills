@@ -428,7 +428,8 @@ end
 
 -- The flash of the peak. A cover that goes to full white is a blank frame on a capture and in a player's eye
 -- (named by both judges: "one completely blank white frame", "three frames without the hero"), so this one
--- stops at 70%: the character's outline stays in every frame. Up in 2 frames, a 1 frame hold, gone in 0.14 s.
+-- stops at 70%: the character's outline stays in every frame. Up in 2 frames, a 1 frame hold, gone in 0.14 s on an
+-- ease-out curve (under a third of the peak 0.05 s after the hold; a straight fade stayed over half of it for 0.07 s).
 -- flash_safety counts it and refuses a fourth flash inside a second (then nothing is drawn).
 -- opts: color (default a warm white), peak (0..0.8, default 0.7), up (0.033), hold (0.017), down (0.14), clock / at
 function ScreenOverlays.flash(opts)
@@ -453,7 +454,7 @@ function ScreenOverlays.flash(opts)
 		if not cover then
 			return
 		end
-		local a = t < up and t / up or (t < up + hold and 1 or 1 - (t - up - hold) / down)
+		local a = t < up and t / up or (t < up + hold and 1 or (1 - math.clamp((t - up - hold) / down, 0, 1)) ^ 3)
 		cover.BackgroundTransparency = 1 - peak * math.clamp(a, 0, 1)
 	end)
 	c:at(up + hold + down, function()

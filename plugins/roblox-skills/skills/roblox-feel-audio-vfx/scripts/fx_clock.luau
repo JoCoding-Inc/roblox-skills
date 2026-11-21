@@ -66,6 +66,42 @@ function FxClock.clearAt(pos: Vector3, toward: number?): number
 	return share
 end
 
+-- The point a cutscene camera is framing (cine_camera sets it every frame of a shot and clears it after), for frontAt.
+FxClock.focus = nil :: Vector3?
+-- 1 = drawn, 0 = closed: a point in the near part of the gap between the camera and what it frames (FxClock.focus
+-- and the kept-clear parts), anywhere in the frame. It fades from a fifth of the gap toward the lens and is gone at
+-- 0.45 of it (a point at the depth of any of them, or behind it, is drawn). In a close shot five ribbons wound round
+-- a flyer 6 studs from the lens, 1.5-2.5 studs in front of it, covered the frame one and a half times over and
+-- washed it white for 0.7 s; in a shot 12 studs away the same orbit stays inside the fifth and is untouched.
+-- fx_recipe: tails and spikes. Outside a cutscene with nothing kept clear it is always 1.
+function FxClock.frontAt(pos: Vector3): number
+	local cam = workspace.CurrentCamera
+	local focus = FxClock.focus
+	if not cam or (focus == nil and next(FxClock.clear) == nil) then
+		return 1
+	end
+	local eye = cam.CFrame.Position
+	local share, any = 0, false
+	local function gap(target: Vector3)
+		local to = target - eye
+		local far = to.Magnitude
+		if far > 1e-3 then
+			any = true
+			local along = (pos - eye):Dot(to) / far
+			share = math.max(share, 1 - FxClock.smooth(0.2, 0.45, (far - along) / far))
+		end
+	end
+	if focus then
+		gap(focus)
+	end
+	for part in FxClock.clear do
+		if part.Parent then
+			gap(part.Position)
+		end
+	end
+	return if any then share else 1
+end
+
 -- A point that the camera sees in front of a kept-clear part, inside its radius: the depth (a negative ZOffset,
 -- studs) that draws a shape there behind the part instead, so a star opened in front of a face stands behind the
 -- head as a rim. nil: the point covers no such part (or is behind it already). fx_recipe uses it when a play has

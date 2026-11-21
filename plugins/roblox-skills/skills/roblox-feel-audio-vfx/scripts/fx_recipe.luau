@@ -694,6 +694,9 @@ FxRecipe.recipes = {
 		palette = "holy",
 		anchor = "trail",
 		duration = 3,
+		-- the head is a sparkle, not a burst: its arms reach at most 0.6 of the frame's half height (with the default
+		-- 2.6 a head lengthened to 3.4 studs crossed a close shot from edge to edge, five of them at once)
+		fit = 0.6,
 		layers = {
 			L.tail({ name = "Glow", w = 1.3, life = 0.5, alpha = 0.5, color = { "mid", "deep" }, cool = 1.6, emission = 0.45, brightness = 1.6, z = 0.2 }),
 			L.tail(),
@@ -921,6 +924,14 @@ local function across(v)
 	return (if math.abs(v.Y) < 0.9 then v:Cross(Vector3.yAxis) else v:Cross(Vector3.xAxis)).Unit
 end
 
+-- the distance from q to the segment a-b
+local function toSegment(q: Vector3, a: Vector3, b: Vector3): number
+	local ab = b - a
+	local n = ab:Dot(ab)
+	local u = if n > 1e-8 then math.clamp((q - a):Dot(ab) / n, 0, 1) else 0
+	return (a + ab * u - q).Magnitude
+end
+
 -- the box a path layer emits from: it spans a -> b plus `width` each way, its Y axis is `up` (the emission direction)
 local function pathBox(part, a, b, up, side, width)
 	local m = b - a
@@ -1105,10 +1116,10 @@ function FxRecipe.play(recipe, target, opts)
 		end)
 	end
 
-	-- fit: a star is drawn no bigger than the frame it is seen in. opts.fit (default 2.6; false: off) is the longest
-	-- arm of the recipe's stars as a share of half the frame's height at the anchor's depth (2.6: a little past the
-	-- side edge of a 16:9 frame, so the long arms leave the frame as rays and the shorter ones show their points;
-	-- a crown, whose crystals stand in a ring, is held to half of it).
+	-- fit: a star is drawn no bigger than the frame it is seen in. opts.fit (default the recipe's fit, else 2.6; false:
+	-- off) is the longest arm of the recipe's stars as a share of half the frame's height at the anchor's depth (2.6:
+	-- a little past the side edge of a 16:9 frame, so the long arms leave the frame as rays and the shorter ones show
+	-- their points; a crown, whose crystals stand in a ring, is held to half of it; trail_star's head 0.6).
 	-- Every frame the arms, the rings that do not lie on the floor and a crown's gap shrink together when the camera is
 	-- close, widths by the square root so a much smaller star is not a hairline; a shard that flies is at most 0.45
 	-- of that half height; a burst of a star recipe shrinks the same way (its speed with the arms, its sprite at most
@@ -1116,8 +1127,14 @@ function FxRecipe.play(recipe, target, opts)
 	-- that near may be large. Without it a reveal star at scale 2.2 behind a head 5 studs from the camera had arms of
 	-- 31 studs in a frame 4 studs high: what showed was the wide root of each arm ("flat yellow wedges", two judges),
 	-- its sparkles flew at the lens as white blobs, and a glint 3 studs from the lens was a blue slab over a fifth of
-	-- the frame
-	local fitShare = if opts.fit == nil then 2.6 else opts.fit
+	-- the frame.
+	-- The rest of a recipe is held too, star or not: within 9 studs of the lens a burst's or a stream's pieces are at
+	-- most 1.2 of that half height and a burst's fly at most half way to the lens (further out the tuned sizes stay);
+	-- a gather sphere ends 0.3 of the anchor's distance short of the lens; the widest tail is at most 0.16 of the half
+	-- height wide at its own depth (the others with it) and a tail goes out where it passes within 4 studs of the lens.
+	-- Without them a charge on a hand in a close-up spawned its streaks round the camera, and the 6-stud segments of
+	-- ribbons wound round a flyer swept across the lens as white slabs (a builder's tenth cutscene)
+	local fitShare = if opts.fit == nil then recipe.fit or 2.6 else opts.fit
 	local starReach = 0
 	for _, l in recipe.layers do
 		if l.kind == "spikes" and not l.fly and l.plane ~= "floor" and l.fit ~= false then
@@ -1129,6 +1146,13 @@ function FxRecipe.play(recipe, target, opts)
 			-- height at most, so the ring's sides are whole inside a wide frame and its tails clear a head in a
 			-- close-up (held to 0.9 the whole crown hid behind the head and hair)
 			starReach = math.max(starReach, ((l.gap or 0) + l.len * long) * s / (if (l.gap or 0) > 0 then 0.5 else 1))
+		end
+	end
+	-- the widest tail of the recipe (tails shrink together, so a glow stays wider than its core)
+	local tailWide = 0
+	for _, l in recipe.layers do
+		if l.kind == "tail" and l.fit ~= false then
+			tailWide = math.max(tailWide, l.w * s)
 		end
 	end
 	local fitAt, fitHalf, fitDepth = -1, math.huge, math.huge
@@ -1224,20 +1248,28 @@ function FxRecipe.play(recipe, target, opts)
 			setAlpha(e.Transparency)
 			if l.kind == "burst" then
 				local big = halfOf(l.size) * 2 * s
-				local cap = 1
+				local reach = if l.speed then l.speed[2] * s * l.life[2] else 0
+				local cap, capT = 1, 1
 				for i = 0, repeats(l) - 1 do
 					clock:at(l.at + i * (l.every or 0), function()
 						sync(clock.t)
-						if starReach > 0 and l.fit ~= false then
-							-- fit: a burst of a star recipe shrinks with the star when it is emitted
+						if fitShare and l.fit ~= false then
+							-- fit, when it is emitted: a burst of a star recipe shrinks with the star (its speed with the
+							-- arms, its pieces at most 1.2 of the half height). Within 9 studs of the lens every burst does:
+							-- its pieces at most 1.2 of the half height, flying at most half way to the lens (a burst on a hand
+							-- 2.5 studs from the camera threw its sparks past the lens as soft blobs); from 9 studs on the
+							-- other recipes keep their tuned sizes and throws
 							local kf = starFit()
-							local k = math.min(math.sqrt(kf), frameHalf() * 1.2 / big)
-							if k ~= cap then
-								cap = k
+							local held = math.min(1, frameHalf() * 1.2 / big)
+							local far = smooth(6, 9, fitDepth)
+							local k = math.min(math.sqrt(kf), if starReach > 0 then held else lerp(held, 1, far))
+							local kt = if reach > 0 then lerp(math.min(1, fitDepth * 0.5 / (reach * kf)), 1, far) else 1
+							if k ~= cap or kt ~= capT then
+								cap, capT = k, kt
 								e.Size = sized(l.size, s * k)
 								e.ZOffset = fitZ(l.z or 0, kf)
 								if l.speed then
-									e.Speed = NumberRange.new(l.speed[1] * s * kf, l.speed[2] * s * kf)
+									e.Speed = NumberRange.new(l.speed[1] * s * kf * kt, l.speed[2] * s * kf * kt)
 								end
 							end
 						end
@@ -1251,16 +1283,34 @@ function FxRecipe.play(recipe, target, opts)
 				local to = if l.to == "end" then stopAt else l.to
 				local tailLen = if l.len then l.len * s * (opts.tail or 1) else nil
 				local half = if l.clear and rays then halfOf(l.size) * s else nil
-				local fit = 1
+				local big = halfOf(l.size) * 2 * s
+				local r0 = if l.gather then l.gather * s else nil
+				local fit, gk = 1, 1
 				clock:stream(e, l.from, to, function(t)
 					local u = (t - l.from) / (to - l.from)
-					if half then
-						-- clear: every live piece shrinks with the room left (an emitter's Size applies to them all)
-						local k = math.floor(math.clamp(room / half, 0, 1) * 50 + 0.5) / 50
-						if k ~= fit then
-							fit = k
-							e.Size = sized(l.size, s * k)
+					-- clear: every live piece shrinks with the room left (an emitter's Size applies to them all); fit: within
+					-- 9 studs of the lens also to 1.2 of the frame's half height at the anchor's depth, as a burst's do
+					local k = if half then math.clamp(room / half, 0, 1) else 1
+					if fitShare and l.fit ~= false then
+						local held = math.min(1, frameHalf() * 1.2 / big)
+						k = math.min(k, lerp(held, 1, smooth(6, 9, fitDepth)))
+						if r0 then
+							-- a gather sphere ends 0.3 of the anchor's distance short of the lens, its pieces slowed with it
+							-- so they still meet at the anchor: a sphere of 3.9 studs round a hand 2.5 studs from the camera
+							-- held the camera inside it and spawned streaks at the lens as soft white puffs
+							local kr = math.max(0.02, math.floor(math.min(1, fitDepth * 0.7 / r0) * 50 + 0.5) / 50)
+							if kr ~= gk then
+								gk = kr
+								local box = r0 * 2 * kr
+								parent.Size = Vector3.new(box, box, box)
+								e.Speed = NumberRange.new(l.speed[1] * s * kr, l.speed[2] * s * kr)
+							end
 						end
+					end
+					k = math.floor(k * 50 + 0.5) / 50
+					if k ~= fit then
+						fit = k
+						e.Size = sized(l.size, s * k)
 					end
 					if tailLen then
 						-- len: a tail measured in studs, so its shape holds at any speed: each piece lives as long as the
@@ -1276,7 +1326,7 @@ function FxRecipe.play(recipe, target, opts)
 					if l.settle then
 						-- settle: new pieces leave slower toward the end of the span (down to this share of their speed), so
 						-- a fountain sinks to its base as it dies instead of leaving its last pieces floating high
-						local k = 1 - (1 - l.settle) * smooth(0.3, 1, u)
+						local k = (1 - (1 - l.settle) * smooth(0.3, 1, u)) * gk
 						e.Speed = NumberRange.new(l.speed[1] * s * k, l.speed[2] * s * k)
 					end
 					local rate = (l.rate or 0) + (l.density or 0) * speed / s
@@ -1592,10 +1642,12 @@ function FxRecipe.play(recipe, target, opts)
 					local dir = right * math.cos(arm.ang + turn) + top * math.sin(arm.ang + turn)
 					-- fly: the shard leaves the centre and travels that many times its own length
 					local out = alen * (l.fly or 0) * FxClock.outQuart(v) + (l.gap or 0) * s * kg
-					-- an arm that would cross a face (FxClock.clear) closes while it is in front of it
+					-- an arm that would cross a face (FxClock.clear) closes while it is in front of it, and a star in the near
+					-- part of the gap between the lens and what a cutscene frames closes whole (FxClock.frontAt)
 					if next(FxClock.clear) ~= nil then
 						open *= math.min(FxClock.clearAt(here + dir * out, zoff), FxClock.clearAt(here + dir * (out + alen * 0.5), zoff), FxClock.clearAt(here + dir * (out + alen), zoff))
 					end
+					open *= FxClock.frontAt(here)
 					local wide = w * kw * (0.35 + 0.65 * open)
 					if kite then
 						-- tail at `out`, the widest place `kite` of the way along, the point at the far end; the lit
@@ -1674,24 +1726,37 @@ function FxRecipe.play(recipe, target, opts)
 					local f = (j - 1) / segs
 					local time = newest - f * span
 					local pos = posAt(time)
-					local back = posAt(time - span / segs) - posAt(time + span / segs)
+					local older, newer = posAt(time - span / segs), posAt(time + span / segs)
+					local back = older - newer
 					local tan = if back.Magnitude > 1e-4 then back.Unit else spray
 					-- a band seen end-on is a flat slab across the frame and one near the lens covers it (a camera behind a
 					-- flyer, a ribbon that orbits a body in a close shot: named by a builder and by two judges): it goes out
-					-- as its direction nears the line of sight (under about 20 degrees) and within 4 studs of the lens
-					local seen = 1
+					-- as its direction nears the line of sight (under about 20 degrees) and where the band comes within 4
+					-- studs of the lens. Measured on the two segments at this joint, not at the joint: the segments of a
+					-- fast flyer were 6 studs long and one crossed the lens between two joints that were both far from it
+					local seen, kw = 1, 1
 					local cam = workspace.CurrentCamera
 					if cam and l.lens ~= false then
-						local toCam = cam.CFrame.Position - pos
+						local eye = cam.CFrame.Position
+						local toCam = eye - pos
 						local d = toCam.Magnitude
 						if d > 1e-3 then
-							seen = smooth(0.12, 0.4, tan:Cross(toCam / d).Magnitude) * smooth(1.5, 4, d)
+							local near = math.min(d, toSegment(eye, pos, older), toSegment(eye, pos, newer))
+							seen = smooth(0.12, 0.4, tan:Cross(toCam / d).Magnitude) * smooth(1.5, 4, near)
 						end
-						seen *= FxClock.clearAt(pos, zoff)
+						seen *= FxClock.clearAt(pos, zoff) * FxClock.frontAt(pos)
+						-- fit: the widest tail of the recipe is at most 0.16 of the frame's half height where it is (8% of the
+						-- frame; a share that falls within 6 studs of the lens, as a star's does) and the others shrink with
+						-- it. The artist's trails are thin lines with a soft glow; five ribbons with 2.6-stud glows round a
+						-- flyer in a close shot were bands of 30% of the frame each and washed it white
+						if fitShare and l.fit ~= false and tailWide > 0 then
+							local ahead = -toCam:Dot(cam.CFrame.LookVector)
+							kw = math.min(1, math.max(0, ahead) * math.tan(math.rad(cam.FieldOfView) / 2) * math.max(0.12, smooth(1.5, 6, ahead)) * 0.16 / tailWide)
+						end
 					end
 					return {
 						cf = CFrame.fromMatrix(pos, tan, across(tan)),
-						width = w * (1 - f) ^ (l.taper or 1),
+						width = w * (1 - f) ^ (l.taper or 1) * kw,
 						alpha = 1 - (1 - ((l.alpha or 0) + (1 - (l.alpha or 0)) * f * f)) * seen,
 						color = c0:Lerp(c1, math.min(1, f * (l.cool or 1))),
 					}
