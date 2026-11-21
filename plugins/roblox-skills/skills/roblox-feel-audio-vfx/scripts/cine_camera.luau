@@ -24,8 +24,9 @@
 -- CineCamera.audit(shots, height?) -> { string }: shots where the subject is a dot (under 15% of the frame
 --   height), the camera is inside it, the head is larger than 45% of the frame height (an avatar's face is a flat
 --   shape at that size), the subject stays under 25% of the frame for more than 1.2 s in a row, the frame does not
---   move for more than 0.5 s, or the last shot starts with the subject under 45% of the frame; run it on every
---   shot list before the first capture.
+--   move for more than 0.5 s, the last shot starts with the subject under 45% of the frame or runs over 2.1 s,
+--   there is no close shot, cuts keep one side and size for over 1.6 s, or a face close-up looks up from more than
+--   15 degrees below; run it on every shot list before the first capture.
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -266,6 +267,11 @@ function CineCamera.audit(shots, height: number?): { string }
 		if share < 0.45 then
 			table.insert(out, string.format("shot %d %s (the last shot): it starts with the subject at %d%% of the frame height; land the name on a medium close (55%% or more: %.1f studs at fov %d) and pull out after about 0.8 s", last, tostring(shots[last].name or ""), share * 100, CineCamera.fit(h, f, 0.55), f))
 		end
+		-- the hold on the name: past about 2 s of one slow move the picture is a still (two judges of the ninth
+		-- build: "a 2.6 s near-static title hold"; the artist's cut holds its title 1.4-1.6 s)
+		if (shot.len or 0) > 2.1 then
+			table.insert(out, string.format("shot %d %s (the last shot): it runs %.1f s; one slow pull-out reads as a still after about 1.6 s. End it by 1.6-2 s, or cut it in two (the name lands on the medium close, then a second, wider or lower shot at about half time brings the last element in)", last, tostring(shot.name or ""), shot.len))
+		end
 	end
 	-- a close shot: the judges of the eighth build marked a cutscene whose nearest shot showed the head at 14% of
 	-- the frame height ("no close-up anywhere, the peak lacks presence", four of four) under one that opened on
@@ -280,6 +286,20 @@ function CineCamera.audit(shots, height: number?): { string }
 		end
 		if stays > nearest then
 			nearest, nearestAt = stays, i
+		end
+	end
+	-- a face close-up from below: on an avatar with a fringe the hair covers the eyes (both judges of the ninth
+	-- build: "an extreme close-up from below, the hair hides the eyes"). Measured from the shot's look point
+	for i, shot in shots do
+		local fov = shot.fov
+		for k, framing in { shot.from, shot.to or shot.from } do
+			local f = if type(fov) == "table" then fov[k] or fov[1] else fov or 70
+			local rel = (framing.offset :: Vector3) - (framing.look or Vector3.zero)
+			local dist = math.max(rel.Magnitude, 0.1)
+			if head / (2 * dist * math.tan(math.rad(f) / 2)) > 0.25 and rel.Y / dist < -0.26 then
+				table.insert(out, string.format("shot %d %s (%s): a face close-up from %d degrees below the look point; on an avatar with a fringe the hair hides the eyes. Keep a face close-up within about 10 degrees of eye level or above it; the low camera belongs to the wides", i, tostring(shot.name or ""), k == 1 and "start" or "end", math.floor(math.deg(math.asin(-rel.Y / dist)) + 0.5)))
+				break
+			end
 		end
 	end
 	if #shots >= 4 and nearest < 0.22 then

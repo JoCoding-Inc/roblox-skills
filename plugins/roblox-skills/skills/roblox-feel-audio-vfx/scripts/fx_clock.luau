@@ -66,6 +66,35 @@ function FxClock.clearAt(pos: Vector3, toward: number?): number
 	return share
 end
 
+-- A point that the camera sees in front of a kept-clear part, inside its radius: the depth (a negative ZOffset,
+-- studs) that draws a shape there behind the part instead, so a star opened in front of a face stands behind the
+-- head as a rim. nil: the point covers no such part (or is behind it already). fx_recipe uses it when a play has
+-- no opts.depth.
+function FxClock.behind(pos: Vector3): number?
+	local cam = workspace.CurrentCamera
+	if not cam or next(FxClock.clear) == nil then
+		return nil
+	end
+	local eye = cam.CFrame.Position
+	local back = nil
+	for part, radius in FxClock.clear do
+		if part.Parent then
+			local to = part.Position - eye
+			local far = to.Magnitude
+			local rel = pos - eye
+			local along = rel:Dot(to) / math.max(far, 1e-3)
+			if along > 0.2 and along < far + 0.4 then
+				local off = (rel - to / far * along).Magnitude * far / along
+				if off < radius * 1.2 then
+					local z = -(far - along + part.Size.Magnitude * 0.5 + 0.4)
+					back = if back then math.min(back, z) else z
+				end
+			end
+		end
+	end
+	return back
+end
+
 FxClock.glow = nil :: ((key: any, color: Color3, brightness: number, position: Vector3, range: number) -> boolean)?
 
 local function runtimeFolder(): Instance
