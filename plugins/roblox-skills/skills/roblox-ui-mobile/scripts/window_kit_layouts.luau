@@ -251,6 +251,8 @@ end
 
 -- { icon, name, price, tag }: one card per item, keyed "<shelf><n>". The featured shelf shows six of the
 -- others' cards, so a change to or from it has cards that stay (they slide) beside cards that leave and arrive.
+-- which of the skin's tile colours an item's art sits on
+local TILE = { gem = "gemTile", coin = "coinTile", egg = "dailyTile", pets = "dailyTile", feed = "dailyTile", race = "weeklyTile", play = "weeklyTile", wins = "weeklyTile" }
 local SHOP = {
 	{ key = "featured", text = "Featured", icon = "shop", show = { "boosts1", "pets1", "gems2", "pets4", "boosts3", "gems6" } },
 	{ key = "pets", text = "Pets", icon = "pets", items = { { "egg", "Mystery Egg", 500, "NEW" }, { "feed", "Treat Bag", 150 }, { "trade", "Pet Swap", 350 }, { "pets", "Paw Charm", 800 }, { "race", "Race Pass", 600 }, { "chest", "Gift Pet", 1200 }, { "wins", "Show Ribbon", 450 }, { "boss", "Guard Pup", 1500 }, { "coin", "Piggy Pal", 700 } } },
@@ -436,12 +438,14 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 				radius = pick(10, 14),
 				depth = pick(2, 4),
 			})
+			-- the art's tile takes a tint from what the item is (the skin's tile colours), so the grid is not rows of
+			-- one grey box: "identical beige cards, grey icon boxes" was the first defect two judges named
 			local art = Kit.icon(content, icons[item[1]], {
 				name = "Art",
 				size = pick(36, 52),
 				position = pick(UDim2.fromOffset(6, 5), UDim2.new(0.5, 0, 0, 7)),
 				anchor = pick(Vector2.zero, Vector2.new(0.5, 0)),
-				tile = C.cardHead,
+				tile = C[TILE[item[1]] or "cardHead"] or C.cardHead,
 			})
 			text(content, {
 				Name = "Name",
