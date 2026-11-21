@@ -1,20 +1,23 @@
 -- WindowKit: the finish and the motion of a designed window (roblox-ui-mobile section 4,
 -- "A window that looks designed, opens in order and answers a press").
 -- Finish: card() and button() build a surface with a dark outline, a lighter top, a light line
--- inside the top edge and a shadow, so every panel, row and button of a screen shares one depth.
--- Motion: open() shows the shell first and then the content in order, close() fades it out,
+-- inside the top edge and a shadow, so every panel, row and button of a screen shares one depth;
+-- icon() puts an image of your icon pack in a well with the same finish; tabs() is a tab strip.
+-- Screen: stage() sizes a window by its share of the screen, scrim() dims the whole screen under it.
+-- Motion: open() grows the window in while its content arrives in order, close() fades it out,
 -- press() squashes a button before its state changes, fly() and count() send rewards to a
 -- counter, list() keeps keyed rows that tween to their new places, burst() and stamp() make a
--- bigger moment for a bigger reward. No images and no uploads: every shape is a Frame.
+-- bigger moment for a bigger reward. Shapes are Frames; icons are image ids you pass in.
 -- Client ModuleScript. The ScreenGui must use ZIndexBehavior Sibling. Honours Reduced Motion.
--- Works beside PanelStage (stage:open(panel) for the dim and the HUD, then
--- WindowKit.open(panel, groups, { shell = false })). Demo: window_kit_demo.luau.
+-- Use its own dim and sizing (scrim, stage) or PanelStage for a window, not both.
+-- Demo: window_kit_demo.luau (a phone layout and a larger one; lint-clean on four device presets).
 --
 -- local Kit = require(ReplicatedStorage.Ui.WindowKit)
--- local window, content = Kit.card(gui, { size = UDim2.fromOffset(640, 380), fill = navy, depth = 8 })
--- local claim, label = Kit.button(content, { text = "CLAIM", fill = green, size = UDim2.fromOffset(180, 52) })
+-- local layer = Kit.stage(gui, Vector2.new(760, 440))            -- the window's design size
+-- local window, content = Kit.card(layer, { size = UDim2.fromOffset(760, 440), fill = indigo, depth = 8, role = "panel" })
+-- local claim, label = Kit.button(content, { text = "CLAIM", fill = green, size = UDim2.fromOffset(180, 52), hit = 44 })
 -- Kit.press(claim, function() ... end)          -- runs after the squash, not on the press frame
--- Kit.open(window, { { emblem, "pop" }, { tabs, "pop", gap = 0.03 }, { rows, "slide", from = "left" }, { closeButton, "spin" } })
+-- Kit.open(window, { { emblem, "pop" }, { rows, "slide", from = "left" }, { closeButton, "spin" } })
 -- Kit.close(window)
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
@@ -24,14 +27,14 @@ local Kit = {}
 
 -- seconds; measured on a designer's window and on live games (section 4 and 4a)
 Kit.TIMES = {
-	shell = 0.17, -- the empty window settles
-	budget = 0.95, -- everything of an open has started by budget - 0.2
+	shell = 0.2, -- the window grows in with a small overshoot
+	budget = 0.7, -- everything of an open has started by budget - 0.2
 	pop = 0.2,
 	slide = 0.18,
 	fade = 0.14,
 	close = 0.22,
-	press = 0.07,
-	rebound = 0.15,
+	press = 0.08,
+	rebound = 0.2,
 	fly = 0.4,
 	flyGap = 0.07,
 	count = 0.5,
@@ -174,6 +177,24 @@ local function shade(c: Color3, k: number): Color3 -- k < 0 darker, k > 0 lighte
 	return c:Lerp(Color3.new(1, 1, 1), k)
 end
 Kit.shade = shade
+
+-- The label colour that reads on a fill: white with a dark outline on a dark fill, dark ink and no
+-- outline on a bright one (an outline does not raise contrast). Returns (text colour, outline colour or nil).
+local function ink(fill: Color3): (Color3, Color3?)
+	local function lin(c: number): number
+		return c <= 0.04045 and c / 12.92 or ((c + 0.055) / 1.055) ^ 2.4
+	end
+	local function lum(c: Color3): number
+		return 0.2126 * lin(c.R) + 0.7152 * lin(c.G) + 0.0722 * lin(c.B)
+	end
+	local dark = shade(fill, -0.82)
+	local l = lum(fill)
+	if 1.05 / (l + 0.05) >= (l + 0.05) / (lum(dark) + 0.05) then
+		return Color3.new(1, 1, 1), shade(fill, -0.6)
+	end
+	return dark, nil
+end
+Kit.ink = ink
 
 local function make(class: string, props, parent: Instance?)
 	local o = Instance.new(class)
@@ -337,7 +358,7 @@ export type CardOptions = {
 	z: number?, -- ZIndex
 	fill: Color3?,
 	stroke: Color3?, -- default: the fill, 55% darker
-	strokeWidth: number?, -- default 2; 3-4 on a window
+	strokeWidth: number?, -- default 2; 3-4 on a window; 0 = no outline (a piece inside an outlined track)
 	radius: number?, -- px, default 12
 	depth: number?, -- shadow drop in px, default 0 (none); 6-8 on a window, 4 on a button
 	lift: number?, -- how much lighter the top is than the bottom, default 0.14
@@ -346,6 +367,9 @@ export type CardOptions = {
 	padding: number?, -- px of UIPadding on the content, default 0
 	button: boolean?, -- a TextButton instead of a Frame
 	clip: boolean?, -- the content clips its children, default false
+	hit: number?, -- the smallest tap area in screen px (44 on touch): a button drawn smaller gets an invisible pad
+	role: string?, -- the lint's KitRole attribute: "menu", "action", "currency", "panel", ...
+	breakout: string?, -- the lint's KitBreakout attribute for a piece that sticks out of its host on purpose: "ornament", "badge", ...
 }
 
 -- A surface. Returns (outer, content): place, size and animate outer; parent your own children to content.
@@ -369,24 +393,30 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		;(outer :: any).AutoButtonColor = false
 	end
 	if depth > 0 then
+		-- the body covers all but the drop. Under an outline the shadow is 1 px larger all round (hidden by the
+		-- outline), so it wholly holds the body at any scale: a lint that reads a small frame crossing a stroke
+		-- as an icon on the stroke passes it.
+		local grow = opt.strokeWidth ~= 0 and 1 or 0
 		local shadow = make("Frame", {
 			Name = "Shadow",
 			ZIndex = 0,
-			Size = UDim2.new(1, 0, 1, 0),
-			Position = UDim2.fromOffset(0, depth),
+			Size = UDim2.new(1, 2 * grow, 1, depth + 2 * grow),
+			Position = UDim2.fromOffset(-grow, -grow),
 			BackgroundColor3 = shade(fill, -0.8),
 			BackgroundTransparency = 0.45,
 			BorderSizePixel = 0,
 		}, outer)
-		make("UICorner", { CornerRadius = UDim.new(0, radius) }, shadow)
+		make("UICorner", { CornerRadius = UDim.new(0, radius + grow) }, shadow)
 	end
 	local body = make("Frame", { Name = "Body", ZIndex = 1, Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = fill, BorderSizePixel = 0 }, outer)
 	make("UICorner", { CornerRadius = UDim.new(0, radius) }, body)
-	make("UIStroke", {
-		Color = opt.stroke or shade(fill, -0.55),
-		Thickness = opt.strokeWidth or 2,
-		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
-	}, body)
+	if opt.strokeWidth ~= 0 then
+		make("UIStroke", {
+			Color = opt.stroke or shade(fill, -0.55),
+			Thickness = opt.strokeWidth or 2,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		}, body)
+	end
 	local lift = opt.lift or 0.14
 	make("UIGradient", {
 		Rotation = 90,
@@ -418,13 +448,38 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		local p = UDim.new(0, opt.padding)
 		make("UIPadding", { PaddingLeft = p, PaddingRight = p, PaddingTop = p, PaddingBottom = p }, content)
 	end
+	if opt.role then
+		outer:SetAttribute("KitRole", opt.role)
+	end
+	if opt.breakout then
+		outer:SetAttribute("KitBreakout", opt.breakout)
+	end
 	outer.Parent = parent
+	if opt.hit and opt.button then
+		local k = scaleAbove(outer)
+		local size = outer.Size
+		local w = size.X.Scale == 0 and size.X.Offset * k or outer.AbsoluteSize.X
+		local h = size.Y.Scale == 0 and size.Y.Offset * k or outer.AbsoluteSize.Y
+		if w > 0 and h > 0 and (w < opt.hit or h < opt.hit) then
+			local pad = make("TextButton", {
+				Name = "Hit",
+				Text = "",
+				AutoButtonColor = false,
+				BackgroundTransparency = 1,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.5, 0.5),
+				Size = UDim2.fromOffset(math.ceil(math.max(w, opt.hit + 1) / k), math.ceil(math.max(h, opt.hit + 1) / k)),
+				ZIndex = 3,
+			}, outer)
+			pad:SetAttribute("KitHit", true)
+		end
+	end
 	return outer, content
 end
 
 export type ButtonOptions = CardOptions & {
 	text: string?,
-	textColor: Color3?,
+	textColor: Color3?, -- default: Kit.ink(fill), the colour that reads on the fill
 	textSize: number?,
 	font: Enum.Font?,
 	fontFace: Font?,
@@ -440,19 +495,21 @@ function Kit.button(parent: Instance, o: ButtonOptions?)
 	cardOpt.size = opt.size or UDim2.fromOffset(180, 52)
 	cardOpt.name = opt.name or "Button"
 	local outer, content = Kit.card(parent, cardOpt)
+	local color, line = ink(cardOpt.fill)
 	local label = make("TextLabel", {
 		Name = "Label",
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundTransparency = 1,
 		Text = opt.text or "",
-		TextColor3 = opt.textColor or Color3.new(1, 1, 1),
+		TextColor3 = opt.textColor or color,
 		TextSize = opt.textSize or 20,
 		Font = opt.font or Enum.Font.GothamBold,
 	}, content)
 	if opt.fontFace then
 		label.FontFace = opt.fontFace
 	end
-	make("UIStroke", { Color = shade(cardOpt.fill, -0.6), Thickness = 2 }, label)
+	label:SetAttribute("KitInk", opt.textColor == nil) -- recolor() keeps the label readable on the new fill
+	make("UIStroke", { Color = line or color, Thickness = 2, Enabled = opt.textColor ~= nil or line ~= nil }, label)
 	return outer, label, content
 end
 
@@ -476,9 +533,16 @@ function Kit.recolor(card: Instance, fill: Color3, stroke: Color3?)
 			line.Color = fromStroke:Lerp(toStroke, k)
 		end
 	end)
-	local label = card:FindFirstChild("Label", true)
+	local label = card:FindFirstChild("Label", true) :: TextLabel?
 	local labelStroke = label and label:FindFirstChildOfClass("UIStroke")
-	if labelStroke then
+	if label and label:GetAttribute("KitInk") then
+		local color, outline = ink(fill)
+		label.TextColor3 = color
+		if labelStroke then
+			labelStroke.Enabled = outline ~= nil
+			labelStroke.Color = outline or color
+		end
+	elseif labelStroke then
 		labelStroke.Color = shade(fill, -0.6)
 	end
 end
@@ -505,12 +569,20 @@ end
 
 -- ---------- press ----------
 
+-- what takes the tap: the button's hit pad when it has one (the pad lies over the button, so the button's
+-- own Activated no longer fires). Connect to Kit.target(button).Activated, or use Kit.press.
+function Kit.target(button: GuiButton): GuiButton
+	local pad = button:FindFirstChild("Hit")
+	return (pad and pad:IsA("GuiButton")) and pad or button
+end
+
 -- Squash, rebound and a light flash on press; fn runs after the squash (70 ms), so the state changes after
 -- the press is seen. Hover lifts the button a little on a mouse.
 function Kit.press(button: GuiButton, fn: (() -> ())?)
 	local s = scaleOf(button)
 	local body = (button:FindFirstChild("Body") or button) :: GuiObject
 	local busy = false
+	local target = Kit.target(button)
 	button.MouseEnter:Connect(function()
 		if not busy then
 			local from = s.Scale
@@ -527,7 +599,7 @@ function Kit.press(button: GuiButton, fn: (() -> ())?)
 			end)
 		end
 	end)
-	button.Activated:Connect(function()
+	target.Activated:Connect(function()
 		if busy then
 			return
 		end
@@ -555,10 +627,10 @@ function Kit.squash(gui: GuiObject, done: (() -> ())?)
 		body.BackgroundColor3 = shade(base, 0.45):Lerp(base, math.clamp(e, 0, 1))
 	end)
 	run(gui, "scale", 0, T.press, Quad, Out, function(e)
-		s.Scale = 1 + (0.92 - 1) * e
+		s.Scale = 1 + (0.88 - 1) * e
 	end, function()
 		run(gui, "scale", 0, T.rebound, Back, Out, function(e)
-			s.Scale = 0.92 + (1 - 0.92) * e
+			s.Scale = 0.88 + (1 - 0.88) * e
 		end, done)
 	end)
 end
@@ -611,10 +683,12 @@ end
 
 export type Group = { any } -- { item or { items }, kind, gap = seconds, from = side, after = seconds }
 
--- Open a window: the shell fades in and settles, then each group arrives in the order given, its items
--- one after another. Kinds: "pop" (scale with overshoot), "slide" (from = "left" | "right" | "top" |
+-- Open a window: it grows in from 0.9 with a small overshoot (0.2 s) while it fades in, and the groups
+-- arrive in the order given from the start, their items one after another. List only what should be
+-- staged (rows, the parts of a pane, the close button, an emblem): the header, the panes and the tab
+-- strip come with the window, so it is never an empty shell. Kinds: "pop" (scale with overshoot), "slide" (from = "left" | "right" | "top" |
 -- "bottom"), "fade", "spin" (pop with a quarter turn: a close button), "fill" (a bar grows).
--- Every item arrives whole, with its content. Everything has started by about 0.75 s.
+-- Every item arrives whole, with its content. Everything has started by about 0.5 s.
 -- options: shell = false when something else pops the window (PanelStage) or for a pane inside an open
 -- window; budget = seconds; delay = seconds before the first group (content of a pane that waits for its window).
 function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean?, budget: number?, delay: number? }?)
@@ -628,7 +702,7 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 	Kit.settle(root)
 	local plan = {}
 	local listed = {}
-	local t = opt.shell == false and 0 or 0.1
+	local t = opt.shell == false and 0 or 0.02 -- the content starts while the window is still growing: no empty window
 	for _, g in groups or {} do
 		local items = typeof(g[1]) == "Instance" and { g[1] } or g[1]
 		local gap = g.gap or 0.03
@@ -636,7 +710,7 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 			table.insert(plan, { item = item, kind = g[2] or "fade", delay = t + (i - 1) * gap, from = g.from })
 			listed[item] = true
 		end
-		t += math.min((#items - 1) * gap, 0.16) + (g.after or 0.05)
+		t += math.min((#items - 1) * gap, 0.12) + (g.after or 0.04)
 	end
 	local last = 0
 	for _, p in plan do
@@ -650,11 +724,11 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 	end
 	if opt.shell ~= false then
 		local s = scaleOf(root)
-		s.Scale = 0.92
-		run(root, "scale", 0, T.shell, Quad, Out, function(e)
-			s.Scale = 0.92 + 0.08 * e
+		s.Scale = 0.9
+		run(root, "scale", 0, T.shell, Back, Out, function(e)
+			s.Scale = 0.9 + 0.1 * e
 		end)
-		fade(root, 0, 1, 0, T.shell, nil, listed)
+		fade(root, 0, 1, 0, 0.12, nil, listed)
 	end
 	for _, p in plan do
 		enter(p.item, p.kind, (opt.delay or 0) + p.delay * squeeze, p.from)
@@ -699,7 +773,7 @@ end
 -- local list = Kit.list(scroll, { gap = 8, pad = 6 })
 -- list:add("daily_1", row)      -- row: any GuiObject with a fixed height (Size.Y.Offset); its X is yours
 -- list:show({ "daily_2", "daily_1" })   -- these rows, in this order: others leave, new ones arrive, the rest move
--- list:order({ ... })           -- the same rows in a new order (a claimed row moves down)
+-- list:order({ ... })           -- the same rows in a new order (a claimed row is lifted and slides down)
 function Kit.list(container: GuiObject, o: { gap: number?, pad: number? }?)
 	local opt = o or {}
 	local gap, pad = opt.gap or 8, opt.pad or 0
@@ -746,7 +820,7 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number? }?)
 		for _, k in keys do
 			want[k] = true
 		end
-		-- rows that would cross each other: the one that travels farthest leaves here and arrives there
+		-- rows that would cross each other: the one that travels farthest is lifted over the others
 		local staying, hop = {}, {}
 		for _, k in keys do
 			local row = self.rows[k]
@@ -777,9 +851,15 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number? }?)
 			if instant or m.from == m.to then
 				setY(row, m.to)
 			elseif hop[m.key] then
-				fade(row, 1, 0, 0, 0.1, function()
-					setY(row, m.to)
-					fade(row, 0, 1, 0.1, T.fade)
+				-- lifted: drawn over the rows it passes, a little larger on the way, so the move reads as a move
+				local z, sc = row.ZIndex, scaleOf(row)
+				row.ZIndex = z + 10
+				run(row, "move", 0, T.sort + 0.1, Quad, InOut, function(e, raw)
+					setY(row, m.from + (m.to - m.from) * e)
+					sc.Scale = 1 + 0.04 * math.sin(math.clamp(raw, 0, 1) * math.pi)
+				end, function()
+					row.ZIndex = z
+					sc.Scale = 1
 				end)
 			else
 				run(row, "move", 0, T.sort, Quad, Out, function(e)
@@ -866,6 +946,7 @@ local function overlayOf(gui: GuiObject, other: GuiObject?): GuiObject
 	local layer = screen:FindFirstChild("KitOverlay")
 	if not layer then
 		layer = make("Frame", { Name = "KitOverlay", Size = UDim2.new(1, 0, 1, 0), BackgroundTransparency = 1, ZIndex = 1000, Active = false }, screen)
+		layer:SetAttribute("KitTransient", true) -- short-lived effects: a UI lint judges them as such
 	end
 	return layer :: GuiObject
 end
@@ -901,22 +982,26 @@ function Kit.count(label: TextLabel, from: number, to: number, options: { time: 
 	if opt.plus ~= false and to ~= from then
 		local layer = overlayOf(label)
 		local c = centerIn(layer, label)
+		local half = label.AbsoluteSize.Y * 0.5 / scaleAbove(layer)
+		local dir = c.Y < 70 and 1 or -1 -- a counter at the top edge: the label goes under it, not off the screen
 		local plus = make("TextLabel", {
 			Name = "Plus",
-			AnchorPoint = Vector2.new(0.5, 1),
-			Position = UDim2.fromOffset(c.X, c.Y - label.AbsoluteSize.Y * 0.5),
-			Size = UDim2.fromOffset(120, 22),
+			AnchorPoint = Vector2.new(0.5, dir > 0 and 0 or 1),
+			Position = UDim2.fromOffset(c.X, c.Y + dir * half),
+			Size = UDim2.fromOffset(160, 26),
 			BackgroundTransparency = 1,
 			Text = (to > from and "+" or "-") .. format(math.abs(to - from)),
-			TextColor3 = opt.color or Color3.fromRGB(140, 255, 150),
-			TextSize = math.max(label.TextSize * 0.8, 14),
+			TextColor3 = opt.color or Color3.fromRGB(150, 255, 160),
+			TextSize = math.max(label.TextSize * 1.1, 18),
 			FontFace = label.FontFace,
 		}, layer)
-		make("UIStroke", { Color = Color3.fromRGB(20, 30, 20), Thickness = 2 }, plus)
+		make("UIStroke", { Color = Color3.fromRGB(14, 40, 20), Thickness = 2.5 }, plus)
 		local y0 = plus.Position.Y.Offset
-		run(plus, "move", 0, 0.6, Quad, Out, function(e, raw)
-			plus.Position = UDim2.fromOffset(c.X, y0 - 24 * e)
-			local a = raw < 0.6 and 0 or (raw - 0.6) / 0.4
+		local ps = scaleOf(plus)
+		run(plus, "move", 0, 0.9, Quad, Out, function(e, raw)
+			plus.Position = UDim2.fromOffset(c.X, y0 + dir * 26 * e)
+			ps.Scale = raw < 0.12 and 0.6 + 0.5 * raw / 0.12 or math.max(1, 1.1 - (raw - 0.12))
+			local a = raw < 0.7 and 0 or (raw - 0.7) / 0.3
 			plus.TextTransparency = a
 			;(plus:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = a
 		end, function()
@@ -925,23 +1010,23 @@ function Kit.count(label: TextLabel, from: number, to: number, options: { time: 
 	end
 end
 
--- Send copies of a reward from its tile to a counter: each lifts, grows and tilts, flies on an arc and
--- shrinks into the counter, 0.4 s each and 70 ms apart; onArrive(i) fires as each lands (count the
--- counter up on the first). options: count (pieces, default 5), piece = function() -> GuiObject (default:
--- a clone of from), gap, time, arc (0-1, share of the distance, default 0.25), dimSource (the tile fades to 40%)
-function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piece: (() -> GuiObject)?, gap: number?, time: number?, arc: number?, dimSource: boolean?, onArrive: ((number) -> ())? }?)
+-- Send copies of a reward from its tile to a counter: they burst out of the tile into a loose ring
+-- (0.16 s), then one after another fly on an arc and shrink into the counter, 0.4 s each and 70 ms apart;
+-- onArrive(i) fires as each lands (count the counter up on the first). options: count (pieces, default 6),
+-- piece = function() -> GuiObject (default: a clone of from), gap, time, arc (0-1, share of the distance,
+-- default 0.25), scatter (ring radius in px, default 0.9 x the piece's size; 0 = no burst), dimSource (the
+-- tile fades to 40%)
+function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piece: (() -> GuiObject)?, gap: number?, time: number?, arc: number?, scatter: number?, dimSource: boolean?, onArrive: ((number) -> ())? }?)
 	local opt = options or {}
 	local T = Kit.TIMES
 	local layer = overlayOf(to, from)
 	local a, b = centerIn(layer, from), centerIn(layer, to)
-	local n = reduced() and 1 or (opt.count or 5)
+	local n = reduced() and 1 or (opt.count or 6)
 	local dur, gap = opt.time or T.fly, opt.gap or T.flyGap
 	local size = from.AbsoluteSize / scaleAbove(layer)
-	local span = b - a
-	local side = Vector2.new(-span.Y, span.X)
-	if side.Y > 0 then
-		side = -side -- the arc bends up
-	end
+	local ring = n > 1 and (opt.scatter or math.max(size.X, size.Y) * 0.9) or 0
+	local hold = ring > 0 and 0.2 or 0
+	local turn = Random.new():NextNumber(0, math.pi * 2)
 	for i = 1, n do
 		local piece = opt.piece and opt.piece() or from:Clone()
 		piece.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -950,16 +1035,32 @@ function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piec
 		piece.Visible = false
 		piece.Parent = layer
 		local s = scaleOf(piece)
+		-- the burst: an uneven ring around the tile
+		local angle = turn + (i - 1) / n * math.pi * 2
+		local start = a + Vector2.new(math.cos(angle), math.sin(angle)) * ring * (0.7 + 0.3 * ((i * 7) % 5) / 4)
+		if ring > 0 then
+			run(piece, "burst", 0, 0.16, Quad, Out, function(e)
+				piece.Visible = true
+				local p = a:Lerp(start, e)
+				piece.Position = UDim2.fromOffset(p.X, p.Y)
+				s.Scale = 0.4 + 0.6 * e
+			end)
+		end
+		local span = b - start
+		local side = Vector2.new(-span.Y, span.X)
+		if side.Y > 0 then
+			side = -side -- the arc bends up
+		end
 		local spread = ((i - 1) / math.max(n - 1, 1) - 0.5) * 0.5
-		local mid = a + span * 0.5 + side * ((opt.arc or 0.25) + spread * 0.4)
+		local mid = start + span * 0.5 + side * ((opt.arc or 0.25) + spread * 0.4)
 		local tilt = (i % 2 == 0 and 1 or -1) * (10 + 4 * i)
-		run(piece, "move", (i - 1) * gap, dur, Sine, InOut, function(e, raw)
+		run(piece, "move", hold + (i - 1) * gap, dur, Sine, InOut, function(e, raw)
 			piece.Visible = true
 			local k = math.clamp(e, 0, 1)
-			local p = a:Lerp(mid, k):Lerp(mid:Lerp(b, k), k)
+			local p = start:Lerp(mid, k):Lerp(mid:Lerp(b, k), k)
 			piece.Position = UDim2.fromOffset(p.X, p.Y)
 			piece.Rotation = tilt * math.sin(raw * math.pi)
-			s.Scale = raw < 0.3 and 1 + 0.3 * (raw / 0.3) or 1.3 - 0.9 * ((raw - 0.3) / 0.7)
+			s.Scale = raw < 0.3 and 1 + 0.25 * (raw / 0.3) or 1.25 - 0.85 * ((raw - 0.3) / 0.7)
 		end, function()
 			piece:Destroy()
 			local bump = scaleOf(to)
@@ -1025,6 +1126,7 @@ function Kit.burst(anchor: GuiObject, options: { tier: number?, color: Color3?, 
 	local size = anchor.AbsoluteSize / scaleAbove(anchor)
 	local radius = opt.radius or math.max(size.X, size.Y) * 1.2
 	local root = make("Frame", { Name = "Burst", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(radius * 2, radius * 2), BackgroundTransparency = 1 })
+	root:SetAttribute("KitTransient", true)
 	if behind then
 		root.Position = anchor.Position + UDim2.fromOffset((0.5 - anchor.AnchorPoint.X) * size.X, (0.5 - anchor.AnchorPoint.Y) * size.Y)
 		root.ZIndex = anchor.ZIndex - 1
@@ -1092,6 +1194,7 @@ end
 -- a title that lands: scales 1.4 -> 1 in 0.25 s, holds, fades. hold in seconds (default 0.9)
 function Kit.stamp(label: GuiObject, hold: number?)
 	local s = scaleOf(label)
+	label:SetAttribute("KitTransient", true)
 	label.Visible = true
 	fade(label, 0, 1, 0, 0.1)
 	s.Scale = 1.4
@@ -1112,7 +1215,7 @@ end
 function Kit.steps(parent: Instance, total: number, done: number, o: { size: UDim2?, position: UDim2?, color: Color3?, empty: Color3?, gap: number?, radius: number? }?)
 	local opt = o or {}
 	local color, empty = opt.color or Color3.fromRGB(96, 214, 110), opt.empty or Color3.fromRGB(26, 30, 46)
-	local gap = opt.gap or 4
+	local gap = opt.gap or 6 -- outlined neighbours closer than 6 px read as one thick line
 	local root = make("Frame", {
 		Name = "Steps",
 		Size = opt.size or UDim2.new(1, 0, 0, 16),
@@ -1259,6 +1362,234 @@ function Kit.slideTo(marker: GuiObject, target: GuiObject, time: number?)
 		marker.Position = from:Lerp(to, e)
 		marker.Size = w0:Lerp(w1, e)
 	end)
+end
+
+-- ---------- the screen: size by share, dim, icons, tabs ----------
+
+-- A full-screen layer that sizes what it holds by its share of the screen, not by a device class. Lay the
+-- window out at `design` px (a phone design and a larger desktop design are two calls with two sizes); the
+-- layer's UIScale takes that size to share.X of the screen width or share.Y of its height, whichever comes
+-- first, between min and max, and follows the screen when it changes. Returns (layer, scale).
+-- local layer, k = Kit.stage(gui, Vector2.new(760, 440), { share = Vector2.new(0.8, 0.74) })
+function Kit.stage(gui: LayerCollector, design: Vector2, o: { share: Vector2?, min: number?, max: number?, name: string?, z: number? }?)
+	local opt = o or {}
+	local share = opt.share or Vector2.new(0.8, 0.74)
+	local layer = make("Frame", { Name = opt.name or "Stage", BackgroundTransparency = 1, ZIndex = opt.z or 1 }, gui)
+	local scale = make("UIScale", {}, layer)
+	local function fit()
+		local view = (gui :: any).AbsoluteSize
+		if view.X <= 0 or view.Y <= 0 then -- not laid out yet: the camera's view is close enough for the first frame
+			view = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize or Vector2.new(1280, 720)
+		end
+		local k = math.clamp(math.min(view.X * share.X / design.X, view.Y * share.Y / design.Y), opt.min or 1, opt.max or 1.6)
+		scale.Scale = k
+		layer.Size = UDim2.fromScale(1 / k, 1 / k)
+	end
+	fit()
+	;(gui :: any):GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+	return layer, scale.Scale
+end
+
+-- The dim behind an open window: its own ScreenGui that covers the whole screen (the notch and home-bar
+-- strips too), one DisplayOrder under gui. What must stay bright (the counters) lives in gui or above it;
+-- the HUD that dims lives in a ScreenGui under it. local dim = Kit.scrim(gui); dim.show(); dim.hide()
+function Kit.scrim(gui: ScreenGui, o: { color: Color3?, transparency: number?, time: number? }?)
+	local opt = o or {}
+	local screen = make("ScreenGui", {
+		Name = gui.Name .. "Scrim",
+		ResetOnSpawn = false,
+		ScreenInsets = Enum.ScreenInsets.None,
+		DisplayOrder = gui.DisplayOrder - 1,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
+	}, gui.Parent)
+	local frame = make("Frame", {
+		Name = "Dim",
+		Size = UDim2.fromScale(1, 1),
+		BackgroundColor3 = opt.color or Color3.fromRGB(8, 10, 24),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		Visible = false,
+		Active = true, -- taps do not reach the HUD under it
+	}, screen)
+	gui.Destroying:Once(function()
+		screen:Destroy()
+	end)
+	local function to(target: number, done: (() -> ())?)
+		local from = frame.BackgroundTransparency
+		run(frame, "dim", 0, opt.time or 0.2, Quad, Out, function(e)
+			frame.BackgroundTransparency = from + (target - from) * math.clamp(e, 0, 1)
+		end, done)
+	end
+	return {
+		frame = frame,
+		show = function()
+			frame.Visible = true
+			to(opt.transparency or 0.45)
+		end,
+		hide = function()
+			to(1, function()
+				frame.Visible = false
+			end)
+		end,
+	}
+end
+
+-- An icon from your icon pack (an image id), never a drawn one. tile = a colour: the icon sits in a rounded
+-- well with the kit's finish; without it, the bare image. size in px. Returns (outer, image).
+function Kit.icon(parent: Instance, image: string, o: { name: string?, size: number?, position: UDim2?, anchor: Vector2?, z: number?, order: number?, tile: Color3?, radius: number?, pad: number?, depth: number? }?)
+	local opt = o or {}
+	local size = opt.size or 40
+	local holder: GuiObject, inside: Instance
+	if opt.tile then
+		holder, inside = Kit.card(parent, {
+			name = opt.name or "Icon",
+			size = UDim2.fromOffset(size, size),
+			position = opt.position,
+			anchor = opt.anchor,
+			z = opt.z,
+			order = opt.order,
+			fill = opt.tile,
+			radius = opt.radius or math.floor(size * 0.26),
+			depth = opt.depth,
+			lift = 0.2,
+			topLight = false,
+		})
+	else
+		holder = make("Frame", {
+			Name = opt.name or "Icon",
+			BackgroundTransparency = 1,
+			Size = UDim2.fromOffset(size, size),
+			Position = opt.position or UDim2.new(),
+			AnchorPoint = opt.anchor or Vector2.zero,
+			ZIndex = opt.z or 1,
+			LayoutOrder = opt.order or 0,
+		}, parent)
+		inside = holder
+	end
+	local pad = opt.tile and (opt.pad or 0.14) or (opt.pad or 0)
+	local picture = make("ImageLabel", {
+		Name = "Image",
+		BackgroundTransparency = 1,
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5),
+		Size = UDim2.fromScale(1 - 2 * pad, 1 - 2 * pad),
+		Image = image,
+		ScaleType = Enum.ScaleType.Fit,
+	}, inside)
+	return holder, picture
+end
+
+-- A tab strip: one pill slides under the labels to the chosen tab (0.2 s), the labels change colour, the
+-- other tabs never repaint. items: { { key = "daily", text = "Daily", count = 3 }, ... }
+-- local tabs = Kit.tabs(header, items, { size = UDim2.fromOffset(300, 34), onPick = function(key) ... end })
+-- tabs.pick(key) moves the pill (and calls onPick unless silent); tabs.count(key, n) changes a count.
+function Kit.tabs(parent: Instance, items: { { key: string, text: string, count: number? } }, o: { name: string?, size: UDim2?, position: UDim2?, anchor: Vector2?, z: number?, fill: Color3?, pill: Color3?, textSize: number?, font: Enum.Font?, fontFace: Font?, hit: number?, onPick: ((string) -> ())? }?)
+	local opt = o or {}
+	local track = opt.fill or Color3.fromRGB(28, 32, 78)
+	local pillColor = opt.pill or Color3.fromRGB(255, 196, 60)
+	local size = opt.size or UDim2.fromOffset(100 * #items, 34)
+	local h = size.Y.Offset
+	local root, content = Kit.card(parent, {
+		name = opt.name or "Tabs",
+		size = size,
+		position = opt.position,
+		anchor = opt.anchor,
+		z = opt.z,
+		fill = track,
+		radius = math.floor(h / 2),
+		lift = 0.06,
+		topLight = false,
+	})
+	local n = #items
+	local pill = Kit.card(content, {
+		name = "Pill",
+		size = UDim2.new(1 / n, -6, 1, -6),
+		position = UDim2.new(0, 3, 0, 3),
+		fill = pillColor,
+		radius = math.floor(h / 2) - 3,
+		strokeWidth = 0,
+		lift = 0.2,
+		z = 1,
+	})
+	local on, onLine = ink(pillColor)
+	local off = shade(track, 0.72)
+	local self = { root = root, pill = pill, buttons = {} :: { [string]: TextButton }, key = items[1].key }
+	local texts = {}
+	local function caption(item): string
+		return item.count and (item.text .. "  " .. item.count) or item.text
+	end
+	local function paint()
+		for key, button in self.buttons do
+			button.TextColor3 = key == self.key and on or off
+			local line = button:FindFirstChildOfClass("UIStroke") :: UIStroke
+			line.Enabled = key == self.key and onLine ~= nil
+		end
+	end
+	for i, item in items do
+		local button = make("TextButton", {
+			Name = item.key,
+			BackgroundTransparency = 1,
+			AutoButtonColor = false,
+			Size = UDim2.new(1 / n, -8, 1, 0), -- air between the cells: a pressed or hovered tab never reaches its neighbour
+			Position = UDim2.new((i - 1) / n, 4, 0, 0),
+			Text = caption(item),
+			TextSize = opt.textSize or 15,
+			Font = opt.font or Enum.Font.GothamBold,
+			ZIndex = 2,
+		}, content)
+		if opt.fontFace then
+			button.FontFace = opt.fontFace
+		end
+		make("UIStroke", { Color = onLine or on, Thickness = 1.5, Enabled = false }, button)
+		if opt.hit then
+			local k = scaleAbove(button)
+			if h * k < opt.hit then
+				local pad = make("TextButton", { Name = "Hit", Text = "", BackgroundTransparency = 1, AutoButtonColor = false, AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(1, 0, 0, math.ceil((opt.hit + 1) / k)), ZIndex = 3 }, button)
+				pad:SetAttribute("KitHit", true)
+			end
+		end
+		self.buttons[item.key] = button
+		texts[item.key] = item
+		Kit.target(button).Activated:Connect(function()
+			self.pick(item.key)
+		end)
+	end
+	function self.pick(key: string, silent: boolean?)
+		local index = 0
+		for i, item in items do
+			if item.key == key then
+				index = i
+			end
+		end
+		if index == 0 or key == self.key then
+			return
+		end
+		self.key = key
+		local from, to = pill.Position.X.Scale, (index - 1) / n
+		local colors = {}
+		for name, button in self.buttons do
+			colors[name] = button.TextColor3
+		end
+		run(pill, "move", 0, 0.2, Quad, Out, function(e)
+			local k = math.clamp(e, 0, 1)
+			pill.Position = UDim2.new(from + (to - from) * e, 3, 0, 3)
+			for name, button in self.buttons do -- the labels change with the pill, never a frame of dark on dark
+				button.TextColor3 = colors[name]:Lerp(name == key and on or off, k)
+			end
+		end, paint)
+		if opt.onPick and not silent then
+			opt.onPick(key)
+		end
+	end
+	function self.count(key: string, value: number)
+		local item = texts[key]
+		if item then
+			item.count = value
+			self.buttons[key].Text = caption(item)
+		end
+	end
+	paint()
+	return self
 end
 
 Kit.run = run -- run(owner, channel, delay, duration, style, direction, step(eased, raw), done): your own motion on the same clock
