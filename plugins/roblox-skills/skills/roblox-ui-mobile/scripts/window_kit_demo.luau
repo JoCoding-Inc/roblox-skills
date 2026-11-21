@@ -120,6 +120,7 @@ function Demo.build(playerGui: Instance)
 			fill = C.pane,
 			radius = 20,
 			depth = 3,
+			z = 3,
 		})
 		local icon = token(content, kind == "gems" and "gem" or "coin", kind == "gems" and 20 or 26, UDim2.fromOffset(kind == "gems" and 12 or 8, kind == "gems" and 10 or 7))
 		local amount = outline(text(content, {
@@ -133,6 +134,71 @@ function Demo.build(playerGui: Instance)
 		counters[kind] = { pill = pill, icon = icon, amount = amount }
 	end
 
+	-- HUD: a column of menu buttons with labels, and one big action button. They leave while the window
+	-- is open and the scene dims; the counters stay on top of the dim.
+	local hud = {}
+	local menu = {}
+	for i, item in { { "Shop", C.accent }, { "Pets", C.weekly }, { "Missions", C.daily } } do
+		local button = Kit.button(root, {
+			name = item[1],
+			text = string.sub(item[1], 1, 1),
+			textSize = 26,
+			font = DISPLAY,
+			fill = item[2],
+			size = UDim2.fromOffset(60, 60),
+			position = UDim2.new(0, 22, 0.5, (i - 2) * 92 - 40),
+			radius = 16,
+			strokeWidth = 3,
+			depth = 5,
+		})
+		outline(text(root, {
+			Name = item[1] .. "Label",
+			Size = UDim2.fromOffset(84, 18),
+			Position = UDim2.new(0, 10, 0.5, (i - 2) * 92 + 26),
+			Text = item[1],
+			TextSize = 14,
+			TextXAlignment = Enum.TextXAlignment.Center,
+		}))
+		Kit.press(button)
+		menu[item[1]] = button
+		table.insert(hud, button)
+		table.insert(hud, root:FindFirstChild(item[1] .. "Label") :: GuiObject)
+	end
+	local action = Kit.button(root, {
+		name = "Action",
+		text = "PLAY",
+		textSize = 26,
+		font = DISPLAY,
+		fill = C.ready,
+		size = UDim2.fromOffset(150, 64),
+		position = UDim2.new(1, -24, 1, -28),
+		anchor = Vector2.new(1, 1),
+		radius = 20,
+		strokeWidth = 4,
+		depth = 6,
+		sheen = true,
+	})
+	Kit.press(action)
+	Kit.sheen(action, { period = 3.4 })
+	table.insert(hud, action)
+	local scrim = Instance.new("Frame")
+	scrim.Name = "Scrim"
+	scrim.BackgroundColor3 = C.ink
+	scrim.BackgroundTransparency = 1
+	scrim.BorderSizePixel = 0
+	scrim.Size = UDim2.fromScale(1, 1)
+	scrim.ZIndex = 2
+	scrim.Parent = root
+	local function dim(to: number)
+		local from = scrim.BackgroundTransparency
+		Kit.run(scrim, "dim", 0, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, function(e)
+			scrim.BackgroundTransparency = from + (to - from) * math.clamp(e, 0, 1)
+		end)
+		for _, item in hud do
+			Kit.fade(item, to < 1 and 0 or 1, 0.15)
+		end
+	end
+
 	-- the window
 	local window, body = Kit.card(root, {
 		name = "Window",
@@ -143,6 +209,7 @@ function Demo.build(playerGui: Instance)
 		radius = 20,
 		strokeWidth = 3,
 		depth = 9,
+		z = 4,
 	})
 	window.Visible = false
 
@@ -400,6 +467,7 @@ function Demo.build(playerGui: Instance)
 		local m = r.mission
 		-- selected: a lighter fill and a bright outline that belong to the row, so they travel with it
 		Kit.recolor(r.row, C.rowSelected, Color3.new(1, 1, 1))
+		list:reveal(id)
 		-- the pane changes on the same frame, and its parts arrive in order
 		art:ClearAllChildren()
 		token(art, m.gems > 0 and "gem" or "coin", m.gems > 0 and 64 or 88, UDim2.fromOffset(m.gems > 0 and 16 or 4, m.gems > 0 and 16 or 4))
@@ -495,6 +563,7 @@ function Demo.build(playerGui: Instance)
 
 	local api = { gui = gui, window = window, main = main, closeButton = close, rows = rows, tabs = tabs, state = state }
 	function api.open()
+		dim(0.5)
 		Kit.recolor(tabs[state.tab].button, C.accent)
 		local keys = keysFor(state.tab)
 		list:show(keys, true)
@@ -517,6 +586,7 @@ function Demo.build(playerGui: Instance)
 	function api.close()
 		Kit.still(emblem)
 		Kit.close(window, { first = close })
+		dim(1)
 	end
 	api.select, api.setTab, api.claim = select, setTab, claim
 	Kit.press(close, api.close)

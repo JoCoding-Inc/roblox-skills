@@ -820,6 +820,23 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number? }?)
 		end
 	end
 
+	-- scroll so the row is inside the view (a selection made by code, or a row that moved)
+	function self:reveal(key: string)
+		local row = self.rows[key]
+		if not (row and container:IsA("ScrollingFrame")) then
+			return
+		end
+		local k = scaleAbove(row) -- CanvasPosition is in screen px
+		local top, bottom = (row.Position.Y.Offset - pad) * k, (row.Position.Y.Offset + row.Size.Y.Offset + pad) * k
+		local from, view = container.CanvasPosition.Y, container.AbsoluteWindowSize.Y
+		local to = math.clamp(from, bottom - view, top)
+		if to ~= from then
+			run(container, "scroll", 0, 0.2, Quad, Out, function(e)
+				container.CanvasPosition = Vector2.new(0, from + (to - from) * math.clamp(e, 0, 1))
+			end)
+		end
+	end
+
 	function self:order(keys: { string }, instant: boolean?)
 		self:show(keys, instant)
 	end
