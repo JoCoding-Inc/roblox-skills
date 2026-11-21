@@ -14,8 +14,8 @@
 -- ScreenOverlays.vignette(opts?) -> clock    4 edge gradients, opts.strength (0..1, default 0.55), opts.dur
 -- ScreenOverlays.gui() -> ScreenGui           the shared ScreenGui (created on demand)
 -- ScreenOverlays.counter(opts) -> clock    a number that climbs through the cutscene and lands on a beat
--- ScreenOverlays.title(text, opts) -> clock a name card that lands, holds and fades before the world is back
--- ScreenOverlays.fade(opts) -> clock        the way out: cover the screen, restore under it, fade the game in
+-- ScreenOverlays.title(text, opts) -> clock a name card that lands and holds; the fade keeps it on until the black is full
+-- ScreenOverlays.fade(opts) -> clock        the way out: cover the screen (0.5 s), restore under it, fade the game in
 -- ScreenOverlays.flash(opts) -> clock       the peak's flash: never a blank frame (the cover stops at 70%), 2 frames up,
 --                                           gone in 0.14 s, and refused by flash_safety when it would be the fourth in a second
 -- All take opts.clock / opts.at. With reduced motion the speed lines are drawn once and not re-shaped.
@@ -33,6 +33,7 @@
 -- Frames re-laid every 1.5 frames, not measured on a real phone.
 
 local Players = game:GetService("Players")
+local TextService = game:GetService("TextService")
 
 local FxClock = require(script.Parent.fx_clock)
 local Safety = require(script.Parent.flash_safety)
@@ -305,10 +306,15 @@ end
 -- for 2 frames and back to its last colour over 0.25 s, punches to `punch` (up in 0.05 s, back in 0.25 s) and
 -- two four-point glints open on its corners. Land it on the peak's flash frame or together with the title, never
 -- a second after it.
+-- Each time it passes a power of ten on the climb it pulses (1.12x and toward white, 0.15 s): at 0.07 of the
+-- screen height and without it, judges called it "small text inside the bottom letterbox bar" with "little
+-- presence next to the effects" (2026-11-22); another judge counted the bar that keeps it off the picture as a
+-- strength, so it stays in the bar, larger.
 -- opts: to (the last value), from (default 1), land (clock s at which it is reached), dur (s on screen,
---   default land + 2), format (function(n) -> string, default "1 in 12,345"), pos (screen fraction,
---   default 0.5, 0.92: inside the lower letterbox bar), size (fraction of the screen height, default 0.07,
---   never under 20 px), colors ({ Color3 }: stepped along the climb, the last one from the landing),
+--   default land + 2; with ScreenOverlays.fade, end it when the black is full: the fade keeps it on until then),
+--   format (function(n) -> string, default "1 in 12,345"), pos (screen fraction, default 0.5, 0.945: the
+--   middle of a 0.11 letterbox bar), size (fraction of the screen height, default 0.085, never under 20 px),
+--   colors ({ Color3 }: stepped along the climb, the last one from the landing),
 --   stretch (s, default 0.9, at most 0.3 of `land`; 0: one smooth climb), steps (values in it, default 5),
 --   punch (default 1.2), flare (false: no glints), onLand (function), clock / at
 function ScreenOverlays.counter(opts)
@@ -320,7 +326,7 @@ function ScreenOverlays.counter(opts)
 		return "1 in " .. comma(n)
 	end
 	local colors = opts.colors or { Color3.fromRGB(235, 244, 255), Color3.fromRGB(170, 200, 255), Color3.fromRGB(214, 170, 255), Color3.fromRGB(255, 214, 110) }
-	local pos = opts.pos or Vector2.new(0.5, 0.92)
+	local pos = opts.pos or Vector2.new(0.5, 0.945)
 	local punch = opts.punch or 1.2
 	-- the last stretch: offsets below `to`, each at least one unit under the one before
 	local offs = {}
@@ -343,10 +349,10 @@ function ScreenOverlays.counter(opts)
 	local climbEnd = land - stretch
 	local climbTo = if stretch > 0 then to - offs[1] else to - 1
 	local c, root, own = FxClock.attach("Counter", dur + 0.02, opts)
-	local label, scale, landed, flare, step, tickAt
+	local label, scale, landed, flare, step, tickAt, decade, decadeAt
 	c:at(0, function()
 		local layer = ScreenOverlays.layer(c, "Counter", 8)
-		local px = math.max(20, workspace.CurrentCamera.ViewportSize.Y * (opts.size or 0.07))
+		local px = math.max(20, workspace.CurrentCamera.ViewportSize.Y * (opts.size or 0.085))
 		label = textLabel(layer, px, colors[1], Color3.fromRGB(10, 12, 30))
 		label.Position = UDim2.fromScale(pos.X, pos.Y)
 		label.ZIndex = 2
@@ -412,12 +418,18 @@ function ScreenOverlays.counter(opts)
 			value = math.min(from * (climbTo / from) ^ g, climbTo)
 		end
 		label.Text = format(value)
+		local d = math.floor(math.log10(math.max(value, 1)) + 1e-9)
+		if decade and d > decade then
+			decadeAt = t
+		end
+		decade = d
 		if t < land then
 			local span = math.max(#colors - 1, 1)
 			local k = math.clamp((1 - (1 - t / land) ^ 3) * span, 0, span - 1e-3)
-			label.TextColor3 = colors[math.floor(k) + 1]:Lerp(colors[math.min(math.floor(k) + 2, #colors)], (k % 1) ^ 3)
+			local pulse = if decadeAt then math.clamp(1 - (t - decadeAt) / 0.15, 0, 1) ^ 2 else 0
+			label.TextColor3 = colors[math.floor(k) + 1]:Lerp(colors[math.min(math.floor(k) + 2, #colors)], (k % 1) ^ 3):Lerp(Color3.new(1, 1, 1), 0.5 * pulse)
 			local tick = if tickAt then math.clamp(1 - (t - tickAt) / 0.12, 0, 1) else 0
-			scale.Scale = 1 + 0.07 * tick * tick
+			scale.Scale = 1 + 0.07 * tick * tick + 0.12 * pulse
 		else
 			if not landed then
 				landed = t
@@ -460,9 +472,13 @@ end
 
 -- The name of what was won, over the character's head: a small line (the tier) and a large one (the name).
 -- It lands at 1.3 -> 1 in 0.25 s, holds, and fades over the last 0.3 s, so it is never left over the game
--- world. Keep it in the top quarter of the frame and frame the character under it.
--- opts: sub (the small line), pos (default 0.5, 0.215: both lines clear of a 0.11 letterbox bar), size (fraction of the screen height, default 0.085,
---   never under 22 px), color, subColor, dur (default 3), band (false: no dark band behind the lines),
+-- world. Keep it in the top quarter of the frame and frame the character under it. At the end of a cutscene,
+-- give it a dur that ends when the fade's black is full (fade start + inDur): ScreenOverlays.fade keeps it on
+-- until then. A name that faded out 0.3 s before the black, over a hold of 1.2 s, was "rushed" and "a hard cut to
+-- black" to two judges, and "small" (0.085 of the screen height, the tier line at 0.48 of that) (2026-11-22).
+-- opts: sub (the small line), pos (default 0.5, 0.215: both lines clear of a 0.11 letterbox bar), size (fraction
+--   of the screen height, default 0.1, never under 22 px, made smaller to fit 0.88 of the screen width), color,
+--   subColor, dur (default 3), band (false: no dark band behind the lines),
 --   bandStrength (default 0.42), bandColor, clock / at
 function ScreenOverlays.title(text: string, opts)
 	opts = opts or {}
@@ -472,8 +488,12 @@ function ScreenOverlays.title(text: string, opts)
 	local main, sub, band
 	c:at(0, function()
 		local layer = ScreenOverlays.layer(c, "Title", 8)
-		local h = workspace.CurrentCamera.ViewportSize.Y
-		local px = math.max(22, h * (opts.size or 0.085))
+		local view = workspace.CurrentCamera.ViewportSize
+		local px = math.max(22, view.Y * (opts.size or 0.1))
+		local wide = TextService:GetTextSize(text, px, Enum.Font.GothamBlack, Vector2.new(1e5, 1e5)).X
+		if wide > view.X * 0.88 then
+			px = math.max(22, math.floor(px * view.X * 0.88 / wide))
+		end
 		if opts.band ~= false then
 			-- a soft dark band behind both lines: a gold title over gold rays or a bright sky has nothing to stand on
 			-- without it (named by a judge). One strip across the whole frame that fades to nothing upward and
@@ -484,8 +504,8 @@ function ScreenOverlays.title(text: string, opts)
 			band.BorderSizePixel = 0
 			band.BackgroundColor3 = opts.bandColor or Color3.fromRGB(10, 6, 20)
 			band.BackgroundTransparency = 1
-			band.Size = UDim2.new(1, 0, 0, px * (opts.sub and 3.4 or 2.4))
-			band.Position = UDim2.new(0.5, 0, pos.Y, opts.sub and -px * 0.36 or 0)
+			band.Size = UDim2.new(1, 0, 0, px * (opts.sub and 3.6 or 2.4))
+			band.Position = UDim2.new(0.5, 0, pos.Y, opts.sub and -px * 0.4 or 0)
 			local g = Instance.new("UIGradient")
 			g.Rotation = 90
 			g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.38, 0), NumberSequenceKeypoint.new(0.62, 0), NumberSequenceKeypoint.new(1, 1) })
@@ -496,9 +516,9 @@ function ScreenOverlays.title(text: string, opts)
 		main.Text = text
 		main.Position = UDim2.new(pos.X, 0, pos.Y, 0)
 		if opts.sub then
-			sub = textLabel(layer, math.max(14, px * 0.48), opts.subColor or Color3.new(1, 1, 1), Color3.fromRGB(20, 16, 40))
+			sub = textLabel(layer, math.max(14, px * 0.6), opts.subColor or Color3.new(1, 1, 1), Color3.fromRGB(20, 16, 40))
 			sub.Text = opts.sub
-			sub.Position = UDim2.new(pos.X, 0, pos.Y, -px * 0.86)
+			sub.Position = UDim2.new(pos.X, 0, pos.Y, -px * 0.95)
 		end
 	end)
 	c:every(function(t)
@@ -569,11 +589,14 @@ end
 -- The way out of a cutscene: the screen goes to one colour, the world is put back under it, and the game
 -- fades in. A cut from the last shot to the bare game world, a title left over the map, or one black frame
 -- between two shots each read as unfinished to blind judges.
--- opts: color (default black), inDur (0.25), hold (0.15), outDur (0.45), onCovered (function: give the
+-- The cover rises over 0.5 s: 0.25 s after a title that had already gone read as "a hard cut to black" to two
+-- judges (2026-11-22). The title and the counter stay on under the rising black, like the bars.
+-- opts: color (default black), inDur (0.5), hold (0.15), outDur (0.45), onCovered (function: give the
 --   camera back, restore the sky, the character and the HUD here), clock / at. Takes inDur + hold + outDur.
+local fadeWarned = false
 function ScreenOverlays.fade(opts)
 	opts = opts or {}
-	local inDur, hold, outDur = opts.inDur or 0.25, opts.hold or 0.15, opts.outDur or 0.45
+	local inDur, hold, outDur = opts.inDur or 0.5, opts.hold or 0.15, opts.outDur or 0.45
 	local c, root, own = FxClock.attach("Fade", inDur + hold + outDur + 0.02, opts)
 	local cover, done
 	local bars = {}
@@ -594,7 +617,24 @@ function ScreenOverlays.fade(opts)
 				table.insert(bars, copy)
 			end
 		end
+		-- the name and the counter as they are now, kept under the cover until it is full (their own clocks may end
+		-- first)
+		for _, l in ScreenOverlays.gui():GetChildren() do
+			if (l.Name == "Title" or l.Name == "Counter") and l:IsA("Frame") then
+				for _, d in l:GetDescendants() do
+					if d:IsA("TextLabel") and d.TextTransparency > 0.05 and not fadeWarned then
+						fadeWarned = true
+						warn(("ScreenOverlays.fade: the %s is already fading as the fade starts; give it a dur that ends when the black is full (fade start + inDur %.2f)"):format(string.lower(l.Name), inDur))
+					end
+				end
+				local copy = l:Clone()
+				copy.ZIndex = 1
+				copy.Parent = layer
+				table.insert(bars, copy)
+			end
+		end
 		cover = Instance.new("Frame")
+		cover.ZIndex = 10
 		cover.BorderSizePixel = 0
 		cover.BackgroundColor3 = opts.color or Color3.new(0, 0, 0)
 		cover.BackgroundTransparency = 1
