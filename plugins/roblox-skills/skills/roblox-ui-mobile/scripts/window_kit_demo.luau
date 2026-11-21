@@ -279,6 +279,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		strokeWidth = 3,
 		depth = pick(5, 9),
 		rim = true,
+		glass = 0.9,
 		z = 4,
 	})
 	window.Visible = false
@@ -294,6 +295,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		radius = pick(10, 14),
 		lift = 0.22,
 		gloss = 0.5,
+		glass = 0.86,
 		sheen = true,
 	})
 	Kit.sheen(header, { period = 4.2 })
@@ -374,6 +376,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		radius = pick(10, 14),
 		lift = 0.04,
 		topLight = false,
+		glass = 0.92,
 		clip = true,
 	})
 	local scroll = Instance.new("ScrollingFrame")
@@ -386,7 +389,8 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	scroll.ScrollBarImageColor3 = C.muted
 	scroll.Parent = well
 	local rowH = pick(46, 70)
-	local list = Kit.list(scroll, { gap = pick(6, 8), pad = pick(5, 7) })
+	-- the row cut by the frame fades into the well: there is more below
+	local list = Kit.list(scroll, { gap = pick(6, 8), pad = pick(5, 7), fade = C.well, fadeSize = pick(20, 30) })
 	local tileOf = { Daily = rgb(24, 70, 124), Weekly = rgb(70, 40, 128) }
 	local rows = {}
 	for _, m in MISSIONS do
@@ -400,6 +404,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			stroke = C.dark,
 			radius = pick(10, 12),
 			depth = pick(2, 3),
+			glass = 0.93,
 		})
 		local left = pick(46, 72)
 		Kit.icon(content, icons[m.icon], {
@@ -483,6 +488,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		stroke = C.dark,
 		radius = pick(10, 14),
 		lift = 0.1,
+		glass = 0.55,
 	})
 	local inset = pick(8, 16)
 	local artSize = pick(46, 76)
@@ -494,15 +500,25 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	headBand.Position = UDim2.fromOffset(pick(4, 7), pick(4, 7))
 	headBand.Parent = detail
 	Instance.new("UICorner", headBand).CornerRadius = UDim.new(0, pick(8, 10))
+	-- desktop: the art leans out over the card's corner, as the emblem does over the frame's
 	local art, artImage = Kit.icon(detail, icons.egg, {
 		name = "Art",
 		size = artSize,
-		position = UDim2.fromOffset(inset, inset),
+		position = UDim2.fromOffset(inset - pick(0, 8), inset - pick(0, 12)),
 		tile = tileOf.Daily,
 		radius = pick(12, 20),
 		depth = pick(2, 4),
 		pad = 0.12,
 	})
+	if not phone then
+		art:SetAttribute("KitBreakout", "ornament")
+		pane:SetAttribute("KitHost", true) -- the lint: the art is an ornament of the card, so it may rest on the card's own body
+		art.Rotation = -5
+		-- three small stars at rest: beside the emblem, at the end of the title, on the frame's far corner
+		Kit.sparkle(body, UDim2.fromOffset(pad + 68, pad + 2), 24)
+		Kit.sparkle(head, UDim2.fromOffset(240, 13), 18)
+		Kit.sparkle(body, UDim2.new(1, -14, 1, -12), 20)
+	end
 	local textX = inset + artSize + pick(8, 14)
 	local title = text(detail, {
 		Name = "Title",
@@ -746,7 +762,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		state.tab = name
 		tabs.pick(name, true)
 		local keys = keysFor(name)
-		list:show(keys) -- old rows leave while the new ones arrive: the list is never blank
+		list:show(keys, false, true) -- old rows leave, new ones arrive and the ones that stay step in: the list is seen to change, never blank
 		if keys[1] then
 			select(keys[1])
 		end
@@ -774,7 +790,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		end
 		if m.special then
 			-- the bigger reward: a title lands over rays, and the list waits until it has gone
-			Kit.stamp(stamp, 1.1, resort)
+			Kit.stamp(stamp, 1.1, resort, { dim = window })
 			Kit.burst(stamp, { tier = 3, color = C.accent, radius = pick(190, 340) })
 		else
 			task.delay(1.1, resort)
@@ -784,6 +800,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			if amount > 0 then
 				Kit.fly(tiles[kind].icon, counters[kind].icon, {
 					count = m.special and 10 or 7,
+					arc = -0.3, -- out over the window's edge, not across the card's title
 					onArrive = function(i)
 						if i == 1 then
 							Kit.count(counters[kind].amount, wallet[kind], wallet[kind] + amount)

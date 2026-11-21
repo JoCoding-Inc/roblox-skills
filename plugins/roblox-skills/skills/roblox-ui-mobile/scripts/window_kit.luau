@@ -397,6 +397,8 @@ export type CardOptions = {
 	sheen: boolean?, -- one diagonal band at rest (animate it with Kit.sheen), default false
 	gloss: number?, -- a light band over the top of the body, as a share of its height (0.5 on a main button); default none
 	rim: boolean?, -- a faint light line just inside the outline (a window, a hero card); default false
+	glass: (boolean | number)?, -- two still diagonal light streaks, as on a pane of glass (a window, a big panel, a
+	-- header); a number is their transparency (default 0.9). Under the content, so text stays clean
 	padding: number?, -- px of UIPadding on the content, default 0
 	button: boolean?, -- a TextButton instead of a Frame
 	clip: boolean?, -- the content clips its children, default false
@@ -506,6 +508,27 @@ function Kit.card(parent: Instance, o: CardOptions?)
 		make("UICorner", { CornerRadius = UDim.new(0, math.max(radius - inset, 2)) }, rim)
 		local line = make("UIStroke", { Color = Color3.new(1, 1, 1), Thickness = 1.5, Transparency = 0.72, ApplyStrokeMode = Enum.ApplyStrokeMode.Border }, rim)
 		make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new(0, 0.85) }, line)
+	end
+	if opt.glass then
+		-- decoration, under a decor name: a wide and a thin hard-edged band across the body
+		local t = type(opt.glass) == "number" and opt.glass or 0.9
+		local streak = make("Frame", { Name = "Streak", Size = UDim2.new(1, 0, 1, 0), BackgroundColor3 = Color3.new(1, 1, 1), BorderSizePixel = 0 }, body)
+		make("UICorner", { CornerRadius = UDim.new(0, radius) }, streak)
+		make("UIGradient", {
+			Rotation = 28,
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(0.3, 1),
+				NumberSequenceKeypoint.new(0.302, t),
+				NumberSequenceKeypoint.new(0.43, t),
+				NumberSequenceKeypoint.new(0.432, 1),
+				NumberSequenceKeypoint.new(0.47, 1),
+				NumberSequenceKeypoint.new(0.472, t),
+				NumberSequenceKeypoint.new(0.51, t),
+				NumberSequenceKeypoint.new(0.512, 1),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+		}, streak)
 	end
 	if opt.sheen then
 		Kit.sheen(outer, { once = true, rest = true })
@@ -912,11 +935,40 @@ end
 -- list:show({ "daily_2", "daily_1" })   -- these rows, in this order: others leave, new ones arrive, the rest move
 -- list:order({ ... })           -- the same rows in a new order (a claimed row fades where it is, the others
 --                                  close the gap, and it slides in at its new place: no row covers another)
-function Kit.list(container: GuiObject, o: { gap: number?, pad: number? }?)
+-- list:show(keys, false, true)  -- wave: a tab changed, so the rows that stay dip and step in one after another
+--                                  (30 ms apart, done in 0.3 s) while others leave and arrive: the list is seen to change
+-- fade = the colour behind the rows (the well's fill): the last row in view fades into it instead of being cut
+-- by the frame; the fade goes when the list is scrolled to its end. fadeSize in px (default 28).
+function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: Color3?, fadeSize: number? }?)
 	local opt = o or {}
 	local gap, pad = opt.gap or 8, opt.pad or 0
 	local T = Kit.TIMES
 	local self = { rows = {} :: { [string]: GuiObject }, keys = {} :: { string }, visible = {} :: { [string]: boolean } }
+
+	if opt.fade and container:IsA("ScrollingFrame") then
+		local scroll = container :: ScrollingFrame
+		local size = opt.fadeSize or 28
+		local mask = make("Frame", {
+			Name = "Fade",
+			Active = false,
+			AnchorPoint = Vector2.new(0, 1),
+			BackgroundColor3 = opt.fade,
+			BorderSizePixel = 0,
+			ZIndex = scroll.ZIndex + 1,
+		}, scroll.Parent)
+		make("UIGradient", { Rotation = 90, Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.75, 0.15), NumberSequenceKeypoint.new(1, 0) }) }, mask)
+		local function place()
+			-- over the bottom edge of the list, clear of its scroll bar; hidden once there is nothing below
+			mask.Size = UDim2.new(scroll.Size.X.Scale, scroll.Size.X.Offset - scroll.ScrollBarThickness - 2, 0, size)
+			mask.Position = scroll.Position + UDim2.new(0, 0, scroll.Size.Y.Scale, scroll.Size.Y.Offset)
+			local below = scroll.AbsoluteCanvasSize.Y - scroll.AbsoluteWindowSize.Y - scroll.CanvasPosition.Y
+			mask.Visible = below > 2
+		end
+		for _, name in { "CanvasPosition", "AbsoluteCanvasSize", "AbsoluteWindowSize", "Size", "Position" } do
+			scroll:GetPropertyChangedSignal(name):Connect(place)
+		end
+		place()
+	end
 
 	local function setY(row: GuiObject, y: number)
 		row.Position = UDim2.new(row.Position.X.Scale, row.Position.X.Offset, 0, y)
@@ -951,8 +1003,9 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number? }?)
 		return self.rows[key]
 	end
 
-	-- keys: the rows to show, top to bottom. instant = true skips the motion.
-	function self:show(keys: { string }, instant: boolean?)
+	-- keys: the rows to show, top to bottom. instant = true skips the motion. wave = true: the rows that stay
+	-- dip and step in from the left one after another (a tab change).
+	function self:show(keys: { string }, instant: boolean?, wave: boolean?)
 		local ys, height = targets(keys)
 		local want = {}
 		for _, k in keys do
@@ -1005,6 +1058,22 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number? }?)
 				run(row, "move", wait, T.sort, Quad, Out, function(e)
 					setY(row, m.from + (m.to - m.from) * e)
 				end)
+			end
+		end
+		if wave and not instant and not reduced() then
+			local i = 0
+			for _, m in staying do
+				if not hop[m.key] then
+					local row = self.rows[m.key]
+					local x = row.Position.X
+					local delay = math.min(i * 0.03, 0.15)
+					fade(row, 0.4, 1, delay, 0.14)
+					row.Position = UDim2.new(x.Scale, x.Offset - 12, 0, row.Position.Y.Offset)
+					run(row, "wave", delay, 0.16, Quad, Out, function(e)
+						row.Position = UDim2.new(x.Scale, x.Offset - 12 * (1 - math.clamp(e, 0, 1)), 0, row.Position.Y.Offset)
+					end)
+					i += 1
+				end
 			end
 		end
 		local arriving = 0
@@ -1156,8 +1225,8 @@ end
 -- (0.16 s), then one after another fly on an arc and shrink into the counter, 0.4 s each and 70 ms apart;
 -- onArrive(i) fires as each lands (count the counter up on the first). options: count (pieces, default 6),
 -- piece = function() -> GuiObject (default: a clone of from), size (a piece against the source, default
--- 0.75: the pile must not cover the amount beside it), gap, time, arc (0-1, share of the distance, default
--- 0.25), scatter (ring radius in px, default 0.7 x the piece's size; 0 = no burst), dimSource (the tile
+-- 0.75: the pile must not cover the amount beside it), gap, time, arc (share of the distance, default 0.25;
+-- a negative arc bends the flight the other way, to keep it off a title that sits between tile and counter), scatter (ring radius in px, default 0.7 x the piece's size; 0 = no burst), dimSource (the tile
 -- fades to 40%)
 function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piece: (() -> GuiObject)?, size: number?, gap: number?, time: number?, arc: number?, scatter: number?, dimSource: boolean?, onArrive: ((number) -> ())? }?)
 	local opt = options or {}
@@ -1337,12 +1406,39 @@ end
 -- A title that lands: scales 1.4 -> 1 in 0.25 s, holds, then rises 16 px while it fades (0.2 s); done runs
 -- when it has gone. hold in seconds (default 0.9). Put it over the window's middle, on a layer above the
 -- flying rewards, and start what it would cover (a list re-sort) from done: one moment at a time.
-function Kit.stamp(label: GuiObject, hold: number?, done: (() -> ())?)
+-- options.dim = the window (a Kit.card) the title lands over: it darkens under the title and comes back as the
+-- title leaves, so the title reads as its own layer and not as a label laid over the list's text.
+function Kit.stamp(label: GuiObject, hold: number?, done: (() -> ())?, options: { dim: GuiObject?, dimTransparency: number? }?)
 	local s = scaleOf(label)
 	local home = label.Position
 	stop(label, "leave")
 	label:SetAttribute("KitTransient", true)
 	label.Visible = true
+	local host = options and options.dim
+	if host then
+		local old = host:FindFirstChild("Dim")
+		if old then
+			old:Destroy()
+		end
+		local body = host:FindFirstChild("Body")
+		local corner = body and body:FindFirstChildOfClass("UICorner")
+		local veil = make("Frame", { Name = "Dim", Active = false, Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 50 }, host)
+		veil:SetAttribute("KitTransient", true)
+		if corner then
+			make("UICorner", { CornerRadius = corner.CornerRadius }, veil)
+		end
+		local to = (options :: any).dimTransparency or 0.5
+		local wait = 0.25 + (hold or 0.9)
+		run(veil, "dim", 0, 0.15, Quad, Out, function(e)
+			veil.BackgroundTransparency = 1 - (1 - to) * math.clamp(e, 0, 1)
+		end, function()
+			run(veil, "dim", wait - 0.15, 0.2, Quad, In, function(e)
+				veil.BackgroundTransparency = to + (1 - to) * math.clamp(e, 0, 1)
+			end, function()
+				veil:Destroy()
+			end)
+		end)
+	end
 	fade(label, 0, 1, 0, 0.1)
 	s.Scale = 1.4
 	run(label, "scale", 0, 0.25, Back, Out, function(e)
@@ -1379,12 +1475,16 @@ function Kit.steps(parent: Instance, total: number, done: number, o: { size: UDi
 		BackgroundTransparency = 1,
 	}, parent)
 	local self = { root = root, slots = {} :: { Frame }, done = done }
+	-- whole design px when the width is known: shares of a width that does not divide left gaps of 4 to 6 px in one row
+	local width = root.AbsoluteSize.X / scaleAbove(root)
+	local each = width > 0 and math.floor((width - gap * (total - 1)) / total) or 0
 	for i = 1, total do
 		local slot = make("Frame", {
 			Name = "Step" .. i,
 			AnchorPoint = Vector2.new(0.5, 0.5), -- a new step pops about its middle
-			Size = UDim2.new(1 / total, -gap * (total - 1) / total, 1, 0),
-			Position = UDim2.new((i - 0.5) / total, gap * (i - 1) / total - gap * (total - 1) / total / 2, 0.5, 0),
+			Size = each > 0 and UDim2.new(0, each, 1, 0) or UDim2.new(1 / total, -gap * (total - 1) / total, 1, 0),
+			Position = each > 0 and UDim2.new(0, (i - 1) * (each + gap) + each / 2, 0.5, 0)
+				or UDim2.new((i - 0.5) / total, gap * (i - 1) / total - gap * (total - 1) / total / 2, 0.5, 0),
 			BackgroundColor3 = i <= done and color or empty,
 			BorderSizePixel = 0,
 		}, root)
@@ -1448,6 +1548,23 @@ function Kit.pulse(gui: GuiObject, amount: number?, period: number?)
 	loop(gui, "pulse", period or 1.2, function(p)
 		s.Scale = 1 + (amount or 0.04) * (0.5 - 0.5 * math.cos(p * math.pi * 2))
 	end)
+end
+
+-- A small star that twinkles at rest: on a corner of a window or of a hero card, two or three in all and never
+-- over text. Decoration (named as the lint's decor names are). Returns the star.
+function Kit.sparkle(parent: Instance, position: UDim2, size: number?, color: Color3?, period: number?)
+	local star = glint(parent, size or 18, color or Color3.new(1, 1, 1))
+	star.Name = "Shine"
+	star.Position = position
+	star.ZIndex = 6
+	local s = scaleOf(star)
+	local shift = (position.X.Offset * 0.37 + position.Y.Offset * 0.11) % 1 -- each star on its own beat
+	loop(star, "twinkle", period or 2.4, function(p)
+		local w = 0.5 - 0.5 * math.cos((p + shift) * math.pi * 2)
+		s.Scale = 0.55 + 0.45 * w
+		star.Rotation = 20 * w
+	end)
+	return star
 end
 
 -- a small float up and down with a tilt: a hero emblem that sits over the frame
