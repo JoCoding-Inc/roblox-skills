@@ -164,7 +164,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	-- HUD: two counters at the top right. They stay over the dim.
 	local wallet = { coins = 1200, gems = 30 }
 	local counters = {}
-	local cw, ch = pick(100, 132), pick(26, 40)
+	local cw, ch = pick(100, 118), pick(26, 40) -- as wide as the largest amount needs: a half-empty pill reads unfinished
 	for i, kind in { "coins", "gems" } do
 		local pill, content = Kit.card(layer, {
 			name = kind,
@@ -404,7 +404,6 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			stroke = C.dark,
 			radius = pick(10, 12),
 			depth = pick(2, 3),
-			glass = 0.93,
 		})
 		local left = pick(46, 72)
 		Kit.icon(content, icons[m.icon], {
@@ -488,7 +487,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 		stroke = C.dark,
 		radius = pick(10, 14),
 		lift = 0.1,
-		glass = 0.55,
+		glass = 0.8, -- faint on a light card: its text sits on it
 	})
 	local inset = pick(8, 16)
 	local artSize = pick(46, 76)
