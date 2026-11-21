@@ -168,6 +168,8 @@ Demo.SKINS = SKINS
 local C = table.clone(SKINS.arcade.colors)
 local BLACK, BOLD = SKINS.arcade.black, SKINS.arcade.bold
 
+Demo.ICONS = ICONS
+
 local MISSIONS = {
 	{ id = "d1", tab = "Daily", icon = "egg", title = "Hatch 5 eggs", info = "Any egg counts. Golden eggs count twice.", have = 5, need = 5, coins = 250, gems = 5 },
 	{ id = "d2", tab = "Daily", icon = "race", title = "Win 3 races", info = "Finish first on any track.", have = 2, need = 3, coins = 400, gems = 5 },
@@ -219,11 +221,12 @@ local function timeLeft(tab: string): string
 	return string.format("%02d:%02d:%02d", left // 3600, left % 3600 // 60, left % 60)
 end
 
-function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?, skin: (string | { [string]: any })? }?)
-	-- the skin first: every colour, both fonts, the finish and the motion character come from it
-	local skin = options and options.skin or "arcade"
-	local chosen = (type(skin) == "string" and SKINS[skin] or skin) :: any
-	assert(type(chosen) == "table", "Demo.build: skin is a name of Demo.SKINS or a skin table")
+-- Put a skin on: a name of Demo.SKINS or your own table { colors, black, bold, look, tone } (what it
+-- leaves out comes from arcade). Returns (colours, display font, body font). Other windows built on
+-- the kit (window_kit_layouts.luau) call this, so one game has one skin.
+function Demo.skin(skin: (string | { [string]: any })?)
+	local chosen = (type(skin) == "string" and SKINS[skin] or skin or SKINS.arcade) :: any
+	assert(type(chosen) == "table", "Demo.skin: a name of Demo.SKINS or a skin table")
 	for k, v in SKINS.arcade.colors do
 		(C :: any)[k] = (chosen.colors and chosen.colors[k]) or v
 	end
@@ -232,6 +235,12 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 	Kit.LOOK.stroke, Kit.LOOK.lift = nil, nil
 	Kit.look(chosen.look or {})
 	Kit.tone(chosen.tone or "playful")
+	return C, BLACK, BOLD
+end
+
+function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?, skin: (string | { [string]: any })? }?)
+	-- the skin first: every colour, both fonts, the finish and the motion character come from it
+	Demo.skin(options and options.skin)
 	local icons = table.clone(ICONS)
 	for k, v in (options and options.icons) or {} do
 		icons[k] = v

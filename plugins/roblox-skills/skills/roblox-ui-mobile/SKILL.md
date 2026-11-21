@@ -193,6 +193,17 @@ end
 
 Call `Kit.look` and `Kit.tone` once, before the first `Kit.card`. Icons and art are the game's own: the demo's cartoon icons stay cartoon under every skin.
 
+**The demo is one structure, not the structure.** A window's skeleton follows its job; choose it before the skin, and do not carry the missions layout into a shop. `scripts/window_kit_layouts.luau` (served with this section; it needs the kit and the demo beside it) builds three more from the same parts, each on a phone layout and a larger one, each lint-clean under the three skins on the four presets (2026-11-21): `require(ReplicatedStorage.Ui.WindowKitLayouts).run()` tours them.
+
+| The window's job | Skeleton | Example |
+|---|---|---|
+| Work through a list, act on one item (missions, quests, mail, codes) | A list in a dark well beside the detail of the selected row; tabs in the header | `window_kit_demo.luau` |
+| Browse and buy (shop, inventory, skins) | A rail of categories down one side, one featured offer across the top, a grid of cards with the price on each card | `Layouts.shop` |
+| One decision now (daily reward, a gift, a confirm, a result) | A small centred modal: a title ribbon on the top edge, one row of tiles, one button. No tabs, no list | `Layouts.daily` |
+| Look at one thing while the world stays in view (a unit, a pet, an item, a tower) | A card docked to one edge that slides in from it, a light dim without blur, stats and two actions | `Layouts.sheet` |
+
+When the RoDesigner loop gives you a reference anchor for the screen, its measured boxes decide the structure and the kit gives the finish and the motion; these examples are for when you have none. A screen that fits no row is built from the same calls (`Kit.card`, `Kit.button`, `Kit.icon`, `Kit.open`, `Kit.fly`, `Kit.count`, `Kit.burst`): start from the nearest example and move the parts. Measured while building them: a phone ScreenGui under the top bar is 280 px high on the smallest preset (338 px view less the 58 px inset), so a window that starts at y 38 is at most 236 px high; a docked sheet with the `panel` role still needs a dim under it (0.7 is enough) or the lint reads it as HUD and its size fails the HUD budget.
+
 What top phone games do (84 frames with an open panel, 28 games, 2026-11-12; sizes from 58 framed panels in 22 games; frames / games). The sample is mostly simulator, tower defense, horror, survival and tycoon; frames from one video are near duplicates, so weigh by games.
 
 | Topic | Measured | Use |

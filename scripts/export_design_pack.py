@@ -99,6 +99,7 @@ SCRIPTS = [
     ("roblox-ui-mobile/scripts/panel_stage.luau", "layout", "roblox-ui-mobile/SKILL.md#4"),
     ("roblox-ui-mobile/scripts/window_kit.luau", "layout", "roblox-ui-mobile/SKILL.md#4"),
     ("roblox-ui-mobile/scripts/window_kit_demo.luau", "layout", "roblox-ui-mobile/SKILL.md#4"),
+    ("roblox-ui-mobile/scripts/window_kit_layouts.luau", "layout", "roblox-ui-mobile/SKILL.md#4"),
     ("roblox-ui-layout/scripts/ui_device_check.luau", "layout", "roblox-ui-layout/SKILL.md#6"),
     ("roblox-feel-audio-vfx/scripts/fx_clock.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d,3e,3f,3g,3h,3i"),
     ("roblox-feel-audio-vfx/scripts/fx_textures.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3d,3e,3f,3g,3h,3i"),
