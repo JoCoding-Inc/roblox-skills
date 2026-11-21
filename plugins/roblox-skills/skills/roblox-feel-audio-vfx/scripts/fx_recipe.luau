@@ -607,7 +607,7 @@ FxRecipe.recipes = {
 		layers = {
 			L.star({ dur = 0.7, spin = 40, open = 0.25, close = 0.55 }),
 			L.star({ name = "Cross", turn = 45, len = 1.1, w = 0.2, dur = 0.5, at = 0.05, long = { 1 } }),
-			L.flash({ size = { { 0, 0.6 }, { 0.25, 1.4 }, { 1, 0.9 } } }),
+			L.flash({ slot = "star", size = { { 0, 0.8 }, { 0.25, 1.8 }, { 1, 1.2 } } }),
 			L.light({ peak = 2, range = 8, dur = 0.5 }),
 		},
 	},
@@ -617,7 +617,9 @@ FxRecipe.recipes = {
 		anchor = "up",
 		duration = 1.1,
 		layers = {
-			L.flash({ size = { { 0, 1.5 }, { 0.25, 3.4 }, { 1, 2.2 } } }),
+			-- the flash is a star sprite, not a soft ball: caught on a still frame at a large scale, a glow read as
+			-- "a big soft white sphere beside the character" to two judges
+			L.flash({ slot = "star", size = { { 0, 2 }, { 0.25, 4.4 }, { 1, 2.8 } } }),
 			L.star({ len = 4.2, w = 0.5, dur = 0.45, open = 0.18, close = 0.4 }),
 			L.shards({ at = 0.03 }),
 			L.shards({ name = "Shards2", at = 0.1, arms = 9, len = 1.1, w = 0.26, fly = 2.4, dur = 0.55, turn = 20, color = { "hot", "mid" } }),
@@ -632,7 +634,7 @@ FxRecipe.recipes = {
 		anchor = "up",
 		duration = 2.2,
 		layers = {
-			L.flash({ size = { { 0, 2 }, { 0.25, 5 }, { 1, 3 } } }),
+			L.flash({ slot = "star", size = { { 0, 2.6 }, { 0.25, 6.4 }, { 1, 3.8 } } }),
 			L.star({ len = 14, w = 0.7, dur = 1.8, long = { 1, 0.55 }, open = 0.12, close = 0.75, spin = 6 }),
 			L.star({ name = "Cross", turn = 45, len = 5, w = 0.5, dur = 1.6, long = { 1 }, open = 0.15, close = 0.7, spin = 6, color = { "white", "mid" } }),
 			L.shards({ at = 0.02, arms = 16, len = 2.2, fly = 2, dur = 0.6 }),

@@ -132,6 +132,7 @@ SCRIPTS = [
     ("roblox-feel-audio-vfx/scripts/lettering.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3e"),
     ("roblox-feel-audio-vfx/scripts/pose_beats.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3e"),
     ("roblox-feel-audio-vfx/scripts/cine_stage.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3e"),
+    ("roblox-feel-audio-vfx/scripts/cine_sky.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3e"),
     ("roblox-feel-audio-vfx/scripts/cine_demos.luau", "effects", "roblox-feel-audio-vfx/SKILL.md#3e"),
 ]
 HEADING = re.compile(r"^## ([0-9]+[a-z]?)\. ")
