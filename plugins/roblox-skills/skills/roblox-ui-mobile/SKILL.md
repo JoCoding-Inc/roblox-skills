@@ -180,6 +180,8 @@ end
 
 ## 4. Opening a panel
 
+**Start from the kit, not from an empty script.** A window with a finish and motion (missions, shop, inventory, rewards) starts as `scripts/window_kit.luau` and `scripts/window_kit_demo.luau`, both served with this section: copy the two into one folder of the place, run the demo (`require(ReplicatedStorage.Ui.WindowKitDemo).run()` from a LocalScript), look at it on a phone preset, then turn the demo into your screen: your rows, your tabs, your palette, font and icons, the same calls. Evidence (2026-11-21, blind, two judges, sums out of 100): the demo scored 76 beside a designer's window at 76; three windows a smaller model wrote from scratch from this same text scored 56, 65 and 64, and its fourth, which read that the kit exists and wrote its own code anyway, is the reason for this paragraph. Writing your own finish and motion costs more turns and loses the parts that took the kit many capture rounds: the order of an open, a list that re-sorts without rows crossing, the claim flight, the HUD that gives way and comes back. The measured table below says what a panel is; the kit rows further down say how each part is built.
+
 What top phone games do (84 frames with an open panel, 28 games, 2026-11-12; sizes from 58 framed panels in 22 games; frames / games). The sample is mostly simulator, tower defense, horror, survival and tycoon; frames from one video are near duplicates, so weigh by games.
 
 | Topic | Measured | Use |
