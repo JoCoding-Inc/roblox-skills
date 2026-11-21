@@ -173,13 +173,10 @@ function GroundBurst.play(point: Vector3, opts)
 			ZOffset = -1,
 		})
 		FxTextures.apply(dust, "smoke")
+		-- each puff from its own place and direction (emitAt: moving one emitter put every puff of a step at the last)
 		local function puff(at: Vector3, vel: Vector3, k)
-			dustAtt.WorldCFrame = CFrame.new(at)
-			dust.Speed = NumberRange.new(vel.Magnitude)
-			dustAtt.WorldCFrame = CFrame.lookAt(at, at + vel) * CFrame.Angles(-math.pi / 2, 0, 0) -- emitter Top = +Y of the attachment
-			for _ = 1, k do
-				dust:Emit(1)
-			end
+			local cf = CFrame.lookAt(at, at + vel) * CFrame.Angles(-math.pi / 2, 0, 0) -- emitter Top = +Y of the attachment
+			c:emitAt(dust, cf, k, { Speed = NumberRange.new(vel.Magnitude) })
 		end
 		c:at(0.033, function()
 			local nd = opts.dust or 28

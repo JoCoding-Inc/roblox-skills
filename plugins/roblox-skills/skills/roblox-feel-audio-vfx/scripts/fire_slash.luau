@@ -330,8 +330,8 @@ function FireSlash.play(target, opts)
 			local th = th0 + (th1 - th0) * f
 			local p = centre + dir(th) * (P.rHilt + L * 0.9)
 			local out = (dir(th) + Vector3.yAxis * 0.6).Unit
-			emberAtt.WorldCFrame = CFrame.fromMatrix(p, out:Cross(n).Magnitude > 0.1 and out:Cross(n).Unit or Vector3.xAxis, out)
-			ember:Emit(math.ceil(P.emberCount / 3))
+			local cf = CFrame.fromMatrix(p, out:Cross(n).Magnitude > 0.1 and out:Cross(n).Unit or Vector3.xAxis, out)
+			clock:emitAt(ember, cf, math.ceil(P.emberCount / 3)) -- one emitter moved between Emits put all three at the last
 		end
 	end
 	clock:at(0.2, emberBurst)
@@ -357,8 +357,7 @@ function FireSlash.play(target, opts)
 	clock:at(0.26, function()
 		for k = 1, P.smokeCount do
 			local th = lerp(thFirst, th1, (k - 0.5) / P.smokeCount)
-			smokeAtt.WorldCFrame = CFrame.new(centre + dir(th) * P.body.r)
-			smoke:Emit(1)
+			clock:emitAt(smoke, CFrame.new(centre + dir(th) * P.body.r), 1)
 		end
 	end)
 

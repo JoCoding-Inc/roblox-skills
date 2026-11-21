@@ -12,7 +12,8 @@
 -- local wind = sky:wind({ dir = Vector3.new(-1, 0, 0), speed = 150 })   -- wind streaks past a travel shot
 -- wind.stop()
 -- sky:sea()                                -- a cloud sea under the stage: something below the character, a horizon of
---                                          -- cloud tops, banks that slide past a moving camera (depth)
+--                                          -- cloud tops, banks that slide past a moving camera (depth), and a far
+--                                          -- bank over the engine deck's stepped band on low graphics (see sea)
 -- sky:drift()                              -- crystals that float round the stage at three depths: a foreground and
 --                                          -- a middle distance in every shot ({ along = dir, length = 200 } for a flight)
 -- local face = sky:portrait(character)     -- key and two rim lights on the head for a close-up in the dark
@@ -411,9 +412,24 @@ function Sky.enter(preset: string, opts)
 
 	-- A cloud sea under the stage. It takes the preset's cloud colour, crosses with sky:to() and is hidden while
 	-- the preset has no clouds (void), so call it once after Sky.enter, also when the cutscene starts in the dark.
+	-- Particles live at most 20 s, so each layer is renewed by Emit every 18 s at its own time, crossing from the old
+	-- set to the new (see the refill), and the sea holds for as long as the sky is entered. Not by Rate: in a Studio
+	-- window running at 15 fps the Rate refill fell behind and the sea thinned to loose puffs within a minute, while
+	-- an Emit refill held it for 66 s (both measured 2026-11-22).
+	-- With it comes a far bank (opts.horizon, default true). At graphics quality 10 of 21 and under (Studio's
+	-- Rendering quality, measured 2026-11-22; phones run low), the engine's cloud deck draws its far part as thin
+	-- stepped slabs within about 8 degrees over the horizon, the "pixelated sky" judges named in every build; at 11
+	-- and over it is smooth. A lower Cover (0.5) or Density (0.45) and more Atmosphere haze (2.4) left the slabs in
+	-- place. A ring of soft banks rises from the sea to about 10 degrees over the stage in front of that band, warm
+	-- toward the sun and a cool white away from it. It stands 440-500 studs out because the engine draws nothing
+	-- past a view distance that falls with the quality level (parts and particles alike, measured in Studio Play:
+	-- about 525 studs at level 1, 1,700 at levels 4-12, 3,000-4,000 at 14, over 8,000 at 21); a first bank
+	-- 1,800-2,300 studs out left the slabs showing at level 10.
 	-- opts: depth (studs from the stage down to the highest banks, default 38), reach (how far the banks spread,
-	-- default 900), density (0.3-1.5, default 1: about 1,600 particles in 149 emitters), color (instead of the preset's), seed
+	-- default 900), density (0.3-1.5, default 1: about 1,600 particles on 149 parts, and 1,160 on 120 more for the
+	-- far bank; each part has two emitters), horizon (false: no far bank), color (instead of the preset's), seed
 	local seaParts = nil
+	local seaConn: RBXScriptConnection? = nil
 	function self:sea(o)
 		o = o or {}
 		if seaParts then
@@ -421,8 +437,9 @@ function Sky.enter(preset: string, opts)
 		end
 		local depth, reach, density = o.depth or 38, o.reach or 900, math.clamp(o.density or 1, 0.3, 1.5)
 		local rng = Random.new(o.seed or 7)
-		local layers = {} -- { emitter, alpha, kind }
-		local function puffs(cf: CFrame, size: Vector3, puff: number, count: number, alpha: number, emission: number, kind: string, haze: number)
+		local stagger = Random.new((o.seed or 7) + 1)
+		local layers = {} -- { emitters = { two }, live, alpha, kind, count, due, fadeAt }
+		local function puffs(cf: CFrame, size: Vector3, puff: number, count: number, alpha: number, emission: number, kind: string, haze: number, lift: number?, toSun: number?)
 			local part = Instance.new("Part")
 			part.Name = "CineSkySea"
 			part.Anchored, part.CanCollide, part.CanQuery, part.CanTouch = true, false, false, false
@@ -430,20 +447,25 @@ function Sky.enter(preset: string, opts)
 			part.Size = size
 			part.CFrame = cf
 			part.Parent = workspace
-			local e = Instance.new("ParticleEmitter")
-			FxTextures.apply(e, "smoke")
-			e.Lifetime = NumberRange.new(20) -- the engine's longest; Rate refills what dies, so the sea holds
-			e.Rate = count / 20
-			e.Speed = NumberRange.new(0)
-			e.Rotation = NumberRange.new(0, 360)
-			e.RotSpeed = NumberRange.new(-1.5, 1.5)
-			e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, puff, puff * 0.3), NumberSequenceKeypoint.new(1, puff, puff * 0.3) })
-			e.LightEmission = emission
-			e.LightInfluence = 0
-			e.Parent = part
-			e:Emit(count)
+			-- two emitters that take turns (see the refill below)
+			local pair = {}
+			for k = 1, 2 do
+				local e = Instance.new("ParticleEmitter")
+				FxTextures.apply(e, "smoke")
+				e.Rate = 0
+				e.Lifetime = NumberRange.new(20)
+				e.Speed = NumberRange.new(0)
+				e.Rotation = NumberRange.new(0, 360)
+				e.RotSpeed = NumberRange.new(-1.5, 1.5)
+				e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, puff, puff * 0.3), NumberSequenceKeypoint.new(1, puff, puff * 0.3) })
+				e.LightEmission = emission
+				e.LightInfluence = 0
+				e.Parent = part
+				pair[k] = e
+			end
+			pair[1]:Emit(count)
 			table.insert(windParts, part)
-			table.insert(layers, { emitter = e, alpha = alpha, kind = kind, haze = haze })
+			table.insert(layers, { emitters = pair, live = 1, alpha = alpha, kind = kind, haze = haze, lift = lift or 0, toSun = toSun or 0, count = count, due = stagger:NextNumber(6, 18), shown = alpha })
 		end
 		local at = self.origin.Position
 		-- The floor far below is the sea's shadow tone: everything that stands on it is lighter than what lies
@@ -474,21 +496,72 @@ function Sky.enter(preset: string, opts)
 				puffs(cf + Vector3.new(0, 30 * tall, 0) + lean * 3, Vector3.new(w * 0.36, 5, w * 0.26), rng:NextNumber(15, 21), 11, 0.04, 0.45, "head", haze)
 			end
 		end
-		local white, shadow = Color3.new(1, 1, 1), Color3.fromRGB(138, 122, 176)
+		-- the far bank (see above): 40 banks of three tiers that overlap round the ring, so no gap shows the slabs
+		if o.horizon ~= false then
+			for i = 1, 40 do
+				local a = (i + rng:NextNumber(-0.25, 0.25)) / 40 * math.pi * 2
+				local r, w, tall = rng:NextNumber(440, 500), rng:NextNumber(150, 195), rng:NextNumber(1, 1.6)
+				local dir = Vector3.new(math.cos(a), 0, math.sin(a))
+				local toSun = math.clamp((dir:Dot(sunSide) + 0.2) / 1.2, 0, 1) ^ 1.5
+				local cf = CFrame.lookAt(at + dir * r - Vector3.new(0, 12, 0), at - Vector3.new(0, 12, 0))
+				local lean = sunSide * (w * 0.04)
+				puffs(cf, Vector3.new(w, 9, 14), rng:NextNumber(35, 42), math.ceil(10 * density), 0.14, 0.3, "far", 0, 0, toSun)
+				puffs(cf + Vector3.new(0, 20 * tall, 0) + lean, Vector3.new(w * 0.68, 9, 12), rng:NextNumber(28, 34), math.ceil(10 * density), 0.12, 0.45, "far", 0, 0.5, toSun)
+				puffs(cf + Vector3.new(0, 40 * tall, 0) + lean * 2, Vector3.new(w * 0.4, 7, 9), rng:NextNumber(21, 27), math.ceil(9 * density), 0.1, 0.55, "far", 0, 1, toSun)
+			end
+		end
+		-- The refill (see above). Every 18 s, at its own time, a layer's spare emitter emits a new set, which fades in
+		-- over 0.6 s; from halfway through that the old set is faded out by script over 0.6 s and cleared, 18.9 s
+		-- after it was made, so no puff reaches the end of its 20 s life. Not left to the end of a life: with one
+		-- emitter refilled as its puffs started their fade-out, the old set of the floor stayed whole and vanished in
+		-- one frame (seen on a recording at 15 fps, the floor's gaps jumping to new places); with two emitters and
+		-- the script fade the same recording showed no jump. Time from Heartbeat steps.
+		local function envelope(a: number): NumberSequence
+			return NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.03, a), NumberSequenceKeypoint.new(0.97, a), NumberSequenceKeypoint.new(1, 1) })
+		end
+		local elapsed = 0
+		seaConn = RunService.Heartbeat:Connect(function(dt)
+			elapsed += dt
+			for _, l in layers do
+				if l.fadeAt then
+					local old = l.emitters[3 - l.live]
+					local k = (elapsed - l.fadeAt) / 0.6
+					if k >= 1 then
+						old:Clear()
+						old.Transparency = envelope(l.shown)
+						l.fadeAt = nil
+					elseif k > 0 then
+						old.Transparency = envelope(1 - (1 - l.shown) * (1 - k))
+					end
+				elseif elapsed >= l.due then
+					l.live = 3 - l.live
+					l.emitters[l.live]:Emit(l.count)
+					l.fadeAt = elapsed + 0.3
+					l.due = elapsed + 18
+				end
+			end
+		end)
+		local white, shadow, cool = Color3.new(1, 1, 1), Color3.fromRGB(138, 122, 176), Color3.fromRGB(176, 192, 236)
 		seaRefresh = function()
 			local base = o.color or clouds.Color
 			local far = atmosphere.Color
 			local show = clouds.Enabled and 1 or 0 -- no clouds in the preset (void): the sea waits unseen
+			local night = Sky.sunDirection().Y < 0
 			for _, l in layers do
 				local c = if l.kind == "floor"
 					then base:Lerp(shadow, 0.5)
 					elseif l.kind == "base" then base:Lerp(shadow, 0.3)
 					elseif l.kind == "lower" then base:Lerp(shadow, 0.1)
 					elseif l.kind == "upper" then base:Lerp(white, 0.6)
+					elseif l.kind == "far" and night then base:Lerp(far, 0.55 + 0.2 * (1 - l.lift))
+					elseif l.kind == "far" then base:Lerp(white, 0.35 + 0.25 * l.lift):Lerp(far, 0.3 * l.toSun):Lerp(cool, 0.45 * (1 - l.toSun))
 					else base:Lerp(white, 0.96)
-				l.emitter.Color = ColorSequence.new(c:Lerp(far, l.haze))
-				local alpha = 1 - (1 - l.alpha) * show
-				l.emitter.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.03, alpha), NumberSequenceKeypoint.new(0.97, alpha), NumberSequenceKeypoint.new(1, 1) })
+				local color = ColorSequence.new(c:Lerp(far, l.haze))
+				l.shown = 1 - (1 - l.alpha) * show
+				for _, e in l.emitters do
+					e.Color = color
+					e.Transparency = envelope(l.shown)
+				end
 			end
 		end
 		seaRefresh()
@@ -850,6 +923,10 @@ function Sky.enter(preset: string, opts)
 		if driftConn then
 			driftConn:Disconnect()
 			driftConn = nil
+		end
+		if seaConn then
+			seaConn:Disconnect()
+			seaConn = nil
 		end
 		if fadeConn then
 			fadeConn:Disconnect()
