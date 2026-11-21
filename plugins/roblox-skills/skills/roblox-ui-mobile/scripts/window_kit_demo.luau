@@ -1,50 +1,89 @@
--- WindowKit demo: a small missions window over a HUD, built only with WindowKit and Frames, and a
--- tour that plays every motion: open in order, select, change tab, a routine claim (rewards fly to
--- the counters, the row moves down), a special claim (burst and stamped title), close.
+-- WindowKit demo: a missions window over a HUD, built with WindowKit, and a tour that plays every
+-- motion: the HUD gives way and the window opens in order, select, change tab, a routine claim
+-- (rewards burst, fly to the counters, the row leaves and comes back at the bottom), a special claim
+-- (a stamped title over rays, then the re-sort), close with the HUD sliding back.
 -- Setup: WindowKit and this file as ModuleScripts in one folder (ReplicatedStorage.Ui), then from a
 -- LocalScript: require(ReplicatedStorage.Ui.WindowKitDemo).run()   -- loops the tour until the gui is destroyed
--- Read it for the calls, not for the look: the palette at the top is one example; use your game's.
--- It scales one 16:9 desktop layout to fit the view, which drops text under the floors on a phone:
--- a real screen lays out and sizes its text per device (section 0 and section 4).
+-- It lays out twice: a phone layout in device px (window 532 x 236, text 14 px and up, 44 px tap
+-- areas, HUD clear of the thumbstick and the jump button) and a larger layout for tablet and desktop
+-- that Kit.stage sizes by its share of the screen. Read it for the structure and the calls; the
+-- palette, the font and the icons are one example.
+-- Icons: image ids of a free Creator Store icon pack (the simulator pack the icon guide names). Use
+-- your game's pack: Demo.build(playerGui, { icons = { coin = "rbxassetid://...", ... } }).
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 
 local Kit = require(script.Parent.WindowKit)
 
 local Demo = {}
 
-local C = {
-	window = Color3.fromRGB(43, 49, 84),
-	pane = Color3.fromRGB(31, 35, 62),
-	row = Color3.fromRGB(58, 66, 110),
-	rowSelected = Color3.fromRGB(80, 92, 150),
-	rowDone = Color3.fromRGB(40, 45, 74),
-	accent = Color3.fromRGB(255, 176, 46),
-	ready = Color3.fromRGB(84, 206, 98),
-	idle = Color3.fromRGB(96, 104, 140),
-	danger = Color3.fromRGB(238, 84, 84),
-	coin = Color3.fromRGB(255, 204, 64),
-	gem = Color3.fromRGB(94, 214, 255),
-	text = Color3.fromRGB(255, 255, 255),
-	muted = Color3.fromRGB(176, 186, 224),
-	ink = Color3.fromRGB(18, 20, 38),
-	daily = Color3.fromRGB(94, 214, 255),
-	weekly = Color3.fromRGB(196, 132, 255),
+local ICONS = {
+	coin = "rbxassetid://17368060122",
+	gem = "rbxassetid://17368064384",
+	shop = "rbxassetid://17368217589",
+	pets = "rbxassetid://16697439085",
+	missions = "rbxassetid://17368118782",
+	play = "rbxassetid://16670799841",
+	close = "rbxassetid://17368208554",
+	timer = "rbxassetid://15937828418",
+	egg = "rbxassetid://17368104272",
+	race = "rbxassetid://17368052918",
+	feed = "rbxassetid://84364030718064",
+	boss = "rbxassetid://17368210998",
+	trade = "rbxassetid://15403064919",
+	chest = "rbxassetid://15402967660",
+	wins = "rbxassetid://12129301834",
 }
-local DISPLAY, BODY = Enum.Font.FredokaOne, Enum.Font.GothamBold
+
+local rgb = Color3.fromRGB
+-- Three levels of value: a dark well, a mid window, one bright card. The eye goes to the card first.
+local C = {
+	window = rgb(46, 52, 148),
+	header = rgb(98, 92, 255),
+	well = rgb(30, 33, 104),
+	row = rgb(62, 70, 178),
+	rowSelected = rgb(96, 108, 240),
+	rowDone = rgb(44, 48, 122),
+	card = rgb(233, 236, 255),
+	cardHead = rgb(212, 218, 255),
+	coinTile = rgb(255, 238, 184),
+	gemTile = rgb(244, 224, 255),
+	tileDone = rgb(222, 225, 240),
+	ink = rgb(26, 28, 74),
+	inkMuted = rgb(92, 98, 150),
+	text = rgb(255, 255, 255),
+	muted = rgb(190, 198, 255),
+	accent = rgb(255, 196, 60),
+	ready = rgb(92, 224, 110),
+	go = rgb(58, 196, 92),
+	idle = rgb(100, 108, 176),
+	done = rgb(142, 146, 172),
+	ribbon = rgb(126, 84, 255),
+	daily = rgb(64, 190, 255),
+	weekly = rgb(190, 136, 255),
+	dark = rgb(16, 18, 56),
+	hud = rgb(36, 40, 112),
+	empty = rgb(196, 203, 236),
+}
+-- one family, two weights
+local BLACK = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.Heavy)
+local BOLD = Font.new("rbxasset://fonts/families/Nunito.json", Enum.FontWeight.ExtraBold)
 
 local MISSIONS = {
-	{ id = "d1", tab = "Daily", title = "Hatch 5 eggs", info = "Any egg counts. Golden eggs count twice.", have = 5, need = 5, coins = 250, gems = 0 },
-	{ id = "d2", tab = "Daily", title = "Win 3 races", info = "Finish first on any track.", have = 2, need = 3, coins = 400, gems = 0 },
-	{ id = "d3", tab = "Daily", title = "Feed your pet", info = "Give any pet a treat from the shop.", have = 0, need = 1, coins = 120, gems = 0 },
-	{ id = "w1", tab = "Weekly", title = "Beat the island boss", info = "Clear the last gate of any island.", have = 4, need = 4, coins = 2000, gems = 25, special = true },
-	{ id = "w2", tab = "Weekly", title = "Trade with 4 friends", info = "Complete a trade in the plaza.", have = 1, need = 4, coins = 900, gems = 10 },
+	{ id = "d1", tab = "Daily", icon = "egg", title = "Hatch 5 eggs", info = "Any egg counts. Golden eggs count twice.", have = 5, need = 5, coins = 250, gems = 5 },
+	{ id = "d2", tab = "Daily", icon = "race", title = "Win 3 races", info = "Finish first on any track.", have = 2, need = 3, coins = 400, gems = 5 },
+	{ id = "d3", tab = "Daily", icon = "feed", title = "Feed your pet", info = "Give any pet a treat from the shop.", have = 0, need = 1, coins = 120, gems = 0 },
+	{ id = "d4", tab = "Daily", icon = "chest", title = "Open 3 gifts", info = "Gifts drop from every tenth enemy.", have = 1, need = 3, coins = 300, gems = 0 },
+	{ id = "w1", tab = "Weekly", icon = "boss", title = "Beat the island boss", info = "Clear the last gate of any island.", have = 4, need = 4, coins = 2000, gems = 25, special = true },
+	{ id = "w2", tab = "Weekly", icon = "trade", title = "Trade with 4 friends", info = "Complete a trade in the plaza.", have = 1, need = 4, coins = 900, gems = 10 },
+	{ id = "w3", tab = "Weekly", icon = "wins", title = "Reach 10 wins", info = "Any mode counts, solo or with friends.", have = 7, need = 10, coins = 1500, gems = 15 },
 }
 local TABS = { "All", "Daily", "Weekly" }
 
 local function text(parent: Instance, props)
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
-	label.Font = BODY
+	label.FontFace = BOLD
 	label.TextColor3 = C.text
 	label.TextSize = 14
 	label.TextXAlignment = Enum.TextXAlignment.Left
@@ -57,381 +96,555 @@ end
 
 local function outline(label: TextLabel, color: Color3?, width: number?)
 	local s = Instance.new("UIStroke")
-	s.Color = color or C.ink
+	s.Color = color or C.dark
 	s.Thickness = width or 2
 	s.Parent = label
 	return label
 end
 
--- a coin or a gem drawn with frames (your game uses its icon pack here)
-local function token(parent: Instance, kind: string, size: number, position: UDim2?)
-	local color = kind == "gem" and C.gem or C.coin
-	local t = Kit.card(parent, {
-		name = kind,
-		size = UDim2.fromOffset(size, size),
-		position = position,
-		fill = color,
-		radius = kind == "gem" and math.floor(size * 0.24) or size,
-		strokeWidth = 2,
-		lift = 0.22,
-	})
-	t.Rotation = kind == "gem" and 45 or 0
-	local inner = Instance.new("Frame")
-	inner.AnchorPoint = Vector2.new(0.5, 0.5)
-	inner.Position = UDim2.fromScale(0.5, 0.5)
-	inner.Size = UDim2.fromScale(0.5, 0.5)
-	inner.BackgroundColor3 = Kit.shade(color, 0.45)
-	inner.BackgroundTransparency = 0.35
-	inner.BorderSizePixel = 0
-	inner.ZIndex = 3
-	inner.Parent = t
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(kind == "gem" and 0.2 or 1, 0)
-	corner.Parent = inner
-	return t
+local function short(n: number): string -- 2000 -> "2K": a reward tile is narrow on a phone
+	if n >= 1000 then
+		return (string.format("%.1fK", n / 1000):gsub("%.0K", "K"))
+	end
+	return tostring(n)
 end
 
-function Demo.build(playerGui: Instance)
+local function timeLeft(tab: string): string
+	local now = os.time()
+	local left = 86400 - now % 86400
+	if tab == "Weekly" then
+		left += (6 - (math.floor(now / 86400) + 3) % 7) * 86400 -- to the end of Sunday (UTC)
+		return string.format("%dd %02d:%02d", left // 86400, left % 86400 // 3600, left % 3600 // 60)
+	end
+	return string.format("%02d:%02d:%02d", left // 3600, left % 3600 // 60, left % 60)
+end
+
+function Demo.build(playerGui: Instance, options: { icons: { [string]: string }? }?)
+	local icons = table.clone(ICONS)
+	for k, v in (options and options.icons) or {} do
+		icons[k] = v
+	end
+	local view = workspace.CurrentCamera.ViewportSize
+	local phone = math.min(view.X, view.Y) < 500
+	local function pick(small, large)
+		if phone then
+			return small
+		end
+		return large
+	end
+
+	-- Three layers: the HUD that dims, the dim, and on top the window with the counters that stay bright.
+	local hudGui = Instance.new("ScreenGui")
+	hudGui.Name = "WindowKitDemoHud"
+	hudGui.ResetOnSpawn = false
+	hudGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	hudGui.DisplayOrder = 1
+	hudGui.Parent = playerGui
 	local gui = Instance.new("ScreenGui")
 	gui.Name = "WindowKitDemo"
 	gui.ResetOnSpawn = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	gui.DisplayOrder = 3
 	gui.Parent = playerGui
+	gui.Destroying:Once(function()
+		hudGui:Destroy()
+		GuiService.TouchControlsEnabled = true
+	end)
+	local dim = Kit.scrim(gui, { transparency = 0.45 })
 
-	local view = workspace.CurrentCamera.ViewportSize
-	local fit = math.clamp(math.min(view.X / 980, view.Y / 560), 0.6, 1.6)
-	local root = Instance.new("Frame")
-	root.Name = "Root"
-	root.BackgroundTransparency = 1
-	root.Size = UDim2.fromScale(1 / fit, 1 / fit)
-	root.Parent = gui
-	local scale = Instance.new("UIScale")
-	scale.Scale = fit
-	scale.Parent = root
+	local W, H = pick(532, 760), pick(236, 440)
+	local hudLayer = Kit.stage(hudGui, Vector2.new(1100, 620), { share = Vector2.one, max = 1.6, name = "Hud" })
+	-- a large screen: the window takes up to 86% of the width or 80% of the height, whichever comes first
+	local share = Vector2.new(0.86, 0.8)
+	local layer = Kit.stage(gui, Vector2.new(W, H), { share = share, max = pick(1, 1.6), name = "Root" })
+	local top = Kit.stage(gui, Vector2.new(W, H), { share = share, max = pick(1, 1.6), name = "Top", z = 1500 })
+	local windowPosition = pick(UDim2.new(0.5, 0, 0, 38), UDim2.fromScale(0.5, 0.54))
+	local windowAnchor = pick(Vector2.new(0.5, 0), Vector2.new(0.5, 0.5))
 
-	-- HUD: two counters at the top right
+	-- HUD: two counters at the top right. They stay over the dim.
 	local wallet = { coins = 1200, gems = 30 }
 	local counters = {}
+	local cw, ch = pick(100, 132), pick(26, 40)
 	for i, kind in { "coins", "gems" } do
-		local pill, content = Kit.card(root, {
+		local pill, content = Kit.card(layer, {
 			name = kind,
-			size = UDim2.fromOffset(150, 40),
-			position = UDim2.new(1, -16 - (3 - i) * 162 + 12, 0, 14),
-			fill = C.pane,
-			radius = 20,
-			depth = 3,
+			role = "currency",
+			size = UDim2.fromOffset(cw, ch),
+			position = UDim2.new(1, -(3 - i) * (cw + pick(6, 12)) - pick(2, 6), 0, pick(4, 12)),
+			fill = C.hud,
+			stroke = C.dark,
+			radius = ch / 2,
+			depth = pick(2, 3),
 			z = 3,
 		})
-		local icon = token(content, kind == "gems" and "gem" or "coin", kind == "gems" and 20 or 26, UDim2.fromOffset(kind == "gems" and 12 or 8, kind == "gems" and 10 or 7))
-		local amount = outline(text(content, {
-			Name = "Amount",
-			Size = UDim2.new(1, -52, 1, 0),
-			Position = UDim2.fromOffset(44, 0),
-			Text = Kit.comma(wallet[kind]),
-			TextSize = 18,
-			Font = DISPLAY,
-		}))
+		local icon = Kit.icon(content, icons[kind == "gems" and "gem" or "coin"], {
+			size = pick(20, 30),
+			position = UDim2.new(0, pick(5, 6), 0.5, 0),
+			anchor = Vector2.new(0, 0.5),
+		})
+		local amount = outline(
+			text(content, {
+				Name = "Amount",
+				Size = UDim2.new(1, -pick(38, 50), 1, 0),
+				Position = UDim2.fromOffset(pick(29, 42), 0),
+				Text = Kit.comma(wallet[kind]),
+				TextSize = pick(14, 19),
+				FontFace = BLACK,
+			}),
+			C.dark,
+			pick(1.5, 2)
+		)
 		counters[kind] = { pill = pill, icon = icon, amount = amount }
 	end
 
-	-- HUD: a column of menu buttons with labels, and one big action button. They leave while the window
-	-- is open and the scene dims; the counters stay on top of the dim.
-	local hud = {}
-	local menu = {}
-	for i, item in { { "Shop", C.accent }, { "Pets", C.weekly }, { "Missions", C.daily } } do
-		local button = Kit.button(root, {
+	-- HUD: a rail of menu buttons and one action button. On touch the rail sits above the thumbstick's
+	-- corner and the action button above the jump button; each has a 44 px tap area.
+	local hud = {} -- { item, the side it leaves by }
+	local badge
+	local bs = pick(36, 58)
+	for i, item in { { "Shop", icons.shop }, { "Pets", icons.pets }, { "Missions", icons.missions } } do
+		local position = pick(UDim2.fromOffset(12, 10 + (i - 1) * 50), UDim2.new(0, 22, 0.5, (i - 2) * 92 - 48))
+		local button, _, content = Kit.button(hudLayer, {
 			name = item[1],
-			text = string.sub(item[1], 1, 1),
-			textSize = 26,
-			font = DISPLAY,
-			fill = item[2],
-			size = UDim2.fromOffset(60, 60),
-			position = UDim2.new(0, 22, 0.5, (i - 2) * 92 - 40),
-			radius = 16,
-			strokeWidth = 3,
-			depth = 5,
+			role = "menu",
+			hit = 44,
+			fill = C.hud,
+			stroke = C.dark,
+			size = UDim2.fromOffset(bs, bs),
+			position = position,
+			radius = pick(12, 16),
+			strokeWidth = pick(2, 3),
+			depth = pick(3, 5),
 		})
-		outline(text(root, {
-			Name = item[1] .. "Label",
-			Size = UDim2.fromOffset(84, 18),
-			Position = UDim2.new(0, 10, 0.5, (i - 2) * 92 + 26),
-			Text = item[1],
-			TextSize = 14,
-			TextXAlignment = Enum.TextXAlignment.Center,
-		}))
+		Kit.icon(content, item[2], { size = pick(26, 42), position = UDim2.fromScale(0.5, 0.5), anchor = Vector2.new(0.5, 0.5) })
 		Kit.press(button)
-		menu[item[1]] = button
-		table.insert(hud, button)
-		table.insert(hud, root:FindFirstChild(item[1] .. "Label") :: GuiObject)
-	end
-	local action = Kit.button(root, {
-		name = "Action",
-		text = "PLAY",
-		textSize = 26,
-		font = DISPLAY,
-		fill = C.ready,
-		size = UDim2.fromOffset(150, 64),
-		position = UDim2.new(1, -24, 1, -28),
-		anchor = Vector2.new(1, 1),
-		radius = 20,
-		strokeWidth = 4,
-		depth = 6,
-		sheen = true,
-	})
-	Kit.press(action)
-	Kit.sheen(action, { period = 3.4 })
-	table.insert(hud, action)
-	local scrim = Instance.new("Frame")
-	scrim.Name = "Scrim"
-	scrim.BackgroundColor3 = C.ink
-	scrim.BackgroundTransparency = 1
-	scrim.BorderSizePixel = 0
-	scrim.Size = UDim2.fromScale(1, 1)
-	scrim.ZIndex = 2
-	scrim.Parent = root
-	local function dim(to: number)
-		local from = scrim.BackgroundTransparency
-		Kit.run(scrim, "dim", 0, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, function(e)
-			scrim.BackgroundTransparency = from + (to - from) * math.clamp(e, 0, 1)
-		end)
-		for _, item in hud do
-			Kit.fade(item, to < 1 and 0 or 1, 0.15)
+		table.insert(hud, { button, "left" })
+		if item[1] == "Missions" then -- how many rewards wait
+			badge = Kit.badge(button, 0, { size = pick(18, 24), textSize = pick(13, 15), fontFace = BLACK })
+		end
+		if not phone then
+			local labelPosition = position + UDim2.fromOffset(-16, bs + 7)
+			local label = outline(
+				text(hudLayer, {
+					Name = item[1] .. "Label",
+					Size = UDim2.fromOffset(90, 18),
+					Position = labelPosition,
+					Text = item[1],
+					FontFace = BLACK,
+					TextXAlignment = Enum.TextXAlignment.Center,
+				}),
+				C.dark,
+				1.5
+			)
+			table.insert(hud, { label, "left" })
 		end
 	end
+	local actionPosition = pick(UDim2.new(1, -12, 1, -98), UDim2.new(1, -24, 1, -28))
+	local action, actionLabel, actionContent = Kit.button(hudLayer, {
+		name = "Action",
+		role = "action",
+		text = "PLAY",
+		textSize = pick(18, 26),
+		textColor = C.text,
+		fontFace = BLACK,
+		fill = C.go,
+		size = pick(UDim2.fromOffset(128, 54), UDim2.fromOffset(170, 64)),
+		position = actionPosition,
+		anchor = Vector2.new(1, 1),
+		radius = pick(16, 20),
+		strokeWidth = pick(3, 4),
+		depth = pick(4, 6),
+		sheen = true,
+	})
+	Kit.icon(actionContent, icons.play, { size = pick(32, 40), position = UDim2.new(0, pick(10, 14), 0.5, 0), anchor = Vector2.new(0, 0.5) })
+	actionLabel.Size = UDim2.new(1, -pick(48, 60), 1, 0)
+	actionLabel.Position = UDim2.fromOffset(pick(42, 54), 0)
+	Kit.press(action)
+	Kit.sheen(action, { period = 3.4 })
+	table.insert(hud, { action, "right" })
+	-- the HUD leaves by its own side as the window opens and slides back while it closes
+	local dock = Kit.dock(hud)
 
 	-- the window
-	local window, body = Kit.card(root, {
+	local pad = pick(6, 10)
+	local window, body = Kit.card(layer, {
 		name = "Window",
-		size = UDim2.fromOffset(700, 420),
-		position = UDim2.fromScale(0.5, 0.54),
-		anchor = Vector2.new(0.5, 0.5),
+		role = "panel",
+		size = UDim2.fromOffset(W, H),
+		position = windowPosition,
+		anchor = windowAnchor,
 		fill = C.window,
-		radius = 20,
+		stroke = C.dark,
+		radius = pick(14, 20),
 		strokeWidth = 3,
-		depth = 9,
+		depth = pick(5, 9),
+		rim = true,
 		z = 4,
 	})
 	window.Visible = false
 
-	-- title plate and a hero emblem that sit over the top edge
-	local plate, plateContent = Kit.card(body, {
-		name = "Plate",
-		size = UDim2.fromOffset(250, 50),
-		position = UDim2.new(0.5, 0, 0, -20),
-		anchor = Vector2.new(0.5, 0.5),
-		fill = C.accent,
-		radius = 14,
-		strokeWidth = 3,
-		depth = 4,
+	-- the header band: emblem, title, tabs, close. It comes with the window; only the emblem and the close button are staged.
+	local headH = pick(36, 54)
+	local header, head = Kit.card(body, {
+		name = "Header",
+		size = UDim2.new(1, -2 * pad, 0, headH),
+		position = UDim2.fromOffset(pad, pad),
+		fill = C.header,
+		stroke = C.dark,
+		radius = pick(10, 14),
+		lift = 0.22,
+		gloss = 0.5,
 		sheen = true,
 	})
-	outline(text(plateContent, { Size = UDim2.fromScale(1, 1), Text = "MISSIONS", TextSize = 26, Font = DISPLAY, TextXAlignment = Enum.TextXAlignment.Center }), Kit.shade(C.accent, -0.6), 2.5)
-	local emblem, emblemContent = Kit.card(body, {
+	Kit.sheen(header, { period = 4.2 })
+	-- desktop: the emblem breaks the top-left corner of the frame, the one piece that does
+	local emblem = Kit.icon(pick(head, body), icons.missions, {
 		name = "Emblem",
-		size = UDim2.fromOffset(92, 92),
-		position = UDim2.fromOffset(34, -14),
-		anchor = Vector2.new(0.5, 0.5),
-		fill = C.coin,
-		radius = 46,
-		strokeWidth = 4,
-		depth = 5,
-		lift = 0.25,
+		size = pick(26, 70),
+		position = pick(UDim2.new(0, 8, 0.5, 0), UDim2.fromOffset(pad + 26, pad + 18)),
+		anchor = pick(Vector2.new(0, 0.5), Vector2.new(0.5, 0.5)),
+		tile = pick(nil, C.accent),
+		radius = 35,
+		depth = pick(nil, 4),
+		z = 5,
 	})
-	emblem.Rotation = -8
-	Kit.glint(emblemContent, 58, Color3.new(1, 1, 1)).Position = UDim2.fromScale(0.5, 0.5)
-	local sparkles = {}
-	for i, spot in { UDim2.new(0.5, -150, 0, -34), UDim2.new(0.5, 146, 0, -6), UDim2.new(0.5, 168, 0, -38) } do
-		local g = Kit.glint(body, 12 + i * 4, Color3.new(1, 1, 1))
-		g.Position = spot
-		sparkles[i] = g
+	if not phone then
+		emblem:SetAttribute("KitBreakout", "ornament")
+		emblem.Rotation = -8
 	end
-	local close = Kit.button(body, {
-		name = "Close",
-		text = "X",
-		textSize = 20,
-		font = DISPLAY,
-		fill = C.danger,
-		size = UDim2.fromOffset(44, 44),
-		position = UDim2.new(1, -8, 0, 8),
-		anchor = Vector2.new(0.5, 0.5),
-		radius = 22,
-		strokeWidth = 3,
-	})
-
-	-- tabs with counts, and a marker that slides under the chosen one
-	local tabBar = Instance.new("Frame")
-	tabBar.Name = "Tabs"
-	tabBar.BackgroundTransparency = 1
-	tabBar.Size = UDim2.fromOffset(330, 40)
-	tabBar.Position = UDim2.fromOffset(20, 26)
-	tabBar.Parent = body
-	local tabs = {}
-	for i, name in TABS do
+	outline(
+		text(head, {
+			Name = "Title",
+			Size = UDim2.fromOffset(pick(96, 160), headH),
+			Position = UDim2.fromOffset(pick(40, 74), 0),
+			Text = "MISSIONS",
+			TextSize = pick(18, 30),
+			FontFace = BLACK,
+		}),
+		C.dark,
+		pick(2, 2.5)
+	)
+	local tabItems = {}
+	for _, name in TABS do
 		local n = 0
 		for _, m in MISSIONS do
 			n += (name == "All" or m.tab == name) and 1 or 0
 		end
-		local tab, label = Kit.button(tabBar, {
-			name = name,
-			text = name .. "  " .. n,
-			textSize = 15,
-			fill = C.idle,
-			size = UDim2.fromOffset(104, 34),
-			position = UDim2.fromOffset((i - 1) * 112, 0),
-			radius = 10,
-			depth = 3,
-		})
-		tabs[name] = { button = tab, label = label }
+		table.insert(tabItems, { key = name, text = name, count = n })
 	end
-	local marker = Instance.new("Frame")
-	marker.Name = "Marker"
-	marker.BackgroundColor3 = C.accent
-	marker.BorderSizePixel = 0
-	marker.Size = UDim2.fromOffset(104, 4)
-	marker.Position = UDim2.fromOffset(0, 40)
-	marker.Parent = tabBar
-	Instance.new("UICorner", marker).CornerRadius = UDim.new(1, 0)
+	local setTab -- defined below
+	local tabs = Kit.tabs(head, tabItems, {
+		size = UDim2.fromOffset(pick(228, 318), pick(24, 36)),
+		position = UDim2.new(0, pick(140, 246), 0.5, 0),
+		anchor = Vector2.new(0, 0.5),
+		fill = C.well,
+		pill = C.accent,
+		textSize = pick(14, 16),
+		fontFace = BLACK,
+		hit = 44,
+		onPick = function(key)
+			setTab(key)
+		end,
+	})
+	local closeSize = pick(24, 38)
+	local close, _, closeContent = Kit.button(head, {
+		name = "Close",
+		hit = 44,
+		fill = C.well,
+		stroke = C.dark,
+		size = UDim2.fromOffset(closeSize, closeSize),
+		position = UDim2.new(1, -pick(6, 8) - closeSize / 2, 0.5, 0),
+		anchor = Vector2.new(0.5, 0.5),
+		radius = closeSize / 2,
+		depth = 0,
+		topLight = false,
+	})
+	Kit.icon(closeContent, icons.close, { size = pick(14, 22), position = UDim2.fromScale(0.5, 0.5), anchor = Vector2.new(0.5, 0.5) })
 
-	-- the list: keyed rows, no UIListLayout
+	-- the list: a dark well with keyed rows, no UIListLayout
+	local bodyTop = pad + headH + pick(6, 10)
+	local bodyH = H - bodyTop - pad
+	local listW = pick(228, 350)
+	local _, well = Kit.card(body, {
+		name = "ListWell",
+		size = UDim2.fromOffset(listW, bodyH),
+		position = UDim2.fromOffset(pad, bodyTop),
+		fill = C.well,
+		stroke = C.dark,
+		radius = pick(10, 14),
+		lift = 0.04,
+		topLight = false,
+		clip = true,
+	})
 	local scroll = Instance.new("ScrollingFrame")
 	scroll.Name = "List"
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel = 0
-	scroll.Size = UDim2.fromOffset(346, 326)
-	scroll.Position = UDim2.fromOffset(14, 80)
+	scroll.Size = UDim2.new(1, -4, 1, -4)
+	scroll.Position = UDim2.fromOffset(2, 2)
 	scroll.ScrollBarThickness = 4
 	scroll.ScrollBarImageColor3 = C.muted
-	scroll.Parent = body
-	local list = Kit.list(scroll, { gap = 8, pad = 6 })
+	scroll.Parent = well
+	local rowH = pick(46, 70)
+	local list = Kit.list(scroll, { gap = pick(6, 8), pad = pick(5, 7) })
+	local tileOf = { Daily = rgb(24, 70, 124), Weekly = rgb(70, 40, 128) }
 	local rows = {}
 	for _, m in MISSIONS do
+		local ready = m.have >= m.need
 		local row, content = Kit.card(nil :: any, {
 			name = m.id,
 			button = true,
-			size = UDim2.new(1, -18, 0, 66),
-			position = UDim2.fromOffset(6, 0),
+			size = UDim2.new(1, -pick(18, 22), 0, rowH),
+			position = UDim2.fromOffset(pick(6, 8), 0),
 			fill = C.row,
-			radius = 12,
-			depth = 3,
+			stroke = C.dark,
+			radius = pick(10, 12),
+			depth = pick(2, 3),
 		})
-		local stripe = Instance.new("Frame")
-		stripe.Name = "Stripe"
-		stripe.BackgroundColor3 = m.tab == "Daily" and C.daily or C.weekly
-		stripe.BorderSizePixel = 0
-		stripe.Size = UDim2.new(0, 5, 1, -16)
-		stripe.Position = UDim2.fromOffset(8, 8)
-		stripe.Parent = content
-		Instance.new("UICorner", stripe).CornerRadius = UDim.new(1, 0)
-		token(content, m.gems > 0 and "gem" or "coin", m.gems > 0 and 26 or 34, UDim2.fromOffset(m.gems > 0 and 28 or 24, m.gems > 0 and 20 or 16))
-		text(content, { Name = "Title", Size = UDim2.new(1, -150, 0, 20), Position = UDim2.fromOffset(70, 10), Text = m.title, TextSize = 16 })
+		local left = pick(46, 72)
+		Kit.icon(content, icons[m.icon], {
+			size = pick(32, 50),
+			position = UDim2.new(0, pick(7, 10), 0.5, 0),
+			anchor = Vector2.new(0, 0.5),
+			tile = tileOf[m.tab],
+			radius = pick(9, 12),
+		})
+		local title = text(content, {
+			Name = "Title",
+			Size = UDim2.new(1, -left - pick(8, 78), 0, 22),
+			Position = UDim2.fromOffset(left, pick(4, 9)),
+			Text = m.title,
+			TextSize = pick(14, 18),
+		})
+		local right = pick(56, 122)
 		local barBack = Instance.new("Frame")
 		barBack.Name = "Bar"
-		barBack.BackgroundColor3 = C.ink
+		barBack.BackgroundColor3 = C.well
 		barBack.BorderSizePixel = 0
-		barBack.Size = UDim2.new(1, -150, 0, 10)
-		barBack.Position = UDim2.fromOffset(70, 40)
+		barBack.Size = UDim2.new(1, -left - right - pick(12, 16), 0, pick(8, 10))
+		barBack.Position = UDim2.fromOffset(left, pick(29, 44))
 		barBack.Parent = content
 		Instance.new("UICorner", barBack).CornerRadius = UDim.new(1, 0)
 		local fill = Instance.new("Frame")
 		fill.Name = "Fill"
-		fill.BackgroundColor3 = m.have >= m.need and C.ready or C.accent
+		fill.BackgroundColor3 = ready and C.ready or C.accent
 		fill.BorderSizePixel = 0
 		fill.Size = UDim2.fromScale(m.have / m.need, 1)
 		fill.Parent = barBack
 		Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
 		local count = text(content, {
 			Name = "Count",
-			Size = UDim2.fromOffset(64, 20),
-			Position = UDim2.new(1, -74, 0, 34),
+			Size = UDim2.fromOffset(pick(right, 44), 18),
+			Position = UDim2.new(1, -right - pick(7, 9), 0, pick(24, 39)),
 			Text = m.have .. "/" .. m.need,
-			TextSize = 14,
 			TextColor3 = C.muted,
-			TextXAlignment = Enum.TextXAlignment.Right,
+			TextXAlignment = pick(Enum.TextXAlignment.Right, Enum.TextXAlignment.Left),
 		})
-		-- "ready" has its own mark: a green chip, never the selection outline
+		if not phone then -- room for what the mission pays: the row answers "is it worth it" without a tap
+			Kit.icon(content, icons.coin, { name = "Pay", size = 20, position = UDim2.new(1, -78, 0, 38) })
+			text(content, {
+				Name = "PayAmount",
+				Size = UDim2.fromOffset(50, 18),
+				Position = UDim2.new(1, -55, 0, 39),
+				Text = Kit.comma(m.coins),
+				TextColor3 = C.accent,
+				FontFace = BLACK,
+			})
+		end
+		-- "ready" has its own mark, never the selection outline. On a phone it takes the count's place.
 		local chip, chipContent = Kit.card(content, {
 			name = "Ready",
-			size = UDim2.fromOffset(62, 22),
-			position = UDim2.new(1, -72, 0, 8),
+			size = UDim2.fromOffset(pick(54, 60), pick(18, 20)),
+			position = UDim2.new(1, -pick(8, 9), 0, pick(21, 9)),
+			anchor = Vector2.new(1, 0),
 			fill = C.ready,
-			radius = 8,
+			radius = 7,
 			strokeWidth = 1.5,
+			topLight = false,
 		})
-		text(chipContent, { Size = UDim2.fromScale(1, 1), Text = "READY", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Center })
-		chip.Visible = m.have >= m.need
+		text(chipContent, { Size = UDim2.fromScale(1, 1), Text = "READY", TextSize = pick(14, 13), FontFace = BLACK, TextColor3 = Kit.ink(C.ready), TextXAlignment = Enum.TextXAlignment.Center })
+		chip.Visible = ready
+		count.Visible = not (phone and ready)
 		list:add(m.id, row)
-		rows[m.id] = { row = row, fill = fill, count = count, chip = chip, mission = m }
-		if chip.Visible then
-			Kit.pulse(chip, 0.07, 1.1)
+		rows[m.id] = { row = row, fill = fill, count = count, chip = chip, title = title, mission = m }
+		if ready then
+			Kit.pulse(chip, 0.06, 1.1)
 		end
 	end
 
-	-- the detail pane: the selected mission's art is the largest thing in it
+	-- the detail card: the one bright surface, with the selected mission's art as its largest piece
+	local cardX = pad + listW + pick(6, 10)
+	local cardW = W - cardX - pad
 	local pane, detail = Kit.card(body, {
 		name = "Detail",
-		size = UDim2.fromOffset(310, 320),
-		position = UDim2.fromOffset(374, 84),
-		fill = C.pane,
-		radius = 16,
-		strokeWidth = 2,
+		size = UDim2.fromOffset(cardW, bodyH),
+		position = UDim2.fromOffset(cardX, bodyTop),
+		fill = C.card,
+		stroke = C.dark,
+		radius = pick(10, 14),
+		lift = 0.1,
 	})
-	local art = Instance.new("Frame")
-	art.Name = "Art"
-	art.BackgroundTransparency = 1
-	art.Size = UDim2.fromOffset(96, 96)
-	art.Position = UDim2.fromOffset(16, -22)
-	art.Parent = detail
-	local title = outline(text(detail, { Name = "Title", Size = UDim2.new(1, -132, 0, 44), Position = UDim2.fromOffset(122, 12), TextSize = 20, Font = DISPLAY, TextWrapped = true }))
-	local info = text(detail, { Name = "Info", Size = UDim2.new(1, -32, 0, 36), Position = UDim2.fromOffset(16, 80), TextColor3 = C.muted, TextWrapped = true, TextYAlignment = Enum.TextYAlignment.Top })
+	local inset = pick(8, 16)
+	local artSize = pick(46, 76)
+	-- a tinted band behind the art and the title: the card has a head and a body, not one white sheet
+	local headBand = Instance.new("Frame")
+	headBand.Name = "Backdrop"
+	headBand.BackgroundColor3 = C.cardHead
+	headBand.BorderSizePixel = 0
+	headBand.Position = UDim2.fromOffset(pick(4, 7), pick(4, 7))
+	headBand.Parent = detail
+	Instance.new("UICorner", headBand).CornerRadius = UDim.new(0, pick(8, 10))
+	local art, artImage = Kit.icon(detail, icons.egg, {
+		name = "Art",
+		size = artSize,
+		position = UDim2.fromOffset(inset, inset),
+		tile = tileOf.Daily,
+		radius = pick(12, 20),
+		depth = pick(2, 4),
+		pad = 0.12,
+	})
+	local textX = inset + artSize + pick(8, 14)
+	local title = text(detail, {
+		Name = "Title",
+		Size = UDim2.new(1, -textX - inset, 0, pick(20, 30)),
+		Position = UDim2.fromOffset(textX, inset + pick(0, 4)),
+		TextSize = pick(16, 26),
+		FontFace = BLACK,
+		TextColor3 = C.ink,
+	})
+	local tag, tagContent = Kit.card(detail, {
+		name = "Tag",
+		size = UDim2.fromOffset(pick(58, 66), pick(18, 22)),
+		position = UDim2.fromOffset(textX, inset + pick(24, 42)),
+		fill = C.daily,
+		radius = 7,
+		strokeWidth = 1.5,
+		topLight = false,
+	})
+	local tagText = text(tagContent, { Size = UDim2.fromScale(1, 1), Text = "DAILY", TextSize = pick(14, 13), FontFace = BLACK, TextColor3 = Kit.ink(C.daily), TextXAlignment = Enum.TextXAlignment.Center })
+	local clock = Kit.icon(detail, icons.timer, { name = "Clock", size = pick(16, 20), position = UDim2.fromOffset(textX + pick(64, 76), inset + pick(25, 43)) })
+	local timer = text(detail, {
+		Name = "Timer",
+		Size = UDim2.fromOffset(96, pick(18, 22)),
+		Position = UDim2.fromOffset(textX + pick(83, 100), inset + pick(24, 42)),
+		TextColor3 = C.inkMuted,
+		TextSize = pick(14, 15),
+	})
+	local infoY = inset + artSize + pick(5, 14)
+	local info = text(detail, {
+		Name = "Info",
+		Size = UDim2.new(1, -2 * inset, 0, pick(34, 40)),
+		Position = UDim2.fromOffset(inset, infoY),
+		TextColor3 = C.inkMuted,
+		TextSize = pick(14, 16),
+		TextWrapped = true,
+		TextYAlignment = Enum.TextYAlignment.Top,
+	})
+	-- the band holds what the mission is (art, title, tag, the line of text); under it, progress and pay
+	headBand.Size = UDim2.new(1, -2 * pick(4, 7), 0, infoY + pick(36, 42) - pick(4, 7))
+	local stepsY = infoY + pick(46, 72)
 	local stepsHolder = Instance.new("Frame")
 	stepsHolder.Name = "Progress"
 	stepsHolder.BackgroundTransparency = 1
-	stepsHolder.Size = UDim2.new(1, -32, 0, 18)
-	stepsHolder.Position = UDim2.fromOffset(16, 124)
+	stepsHolder.Size = UDim2.new(1, -2 * inset - 46, 0, pick(10, 16))
+	stepsHolder.Position = UDim2.fromOffset(inset, stepsY)
 	stepsHolder.Parent = detail
+	local progress = text(detail, {
+		Name = "Count",
+		Size = UDim2.fromOffset(42, 18),
+		Position = UDim2.new(1, -inset - 42, 0, stepsY - pick(4, 2)),
+		TextColor3 = C.ink,
+		FontFace = BLACK,
+		TextXAlignment = Enum.TextXAlignment.Right,
+	})
+	local caption = text(detail, {
+		Name = "Caption",
+		Size = UDim2.fromOffset(120, 18),
+		Position = UDim2.fromOffset(inset, stepsY - 22),
+		Text = "PROGRESS",
+		TextColor3 = C.inkMuted,
+		FontFace = BLACK,
+		Visible = not phone, -- no room for it on a phone
+	})
+	-- phone: reward tiles and the main button share one row; larger screens: tiles across, the button under them
+	local tilesY = stepsY + pick(24, 30)
+	local tileH = pick(44, 60)
+	local tilesW = pick(146, cardW - 2 * inset)
+	local tileGap = pick(6, 10)
 	local tiles = {}
-	for i, kind in { "coins", "gems" } do
+	for _, kind in { "coins", "gems" } do
 		local tile, tileContent = Kit.card(detail, {
 			name = kind .. "Tile",
-			size = UDim2.fromOffset(86, 74),
-			position = UDim2.fromOffset(16 + (i - 1) * 96, 160),
-			fill = C.row,
-			radius = 12,
-			depth = 3,
+			size = UDim2.fromOffset((tilesW - tileGap) / 2, tileH),
+			position = UDim2.fromOffset(inset, tilesY),
+			fill = kind == "gems" and C.gemTile or C.coinTile, -- each currency has its own tile colour
+			stroke = Kit.shade(kind == "gems" and C.gemTile or C.coinTile, -0.5),
+			radius = pick(9, 12),
+			gloss = 0.5,
 		})
-		local icon = token(tileContent, kind == "gems" and "gem" or "coin", kind == "gems" and 28 or 38, UDim2.fromOffset(kind == "gems" and 29 or 24, kind == "gems" and 12 or 8))
-		local amount = outline(text(tileContent, { Size = UDim2.new(1, 0, 0, 18), Position = UDim2.new(0, 0, 1, -24), TextSize = 15, TextXAlignment = Enum.TextXAlignment.Center }))
-		tiles[kind] = { tile = tile, icon = icon, amount = amount }
+		local _, picture = Kit.icon(tileContent, icons[kind == "gems" and "gem" or "coin"], {
+			size = pick(26, 44),
+			position = UDim2.new(0, pick(5, 10), 0.5, 0),
+			anchor = Vector2.new(0, 0.5),
+		})
+		local amount = text(tileContent, {
+			Name = "Amount",
+			Size = UDim2.new(1, -pick(37, 66), 1, 0),
+			Position = UDim2.fromOffset(pick(34, 60), 0),
+			TextSize = pick(14, 24),
+			FontFace = BLACK,
+			TextColor3 = C.ink,
+		})
+		if not phone then -- room for the reward's name: it fills a wide tile when there is only one
+			text(tileContent, {
+				Name = "Caption",
+				Size = UDim2.new(0, 70, 1, 0),
+				Position = UDim2.new(1, -82, 0, 0),
+				Text = kind == "gems" and "Gems" or "Coins",
+				TextColor3 = C.inkMuted,
+				TextXAlignment = Enum.TextXAlignment.Right,
+			})
+		end
+		tiles[kind] = { tile = tile, icon = picture, amount = amount }
 	end
 	local main, mainLabel = Kit.button(detail, {
 		name = "Main",
+		hit = 44,
 		text = "CLAIM",
-		textSize = 20,
-		font = DISPLAY,
-		fill = C.ready,
-		size = UDim2.new(1, -32, 0, 50),
-		position = UDim2.new(0, 16, 1, -64),
-		radius = 14,
-		strokeWidth = 3,
-		depth = 5,
+		textSize = pick(15, 28),
+		textColor = C.text, -- white with a dark outline on every state of the button
+		fontFace = BLACK,
+		fill = C.go,
+		size = pick(UDim2.fromOffset(cardW - 2 * inset - tilesW - 6, 44), UDim2.fromOffset(cardW - 2 * inset, 58)),
+		position = pick(UDim2.fromOffset(inset + tilesW + 6, tilesY), UDim2.fromOffset(inset, tilesY + tileH + 10)),
+		radius = pick(12, 14),
+		strokeWidth = pick(2, 3),
+		depth = pick(3, 5),
 	})
-	-- the stamped title of a big moment: a ribbon across the window
-	local stamp, stampContent = Kit.card(body, {
+
+	-- the stamped title of a big moment: a ribbon over the window, above the flying rewards
+	local stamp, stampContent = Kit.card(top, {
 		name = "Stamp",
-		size = UDim2.new(1, 40, 0, 72),
-		position = UDim2.fromScale(0.5, 0.5),
+		size = UDim2.fromOffset(pick(340, 600), pick(46, 88)),
+		position = pick(UDim2.new(0.5, 0, 0, 38 + H / 2), windowPosition),
 		anchor = Vector2.new(0.5, 0.5),
-		z = 20,
-		fill = C.accent,
-		radius = 16,
-		strokeWidth = 4,
-		depth = 8,
+		fill = C.ribbon,
+		stroke = C.dark,
+		radius = pick(12, 16),
+		strokeWidth = pick(3, 4),
+		depth = pick(5, 8),
+		gloss = 0.5,
+		rim = true,
 		sheen = true,
 	})
-	outline(text(stampContent, { Size = UDim2.fromScale(1, 1), Text = "WEEKLY CLEAR!", TextSize = 40, Font = DISPLAY, TextXAlignment = Enum.TextXAlignment.Center }), Kit.shade(C.accent, -0.6), 3)
+	outline(
+		text(stampContent, { Size = UDim2.fromScale(1, 1), Text = "WEEKLY CLEAR!", TextSize = pick(26, 54), FontFace = BLACK, TextColor3 = C.accent, TextXAlignment = Enum.TextXAlignment.Center }),
+		C.dark,
+		pick(2, 3)
+	)
 	stamp.Visible = false
 
-	local state = { tab = "All", selected = nil :: string?, claimed = {} :: { [string]: boolean }, steps = nil :: any }
+	local state = { tab = "All", selected = nil :: string?, claimed = {} :: { [string]: boolean }, steps = nil :: any, open = false }
 
 	local function keysFor(tab: string): { string }
 		local open, done = {}, {}
@@ -446,7 +659,7 @@ function Demo.build(playerGui: Instance)
 	local function paintMain(m)
 		local claimed, ready = state.claimed[m.id], m.have >= m.need
 		mainLabel.Text = claimed and "CLAIMED" or (ready and "CLAIM" or "IN PROGRESS")
-		Kit.recolor(main, claimed and C.rowDone or (ready and C.ready or C.idle))
+		Kit.recolor(main, claimed and C.done or (ready and C.go or C.idle))
 		Kit.still(main)
 		if ready and not claimed then
 			Kit.pulse(main, 0.03, 1.3)
@@ -454,13 +667,36 @@ function Demo.build(playerGui: Instance)
 		end
 	end
 
-	local function select(id: string, wait: number?)
+	-- a claimed reward keeps its tile, greyed: the same on the claim and on every later visit
+	local function paintTiles(m)
+		local claimed = state.claimed[m.id]
+		local shown = {}
+		for _, kind in { "coins", "gems" } do
+			local t = tiles[kind]
+			t.tile.Visible = m[kind] > 0
+			if m[kind] > 0 then
+				table.insert(shown, t)
+				t.amount.Text = "+" .. pick(short(m[kind]), Kit.comma(m[kind]))
+				local fill = kind == "gems" and C.gemTile or C.coinTile
+				t.amount.TextColor3 = claimed and C.inkMuted or C.ink
+				t.icon.ImageTransparency = claimed and 0.55 or 0
+				Kit.recolor(t.tile, claimed and C.tileDone or fill, claimed and Kit.shade(C.tileDone, -0.25) or Kit.shade(fill, -0.5))
+			end
+		end
+		local each = (tilesW - (#shown - 1) * tileGap) / #shown
+		for i, t in shown do
+			t.tile.Size = UDim2.fromOffset(each, tileH)
+			t.tile.Position = UDim2.fromOffset(inset + (i - 1) * (each + tileGap), tilesY)
+		end
+	end
+
+	local function select(id: string, first: boolean?)
 		if state.selected == id then
 			return
 		end
 		local was = state.selected and rows[state.selected]
 		if was then
-			Kit.recolor(was.row, state.claimed[state.selected :: string] and C.rowDone or C.row)
+			Kit.recolor(was.row, state.claimed[state.selected :: string] and C.rowDone or C.row, C.dark)
 		end
 		state.selected = id
 		local r = rows[id]
@@ -468,34 +704,47 @@ function Demo.build(playerGui: Instance)
 		-- selected: a lighter fill and a bright outline that belong to the row, so they travel with it
 		Kit.recolor(r.row, C.rowSelected, Color3.new(1, 1, 1))
 		list:reveal(id)
-		-- the pane changes on the same frame, and its parts arrive in order
-		art:ClearAllChildren()
-		token(art, m.gems > 0 and "gem" or "coin", m.gems > 0 and 64 or 88, UDim2.fromOffset(m.gems > 0 and 16 or 4, m.gems > 0 and 16 or 4))
+		-- the card changes on the same frame as the row
+		artImage.Image = icons[m.icon]
+		Kit.recolor(art, tileOf[m.tab])
 		title.Text = m.title
 		info.Text = m.info
+		tagText.Text = string.upper(m.tab)
+		Kit.recolor(tag, m.tab == "Daily" and C.daily or C.weekly)
+		tagText.TextColor3 = Kit.ink(m.tab == "Daily" and C.daily or C.weekly)
+		timer.Text = timeLeft(m.tab)
+		progress.Text = m.have .. "/" .. m.need
 		stepsHolder:ClearAllChildren()
-		state.steps = Kit.steps(stepsHolder, m.need, m.have, { color = m.have >= m.need and C.ready or C.accent })
-		tiles.coins.amount.Text = Kit.comma(m.coins)
-		tiles.gems.amount.Text = Kit.comma(m.gems)
-		tiles.gems.tile.Visible = m.gems > 0
+		state.steps = Kit.steps(stepsHolder, m.need, m.have, { color = m.have >= m.need and C.ready or C.accent, empty = C.empty })
+		paintTiles(m)
 		paintMain(m)
-		Kit.open(pane, {
-			{ art, "pop" },
-			{ { title, info }, "fade", gap = 0.03 },
-			{ state.steps.slots, "pop", gap = 0.02 },
-			{ { tiles.coins.tile, tiles.gems.tile }, "pop", gap = 0.04 },
-			{ main, "pop" },
-		}, { shell = false, budget = wait and 0.5 or 0.3, delay = wait or 0 }) -- a change of selection is quick; the first fill follows the window
+		local shown = {}
+		for _, kind in { "coins", "gems" } do
+			if m[kind] > 0 then
+				table.insert(shown, tiles[kind].tile)
+			end
+		end
+		local stepsParts = table.clone(state.steps.slots)
+		table.insert(stepsParts, progress)
+		if first then
+			-- with the window: the art and the texts come with the card (never an empty card); the steps, the
+			-- rewards and the button pop in beside the first rows
+			Kit.open(pane, { { stepsParts, "pop", gap = 0.02 }, { shown, "pop", gap = 0.04 }, { main, "pop" } }, { shell = false, budget = 0.4 })
+		else
+			-- another row or tab: everything dips and comes back together, so the button never shows over a blank card
+			local items = { title, tag, clock, timer, info, progress }
+			table.move(state.steps.slots, 1, #state.steps.slots, #items + 1, items)
+			table.move(shown, 1, #shown, #items + 1, items)
+			Kit.refresh(items, { art })
+		end
 	end
 
-	local function setTab(name: string)
+	function setTab(name: string)
 		if state.tab == name then
 			return
 		end
-		Kit.recolor(tabs[state.tab].button, C.idle)
 		state.tab = name
-		Kit.recolor(tabs[name].button, C.accent)
-		Kit.slideTo(marker, tabs[name].button)
+		tabs.pick(name, true)
 		local keys = keysFor(name)
 		list:show(keys) -- old rows leave while the new ones arrive: the list is never blank
 		if keys[1] then
@@ -513,17 +762,28 @@ function Demo.build(playerGui: Instance)
 		paintMain(m) -- the squash already ran: the button changes now
 		r.chip.Visible = false
 		Kit.still(r.chip)
-		if m.special then
-			Kit.burst(art, { tier = 3, color = C.accent })
-			Kit.stamp(stamp, 0.9)
+		r.count.Visible = true
+		r.count.Text = "DONE"
+		local function resort()
+			if gui.Parent then
+				Kit.recolor(r.row, C.rowDone, state.selected == id and Color3.new(1, 1, 1) or C.dark)
+				r.fill.BackgroundColor3 = C.idle
+				r.title.TextColor3 = C.muted
+				list:order(keysFor(state.tab)) -- the claimed row leaves and comes back at the bottom; the others close the gap
+			end
 		end
-		local last = m.gems > 0 and "gems" or "coins"
+		if m.special then
+			-- the bigger reward: a title lands over rays, and the list waits until it has gone
+			Kit.stamp(stamp, 1.1, resort)
+			Kit.burst(stamp, { tier = 3, color = C.accent, radius = pick(190, 340) })
+		else
+			task.delay(1.1, resort)
+		end
 		for _, kind in { "coins", "gems" } do
 			local amount = m[kind]
 			if amount > 0 then
 				Kit.fly(tiles[kind].icon, counters[kind].icon, {
-					count = m.special and 8 or 5,
-					dimSource = false,
+					count = m.special and 10 or 7,
 					onArrive = function(i)
 						if i == 1 then
 							Kit.count(counters[kind].amount, wallet[kind], wallet[kind] + amount)
@@ -531,25 +791,15 @@ function Demo.build(playerGui: Instance)
 						end
 					end,
 				})
-				Kit.fade(tiles[kind].tile, 0.4, 0.2, 0.25) -- the slot keeps a faded copy
 			end
 		end
-		task.delay(1.0, function()
-			if gui.Parent then
-				Kit.recolor(r.row, C.rowDone, state.selected == id and Color3.new(1, 1, 1) or nil)
-				r.fill.BackgroundColor3 = C.idle
-				r.count.Text = "DONE"
-				list:order(keysFor(state.tab)) -- the claimed row goes down; the others close the gap
+		task.delay(0.2, function() -- the pieces have left the tiles
+			if gui.Parent and state.selected == id then
+				paintTiles(m)
 			end
 		end)
-		return last
 	end
 
-	for name, t in tabs do
-		Kit.press(t.button, function()
-			setTab(name)
-		end)
-	end
 	for id, r in rows do
 		Kit.press(r.row, function()
 			select(id)
@@ -561,42 +811,62 @@ function Demo.build(playerGui: Instance)
 		end
 	end)
 
-	local api = { gui = gui, window = window, main = main, closeButton = close, rows = rows, tabs = tabs, state = state }
+	task.spawn(function() -- the countdown is live
+		while gui.Parent do
+			local r = state.selected and rows[state.selected]
+			if r and state.open then
+				timer.Text = timeLeft(r.mission.tab)
+			end
+			task.wait(1)
+		end
+	end)
+
+	local function waiting(): number
+		local n = 0
+		for _, m in MISSIONS do
+			n += (m.have >= m.need and not state.claimed[m.id]) and 1 or 0
+		end
+		return n
+	end
+	badge.set(waiting())
+
+	local api = { gui = gui, hudGui = hudGui, window = window, main = main, closeButton = close, rows = rows, tabs = tabs, state = state, phone = phone }
 	function api.open()
-		dim(0.5)
-		Kit.recolor(tabs[state.tab].button, C.accent)
+		state.open = true
+		GuiService.TouchControlsEnabled = false -- the window takes the screen: no thumbstick under it
+		dim.show()
+		dock.hide()
 		local keys = keysFor(state.tab)
 		list:show(keys, true)
-		local tabButtons = {}
-		for _, name in TABS do
-			table.insert(tabButtons, tabs[name].button)
-		end
-		table.insert(tabButtons, marker)
 		Kit.open(window, {
-			{ { plate, emblem }, "pop", gap = 0.04 },
-			{ tabButtons, "pop", gap = 0.03 },
-			{ list:shown(), "slide", from = "left", gap = 0.04 },
-			{ sparkles, "pop", gap = 0.05 },
-			{ close, "spin" },
+			{ emblem, "pop" },
+			{ close, "spin" }, -- the way out is there from the start
+			{ list:shown(), "slide", from = "left", gap = 0.035 },
 		})
 		state.selected = nil
-		select(keys[1], 0.4) -- the pane is part of the shell; its content waits for the rows
-		Kit.bob(emblem, 3, 2.6, 1.5)
+		select(keys[1], true)
+		if not phone then
+			Kit.bob(emblem, 2, 2.6, 1.5)
+		end
 	end
 	function api.close()
+		state.open = false
 		Kit.still(emblem)
 		Kit.close(window, { first = close })
-		dim(1)
+		dim.hide()
+		badge.set(waiting()) -- what is left to claim, set before the HUD is back
+		dock.show(0.06) -- while the window fades: the way back is seen
+		GuiService.TouchControlsEnabled = true
 	end
 	api.select, api.setTab, api.claim = select, setTab, claim
 	Kit.press(close, api.close)
 	return api
 end
 
--- the tour: every motion once, about 14 s, then again
-function Demo.run(playerGui: Instance?)
+-- the tour: every motion once, about 15 s, then again
+function Demo.run(playerGui: Instance?, options: { icons: { [string]: string }? }?)
 	local target = playerGui or Players.LocalPlayer:WaitForChild("PlayerGui")
-	local ui = Demo.build(target)
+	local ui = Demo.build(target, options)
 	local function tap(button: GuiObject, fn: () -> ())
 		Kit.squash(button)
 		task.wait(Kit.TIMES.press)
@@ -604,37 +874,36 @@ function Demo.run(playerGui: Instance?)
 	end
 	task.spawn(function()
 		while ui.gui.Parent do
-			task.wait(1)
+			task.wait(1.2)
 			ui.open()
 			task.wait(1.8)
 			tap(ui.rows.d2.row, function()
 				ui.select("d2")
 			end)
 			task.wait(1)
-			tap(ui.rows.w2.row, function()
-				ui.select("w2")
+			tap(ui.rows.d3.row, function()
+				ui.select("d3")
 			end)
 			task.wait(1)
-			tap(ui.tabs.Daily.button, function()
-				ui.setTab("Daily")
-			end)
+			ui.setTab("Daily")
 			task.wait(1.3)
 			tap(ui.main, function()
 				ui.claim("d1")
 			end)
-			task.wait(2.4)
-			tap(ui.tabs.Weekly.button, function()
-				ui.setTab("Weekly")
-			end)
+			task.wait(2.6)
+			ui.setTab("Weekly")
 			task.wait(1.3)
 			tap(ui.main, function()
 				ui.claim("w1")
 			end)
-			task.wait(3)
+			task.wait(3.2)
 			tap(ui.closeButton, ui.close)
-			task.wait(1.2)
+			task.wait(1.4)
+			if not ui.gui.Parent then -- destroyed from outside: the tour ends
+				break
+			end
 			ui.gui:Destroy()
-			ui = Demo.build(target)
+			ui = Demo.build(target, options)
 		end
 	end)
 	return ui
