@@ -1,13 +1,14 @@
--- WindowKit layouts: three more windows from the same parts, each with another skeleton, so the
+-- WindowKit layouts: four more windows from the same parts, each with another skeleton, so the
 -- missions demo is not read as "the" window. A window's structure follows its job:
 --   shop   browse and buy: a rail of categories, one featured offer, a grid of cards
 --   daily  one decision: a small centred modal, seven day tiles in a row, one button
 --   sheet  a look at one thing while the world stays in view: a card docked to the right edge, a light dim
--- (the missions demo is the fourth: a list and the detail of the selected row).
+--   track  progress along levels: a bar that fills, a rail of levels that scrolls sideways, a reward under each
+-- (the missions demo is the fifth: a list and the detail of the selected row).
 -- All take the skins of the demo (Demo.SKINS) or your own skin table, and each lays out twice: a
 -- phone layout in device px and a larger one that Kit.stage sizes by its share of the screen.
 -- Setup: WindowKit, WindowKitDemo and this file as ModuleScripts in one folder, then from a LocalScript:
--- require(ReplicatedStorage.Ui.WindowKitLayouts).run()               -- tours the three in turn
+-- require(ReplicatedStorage.Ui.WindowKitLayouts).run()               -- tours the four in turn
 -- local shop = Layouts.shop(playerGui, { skin = "tech" }); shop.open(); shop.buy(2); shop.close()
 -- Read them for the structure and the calls; the items, the numbers and the icons are examples.
 local GuiService = game:GetService("GuiService")
@@ -1121,11 +1122,500 @@ function Layouts.sheet(playerGui: Instance, options: Options?)
 	return api
 end
 
+-- ---------- track: levels along a rail, a reward under each, one bar that fills ----------
+
+-- { icon, amount, name }: the reward of each level. Coins and gems fly to their counter; an item pops where it is.
+local LEVELS = {
+	{ "coin", 200 }, { "feed", 3, "Treats" }, { "coin", 400 }, { "gem", 5 }, { "egg", 1, "Egg" }, { "coin", 800 }, { "gem", 10 }, { "race", 1, "Pass" },
+	{ "coin", 1500 }, { "chest", 1, "Chest" }, { "coin", 2000 }, { "gem", 20 }, { "trade", 1, "Swap" }, { "coin", 3000 }, { "chest", 1, "Chest" },
+}
+local XP_NEED = 1000
+
+function Layouts.track(playerGui: Instance, options: Options?)
+	local x = scaffold(playerGui, "WindowKitTrack", options, Vector2.new(528, 232), Vector2.new(860, 410), Vector2.new(0.86, 0.8), 0.45)
+	local C, pick, text, icons, W, H = x.C, x.pick, x.text, x.icons, x.W, x.H
+	local state = { level = 6, xp = 640, claimed = { true, true, true, true } :: { [number]: boolean } }
+	local window, body = Kit.card(x.layer, {
+		name = "Window",
+		role = "panel",
+		size = UDim2.fromOffset(W, H),
+		position = pick(UDim2.new(0.5, 0, 0, 42), UDim2.fromScale(0.5, 0.54)),
+		anchor = pick(Vector2.new(0.5, 0), Vector2.new(0.5, 0.5)),
+		fill = C.window,
+		stroke = C.dark,
+		radius = pick(14, 20),
+		strokeWidth = 3,
+		depth = pick(5, 9),
+		rim = true,
+		glass = 0.9,
+		z = 4,
+	})
+	window.Visible = false
+	window:SetAttribute("KitHost", true)
+	local pad = pick(8, 14)
+
+	-- header: the name, the time left, the way out
+	local hh = pick(32, 56)
+	local header, head = Kit.card(body, {
+		name = "Header",
+		size = UDim2.fromOffset(W - 2 * pad, hh),
+		position = UDim2.fromOffset(pad, pad),
+		fill = C.header,
+		stroke = C.dark,
+		radius = pick(10, 14),
+		strokeWidth = 2,
+		glass = 0.92,
+	})
+	Kit.icon(head, icons.wins, { name = "Emblem", size = pick(24, 40), position = UDim2.new(0, pick(8, 12), 0.5, 0), anchor = Vector2.new(0, 0.5) })
+	x.outline(text(head, { Name = "Title", Size = UDim2.fromOffset(pick(150, 260), hh), Position = UDim2.fromOffset(pick(40, 64), 0), Text = "SEASON TRACK", TextSize = pick(16, 28), FontFace = x.BLACK }))
+	Kit.icon(head, icons.timer, { name = "Clock", size = pick(18, 24), position = UDim2.new(1, -pick(150, 236), 0.5, 0), anchor = Vector2.new(0, 0.5) })
+	text(head, { Name = "Left", Size = UDim2.fromOffset(pick(84, 140), hh), Position = UDim2.new(1, -pick(128, 206), 0, 0), Text = "12d 04h left", TextColor3 = C.muted, TextSize = pick(14, 17) })
+	local close = x.closeButton(head, UDim2.new(1, -pick(20, 32), 0.5, 0))
+
+	-- the level strip: a medal with the level, the bar to the next one, claim all
+	local sh = pick(44, 72)
+	local sy = pad * 2 + hh
+	local strip = Instance.new("Frame")
+	strip.Name = "Strip"
+	strip.BackgroundTransparency = 1
+	strip.Size = UDim2.fromOffset(W - 2 * pad, sh)
+	strip.Position = UDim2.fromOffset(pad, sy)
+	strip.Parent = body
+	local ms = pick(40, 64)
+	local medal, medalContent = Kit.card(strip, {
+		name = "Medal",
+		size = UDim2.fromOffset(ms, ms),
+		position = UDim2.new(0, pick(2, 4), 0.5, 0),
+		anchor = Vector2.new(0, 0.5),
+		fill = C.accent,
+		stroke = C.dark,
+		radius = ms / 2,
+		strokeWidth = pick(2, 3),
+		depth = pick(2, 4),
+		gloss = 0.5,
+	})
+	local levelLabel = x.outline(text(medalContent, { Name = "Level", Size = UDim2.fromScale(1, 1), Text = tostring(state.level), TextSize = pick(20, 32), FontFace = x.NUMBER, TextXAlignment = Enum.TextXAlignment.Center }))
+	local allW = pick(118, 196)
+	local barX = ms + pick(12, 20)
+	local barW = W - 2 * pad - barX - allW - pick(12, 22)
+	local caption = text(strip, { Name = "Caption", Size = UDim2.fromOffset(barW * 0.5, pick(16, 22)), Position = UDim2.fromOffset(barX, pick(4, 10)), Text = "LEVEL " .. state.level, FontFace = x.BLACK, TextSize = pick(14, 18) })
+	local xpLabel = text(strip, { Name = "Xp", Size = UDim2.fromOffset(barW * 0.5 - pick(8, 12), pick(16, 22)), Position = UDim2.fromOffset(barX + barW * 0.5, pick(4, 10)), Text = "", TextColor3 = C.muted, TextSize = pick(14, 16), TextXAlignment = Enum.TextXAlignment.Right })
+	local function xpText(v: number): string
+		return Kit.comma(v) .. " / " .. Kit.comma(XP_NEED) .. " XP"
+	end
+	xpLabel.Text = xpText(state.xp)
+	local barH = pick(12, 18)
+	local bar = Kit.card(strip, {
+		name = "Bar",
+		size = UDim2.fromOffset(barW, barH),
+		position = UDim2.fromOffset(barX, pick(24, 40)),
+		fill = C.well,
+		stroke = C.dark,
+		radius = barH / 2,
+		strokeWidth = 2,
+		topLight = false,
+	})
+	local fill = Instance.new("Frame")
+	fill.Name = "Fill"
+	fill.BackgroundColor3 = C.ready
+	fill.BorderSizePixel = 0
+	fill.Size = UDim2.new(state.xp / XP_NEED, 0, 1, 0)
+	fill.Parent = bar:FindFirstChild("Content")
+	Kit.finish(fill, { radius = barH / 2, strokeWidth = 0 })
+	local all, allLabel = Kit.button(strip, {
+		name = "ClaimAll",
+		text = "CLAIM ALL",
+		textSize = pick(14, 20),
+		textColor = C.text,
+		fontFace = x.BLACK,
+		fill = C.go,
+		size = UDim2.fromOffset(allW, pick(38, 56)),
+		position = UDim2.new(1, -pick(2, 4), 0.5, 0),
+		anchor = Vector2.new(1, 0.5),
+		radius = pick(12, 16),
+		strokeWidth = pick(2, 3),
+		depth = pick(3, 5),
+		hit = 44,
+	})
+	local badge = Kit.badge(all, 0, { size = pick(22, 26), textSize = pick(14, 15), fontFace = x.NUMBER }) -- in a window the text floor is 14
+
+	-- the track: a dark well, a rail with a node for every level, a card under each node
+	local wy = sy + sh + pad
+	local wellW, wellH = W - 2 * pad, H - wy - pad
+	local well, wellContent = Kit.card(body, {
+		name = "Well",
+		size = UDim2.fromOffset(wellW, wellH),
+		position = UDim2.fromOffset(pad, wy),
+		fill = C.well,
+		stroke = C.dark,
+		radius = pick(10, 14),
+		strokeWidth = 2,
+		topLight = false,
+		clip = true,
+	})
+	-- widths chosen so the card the well cuts at rest shows about half of itself (the cue that the track goes
+	-- on): 5.66 cards on a phone, 5.45 on a large screen. A 2 px sliver of the next card is a lint error
+	local cw, gap, inset = pick(82, 139), pick(8, 12), pick(8, 14)
+	local node = pick(22, 30)
+	local cardY = node + pick(10, 18)
+	local cardH = wellH - cardY - pick(8, 14)
+	local scroll = Instance.new("ScrollingFrame")
+	scroll.Name = "Track"
+	scroll.BackgroundTransparency = 1
+	scroll.BorderSizePixel = 0
+	scroll.Size = UDim2.fromScale(1, 1)
+	scroll.ScrollingDirection = Enum.ScrollingDirection.X
+	scroll.ScrollBarThickness = 0
+	scroll.ScrollBarImageTransparency = 1 -- at thickness 0 the bar still drew as a 1 px line along the well's foot
+	scroll.CanvasSize = UDim2.fromOffset(inset * 2 + #LEVELS * (cw + gap) - gap, 0)
+	scroll.Parent = wellContent
+	local function centre(i: number): number
+		return inset + (i - 1) * (cw + gap) + cw / 2
+	end
+	-- the rail: one link from each node to the next, lit up to the player's level. Links, not one long line: a
+	-- line that runs on past the well's edge is cut a few px short of a node there, and reads as a clipping bug
+	local links = {}
+	local linkGap = pick(3, 4)
+	for i = 1, #LEVELS - 1 do
+		local f = Instance.new("Frame")
+		f.Name = "Link" .. i
+		f.BackgroundColor3 = C.idle
+		f.BorderSizePixel = 0
+		f.AnchorPoint = Vector2.new(0, 0.5)
+		f.Position = UDim2.fromOffset(centre(i) + node / 2 + linkGap, pick(5, 8) + node / 2)
+		f.Size = UDim2.fromOffset(cw + gap - node - 2 * linkGap, pick(4, 6))
+		f.Parent = scroll
+		local on = Instance.new("Frame")
+		on.Name = "Lit"
+		on.BackgroundColor3 = C.ready
+		on.BorderSizePixel = 0
+		on.Size = UDim2.fromScale(i < state.level and 1 or 0, 1)
+		on.Parent = f
+		links[i] = on
+	end
+	local cols = {}
+	local paint
+	local claim
+	local function nope(i: number)
+		local c = cols[i]
+		Kit.shake(c.card, { reach = 5 })
+		caption.Text = "REACH LEVEL " .. i
+		caption.TextColor3 = C.warn
+		task.delay(0.9 * Kit.TONE.pace, function()
+			if caption.Parent then
+				caption.Text = "LEVEL " .. state.level
+				caption.TextColor3 = C.text
+			end
+		end)
+	end
+	for i, reward in LEVELS do
+		local dot, dotContent = Kit.card(scroll, {
+			name = "Node" .. i,
+			size = UDim2.fromOffset(node, node),
+			position = UDim2.fromOffset(centre(i), pick(5, 8) + node / 2),
+			anchor = Vector2.new(0.5, 0.5),
+			fill = C.idle,
+			stroke = C.dark,
+			radius = node / 2,
+			strokeWidth = 2,
+			topLight = false,
+			z = 2,
+		})
+		local number = text(dotContent, { Name = "N", Size = UDim2.fromScale(1, 1), Text = tostring(i), TextSize = pick(14, 15), FontFace = x.NUMBER, TextXAlignment = Enum.TextXAlignment.Center })
+		local card, content = Kit.card(scroll, {
+			name = "Reward" .. i,
+			button = true,
+			size = UDim2.fromOffset(cw, cardH),
+			position = UDim2.fromOffset(centre(i) - cw / 2, cardY),
+			fill = C.row,
+			stroke = C.dark,
+			radius = pick(10, 14),
+			strokeWidth = 2,
+			depth = pick(0, 4), -- no drop on a phone: a card the well cuts would lay its shadow across the well's outline
+		})
+		local tileSize = pick(30, 64)
+		local tile, tileContent = Kit.card(content, {
+			name = "Art",
+			size = UDim2.fromOffset(tileSize + pick(10, 18), tileSize + pick(2, 10)),
+			position = UDim2.new(0.5, 0, 0, pick(4, 10)),
+			anchor = Vector2.new(0.5, 0),
+			fill = (C :: any)[TILE[reward[1]] or "dailyTile"] or C.rowSelected,
+			stroke = C.dark,
+			radius = pick(8, 12),
+			strokeWidth = 2,
+		})
+		local icon = Kit.icon(tileContent, icons[reward[1]], { size = tileSize - pick(4, 8), position = UDim2.fromScale(0.5, 0.5), anchor = Vector2.new(0.5, 0.5) })
+		local amount = text(content, {
+			Name = "Amount",
+			Size = UDim2.new(1, -8, 0, pick(16, 22)),
+			Position = UDim2.fromOffset(4, tileSize + pick(7, 24)), -- air on both sides: the amount touches neither the art nor the chip
+			Text = reward[3] or ("+" .. Kit.comma(reward[2])),
+			FontFace = x.BLACK,
+			TextSize = pick(14, 18),
+			TextXAlignment = Enum.TextXAlignment.Center,
+		})
+		local chipH = pick(20, 28)
+		local chip, chipContent = Kit.card(content, {
+			name = "State",
+			size = UDim2.new(1, -pick(12, 20), 0, chipH),
+			position = UDim2.new(0.5, 0, 1, -pick(5, 10)),
+			anchor = Vector2.new(0.5, 1),
+			fill = C.ready,
+			stroke = C.dark,
+			radius = pick(7, 9),
+			strokeWidth = 2,
+			topLight = false,
+		})
+		local chipText = text(chipContent, { Name = "T", Size = UDim2.fromScale(1, 1), Text = "CLAIM", FontFace = x.BLACK, TextSize = pick(14, 15), TextXAlignment = Enum.TextXAlignment.Center })
+		cols[i] = { dot = dot, number = number, card = card, tile = tile, icon = icon, amount = amount, chip = chip, chipText = chipText }
+		Kit.press(card, function()
+			if state.claimed[i] then
+				return
+			elseif i > state.level then
+				nope(i)
+			else
+				claim(i)
+			end
+		end)
+	end
+	-- the three states of a level: claimed (quiet, the art dimmed), ready (lit, a chip that breathes), locked
+	paint = function(i: number, now: boolean?)
+		local c = cols[i]
+		local reached = i <= state.level
+		local done = state.claimed[i] == true
+		Kit.recolor(c.dot, reached and C.ready or C.idle, C.dark)
+		c.number.TextColor3 = reached and Kit.ink(C.ready) or C.muted
+		Kit.recolor(c.card, done and C.rowDone or (reached and C.rowSelected or C.row), (reached and not done) and C.select or C.dark)
+		Kit.recolor(c.chip, done and C.done or (reached and C.ready or C.idle), C.dark)
+		c.chipText.Text = done and "DONE" or (reached and "CLAIM" or ("LV " .. i))
+		c.chipText.TextColor3 = (reached and not done) and Kit.ink(C.ready) or C.text
+		c.amount.TextColor3 = done and C.muted or C.text
+		local picture = c.icon:FindFirstChildWhichIsA("ImageLabel", true)
+		if picture then
+			picture.ImageTransparency = done and 0.5 or 0
+		end
+		if reached and not done then
+			Kit.pulse(c.chip, 0.04, 1.3)
+		else
+			Kit.still(c.chip)
+		end
+		if now == false then
+			Kit.settle(c.card)
+		end
+	end
+	local function waiting(): number
+		local n = 0
+		for i = 1, state.level do
+			if not state.claimed[i] then
+				n += 1
+			end
+		end
+		return n
+	end
+	local function refresh()
+		local n = waiting()
+		badge.set(n)
+		Kit.recolor(all, n > 0 and C.go or C.idle)
+		allLabel.Text = n > 0 and "CLAIM ALL" or "ALL CLAIMED"
+	end
+	for i in LEVELS do
+		paint(i, false)
+	end
+	refresh()
+
+	-- soft edges: a card that the well cuts fades into it, on the side that has more to show
+	local view = wellW
+	local fades = {}
+	for _, side in { "Left", "Right" } do
+		local f = Instance.new("Frame")
+		f.Name = "Fade" .. side
+		f.Active = false
+		f.BackgroundColor3 = C.well
+		f.BorderSizePixel = 0
+		f.Size = UDim2.new(0, pick(22, 40), 1, 0)
+		f.AnchorPoint = Vector2.new(side == "Left" and 0 or 1, 0)
+		f.Position = UDim2.fromScale(side == "Left" and 0 or 1, 0)
+		f.ZIndex = 3
+		f.Parent = wellContent
+		local g = Instance.new("UIGradient")
+		g.Rotation = side == "Left" and 180 or 0
+		g.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.7, 0.2), NumberSequenceKeypoint.new(1, 0) })
+		g.Parent = f
+		fades[side] = f
+	end
+	local function edges()
+		local at, most = scroll.CanvasPosition.X, scroll.AbsoluteCanvasSize.X - scroll.AbsoluteWindowSize.X
+		fades.Left.Visible = at > 2
+		fades.Right.Visible = at < most - 2
+	end
+	scroll:GetPropertyChangedSignal("CanvasPosition"):Connect(edges)
+	scroll:GetPropertyChangedSignal("AbsoluteCanvasSize"):Connect(edges)
+	edges()
+	-- bring a level to the middle of the well
+	local function scrollTo(i: number, time: number, delay: number?)
+		local from = scroll.CanvasPosition.X
+		local to = math.clamp(centre(i) - view / 2, 0, math.max(scroll.CanvasSize.X.Offset - view, 0))
+		Kit.run(scroll, "move", delay or 0, time, Enum.EasingStyle.Quart, Out, function(e)
+			scroll.CanvasPosition = Vector2.new(from + (to - from) * e, 0)
+		end)
+	end
+
+	-- a title for the level-up, over the well
+	local stamp = x.outline(text(body, {
+		Name = "Stamp",
+		Size = UDim2.fromOffset(wellW, pick(36, 60)),
+		Position = UDim2.fromOffset(pad, wy + wellH / 2 - pick(18, 30)),
+		Text = "",
+		TextSize = pick(26, 46),
+		FontFace = x.BLACK,
+		TextColor3 = C.accent,
+		TextXAlignment = Enum.TextXAlignment.Center,
+		ZIndex = 8,
+		Visible = false,
+	}), pick(2, 3))
+
+	claim = function(i: number): boolean
+		if i > state.level or state.claimed[i] then
+			return false
+		end
+		state.claimed[i] = true
+		local c, reward = cols[i], LEVELS[i]
+		Kit.win(c.card, { color = C.select })
+		local kind = if reward[1] == "coin" then "coins" elseif reward[1] == "gem" then "gems" else nil
+		if kind then
+			Kit.fly(c.icon, x.counters[kind].icon, {
+				count = 4,
+				arc = -0.2,
+				onArrive = function(n)
+					if n == 1 then
+						Kit.count(x.counters[kind].amount, x.wallet[kind], x.wallet[kind] + reward[2])
+						x.wallet[kind] += reward[2]
+					end
+				end,
+			})
+		else
+			Kit.burst(c.tile, { tier = 2, color = C.accent })
+			Kit.squash(c.tile)
+		end
+		task.delay(0.12 * Kit.TONE.pace, function()
+			if c.card.Parent then
+				paint(i)
+			end
+		end)
+		refresh()
+		return true
+	end
+	local function claimAll()
+		local k = 0
+		for i = 1, state.level do
+			if not state.claimed[i] then
+				task.delay(k * 0.16 * Kit.TONE.pace, function()
+					if window.Parent then
+						claim(i)
+					end
+				end)
+				k += 1
+			end
+		end
+		return k
+	end
+	-- experience: the bar fills; at its end the level changes, the rail grows to the next node, the next reward
+	-- becomes ready and comes to the middle, and the bar starts again with what is left
+	local function addXp(amount: number)
+		local from = state.xp
+		local to = math.min(from + amount, XP_NEED)
+		local left = from + amount - to
+		state.xp = to
+		Kit.count(xpLabel, from, to, { time = 0.4, plus = false, format = xpText })
+		Kit.run(fill, "size", 0, 0.4, Quad, Out, function(e)
+			fill.Size = UDim2.new((from + (to - from) * e) / XP_NEED, 0, 1, 0)
+		end, function()
+			if to < XP_NEED or state.level >= #LEVELS then
+				return
+			end
+			state.level += 1
+			state.xp = 0
+			local i = state.level
+			levelLabel.Text = tostring(i)
+			caption.Text = "LEVEL " .. i
+			Kit.squash(medal)
+			Kit.burst(medal, { tier = 2, color = C.accent })
+			local link = links[i - 1]
+			Kit.run(link, "size", 0, 0.3, Quad, Out, function(e)
+				link.Size = UDim2.fromScale(math.clamp(e, 0, 1), 1)
+			end)
+			scrollTo(i, 0.45)
+			task.delay(0.25 * Kit.TONE.pace, function()
+				if not window.Parent then
+					return
+				end
+				paint(i)
+				Kit.win(cols[i].card, { color = C.ready })
+				refresh()
+			end)
+			stamp.Text = "LEVEL " .. i
+			Kit.stamp(stamp, 0.5, nil, { dim = well, dimTransparency = 0.6 })
+			fill.Size = UDim2.new(0, 0, 1, 0)
+			xpLabel.Text = xpText(0)
+			if left > 0 then
+				task.delay(0.5 * Kit.TONE.pace, function()
+					if window.Parent then
+						addXp(left)
+					end
+				end)
+			end
+		end)
+	end
+
+	local api = { gui = x.gui, window = window, state = state }
+	function api.open()
+		GuiService.TouchControlsEnabled = false
+		x.dock.hide()
+		x.dim.show()
+		scroll.CanvasPosition = Vector2.zero
+		local first, dots = {}, {}
+		for i = 1, math.min(#LEVELS, math.ceil(view / (cw + gap))) do
+			first[i] = cols[i].card
+			dots[i] = cols[i].dot
+		end
+		Kit.open(window, { { close, "spin" }, { medal, "pop" }, { dots, "fade" }, { first, "pop", gap = 0.03 }, { all, "pop" } })
+		scrollTo(state.level, 0.6, 0.4) -- the player's own level comes to the middle once the cards are in
+	end
+	function api.close()
+		Kit.close(window, { first = close })
+		x.dim.hide()
+		x.dock.show(0.06)
+		GuiService.TouchControlsEnabled = true
+	end
+	api.claim, api.claimAll, api.addXp = claim, claimAll, addXp
+	function api.tour()
+		api.open()
+		task.wait(2)
+		tap(cols[8].card)
+		nope(8)
+		task.wait(1.1)
+		tap(cols[5].card)
+		claim(5)
+		task.wait(1.5)
+		addXp(450)
+		task.wait(2.2)
+		tap(all)
+		claimAll()
+		task.wait(1.9)
+		tap(close)
+		api.close()
+		task.wait(0.9)
+	end
+	Kit.press(close, api.close)
+	Kit.press(all, claimAll)
+	return api
+end
+
 -- the tour: each window in turn, again and again; { once = true } stops after one round
 function Layouts.run(playerGui: Instance?, options: (Options & { once: boolean? })?)
 	local target = playerGui or Players.LocalPlayer:WaitForChild("PlayerGui")
 	repeat
-		for _, name in { "shop", "daily", "sheet" } do
+		for _, name in { "shop", "daily", "sheet", "track" } do
 			local ui = (Layouts :: any)[name](target, options)
 			ui.tour()
 			ui.gui:Destroy()

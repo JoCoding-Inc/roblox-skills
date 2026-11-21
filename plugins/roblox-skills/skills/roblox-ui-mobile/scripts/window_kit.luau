@@ -2675,7 +2675,8 @@ function Kit.badge(host: GuiObject, value: number, o: { size: number?, fill: Col
 		label.FontFace = (opt.fontFace or Kit.LOOK.fontFace) :: Font
 		label.TextSize = Kit.textSize(label.TextSize, label.FontFace)
 	end
-	make("UIStroke", { Color = shade(fill, -0.75), Thickness = 1.5 }, label) -- small text over the world: the outline carries it
+	-- small text over the world: the outline carries it. 13% of the text size, in half px: 1.5 up to 15 px text, 2 from 16
+	make("UIStroke", { Color = shade(fill, -0.75), Thickness = math.clamp(math.floor(label.TextSize * 0.26) / 2, 1.5, 2) }, label)
 	local self = { root = outer, value = -1 }
 	function self.set(n: number)
 		if n == self.value then
