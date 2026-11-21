@@ -255,6 +255,15 @@ function CineCamera.audit(shots, height: number?): { string }
 		if still and (shot.len or 0) > 0.5 and not shot.shake and not shot.hold then
 			table.insert(out, string.format("shot %d %s: the frame does not move for %.1f s; push in or pull out 10-20%% of the distance, orbit 8-15 degrees, track or roll, or cut it to 0.4 s (hold = true marks a held frame meant as one)", i, tostring(shot.name or ""), shot.len))
 		end
+		-- the beat after a burst goes in: a calm shot that pulled out 17% right after the first burst, the character
+		-- small and idle in it, was "a dead shot right after the burst" to two judges (2026-11-22)
+		local prev = shots[i - 1]
+		if prev and prev.shake and not shot.shake and math.abs(prev.t + (prev.len or 0) - shot.t) < 0.05 then
+			local d0, d1 = (a.offset :: Vector3).Magnitude, (b.offset :: Vector3).Magnitude
+			if d1 > d0 * 1.08 then
+				table.insert(out, string.format("shot %d %s: it pulls out %d%% right after the burst of shot %d %s; the beat after a burst pushes in (5-15%% closer, or an orbit of 20-30 degrees) with the pose still rising, not idle, or the energy drops", i, tostring(shot.name or ""), math.floor((d1 / d0 - 1) * 100 + 0.5), i - 1, tostring(prev.name or "")))
+			end
+		end
 		if shot.t + shot.len > lastEnd then
 			last, lastEnd = i, shot.t + shot.len
 		end
@@ -279,14 +288,17 @@ function CineCamera.audit(shots, height: number?): { string }
 		if before and (shot.len or 0) < 0.8 and share < shareOf(shots[before], 2) then
 			-- a wider shot after the name: two judges of the tenth build called a 0.4 s pull-back after a 1.55 s title
 			-- shot "an anticlimactic ending, it just runs out"; the artist's cut fades from the shot the name is on
-			table.insert(out, string.format("shot %d %s (the last shot): a %.1f s wider shot after shot %d %s reads as the cutscene running out; end on the shot the name lands on, keep it moving 1.4-2 s and fade from it", last, tostring(shot.name or ""), shot.len or 0, before, tostring(shots[before].name or "")))
+			table.insert(out, string.format("shot %d %s (the last shot): a %.1f s wider shot after shot %d %s reads as the cutscene running out; end on the shot the name lands on, keep it moving about 2 s and fade from it", last, tostring(shot.name or ""), shot.len or 0, before, tostring(shots[before].name or "")))
 		elseif share < 0.45 then
 			table.insert(out, string.format("shot %d %s (the last shot): it starts with the subject at %d%% of the frame height; land the name on a medium close (55%% or more: %.1f studs at fov %d) and pull out after about 0.8 s", last, tostring(shots[last].name or ""), share * 100, CineCamera.fit(h, f, 0.55), f))
 		end
-		-- the hold on the name: past about 2 s of one slow move the picture is a still (two judges of the ninth
-		-- build: "a 2.6 s near-static title hold"; the artist's cut holds its title 1.4-1.6 s)
-		if (shot.len or 0) > 2.1 then
-			table.insert(out, string.format("shot %d %s (the last shot): it runs %.1f s; one slow pull-out reads as a still after about 1.6 s. End it by 1.6-2 s and fade from it, with a move the eye can follow (a push in or an orbit of 10-15 degrees); do not add a wider shot after it", last, tostring(shot.name or ""), shot.len))
+		-- the hold on the name: about 2 s in motion, then 0.5 s of fade. Two judges of the ninth build called a 2.6 s
+		-- shot of one slow move "a near-static title hold"; four judges of the twelfth called a name readable for
+		-- 1.2-1.4 s before a 0.25 s fade "rushed" and "a hard cut to black" (2026-11-22)
+		if (shot.len or 0) > 2.9 then
+			table.insert(out, string.format("shot %d %s (the last shot): it runs %.1f s; past about 2.4 s on the name one slow move reads as a still. Hold the name about 2 s with a move the eye can follow (a push in of 5-10%% or an orbit of 10-15 degrees, one more pulse of the motif at the middle), then fade over 0.5 s; do not add a wider shot after it", last, tostring(shot.name or ""), shot.len))
+		elseif (shot.len or 0) < 2 then
+			table.insert(out, string.format("shot %d %s (the last shot): it runs %.1f s; the name needs about 2 s on screen before the fade starts and 0.5 s of fade under it (2.3-2.7 s from the cut to full black), or the ending reads as rushed", last, tostring(shot.name or ""), shot.len))
 		end
 	end
 	-- a close shot: the judges of the eighth build marked a cutscene whose nearest shot showed the head at 14% of

@@ -667,7 +667,9 @@ FxRecipe.recipes = {
 	},
 	-- an emblem: a held four-point star, taller than wide, with a coloured rim and a small one turned 45 degrees
 	-- inside it, for a ring of them round a hero at the peak: FxRecipe.orbit(character, { recipe = "emblem",
-	-- count = 9, turns = 0.12, tilt = 0, every = 0, r0 = 6, r1 = 5 }). Plain rays, not crystals: crystal arms with
+	-- count = 9, turns = 0.12, tilt = 0, every = 0, r0 = 6, r1 = 5 }); orbit deals them round 0.035 s apart in three
+	-- sizes (opts.vary): nine of one size opening together were "one identical shape repeated, near-static" and
+	-- "soft sticker stars" to two judges (2026-11-22), so the arms are thinner too. Plain rays, not crystals: crystal arms with
 	-- their lit facets read as throwing stars in a ring (side by side over the tunnel, 2026-11-22). No light layer:
 	-- a ring holds nine of them
 	emblem = {
@@ -675,8 +677,8 @@ FxRecipe.recipes = {
 		anchor = "up",
 		duration = 1.5,
 		layers = {
-			{ kind = "spikes", name = "Star", at = 0, dur = "end", arms = 4, long = { 1, 0.75 }, len = 2.2, w = 0.6, turn = 90, spin = 25, open = 0.08, close = 0.9, color = { "white", "hot" }, tip = "mid", rim = "mid", emission = 1, brightness = 3, z = 0.4 },
-			{ kind = "spikes", name = "Inner", at = 0.04, dur = "end", arms = 4, len = 0.9, w = 0.35, turn = 45, spin = 25, open = 0.1, close = 0.88, color = { "white", "hot" }, tip = "hot", emission = 1, brightness = 3.5, z = 0.5 },
+			{ kind = "spikes", name = "Star", at = 0, dur = "end", arms = 4, long = { 1, 0.6 }, len = 2.2, w = 0.46, turn = 90, spin = 25, open = 0.08, close = 0.9, color = { "white", "hot" }, tip = "mid", rim = "mid", emission = 1, brightness = 3, z = 0.4 },
+			{ kind = "spikes", name = "Inner", at = 0.04, dur = "end", arms = 4, len = 0.9, w = 0.28, turn = 45, spin = 25, open = 0.1, close = 0.88, color = { "white", "hot" }, tip = "hot", emission = 1, brightness = 3.5, z = 0.5 },
 		},
 	},
 	-- the big star of a reveal: long thin cross rays, a second star turned 45 degrees, two rings, held for a second
@@ -1709,9 +1711,11 @@ function FxRecipe.play(recipe, target, opts)
 		elseif l.kind == "tail" then
 			-- a ribbon behind a moving anchor (opts.follow): the path it flew as a band that tapers to nothing. It runs
 			-- on the effect's clock (a Trail runs in real time, so it cannot be frozen or slowed with the rest)
-			local segs = l.segments or 10
+			-- opts.tail lengthens it in time (and in joints, so a long band still bends smoothly)
+			local stretch = math.max(opts.tail or 1, 0.2)
+			local segs = math.ceil((l.segments or 10) * math.max(stretch, 1))
 			local c0, c1 = key(pal, l.color[1]), key(pal, l.color[2])
-			local w, life = l.w * s, l.life or 0.4
+			local w, life = l.w * s, (l.life or 0.4) * stretch
 			local zoff = (l.z or 0.4) * s + depth
 			local ribbon = clock:ribbon(segs, { FaceCamera = true, LightEmission = l.emission or 1, Brightness = l.brightness or 3, ZOffset = zoff })
 			local hist = {} -- { clock time, position }, newest last
@@ -1725,9 +1729,14 @@ function FxRecipe.play(recipe, target, opts)
 				end
 				return hist[1][2]
 			end
+			-- opts.carry (a function returning a CFrame): the band is kept in that frame's space, so it rides with a body
+			-- that moves through the world (a flyer) instead of streaming behind it
+			local carry = opts.carry
 			clock:span(l.at, to + life, function(_, t)
+				local held = if carry then carry() else nil
 				if t <= to then
-					table.insert(hist, { t, p + shift + spray * (l.up or 0) * s })
+					local at = p + shift + spray * (l.up or 0) * s
+					table.insert(hist, { t, if held then held:PointToObjectSpace(at) else at })
 				end
 				while #hist > 2 and hist[2][1] < t - life do
 					table.remove(hist, 1)
@@ -1743,6 +1752,9 @@ function FxRecipe.play(recipe, target, opts)
 					local time = newest - f * span
 					local pos = posAt(time)
 					local older, newer = posAt(time - span / segs), posAt(time + span / segs)
+					if held then
+						pos, older, newer = held:PointToWorldSpace(pos), held:PointToWorldSpace(older), held:PointToWorldSpace(newer)
+					end
 					local back = older - newer
 					local tan = if back.Magnitude > 1e-4 then back.Unit else spray
 					-- a band seen end-on is a flat slab across the frame and one near the lens covers it (a camera behind a
@@ -2091,6 +2103,15 @@ function FxRecipe.orbit(subject, opts)
 	local steps = if every > 0 then math.max(1, math.floor(dur / every)) else 0
 	local up = (opts.up or 0) * s
 	local r = recipeOf(opts.recipe or "trail_star")
+	-- sizes in turn and a start one after another (opts.vary: a list of scales; opts.stagger: s between starts); an
+	-- emblem ring gets { 1, 0.62, 0.82 } and 0.035 s unless they are given
+	local vary = opts.vary or (if opts.recipe == "emblem" then { 1, 0.62, 0.82 } else { 1 })
+	local stagger = opts.stagger or (if opts.recipe == "emblem" then 0.035 else 0)
+	-- opts.helix (studs): each comet also climbs and falls this far along the subject's up axis once every two turns,
+	-- so its trail winds round the body instead of circling at one height. opts.wrap (true): the trails ride with the
+	-- subject (opts.carry of FxRecipe.play), so round a flyer they wind round the body instead of streaming behind it.
+	-- opts.tail lengthens the trails
+	local helix = (opts.helix or 0) * s
 	local root = subject
 	if typeof(subject) == "Instance" and subject:IsA("Model") then
 		root = subject:FindFirstChild("HumanoidRootPart") or subject
@@ -2108,7 +2129,7 @@ function FxRecipe.orbit(subject, opts)
 		end
 		return FxClock.lerp(r0, r1, level / steps)
 	end
-	local clock = FxClock.new("Orbit", dur + longestLife(r) + 0.6)
+	local clock = FxClock.new("Orbit", dur + longestLife(r) * math.max(opts.tail or 1, 1) + stagger * count + 0.6)
 	if opts.owner then
 		table.insert((opts.owner.root or opts.owner).cleanups, function()
 			clock:stop()
@@ -2123,18 +2144,28 @@ function FxRecipe.orbit(subject, opts)
 		local function path(t)
 			local a = math.pi * 2 * (turns * t + phase) + yaw
 			local rr = radius(t)
-			return (frame() * CFrame.new(0, up, 0) * plane * CFrame.new(math.cos(a) * rr, 0, math.sin(a) * rr)).Position
+			local lift = if helix ~= 0 then helix * math.sin(math.pi * (turns * t + 2 * phase)) else 0
+			return (frame() * CFrame.new(0, up + lift, 0) * plane * CFrame.new(math.cos(a) * rr, 0, math.sin(a) * rr)).Position
 		end
-		local p0, ahead = path(0), path(0.02) - path(0)
-		FxRecipe.play(r, facing(p0, if ahead.Magnitude > 1e-4 then ahead.Unit else frame().LookVector), {
-			follow = path,
-			emitUntil = dur,
-			duration = dur + longestLife(r) + 0.5,
-			scale = s,
-			palette = if opts.palettes then opts.palettes[(i - 1) % #opts.palettes + 1] else opts.palette,
-			light = opts.light or 0.4,
-			owner = clock,
-		})
+		local function start()
+			local p0, ahead = path(0), path(0.02) - path(0)
+			FxRecipe.play(r, facing(p0, if ahead.Magnitude > 1e-4 then ahead.Unit else frame().LookVector), {
+				follow = path,
+				emitUntil = dur,
+				duration = dur + longestLife(r) * math.max(opts.tail or 1, 1) + 0.5,
+				scale = s * vary[(i - 1) % #vary + 1],
+				palette = if opts.palettes then opts.palettes[(i - 1) % #opts.palettes + 1] else opts.palette,
+				light = opts.light or 0.4,
+				tail = opts.tail,
+				carry = if opts.wrap then frame else nil,
+				owner = clock,
+			})
+		end
+		if stagger > 0 and i > 1 then
+			clock:at((i - 1) * stagger, start)
+		else
+			start()
+		end
 	end
 	return clock:play()
 end
