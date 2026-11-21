@@ -1073,6 +1073,13 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: C
 				end)
 			end
 		end
+		if wave and container:IsA("ScrollingFrame") and container.CanvasPosition.Y > 0 then
+			-- another tab starts at its top: a list that kept the old offset for a moment and then snapped was named by a judge
+			local from = container.CanvasPosition.Y
+			run(container, "scroll", 0, 0.12, Quad, Out, function(e)
+				container.CanvasPosition = Vector2.new(0, from * (1 - math.clamp(e, 0, 1)))
+			end)
+		end
 		if wave and not instant and not reduced() then
 			local i = 0
 			for _, m in staying do
