@@ -11,6 +11,8 @@
 -- sky:to("gold", 0.5)                      -- cross to another preset (a tier colour step at the peak)
 -- local wind = sky:wind({ dir = Vector3.new(-1, 0, 0), speed = 150 })   -- wind streaks past a travel shot
 -- wind.stop()
+-- sky:sea()                                -- a cloud sea under the stage: something below the character, a horizon of
+--                                          -- cloud tops, banks that slide past a moving camera (depth)
 -- sky:leave()                              -- everything back as it was
 --
 -- Presets (Sky.PRESETS; copy one and change it for your own):
@@ -36,9 +38,16 @@
 -- - gold: with ExposureCompensation 0.25 and bloom 0.55 over a threshold of 1.1, a builder's hero shot under it was
 --   judged blown out (face and outfit washed out); the values here are the second try, not captured in a cutscene.
 -- - Higher is not better: at 3,000 studs the deck is still overhead with empty haze below, and at 9,000 the deck is
---   gone (a bare sun and thin wisps). The engine gives no cloud sea to look down on.
+--   gone (a bare sun and thin wisps). The engine gives no cloud sea to look down on, so sky:sea() builds one from
+--   particles (2026-11-21, after two judges asked for "a cloud sea below the character" in two sittings): one wide
+--   pale floor 140 studs under the stage and about 30 banks of smoke-texture puffs 38-85 studs under it, each
+--   with a brighter crown, about 660 particles of 36-150 studs that last 20 s and are refilled. Read on captures
+--   from behind, above and beside the character under `sunset`. One dark even layer alone read as coloured smoke;
+--   the pale floor with lighter banks over it read as clouds. Live particles follow a change of their emitter's
+--   Color and Transparency (measured), so the sea crosses with sky:to() and is hidden under `void`.
 -- Limits: the cloud deck is the engine's (no control over single clouds); the stage does not hide a map taller
--- than about 800 studs (pass opts.height); not measured on a phone.
+-- than about 800 studs (pass opts.height); not measured on a phone. The sea is large see-through particles over
+-- much of the frame: its frame cost on a phone is not measured (opts.density 0.5 halves the count).
 
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
@@ -159,12 +168,16 @@ function Sky.enter(preset: string, opts)
 	self.atmosphere, self.clouds, self.grade, self.bloom = atmosphere, clouds, grade, bloom
 	local targets = { lighting = Lighting, atmosphere = atmosphere, clouds = clouds, grade = grade, bloom = bloom }
 
+	local seaRefresh: (() -> ())? = nil
 	local function apply(from, to, k)
 		for group, inst in targets do
 			for name, value in to[group] do
 				local a = from and from[group][name]
 				;(inst :: any)[name] = a ~= nil and lerp(a, value, k) or value
 			end
+		end
+		if seaRefresh then
+			seaRefresh()
 		end
 	end
 
@@ -248,6 +261,69 @@ function Sky.enter(preset: string, opts)
 				end)
 			end,
 		}
+	end
+
+	-- A cloud sea under the stage. It takes the preset's cloud colour, crosses with sky:to() and is hidden while
+	-- the preset has no clouds (void), so call it once after Sky.enter, also when the cutscene starts in the dark.
+	-- opts: depth (studs from the stage down to the highest banks, default 38), reach (how far the banks spread,
+	-- default 900), density (0.3-1.5, default 1: about 660 particles), color (instead of the preset's), seed
+	local seaParts = nil
+	function self:sea(o)
+		o = o or {}
+		if seaParts then
+			return seaParts
+		end
+		local depth, reach, density = o.depth or 38, o.reach or 900, math.clamp(o.density or 1, 0.3, 1.5)
+		local rng = Random.new(o.seed or 7)
+		local layers = {} -- { emitter, alpha, kind }
+		local function puffs(cf: CFrame, size: Vector3, puff: number, count: number, alpha: number, emission: number, kind: string)
+			local part = Instance.new("Part")
+			part.Name = "CineSkySea"
+			part.Anchored, part.CanCollide, part.CanQuery, part.CanTouch = true, false, false, false
+			part.Transparency = 1
+			part.Size = size
+			part.CFrame = cf
+			part.Parent = workspace
+			local e = Instance.new("ParticleEmitter")
+			FxTextures.apply(e, "smoke")
+			e.Lifetime = NumberRange.new(20) -- the engine's longest; Rate refills what dies, so the sea holds
+			e.Rate = count / 20
+			e.Speed = NumberRange.new(0)
+			e.Rotation = NumberRange.new(0, 360)
+			e.RotSpeed = NumberRange.new(-1.5, 1.5)
+			e.Size = NumberSequence.new({ NumberSequenceKeypoint.new(0, puff, puff * 0.3), NumberSequenceKeypoint.new(1, puff, puff * 0.3) })
+			e.LightEmission = emission
+			e.LightInfluence = 0
+			e.Parent = part
+			e:Emit(count)
+			table.insert(windParts, part)
+			table.insert(layers, { emitter = e, alpha = alpha, kind = kind })
+		end
+		local at = self.origin.Position
+		-- the floor: one wide, pale, even layer far below
+		puffs(CFrame.new(at - Vector3.new(0, depth + 100, 0)), Vector3.new(2200, 8, 2200), 150, math.ceil(240 * density), 0.15, 0.3, "floor")
+		-- the banks: clusters with gaps between them, nearer and lighter, each with a brighter crown
+		for _ = 1, math.ceil(30 * density) do
+			local a, r, w = rng:NextNumber(0, math.pi * 2), rng:NextNumber(70, reach), rng:NextNumber(120, 260)
+			local cf = CFrame.new(at + Vector3.new(math.cos(a) * r, -rng:NextNumber(depth, depth + 47), math.sin(a) * r)) * CFrame.Angles(0, rng:NextNumber(0, math.pi), 0)
+			local puff = rng:NextNumber(36, 58)
+			puffs(cf, Vector3.new(w, 10, w * 0.45), puff, 9, 0.2, 0.45, "bank")
+			puffs(cf + Vector3.new(0, 10, 0), Vector3.new(w * 0.6, 6, w * 0.25), 22, 5, 0.2, 0.6, "crown")
+		end
+		local white, shade = Color3.new(1, 1, 1), Color3.fromRGB(255, 190, 215)
+		seaRefresh = function()
+			local base = o.color or clouds.Color
+			local show = clouds.Enabled and 1 or 0 -- no clouds in the preset (void): the sea waits unseen
+			for _, l in layers do
+				local c = if l.kind == "floor" then base:Lerp(shade, 0.25) elseif l.kind == "bank" then base:Lerp(white, 0.3) else base:Lerp(white, 0.85)
+				l.emitter.Color = ColorSequence.new(c)
+				local alpha = 1 - (1 - l.alpha) * show
+				l.emitter.Transparency = NumberSequence.new({ NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.03, alpha), NumberSequenceKeypoint.new(0.97, alpha), NumberSequenceKeypoint.new(1, 1) })
+			end
+		end
+		seaRefresh()
+		seaParts = layers
+		return layers
 	end
 
 	function self:leave()
