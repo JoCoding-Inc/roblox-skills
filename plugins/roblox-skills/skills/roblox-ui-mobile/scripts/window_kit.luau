@@ -943,7 +943,7 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: C
 	local opt = o or {}
 	local gap, pad = opt.gap or 8, opt.pad or 0
 	local T = Kit.TIMES
-	local self = { rows = {} :: { [string]: GuiObject }, keys = {} :: { string }, visible = {} :: { [string]: boolean } }
+	local self = { rows = {} :: { [string]: GuiObject }, keys = {} :: { string }, visible = {} :: { [string]: boolean }, footer = nil :: GuiObject? }
 
 	if opt.fade and container:IsA("ScrollingFrame") then
 		local scroll = container :: ScrollingFrame
@@ -1001,6 +1001,19 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: C
 
 	function self:get(key: string): GuiObject?
 		return self.rows[key]
+	end
+
+	-- A footer under the last row (a reset timer, "all caught up"): it follows the rows as they leave, arrive and
+	-- re-sort, so a short list does not end in an empty well. gui: a fixed height (Size.Y.Offset); its X is yours.
+	function self:foot(gui: GuiObject)
+		gui.Parent = container
+		self.footer = gui
+		local _, height = targets(self.keys)
+		setY(gui, height - pad + (height > 0 and gap or pad))
+		if container:IsA("ScrollingFrame") then
+			container.CanvasSize = UDim2.new(0, 0, 0, height + gui.Size.Y.Offset + gap)
+		end
+		return gui
 	end
 
 	-- keys: the rows to show, top to bottom. instant = true skips the motion. wave = true: the rows that stay
@@ -1104,6 +1117,18 @@ function Kit.list(container: GuiObject, o: { gap: number?, pad: number?, fade: C
 			self.visible[k] = want[k] == true
 		end
 		self.keys = table.clone(keys)
+		local footer = self.footer :: GuiObject?
+		if footer then
+			local from, to = footer.Position.Y.Offset, height - pad + (height > 0 and gap or pad)
+			height += footer.Size.Y.Offset + gap
+			if instant or from == to then
+				setY(footer, to)
+			else
+				run(footer, "move", 0, T.sort, Quad, Out, function(e)
+					setY(footer, from + (to - from) * e)
+				end)
+			end
+		end
 		if container:IsA("ScrollingFrame") then
 			container.CanvasSize = UDim2.new(0, 0, 0, height)
 		end
@@ -1174,8 +1199,9 @@ Kit.comma = comma
 
 -- Count a label from one number to another in 0.5 s, with a bump on arrival and a "+N" (20 px or more)
 -- that rises and is gone in 0.7 s.
--- options: time, format = function(n) -> string, plus = false to leave the "+N" out, color for the "+N"
-function Kit.count(label: TextLabel, from: number, to: number, options: { time: number?, format: ((number) -> string)?, plus: boolean?, color: Color3? }?)
+-- options: time, format = function(n) -> string, plus = false to leave the "+N" out, color for the "+N",
+-- rise = how far the "+N" travels in px (default 26; less when a window or its close button sits right under the counter)
+function Kit.count(label: TextLabel, from: number, to: number, options: { time: number?, format: ((number) -> string)?, plus: boolean?, color: Color3?, rise: number? }?)
 	local opt = options or {}
 	local format = opt.format or comma
 	run(label, "count", 0, opt.time or Kit.TIMES.count, Quad, Out, function(e)
@@ -1210,7 +1236,7 @@ function Kit.count(label: TextLabel, from: number, to: number, options: { time: 
 		local y0 = plus.Position.Y.Offset
 		local ps = scaleOf(plus)
 		run(plus, "move", 0, 0.7, Quad, Out, function(e, raw)
-			plus.Position = UDim2.fromOffset(c.X, y0 + dir * 26 * e)
+			plus.Position = UDim2.fromOffset(c.X, y0 + dir * (opt.rise or 26) * e)
 			ps.Scale = raw < 0.15 and 0.6 + 0.5 * raw / 0.15 or math.max(1, 1.1 - (raw - 0.15))
 			local a = raw < 0.6 and 0 or (raw - 0.6) / 0.4
 			plus.TextTransparency = a
@@ -1227,8 +1253,8 @@ end
 -- piece = function() -> GuiObject (default: a clone of from), size (a piece against the source, default
 -- 0.75: the pile must not cover the amount beside it), gap, time, arc (share of the distance, default 0.25;
 -- a negative arc bends the flight the other way, to keep it off a title that sits between tile and counter), scatter (ring radius in px, default 0.7 x the piece's size; 0 = no burst), dimSource (the tile
--- fades to 40%)
-function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piece: (() -> GuiObject)?, size: number?, gap: number?, time: number?, arc: number?, scatter: number?, dimSource: boolean?, onArrive: ((number) -> ())? }?)
+-- fades to 40%), lift = false (the source does not swell before its pieces leave)
+function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piece: (() -> GuiObject)?, size: number?, gap: number?, time: number?, arc: number?, scatter: number?, dimSource: boolean?, lift: boolean?, onArrive: ((number) -> ())? }?)
 	local opt = options or {}
 	local T = Kit.TIMES
 	local layer = overlayOf(to, from)
@@ -1239,6 +1265,17 @@ function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piec
 	local ring = n > 1 and (opt.scatter or math.max(size.X, size.Y) * 0.7) or 0
 	local hold = ring > 0 and 0.2 or 0
 	local turn = Random.new():NextNumber(0, math.pi * 2)
+	if opt.lift ~= false and not reduced() then
+		-- the source swells for a moment before its pieces leave: the eye is on it when they burst
+		local fs = scaleOf(from)
+		run(from, "scale", 0, 0.08, Quad, Out, function(e)
+			fs.Scale = 1 + 0.18 * e
+		end, function()
+			run(from, "scale", 0, 0.14, Quad, Out, function(e)
+				fs.Scale = 1.18 - 0.18 * e
+			end)
+		end)
+	end
 	for i = 1, n do
 		local piece = opt.piece and opt.piece() or from:Clone()
 		piece.AnchorPoint = Vector2.new(0.5, 0.5)
