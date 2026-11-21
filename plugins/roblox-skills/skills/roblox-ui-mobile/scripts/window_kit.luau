@@ -1863,6 +1863,58 @@ function Kit.burst(anchor: GuiObject, options: { tier: number?, color: Color3?, 
 	return root
 end
 
+-- The card that got the reward answers: it lights up white and falls back to its colour (0.3 s), swells 7% and
+-- settles, and its outline leaves it as a ring that grows 14 px and fades. Call it on the card as the reward
+-- lands (the first piece of Kit.fly arriving, a claim), with Kit.burst on the icon for the bigger rewards. A
+-- burst alone behind a small icon on a light card was judged "faint, no card pop" by two judges.
+-- options: color (the ring, default white), grow (px, default 14), ring (false: none, for a card in a tight row)
+function Kit.win(card: GuiObject, options: { color: Color3?, grow: number?, ring: boolean? }?)
+	local opt = options or {}
+	local body = (card:FindFirstChild("Body") or card) :: GuiObject
+	local corner = body:FindFirstChildOfClass("UICorner")
+	local flash = make("Frame", { Name = "Win", Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(1, 1, 1), BackgroundTransparency = 0.1, BorderSizePixel = 0, ZIndex = 20 }, body)
+	flash:SetAttribute("KitTransient", true)
+	if corner then
+		make("UICorner", { CornerRadius = corner.CornerRadius }, flash)
+	end
+	run(flash, "fade", 0, 0.3, Quad, Out, function(e)
+		flash.BackgroundTransparency = 0.1 + 0.9 * math.clamp(e, 0, 1)
+	end, function()
+		flash:Destroy()
+	end)
+	if reduced() then
+		return
+	end
+	local s = scaleOf(card)
+	run(card, "scale", 0, 0.09, Quad, Out, function(e)
+		s.Scale = 1 + 0.07 * e
+	end, function()
+		run(card, "scale", 0, 0.24, Back, Out, function(e)
+			s.Scale = 1.07 - 0.07 * e
+		end)
+	end)
+	if opt.ring == false then
+		return
+	end
+	local layer = overlayOf(card)
+	local c = centerIn(layer, card)
+	local size = card.AbsoluteSize / scaleAbove(layer)
+	local grow = opt.grow or 14
+	local radius = corner and corner.CornerRadius.Offset or 12
+	local ring = make("Frame", { Name = "WinRing", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromOffset(c.X, c.Y), Size = UDim2.fromOffset(size.X, size.Y), BackgroundTransparency = 1 }, layer)
+	local round = make("UICorner", { CornerRadius = UDim.new(0, radius) }, ring)
+	local stroke = make("UIStroke", { Color = opt.color or Color3.new(1, 1, 1), Thickness = 3 }, ring)
+	run(ring, "grow", 0, 0.38, Quad, Out, function(e, raw)
+		local g = grow * math.clamp(e, 0, 1)
+		ring.Size = UDim2.fromOffset(size.X + g * 2, size.Y + g * 2)
+		round.CornerRadius = UDim.new(0, radius + g)
+		stroke.Thickness = 3 - 2.4 * raw
+		stroke.Transparency = raw * raw
+	end, function()
+		ring:Destroy()
+	end)
+end
+
 -- A title that lands: scales 1.4 -> 1 in 0.25 s, holds, then rises 16 px while it fades (0.2 s); done runs
 -- when it has gone. hold in seconds (default 0.9). Put it over the window's middle, on a layer above the
 -- flying rewards, and start what it would cover (a list re-sort) from done: one moment at a time.

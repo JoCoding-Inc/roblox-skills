@@ -253,9 +253,9 @@ end
 -- others' cards, so a change to or from it has cards that stay (they slide) beside cards that leave and arrive.
 local SHOP = {
 	{ key = "featured", text = "Featured", icon = "shop", show = { "boosts1", "pets1", "gems2", "pets4", "boosts3", "gems6" } },
-	{ key = "pets", text = "Pets", icon = "pets", items = { { "egg", "Mystery Egg", 500, "NEW" }, { "feed", "Treat Bag", 150 }, { "trade", "Pet Swap", 350 }, { "pets", "Paw Charm", 800 }, { "race", "Race Pass", 600 }, { "chest", "Gift Pet", 1200 } } },
-	{ key = "boosts", text = "Boosts", icon = "play", items = { { "coin", "Double Coins", 450, "BEST" }, { "race", "Fast Feet", 300 }, { "wins", "Lucky Hour", 700 }, { "feed", "Auto Feed", 250, "NEW" }, { "trade", "Trade Slot", 550 }, { "boss", "Boss Key", 950 } } },
-	{ key = "gems", text = "Gems", icon = "gem", items = { { "gem", "Gem Pouch", 400 }, { "gem", "Gem Sack", 900 }, { "chest", "Gem Chest", 1800, "NEW" }, { "trade", "Gem Trade", 300 }, { "play", "Gem Rush", 650 }, { "wins", "Gem Crown", 2400, "BEST" } } },
+	{ key = "pets", text = "Pets", icon = "pets", items = { { "egg", "Mystery Egg", 500, "NEW" }, { "feed", "Treat Bag", 150 }, { "trade", "Pet Swap", 350 }, { "pets", "Paw Charm", 800 }, { "race", "Race Pass", 600 }, { "chest", "Gift Pet", 1200 }, { "wins", "Show Ribbon", 450 }, { "boss", "Guard Pup", 1500 }, { "coin", "Piggy Pal", 700 } } },
+	{ key = "boosts", text = "Boosts", icon = "play", items = { { "coin", "Double Coins", 450, "BEST" }, { "race", "Fast Feet", 300 }, { "wins", "Lucky Hour", 700 }, { "feed", "Auto Feed", 250, "NEW" }, { "trade", "Trade Slot", 550 }, { "boss", "Boss Key", 950 }, { "gem", "Gem Magnet", 800 }, { "egg", "Quick Hatch", 400 }, { "chest", "Loot Luck", 1100 } } },
+	{ key = "gems", text = "Gems", icon = "gem", items = { { "gem", "Gem Pouch", 400 }, { "gem", "Gem Sack", 900 }, { "chest", "Gem Chest", 1800, "NEW" }, { "trade", "Gem Trade", 300 }, { "play", "Gem Rush", 650 }, { "wins", "Gem Crown", 2400, "BEST" }, { "coin", "Coin Swap", 200 }, { "egg", "Gem Egg", 1500 }, { "boss", "Gem Vault", 3000 } } },
 }
 
 function Layouts.shop(playerGui: Instance, options: Options?)
@@ -336,7 +336,9 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 	local heading = text(body, { Name = "Heading", Size = UDim2.fromOffset(rw - 60, rowH), Position = UDim2.fromOffset(rx + 4, pad), Text = SHOP[1].text, TextSize = pick(16, 24), FontFace = x.BLACK })
 	local close = x.closeButton(body, UDim2.fromOffset(W - pad - rowH / 2, pad + rowH / 2))
 
-	local bh = pick(52, 104)
+	-- the offer is as tall as a card on a large screen: with it, two whole rows of cards; without it (another
+	-- shelf), three. On a phone a row is cut about half way in both states, which says the grid scrolls
+	local bh = pick(52, 126)
 	local by = pad + rowH + pick(4, 8)
 	local banner, bannerContent = Kit.card(body, {
 		name = "Featured",
@@ -353,18 +355,18 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 	Kit.sheen(banner, { period = 4.2 })
 	local bannerArt = Kit.icon(bannerContent, icons.chest, {
 		name = "Art",
-		size = pick(38, 80),
+		size = pick(38, 92),
 		position = UDim2.new(0, pick(8, 16), 0.5, 0),
 		anchor = Vector2.new(0, 0.5),
 		tile = C.accent,
 	})
 	bannerArt.Rotation = pick(0, -5)
-	local tx = pick(54, 114)
+	local tx = pick(54, 126)
 	local priceW = pick(104, 176)
-	x.outline(text(bannerContent, { Name = "Offer", Size = UDim2.fromOffset(rw - tx - priceW - pick(14, 30), pick(18, 34)), Position = UDim2.fromOffset(tx, pick(7, 10)), Text = "STARTER PACK", TextSize = pick(15, 28), FontFace = x.BLACK }), pick(1.5, 2))
-	text(bannerContent, { Name = "Info", Size = UDim2.fromOffset(rw - tx - priceW - pick(14, 30), 20), Position = UDim2.fromOffset(tx, pick(27, 43)), Text = pick("3 eggs + 500 gems", "3 eggs, 2 boosts and 500 gems"), TextSize = pick(14, 16), TextColor3 = C.muted })
+	x.outline(text(bannerContent, { Name = "Offer", Size = UDim2.fromOffset(rw - tx - priceW - pick(14, 30), pick(18, 34)), Position = UDim2.fromOffset(tx, pick(7, 18)), Text = "STARTER PACK", TextSize = pick(15, 28), FontFace = x.BLACK }), pick(1.5, 2))
+	text(bannerContent, { Name = "Info", Size = UDim2.fromOffset(rw - tx - priceW - pick(14, 30), 20), Position = UDim2.fromOffset(tx, pick(27, 52)), Text = pick("3 eggs + 500 gems", "3 eggs, 2 boosts and 500 gems"), TextSize = pick(14, 16), TextColor3 = C.muted })
 	if not phone then
-		local chip, chipContent = Kit.card(bannerContent, { name = "Ends", size = UDim2.fromOffset(150, 26), position = UDim2.fromOffset(tx, 68), fill = C.well, stroke = C.dark, radius = 13, strokeWidth = 1.5, topLight = false })
+		local chip, chipContent = Kit.card(bannerContent, { name = "Ends", size = UDim2.fromOffset(150, 26), position = UDim2.fromOffset(tx, 80), fill = C.well, stroke = C.dark, radius = 13, strokeWidth = 1.5, topLight = false })
 		Kit.icon(chipContent, icons.timer, { size = 18, position = UDim2.new(0, 8, 0.5, 0), anchor = Vector2.new(0, 0.5) })
 		text(chipContent, { Name = "Left", Size = UDim2.new(1, -36, 1, 0), Position = UDim2.fromOffset(32, 0), Text = "Ends in 2d 04h" })
 		chip.ZIndex = 2
@@ -399,7 +401,7 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 		Kit.recolor(slot.button, owned and C.done or C.go)
 	end
 	local featured = priceButton(bannerContent, UDim2.fromOffset(priceW, pick(36, 60)), UDim2.new(1, -pick(8, 18), 0.5, 0), Vector2.new(1, 0.5), pick(15, 24))
-	featured.art = bannerArt
+	featured.art, featured.card = bannerArt, banner
 	setPrice(featured, 1200, false)
 
 	-- the grid: three columns of keyed cards. Kit.grid places them, so a shelf change is seen (the cards of
@@ -418,7 +420,7 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 	scroll.Parent = body
 	local gap = pick(6, 10)
 	local cw = math.floor((rw - 8 - 2 * gap) / 3)
-	local ch = pick(86, 136)
+	local ch = pick(78, 126)
 	local grid = Kit.grid(scroll, { columns = 3, cell = Vector2.new(cw, ch), gap = gap, pad = 2 })
 	local slots = {} -- by key
 	local shelves = {} -- per category: the keys it shows
@@ -436,15 +438,15 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 			})
 			local art = Kit.icon(content, icons[item[1]], {
 				name = "Art",
-				size = pick(38, 56),
-				position = pick(UDim2.fromOffset(6, 6), UDim2.new(0.5, 0, 0, 8)),
+				size = pick(36, 52),
+				position = pick(UDim2.fromOffset(6, 5), UDim2.new(0.5, 0, 0, 7)),
 				anchor = pick(Vector2.zero, Vector2.new(0.5, 0)),
 				tile = C.cardHead,
 			})
 			text(content, {
 				Name = "Name",
 				Size = pick(UDim2.new(1, -54, 0, 38), UDim2.new(1, -12, 0, 20)),
-				Position = pick(UDim2.fromOffset(50, 6), UDim2.fromOffset(6, 67)),
+				Position = pick(UDim2.fromOffset(50, 5), UDim2.fromOffset(6, 61)),
 				Text = item[2],
 				TextColor3 = C.ink,
 				TextSize = pick(14, 16),
@@ -485,7 +487,7 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 		end
 	end
 
-	local state = { cat = 1 }
+	local state = { cat = 1, offer = true }
 	local function setCat(index: number, instant: boolean?)
 		state.cat = index
 		for i, button in cats do
@@ -495,6 +497,30 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 		heading.Text = SHOP[index].text
 		if not instant then
 			Kit.refresh({ heading })
+		end
+		-- the offer belongs to the first shelf: on the others it leaves and the grid takes its room (a banner
+		-- that stayed over every shelf was judged "repeats on every category and takes 20% of the window")
+		local offer = index == 1
+		if offer ~= state.offer then
+			state.offer = offer
+			local y0, y1 = scroll.Position.Y.Offset, offer and gy or by
+			local function place(y: number)
+				scroll.Position = UDim2.fromOffset(rx, y)
+				scroll.Size = UDim2.fromOffset(rw, H - y - pad)
+			end
+			if instant then
+				banner.Visible = offer
+				Kit.fade(banner, offer and 1 or 0, 0)
+				place(y1)
+			else
+				banner.Visible = true
+				Kit.fade(banner, offer and 1 or 0, 0.12, offer and 0.1 or 0)
+				Kit.run(scroll, "move", offer and 0 or 0.06, 0.18, Quad, Enum.EasingDirection.Out, function(e)
+					place(y0 + (y1 - y0) * math.clamp(e, 0, 1))
+				end, function()
+					banner.Visible = state.offer
+				end)
+			end
 		end
 		grid:show(shelves[index], instant)
 	end
@@ -523,6 +549,7 @@ function Layouts.shop(playerGui: Instance, options: Options?)
 				if n == 1 then
 					Kit.burst(slot.art, { tier = slot == featured and 3 or 2, color = C.accent })
 					Kit.squash(slot.art)
+					Kit.win(slot.card, { color = C.accent })
 					setPrice(slot, slot.price, true)
 				end
 			end,
@@ -758,7 +785,7 @@ function Layouts.daily(playerGui: Instance, options: Options?)
 		local t = tiles[today]
 		local kind = DAYS[today][1] == "gem" and "gems" or "coins"
 		local gift = DAYS[today][2]
-		Kit.squash(t.tile)
+		Kit.win(t.tile, { color = C.accent })
 		Kit.burst(t.tile, { tier = 2, color = C.accent })
 		Kit.fly(t.icon, x.counters[kind].icon, {
 			arc = -0.3,
