@@ -534,10 +534,12 @@ SUB_HEADING = re.compile(r"^#{2,3} ([0-9]+[a-z]?)\. ", re.M)
 
 
 def owner(text, start, default):
-    """The skill a reference belongs to: a skill name just before it, else the guide's own skill."""
+    """The skill a reference belongs to: a skill name just before it in the same sentence and paragraph, else the
+    guide's own skill."""
     best = default
     for s in SKILL_REF.finditer(text, max(0, start - 80), start):
-        if ". " not in text[s.end():start]:
+        gap = text[s.end():start]
+        if ". " not in gap and "\n\n" not in gap:
             best = s.group(1)
     return best
 
