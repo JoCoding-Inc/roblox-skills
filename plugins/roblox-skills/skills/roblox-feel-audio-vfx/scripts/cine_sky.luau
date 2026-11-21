@@ -32,6 +32,10 @@
 -- - night: with saturated blue ambient colours the clouds and the skin went pure blue; the values here are the
 --   second try (greyer ambient, saturation -0.1). sunset and night were read on captures with an avatar on the
 --   stage; gold, day and void were not captured on their own.
+-- - gold: with ExposureCompensation 0.25 and bloom 0.55 over a threshold of 1.1, a builder's hero shot under it was
+--   judged blown out (face and outfit washed out); the values here are the second try, not captured in a cutscene.
+-- - Higher is not better: at 3,000 studs the deck is still overhead with empty haze below, and at 9,000 the deck is
+--   gone (a bare sun and thin wisps). The engine gives no cloud sea to look down on.
 -- Limits: the cloud deck is the engine's (no control over single clouds); the stage does not hide a map taller
 -- than about 800 studs (pass opts.height); not measured on a phone.
 
@@ -62,11 +66,11 @@ Sky.PRESETS = {
 		bloom = { Intensity = 0.45, Size = 24, Threshold = 1.2 },
 	},
 	gold = {
-		lighting = { ClockTime = 17.5, Brightness = 2.9, Ambient = C(120, 92, 96), OutdoorAmbient = C(176, 138, 120), ColorShift_Top = C(255, 206, 120), ExposureCompensation = 0.25 },
+		lighting = { ClockTime = 17.5, Brightness = 2.9, Ambient = C(120, 92, 96), OutdoorAmbient = C(176, 138, 120), ColorShift_Top = C(255, 206, 120), ExposureCompensation = 0.1 },
 		atmosphere = { Density = 0.28, Offset = 0.25, Color = C(255, 204, 128), Decay = C(180, 110, 120), Glare = 0.6, Haze = 1.3 },
 		clouds = { Enabled = true, Cover = 0.58, Density = 0.8, Color = C(255, 226, 180) },
 		grade = { Brightness = 0.02, Contrast = 0.16, Saturation = 0.3, TintColor = C(255, 244, 226) },
-		bloom = { Intensity = 0.55, Size = 28, Threshold = 1.1 },
+		bloom = { Intensity = 0.4, Size = 28, Threshold = 1.5 },
 	},
 	day = {
 		lighting = { ClockTime = 13.5, Brightness = 2.6, Ambient = C(110, 118, 132), OutdoorAmbient = C(150, 158, 170), ColorShift_Top = C(255, 250, 240), ExposureCompensation = 0 },

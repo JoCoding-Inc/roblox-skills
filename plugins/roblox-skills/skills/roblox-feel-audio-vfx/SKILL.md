@@ -439,6 +439,16 @@ Found by that builder, not measured by us: a black void for a dark start is `Atm
 | A way out | `screen_overlays.luau` | `ScreenOverlays.fade({ onCovered })` covers the screen in 0.25 s, calls `onCovered` (undo the pose, `sky:leave()`, give the camera back) and fades the game in over 0.45 s. End the title and the counter before it starts |
 | A flash with a shape | `fx_recipe.luau` | The flash of `star_glint`, `shard_burst` and `reveal_star` is a star sprite, not a soft ball: caught on a still frame at `scale` 1.8 the old one was a white sphere 6 studs wide |
 
+A fourth build made with these modules scored 62 against 54 for the third and 72 for the artist's cut (2026-11-21, the same two-judge method, three versions in one sitting): the sky, the poses, the faces, the counter landing on the title and the fade out were each named as strengths. What both judges still marked down, and the rule for each:
+
+| Named defect | Rule |
+|---|---|
+| Soft round glows carried the opening and the ending ("generic bokeh") | The shapes of a cutscene come from `fx_recipe` (3i): `star_glint`, `shard_burst`, `reveal_star`, a `trail` on the flight. A soft round sprite is a fill light behind a shape, never the shape itself. The builder had not loaded `fx_recipe` at all |
+| The character was a dot in three shots, and one push went through the hair | `CineCamera.audit(shots)` before the first capture: it names every shot whose subject fills under 15% of the frame height or whose camera is inside the subject. `CineCamera.fit(5.5, fov, 0.4)` gives the distance for a wanted size |
+| One frame at the peak was a flat yellow wash | Never one flat colour over the whole frame for more than 2 frames: a white flash of 1-2 frames, then a shape (a ring, a star, shards) with the character readable inside it |
+| The title hold was 2.2 s of a still frame, blown out by bloom | Every hold moves: a push-in of 5-10% or a slow orbit, drifting glints behind the character. Check the face and the outfit on a capture of the hold; the `gold` preset was toned down after this |
+| The cloud edges stepped when the clouds were tinted purple | Keep the preset's cloud colour; grade the scene with `sky:to()` instead of tinting the `Clouds` object |
+
 Still the builder's own work: the shots, the camera, and one climax (the largest burst belongs to the peak; an earlier one fills half the frame at most, so the character stays readable under it). Both judges asked for a smile at the peak: `PoseBeats.face` (added after that verdict, not judged yet).
 
 ## 3f. An effect built from a reference clip (formation seal, sky pillar)
