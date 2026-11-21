@@ -17,7 +17,7 @@
 --   Root carries the translation (studs, in the root's own space: -Z forward, +Y up).
 -- PoseBeats.HERO and PoseBeats.TARGET: the named poses of the demo (idle, windup, charge, strike, finish;
 --   brace, recoil, knock, down). PoseBeats.demo() plays both rigs through one exchange.
--- PoseBeats.POSES: general cutscene poses (stand, rise, fly, coil, burst, hover, reach, hero, cheer, fall).
+-- PoseBeats.POSES: general cutscene poses (stand, gaze, rise, fly, coil, burst, hover, reach, hero, cheer, fall).
 -- PoseBeats.prepare(character) -> restore(): makes a live avatar posable (AnimationConstraint joints get
 --   Motor6D twins, the Animate script and playing tracks stop) and undoes it afterwards.
 -- opts.sway = degrees (2-3): a held pose keeps breathing instead of freezing.
@@ -197,6 +197,19 @@ PoseBeats.TARGET = {
 -- forward, fall lies back.
 PoseBeats.POSES = {
 	stand = {},
+	-- still and looking up at something: chin lifted, chest open and turned a little, one arm back and one hand
+	-- half raised, the weight on one leg. The pose for a quiet start and for a face shot (coil drops the chin and hides the face)
+	gaze = {
+		Waist = A(7, 7, 0),
+		Neck = A(19, -5, 3),
+		RightShoulder = A(-18, 0, 9),
+		RightElbow = A(10, 0, 0),
+		LeftShoulder = A(-4, 0, -17),
+		LeftElbow = A(24, 0, 0),
+		RightHip = A(2, 0, 3),
+		LeftHip = A(9, 0, -4),
+		LeftKnee = A(-16, 0, 0),
+	},
 	-- lifted off the ground: chest up, arms a little back and out, legs trailing
 	rise = {
 		Root = A(8, 0, 0),

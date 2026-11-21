@@ -290,7 +290,9 @@ function CineCamera.play(shots, opts)
 			cam.CameraType = Enum.CameraType.Scriptable
 			local cf, fov = CineCamera.frame(s, t - s.t)
 			cam.CFrame = cf
-			cam.Focus = cf * CFrame.new(0, 0, -10)
+			-- Focus on the subject, not a point ahead of the camera: after a jump to a far stage the only local lights
+			-- that draw at once are those on a subject within about 3 studs of Focus and 8 studs of the camera (measured)
+			cam.Focus = CFrame.new(subjectCF(s.subject).Position)
 			cam.FieldOfView = fov
 			lastCF, lastFov = cf, fov
 		elseif ret > 0 and t < listEnd + ret then

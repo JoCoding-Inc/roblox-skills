@@ -13,11 +13,13 @@
 -- wind.stop()
 -- sky:sea()                                -- a cloud sea under the stage: something below the character, a horizon of
 --                                          -- cloud tops, banks that slide past a moving camera (depth)
+-- local face = sky:portrait(character)     -- key and two rim lights on the head for a close-up in the dark
+-- face.stop(0.3)
 -- sky:leave()                              -- everything back as it was
 --
 -- Presets (Sky.PRESETS; copy one and change it for your own):
---   void    black, no sky: the dark start of a reveal. A low neutral ambient keeps skin its own colour; add your
---           own rim lights for the colour.
+--   void    black, no sky and no sun: the dark start of a reveal. A low neutral ambient keeps skin its own
+--           colour; sky:portrait() gives a face its form in a close-up.
 --   sunset  low sun, peach clouds over a blue sky, warm light on the character (ClockTime 17.5)
 --   gold    the same sky pushed warmer and brighter: the peak
 --   day     noon, white clouds
@@ -45,6 +47,18 @@
 --   from behind, above and beside the character under `sunset`. One dark even layer alone read as coloured smoke;
 --   the pale floor with lighter banks over it read as clouds. Live particles follow a change of their emitter's
 --   Color and Transparency (measured), so the sea crosses with sky:to() and is hidden under `void`.
+-- Local lights on the stage (measured 2026-11-21 in a blank place, Studio Play; brightness read per frame from
+-- recordings): when the camera, its Focus and the subject jump together, PointLights light nothing for a while.
+-- 900 studs sideways: dark for 7.5 s; 200 studs up: 6.5 s; 300 up: 8.5 s; 1,200 up in 15 steps of 80 in 1.5 s:
+-- 10 s; 40 or 80 studs up and 350 or 450 sideways: no gap. Then every light comes on in the same frame. Sun,
+-- ambient and post effects are right from the first frame. The exception is a close-up: with the camera within 8
+-- studs of the subject and Camera.Focus within 3 studs of it the lights drew at once at about two thirds of their
+-- final strength (fading out between 8 and 16 studs of camera distance; with Focus 5 studs off, nothing).
+-- So a cutscene that enters this stage has no effect lights for most of its length. While a sky is entered it
+-- takes them as ambient light instead: FxClock.glow is set, fx_recipe sends each light there, and the sky adds
+-- the colour to Ambient and OutdoorAmbient for that frame (weaker the further the light is from Camera.Focus).
+-- The same from the first frame to the last and at any camera distance; it has no direction, so the form of a
+-- face comes from sky:portrait() in a close-up or from the sun of the lit presets.
 -- Limits: the cloud deck is the engine's (no control over single clouds); the stage does not hide a map taller
 -- than about 800 studs (pass opts.height); not measured on a phone. The sea is large see-through particles over
 -- much of the frame: its frame cost on a phone is not measured (opts.density 0.5 halves the count).
@@ -53,6 +67,7 @@ local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
+local FxClock = require(script.Parent.fx_clock)
 local FxTextures = require(script.Parent.fx_textures)
 
 local Sky = {}
@@ -117,6 +132,8 @@ local current = nil
 
 -- opts: focus (Vector3: the stage is straight above it; default the camera's focus), height (studs above the
 -- focus, default 1200), hide ({ Instance }: models to make invisible on this client while the cutscene runs)
+-- lights ("ambient", the default: effect lights become ambient pulses, see the header; "local": they stay
+-- PointLights, for a stage the camera has been at for 10 s or one within 80 studs of height and 450 of distance)
 function Sky.enter(preset: string, opts)
 	if current then
 		current:leave()
@@ -168,6 +185,32 @@ function Sky.enter(preset: string, opts)
 	self.atmosphere, self.clouds, self.grade, self.bloom = atmosphere, clouds, grade, bloom
 	local targets = { lighting = Lighting, atmosphere = atmosphere, clouds = clouds, grade = grade, bloom = bloom }
 
+	-- effect lights as ambient light: glows[key] = { colour, strength, time }, summed every frame over the preset's
+	-- own ambient colours
+	local GLOW = 0.15
+	local glows = {}
+	local baseAmbient, baseOutdoor = Lighting.Ambient, Lighting.OutdoorAmbient
+	local glowing = false
+	local function writeAmbient()
+		local r, g, b, any = 0, 0, 0, false
+		local now = os.clock()
+		for key, glow in glows do
+			if now - glow.t > 0.1 then
+				glows[key] = nil
+			elseif glow.strength > 0 then
+				r += glow.color.R * glow.strength * GLOW
+				g += glow.color.G * glow.strength * GLOW
+				b += glow.color.B * glow.strength * GLOW
+				any = true
+			end
+		end
+		if any or glowing then
+			Lighting.Ambient = Color3.new(math.min(baseAmbient.R + r, 1), math.min(baseAmbient.G + g, 1), math.min(baseAmbient.B + b, 1))
+			Lighting.OutdoorAmbient = Color3.new(math.min(baseOutdoor.R + r, 1), math.min(baseOutdoor.G + g, 1), math.min(baseOutdoor.B + b, 1))
+		end
+		glowing = any
+	end
+
 	local seaRefresh: (() -> ())? = nil
 	local function apply(from, to, k)
 		for group, inst in targets do
@@ -176,6 +219,9 @@ function Sky.enter(preset: string, opts)
 				;(inst :: any)[name] = a ~= nil and lerp(a, value, k) or value
 			end
 		end
+		baseAmbient, baseOutdoor = Lighting.Ambient, Lighting.OutdoorAmbient
+		glowing = true
+		writeAmbient()
 		if seaRefresh then
 			seaRefresh()
 		end
@@ -185,6 +231,97 @@ function Sky.enter(preset: string, opts)
 	self.origin = CFrame.new(focus.X, focus.Y + (opts.height or 1200), focus.Z)
 	self.preset = Sky.PRESETS[preset] or Sky.PRESETS.sunset
 	apply(nil, self.preset, 1)
+
+	-- One light as ambient light for this frame: call it every frame the light is on (FxClock.glow does, for every
+	-- fx_recipe light, while the sky is entered with lights = "ambient"). position and range: the light counts in
+	-- full at Camera.Focus and falls to nothing 1.5 ranges away from it. Returns true: the caller keeps its
+	-- PointLight dark.
+	function self:glow(key, color: Color3, brightness: number, position: Vector3?, range: number?): boolean
+		if not self.alive then
+			return false
+		end
+		local k = 1
+		local cam = workspace.CurrentCamera
+		if position and range and range > 0 and cam then
+			k = math.clamp(1 - (position - cam.Focus.Position).Magnitude / (range * 1.5), 0, 1)
+		end
+		glows[key] = { color = color, strength = brightness * k * k, t = os.clock() }
+		return true
+	end
+	local glowConn = RunService.PreRender:Connect(writeAmbient)
+	local hook = nil
+	if (opts.lights or "ambient") == "ambient" then
+		hook = function(key, color, brightness, position, range)
+			return self:glow(key, color, brightness, position, range)
+		end
+		FxClock.glow = hook
+	end
+
+	-- Key and two rim lights on a head, for a close-up in the dark (`void` has no sun, so a face there is one flat
+	-- colour). They are PointLights: they draw from the first frame only with the camera within 8 studs and
+	-- Camera.Focus on the head (cine_camera puts Focus on the shot's subject), and about 8 s after the entry they
+	-- gain about half again, so use it for the opening seconds or stop it before then.
+	-- model: the character; opts: key, rim, rim2 (Color3), strength (default 1), part (default its Head),
+	-- facing (the part whose rotation places the lights, default HumanoidRootPart). Returns { stop(seconds?) }.
+	local portraits = {}
+	function self:portrait(model: Model, o)
+		o = o or {}
+		local head = o.part or model:FindFirstChild("Head")
+		local facing = o.facing or model:FindFirstChild("HumanoidRootPart") or head
+		local strength = o.strength or 1
+		local rig = Instance.new("Part")
+		rig.Name = "CineSkyPortrait"
+		rig.Anchored, rig.CanCollide, rig.CanQuery, rig.CanTouch = true, false, false, false
+		rig.Transparency = 1
+		rig.Size = Vector3.one * 0.2
+		local lights = {}
+		-- in the character's space (-Z is its front, +X its right): a warm key high on the front right, a rim
+		-- behind the left ear and a lower one behind the right shoulder (read on stills from the front three quarters)
+		for _, spec in {
+			{ Vector3.new(2.8, 2.4, -3.2), o.key or C(255, 226, 196), 0.75, 9 },
+			{ Vector3.new(-3.0, 0.8, 0.9), o.rim or C(150, 100, 255), 3.2, 6 },
+			{ Vector3.new(2.2, -1.6, 1.6), o.rim2 or C(70, 150, 255), 2.2, 6 },
+		} do
+			local a = Instance.new("Attachment")
+			a.Position = spec[1]
+			a.Parent = rig
+			local l = Instance.new("PointLight")
+			l.Shadows = false
+			l.Color, l.Range = spec[2], spec[4]
+			l.Brightness = spec[3] * strength
+			l.Parent = a
+			table.insert(lights, { l, spec[3] * strength })
+		end
+		local function place()
+			rig.CFrame = CFrame.new(head.Position) * facing.CFrame.Rotation
+		end
+		place()
+		rig.Parent = workspace
+		local conn = RunService.PreRender:Connect(place)
+		local stopped = false
+		local handle = {}
+		function handle.stop(seconds: number?)
+			if stopped then
+				return
+			end
+			stopped = true
+			local t0, len = os.clock(), seconds or 0
+			local fade
+			fade = RunService.PreRender:Connect(function()
+				local k = if len > 0 then math.clamp((os.clock() - t0) / len, 0, 1) else 1
+				for _, x in lights do
+					x[1].Brightness = x[2] * (1 - k)
+				end
+				if k >= 1 then
+					fade:Disconnect()
+					conn:Disconnect()
+					rig:Destroy()
+				end
+			end)
+		end
+		table.insert(portraits, handle)
+		return handle
+	end
 
 	local fadeConn: RBXScriptConnection? = nil
 	-- cross to another preset over `seconds` (0 or nil: at once, a cut)
@@ -357,6 +494,13 @@ function Sky.enter(preset: string, opts)
 		self.alive = false
 		if fadeConn then
 			fadeConn:Disconnect()
+		end
+		glowConn:Disconnect()
+		if hook and FxClock.glow == hook then
+			FxClock.glow = nil
+		end
+		for _, handle in portraits do
+			handle.stop(0)
 		end
 		for _, part in windParts do
 			part:Destroy()
