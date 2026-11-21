@@ -1,8 +1,10 @@
 --!nonstrict
 -- pose_beats: code-posed key poses for R15 rigs on the fx clock (the character side of the cutscene). A list of
 -- keys (time, pose, ease) is sampled every frame and written to each joint's Motor6D.Transform; mostly holds,
--- fast moves of a few frames. Joints are reset to identity at the end (opts.keep = true leaves the last pose).
--- Client only: Motor6D.Transform is local and is not overwritten while no AnimationTrack plays on the rig.
+-- fast moves of a few frames. Joints are reset to identity at the end; opts.keep = true holds the last pose
+-- (still, no sway) until the next play, PoseBeats.reset or the restore of prepare.
+-- Client only: Motor6D.Transform is local. On a rig with an Animator it is cleared every frame even with no track
+-- playing (measured on a live avatar, 2026-11-21), so every pose is written again each PreSimulation.
 -- roblox-feel-audio-vfx section 3e; ran in Studio 0.747 and 0.748 Play, 2026-11-18, on R15 dummies whose
 -- AnimationConstraint joints were replaced by Motor6Ds (cine_stage.buildRigs): on AnimationConstraint joints
 -- Transform writes did nothing and C0 errored ("Unable to assign property C0. Property is read only"; measured).
@@ -19,6 +21,13 @@
 -- PoseBeats.prepare(character) -> restore(): makes a live avatar posable (AnimationConstraint joints get
 --   Motor6D twins, the Animate script and playing tracks stop) and undoes it afterwards.
 -- opts.sway = degrees (2-3): a held pose keeps breathing instead of freezing.
+-- PoseBeats.face(character, name?) -> { has, set(name | weights, seconds?), stop() }: an expression on a head
+--   with FaceControls (PoseBeats.FACES: neutral, smile, joy, awe, grim, shut). Measured in Studio 0.748 Play,
+--   2026-11-21, on a live avatar after prepare(): a weight written once read back 0 on the next frame and the
+--   face did not change; the same weights written every PreSimulation drew the face, and stopping the writes
+--   gave the avatar's own face back. smile, joy, awe and grim were read on close captures of one blocky head
+--   (no brows: grim reads as a frown with narrowed eyes); shut was not captured. A classic head with a face
+--   decal has no FaceControls: has is false and set does nothing.
 --
 -- Beat table of the demo (clock s): hero 0-0.30 into wind-up (in-out), hold the charge to 0.80, strike in
 -- 4 frames (0.80-0.867, out-expo), hold the strike to 1.50, finishing pose 1.50-1.70 (out-cubic), held to 3.0;
@@ -424,8 +433,73 @@ function PoseBeats.prepare(model)
 	end
 end
 
+-- FaceControls weights (0-1) per expression; a control with a Left and a Right side is named once and written to both
+PoseBeats.FACES = {
+	neutral = {},
+	smile = { LipCornerPuller = 1, CheekRaiser = 0.7 },
+	joy = { LipCornerPuller = 1, CheekRaiser = 0.7, JawDrop = 1, UpperLipRaiser = 0.4 },
+	awe = { JawDrop = 0.8, Funneler = 0.4, OuterBrowRaiser = 1, InnerBrowRaiser = 1, EyeUpperLidRaiser = 1 },
+	grim = { BrowLowerer = 1, Corrugator = 1, LipCornerDown = 0.7, LipPresser = 0.6, EyeClosed = 0.35, NoseWrinkler = 0.5 },
+	shut = { EyeClosed = 1, LipPresser = 0.4 },
+}
+
+local SIDED = {}
+for _, name in
+	{ "BrowLowerer", "CheekPuff", "CheekRaiser", "Dimpler", "EyeClosed", "EyeUpperLidRaiser", "InnerBrowRaiser", "LipCornerDown", "LipCornerPuller", "LipStretcher", "LowerLipDepressor", "NoseWrinkler", "OuterBrowRaiser", "UpperLipRaiser" }
+do
+	SIDED[name] = true
+end
+
+local function faceWeights(face)
+	local out = {}
+	for key, value in (if type(face) == "table" then face else PoseBeats.FACES[face]) do
+		if SIDED[key] then
+			out["Left" .. key], out["Right" .. key] = value, value
+		else
+			out[key] = value
+		end
+	end
+	return out
+end
+
+function PoseBeats.face(model, name)
+	local head = model:FindFirstChild("Head")
+	local controls = head and head:FindFirstChildOfClass("FaceControls")
+	local from, to, now = {}, faceWeights(name or "neutral"), {}
+	local t0, dur = 0, 0
+	local conn = controls
+		and game:GetService("RunService").PreSimulation:Connect(function()
+			local u = if dur > 0 then math.clamp((os.clock() - t0) / dur, 0, 1) else 1
+			u = 1 - (1 - u) ^ 2
+			table.clear(now)
+			for key, value in from do
+				now[key] = value * (1 - u)
+			end
+			for key, value in to do
+				now[key] = (now[key] or 0) + value * u
+			end
+			for key, value in now do
+				(controls :: any)[key] = value
+			end
+		end)
+	return {
+		has = controls ~= nil,
+		set = function(face, seconds)
+			from, to, now = table.clone(now), faceWeights(face), {}
+			t0, dur = os.clock(), seconds or 0.12
+		end,
+		stop = function()
+			if conn then
+				conn:Disconnect()
+				conn = nil
+			end
+		end,
+	}
+end
+
 function PoseBeats.reset(model)
 	for _, mo in PoseBeats.motors(model) do
+		PoseBeats.held[mo] = nil
 		mo.Transform = CFrame.identity
 	end
 end
@@ -470,7 +544,12 @@ function PoseBeats.play(model, keys, opts)
 			PoseBeats.held[mo] = cf
 		end
 	end)
+	-- keep: the last pose stays written every frame after the clock ends (until the next play, reset or the
+	-- restore of prepare). Measured on a live avatar: a Transform written once was identity again 0.3 s later.
 	c:onCleanup(function()
+		if opts.keep then
+			return
+		end
 		for _, mo in motors do
 			PoseBeats.held[mo] = nil
 		end
