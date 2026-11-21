@@ -20,7 +20,8 @@
         "votes": {"v": "+29/-1", "p": "measured", "date": "2026-11-04"},
         "icon_count": {"v": 72, "p": "measured", "date": "2026-11-04"},
         "look": {"v": "white glyphs, tint with ImageColor3; mixes line and filled glyphs, use one kind", "p": "measured"},
-        "fits": {"v": ["dark flat", "horror", "shooter", "realistic"], "p": "opinion"}
+        "fits": {"v": ["dark flat", "horror", "shooter", "realistic"], "p": "opinion"},
+        "paint": {"v": "Kit.icon(parent, image, { color = ... }) from the roblox-ui-mobile window kit paints a filled white glyph as a game icon: the fill lit from the top, a dark outline of its own hue, a drop shadow and a gloss band. Both judges of one sitting marked bare white glyphs down ('thin flat glyphs'); the painted form is not judged yet", "p": "field", "date": "2026-11-22", "src": "roblox-store-art-pack/SKILL.md#4"}
       }
     },
     "store_first": {"v": "standard icons (cash, coins, gems, shop, rebirth, settings, gifts, arrows, lock, trophy, potions, paw) come from one store pack, never generated", "p": "opinion"},
