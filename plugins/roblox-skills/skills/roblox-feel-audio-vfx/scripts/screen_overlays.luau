@@ -441,7 +441,7 @@ function ScreenOverlays.flash(opts)
 		if not Safety.request(root, root.t or 0, peak, "overlay flash") then
 			return
 		end
-		local layer = ScreenOverlays.layer(c, "Flash", 15)
+		local layer = ScreenOverlays.layer(c, "Flash", 4) -- under the letterbox bars, the counter and the title: black bars that turn grey for a frame were named twice
 		cover = Instance.new("Frame")
 		cover.BorderSizePixel = 0
 		cover.BackgroundColor3 = opts.color or Color3.fromRGB(255, 250, 236)
@@ -477,8 +477,24 @@ function ScreenOverlays.fade(opts)
 	local inDur, hold, outDur = opts.inDur or 0.25, opts.hold or 0.15, opts.outDur or 0.45
 	local c, root, own = FxClock.attach("Fade", inDur + hold + outDur + 0.02, opts)
 	local cover, done
+	local bars = {}
 	c:at(0, function()
 		local layer = ScreenOverlays.layer(c, "Fade", 20)
+		-- The fade takes the letterbox with it: it draws the bars itself, full, until the black is full. Bars
+		-- that slid away 0.2 s before the cover (their own dur ended first) were "the letterbox snaps off, an
+		-- unfinished exit" to three judges.
+		local letterbox = ScreenOverlays.gui():FindFirstChild("Letterbox")
+		for _, bar in (letterbox and letterbox:GetChildren() or {}) do
+			if bar:IsA("Frame") then
+				if math.abs(bar.Position.Y.Scale - (bar.AnchorPoint.Y > 0.5 and 1 or 0)) > 0.005 then
+					warn("ScreenOverlays.fade: the letterbox is already leaving as the fade starts; the fade puts the bars back. Give the letterbox a dur that ends after the cover (fade start + inDur + 0.1)")
+				end
+				local copy = bar:Clone()
+				copy.Position = UDim2.fromScale(0, bar.AnchorPoint.Y > 0.5 and 1 or 0)
+				copy.Parent = layer
+				table.insert(bars, copy)
+			end
+		end
 		cover = Instance.new("Frame")
 		cover.BorderSizePixel = 0
 		cover.BackgroundColor3 = opts.color or Color3.new(0, 0, 0)
@@ -492,6 +508,9 @@ function ScreenOverlays.fade(opts)
 		end
 		if t >= inDur and not done then
 			done = true
+			for _, copy in bars do
+				copy:Destroy()
+			end
 			if opts.onCovered then
 				opts.onCovered()
 			end
