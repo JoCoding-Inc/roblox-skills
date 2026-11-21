@@ -387,6 +387,34 @@ The cutscene block: white 0.05, cyan field 0.05, invert 0.05, blue field 0.06 s;
 
 **Known limits.** Code poses are rigid (no follow-through or smear pose); debris are plain boxes; the sphere rim is beaded; ink edges are straight; silhouettes are the rig outline; R15 dummies limit every close-up (a face close-up reads as a dark block). 399 beams at the peak with no real-phone measurement. Elements and facts: Studio 0.747; cutscene and phone pass: 0.748; nothing checked in a published game or with several players. Uploaded art would raise it: drawn full-screen impact frames as ImageLabels, a spiky-ring texture or flipbook for the rim, a sphere mesh with scrolling noise, a bolt flipbook, 4-6 low-poly rock meshes and a crater decal, a dust flipbook, brush-stroke ink images, per-word lettering images with an inner edge, and keyframed attack and hit-reaction animations (`roblox-character-motion`).
 
+**A reveal cutscene (a rare roll, an unlock, 10-15 s).** The anatomy above is a 7 s strike. A reveal runs longer and travels, and a build made from this section alone lost a blind comparison with a VFX artist's posted 15 s roll reveal, 50 against 69 (sums of two judges out of 100, 2026-11-21; one comparison). It was level on structure and ahead on its counter and tier colours; it lost on the shapes of its effects (4 against 8 of 10), on its last shot and on its sky. The artist's cut, read at 30 fps:
+
+| Shot | Time s | What |
+|---|---|---|
+| Dark start | 0-1.2 | black screen, one thin four-point star that grows, turns and changes hue (green, blue, violet); the odds counter already runs |
+| Whip out | 1.2-2.1 | a cut to an extreme close-up of the face behind the star, then a fast pull-back into a wide sunset sky, the character spread out and small props drifting round it |
+| Drift | 2.1-3.2 | two wide shots from above and beside, the character small, the camera turning |
+| Energy arrives | 3.2-5.3 | ribbons with a star at the head come in one, then three, then four or five run parallel behind the flying character in a side shot, then wind round the body |
+| First burst | 5.3-6.4 | crystal stars open beside the character, one white four-point flash that fills a third of the frame for 2 frames |
+| Hover | 6.4-7.4 | a calm wide shot, the character glowing, small arcs round it |
+| Bloom | 7.4-8.7 | crystal bursts open outward on turning ribbon arms, each bigger than the last |
+| Peak | 8.8-10.7 | a full white frame, then a held close-up (1.6 s): the face ringed by crystal stars over a radial speed-line background, a slow push-in |
+| Exit | 10.9-13.4 | a cut to a streak that shoots to the horizon, then a golden cross-star with thin rays and two rings over the sky; the counter lands on its last number about 1 s into this shot |
+| Out | 13.6-14.2 | white-out, then a fade through grey |
+
+Rules both judges gave for the weaker build (judgment from one comparison; the numbers are theirs):
+
+- **Designed shapes, not soft dots.** Thin four-point stars (about 8 long to 1 wide), hard-pointed crystal or shard bursts, ribbons that taper to nothing with a star at the head. Soft round glows are under a fifth of what is on screen. A flat beam drawn as one quad and plain grey speed lines read as unfinished: taper the trail (a white core, the tier colour falling off) and tint speed lines in the tier colour.
+- **The effects belong to the character.** They arrive at it, run behind it, wind round it and open from it; at the reveal the reward is on the character (ribbons that orbit at 1.5-2 studs, an aura, a shape that fits the name), not only in a title.
+- **The character is never small for long and never in its default pose.** In a travel shot it fills 15-35% of the frame height; a shot where it is under a tenth lasts under a second. Every held shot has an authored pose (an overshoot and settle of about 0.3 s, then a small idle) and a moving camera (a 5-8% push-in or a 10-15 degree orbit from a low three-quarter angle). A T-pose on a locked camera was the first fix both judges asked for.
+- **Cut from close to wide.** The strongest cut in the artist's piece is an extreme close-up that whips out to the widest shot. Follow it with different angles (high, top-down, side), and keep a static opening wide under about 0.6 s or give it a push-in.
+- **The counter never passes its last number.** Ease it out over the last 1.5 s so only the last digits tick, and land it on the peak's flash frame or in the first second of the last shot, with a scale punch (1 -> 1.3 -> 1 in 0.25 s). A counter that overshot to 7.2 million and came back to 2.4 million was named by both judges.
+- **A flash is white and short.** 2-3 frames of full white (or the tier colour near white), then a 0.15 s fall. A grey washed frame reads as an error; so does a near-black frame with no rim light on the character.
+- **A sky to fly through.** Fog in one flat colour read as beige haze. Use a sky with cloud shapes that the camera can pass: a `Clouds` object under `Terrain` (not measured by us: start near `Cover` 0.6 and `Density` 0.7 with a warm `Color`), a low sun (`ClockTime` near 6.3 or 17.7) and an `Atmosphere` whose haze does not hide the horizon. Keep full-screen blur and vignette light in wide shots.
+- **The title clears the head.** Put the name in the top fifth of the frame or frame the character lower; bring it in within 0.3 s (scale 1.3 -> 1).
+
+Sharp shapes without uploads: the `star` slot of `fx_textures` (a four-point spark), `flare` (a ring with rays, additive only) and the `FxRecipe` layers built on them (3i); a ribbon with a star head is a `Trail` or beam ribbon plus one locked `star` particle on its attachment.
+
 ## 3f. An effect built from a reference clip (formation seal, sky pillar)
 
 Two served effects that were built by reading a reference clip of a similar effect frame by frame and rebuilding its timing and layer structure with our own shapes: a polygon seal with a floating orb (5.2 s) and a pillar that drops from the sky and holds (5.7 s). Nothing of the clips is used: no frame, texture or design. Evidence: built in Studio 0.748 Play, 3 capture-and-fix rounds for the seal and 2 for the pillar, then ported to `scripts/` with only the module names changed and captured again (2026-11-18: no Output errors or warnings; the seal's live counts matched the demo, the pillar peaked at 113 beams against 118 in the demo because its sashes re-form on a random timer); the owner compared the seal with a second build of the same clip and preferred this one. Numbers are read from the code: chosen by eye, not measured optima. No real phone, no published game, no frame-cost measurement.
