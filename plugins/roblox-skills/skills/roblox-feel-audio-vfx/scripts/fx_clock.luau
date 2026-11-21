@@ -14,6 +14,7 @@
 -- local clock = FxClock.new("MyFx", 1.0)            -- name, duration in clock seconds
 -- clock:at(0.1, function() emitter:Emit(8) end)     -- an event at a time
 -- clock:span(0, 0.2, function(u, t) light.Brightness = 4 * (1 - u) end) -- a curve over a span
+-- clock:emitAt(emitter, cf, 3)                      -- pieces at one of several places in a step (see emitAt)
 -- clock:play()                                       -- runs on PreRender, cleans up at the duration
 --
 -- Windows (added for section 3e, 2026-11-18): clock:sub(name, t0, len) is a window of a clock with local times
@@ -147,6 +148,7 @@ function FxClock.new(name: string, duration: number)
 	local self = setmetatable({}, FxClock)
 	self.name = name
 	self.t = 0
+	self.stepCount = 0
 	self.duration = duration
 	self.scale = FxClock.defaultScale
 	self.events = {} :: { { t: number, fn: () -> (), done: boolean } }
@@ -271,7 +273,8 @@ function FxClock:onCleanup(fn: () -> ())
 end
 
 -- Clock-driven emission (instead of Rate): rate(t) particles per clock second between t0 and t1.
--- before(n) can move the emitter's host before each Emit (for emission along a moving blade).
+-- before(n) can move the emitter's host before each Emit (for emission along a moving blade). The pieces of a
+-- step that it puts at different places go out from copies of e (emitAt, below), the last place's from e.
 function FxClock:stream(e: ParticleEmitter, t0: number, t1: number, rate: (t: number) -> number, before: ((t: number) -> ())?)
 	local acc = 0
 	self:every(function(t, dt)
@@ -283,15 +286,69 @@ function FxClock:stream(e: ParticleEmitter, t0: number, t1: number, rate: (t: nu
 		if n > 0 then
 			acc -= n
 			if before then
+				local places, counts = {}, {}
 				for _ = 1, n do
 					before(t)
-					e:Emit(1)
+					local host = e.Parent :: any
+					local cf = if host:IsA("Attachment") then host.WorldCFrame else host.CFrame
+					if cf == places[#places] then
+						counts[#counts] += 1
+					else
+						table.insert(places, cf)
+						table.insert(counts, 1)
+					end
 				end
+				for i = 1, #places - 1 do
+					self:emitAt(e, places[i], counts[i])
+				end
+				e:Emit(counts[#counts])
 			else
 				e:Emit(n)
 			end
 		end
 	end)
+end
+
+-- emitAt(e, cf, count, props): count pieces of e from the place cf, with props (birth values such as Speed,
+-- Lifetime or Rotation) set on them. Use it wherever one step emits at more than one place: a ring of dust, smoke
+-- along an arc, sparks from random points of a sphere. An emitter's Emit is carried out when the frame is drawn,
+-- with its properties and its host's place as they are then (Studio Play, 2026-11-22): a host moved between five
+-- Emits in one step put all five pieces at the last place, and a Lifetime set right after an Emit was the one its
+-- pieces got. So each place in a step gets its own copy of e, made the first time it is needed and kept until the
+-- clock ends. A copy takes e's properties when it is made and does not follow later changes to e.
+local pools = setmetatable({}, { __mode = "k" }) :: { [ParticleEmitter]: { step: number, used: number, copies: { ParticleEmitter } } }
+function FxClock:emitAt(e: ParticleEmitter, cf: CFrame, count: number, props: { [string]: any }?)
+	local root = self.root or self
+	local pool = pools[e]
+	if not pool then
+		pool = { step = -1, used = 0, copies = {} }
+		pools[e] = pool
+	end
+	if pool.step ~= root.stepCount then
+		pool.step, pool.used = root.stepCount, 0
+	end
+	pool.used += 1
+	local copy = pool.copies[pool.used]
+	if not copy then
+		local host = e.Parent
+		local holder = if host and host:IsA("BasePart") then self:part({ Name = host.Name, Size = host.Size }) else self:attachment(nil)
+		copy = e:Clone()
+		copy.Parent = holder
+		table.insert(self.emitters, copy)
+		pool.copies[pool.used] = copy
+	end
+	local holder = copy.Parent :: any
+	if holder:IsA("Attachment") then
+		holder.WorldCFrame = cf
+	else
+		holder.CFrame = cf
+	end
+	if props then
+		for k, v in props do
+			(copy :: any)[k] = v
+		end
+	end
+	copy:Emit(count)
 end
 
 function FxClock:setScale(s: number)
@@ -312,6 +369,7 @@ end
 
 function FxClock:_advance(newT: number, dt: number)
 	self.t = newT
+	self.stepCount += 1
 	-- Events may schedule new events, spans or steps (lazy builds): rescan until nothing due is left.
 	local fired = true
 	while fired do

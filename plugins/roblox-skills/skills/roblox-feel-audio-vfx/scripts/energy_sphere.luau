@@ -241,8 +241,7 @@ function EnergySphere.play(anchor, opts)
 						local d = Vector3.new(rng:NextNumber(-1, 1), rng:NextNumber(-1, 1), rng:NextNumber(-1, 1))
 						if d.Magnitude > 0.01 then
 							d = d.Unit
-							inAtt.WorldCFrame = CFrame.lookAt(p + d * 2.4, p)
-							inward:Emit(1)
+							c:emitAt(inward, CFrame.lookAt(p + d * 2.4, p), 1)
 						end
 					end
 				end
