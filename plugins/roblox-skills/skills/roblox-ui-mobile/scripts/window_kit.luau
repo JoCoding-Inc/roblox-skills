@@ -915,11 +915,13 @@ end
 local warned = false
 local OFFSET = { left = Vector2.new(-28, 0), right = Vector2.new(28, 0), top = Vector2.new(0, -20), bottom = Vector2.new(0, 20) }
 
-local function enter(item: GuiObject, kind: string, delay: number, from: string?)
+local function enter(item: GuiObject, kind: string, delay: number, from: string?, whole: boolean?)
 	local T = Kit.TIMES
 	local s = scaleOf(item)
 	local loose = free(item)
-	fade(item, 0, 1, delay, T.fade)
+	if not whole then -- a pane is opaque with the window from its first frame; only its move is staged
+		fade(item, 0, 1, delay, T.fade)
+	end
 	if kind == "fade" then
 		return T.fade
 	end
@@ -941,7 +943,7 @@ local function enter(item: GuiObject, kind: string, delay: number, from: string?
 		end)
 		return 0.3
 	end
-	local start = (loose and kind ~= "slide") and 0.6 or 0.9
+	local start = if whole then 0.92 elseif loose and kind ~= "slide" then 0.6 else 0.9
 	s.Scale = start
 	if kind == "spin" then
 		local rest = item.Rotation
@@ -962,11 +964,13 @@ export type Group = { any } -- { item or { items }, kind, gap = seconds, from = 
 -- that fades in shows the HUD and the world through itself: judges of three sittings called it a ghost and a
 -- pop, at 0.16 s and still at 0.05 s), and the groups arrive in the order given from the start, their items one after another. List only what should be
 -- staged (rows, the parts of a pane, the close button, an emblem): the header, the panes and the tab
--- strip come with the window, so it is never an empty shell. Kinds: "pop" (scale with overshoot), "slide" (from = "left" | "right" | "top" |
+-- strip come with the window, so it is never an empty shell. A group that covers a quarter of the window or more
+-- (a pane, a column of cards) is taken as content: opaque from the first frame, only its pop or slide plays. Kinds: "pop" (scale with overshoot), "slide" (from = "left" | "right" | "top" |
 -- "bottom"), "fade", "spin" (pop with a quarter turn: a close button), "fill" (a bar grows).
 -- Every item arrives whole, with its content. The groups overlap (each starts 50 ms after the one before, or
 -- after its `after` seconds), so everything has started by about 0.35 s.
 local openRoots: { [GuiObject]: boolean } = {} -- the windows Kit.open has shown and Kit.close has not yet taken away
+local paneWarned: { [string]: boolean } = {}
 
 -- options: shell = false when something else pops the window (PanelStage) or for a pane inside an open
 -- window; budget = seconds; delay = seconds before the first group (content of a pane that waits for its window).
@@ -984,17 +988,38 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 	end
 	local plan = {}
 	local listed = {}
+	root.Visible = true
+	local area = root.AbsoluteSize.X * root.AbsoluteSize.Y
 	local t = opt.shell == false and 0 or 0.02 -- the content starts while the window is still growing: no empty window
 	for _, g in groups or {} do
 		local items = typeof(g[1]) == "Instance" and { g[1] } or g[1]
 		local gap = g.gap or 0.03
+		-- A group that covers a quarter of the window or more (one pane, or a column of cards) is content: it comes
+		-- with the window, opaque from the first frame, and only its pop or slide is staged (one after another, from
+		-- the first frame). Faded in like rows, a builder's wheel and the cards beside it left the window empty, and
+		-- both judges of a sitting named "the window frame lands empty (no wheel, no right column) for 2 frames"
+		-- (2026-11-22); with only the wheel brought forward the right half was still empty for 3 frames of 15 fps.
+		local share = 0
+		for _, item in items do
+			share += item.AbsoluteSize.X * item.AbsoluteSize.Y
+		end
+		share = if area > 0 then share / area else 0
+		local whole = opt.shell ~= false and share >= 0.25
+		if whole and not paneWarned[items[1].Name] then
+			paneWarned[items[1].Name] = true
+			warn(("WindowKit: %s %s %d%% of %s, so %s with the window (opaque from the first frame); stage the small parts inside"):format(#items > 1 and (items[1].Name .. " and " .. (#items - 1) .. " more") or items[1].Name, #items > 1 and "cover" or "covers", math.floor(100 * share), root.Name, #items > 1 and "they come" or "it comes"))
+		end
 		for i, item in items do
-			table.insert(plan, { item = item, kind = g[2] or "fade", delay = t + (i - 1) * gap, from = g.from })
-			listed[item] = true
+			table.insert(plan, { item = item, kind = g[2] or "fade", delay = (if whole then 0 else t) + (i - 1) * gap, from = g.from, whole = whole })
+			if not whole then
+				listed[item] = true
+			end
 		end
 		-- the next group starts 50 ms after this one started, not after it ended: with the window opaque from its
 		-- second frame, a grid that waited for the rail left an empty well for 0.14 s (named by a judge)
-		t += g.after or 0.05
+		if not whole then
+			t += g.after or 0.05
+		end
 	end
 	local last = 0
 	for _, p in plan do
@@ -1002,9 +1027,10 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 	end
 	local limit = (opt.budget or T.budget) - 0.2
 	local squeeze = last > limit and limit / last or 1
-	root.Visible = true
 	for _, p in plan do
-		fadeSet(p.item, 0, listed)
+		if not p.whole then
+			fadeSet(p.item, 0, listed)
+		end
 	end
 	if opt.shell ~= false then
 		local s = scaleOf(root)
@@ -1017,7 +1043,7 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 		fadeSet(root, 1, listed)
 	end
 	for _, p in plan do
-		enter(p.item, p.kind, (opt.delay or 0) + p.delay * squeeze, p.from)
+		enter(p.item, p.kind, (opt.delay or 0) + p.delay * squeeze, p.from, p.whole)
 	end
 end
 
@@ -1914,21 +1940,32 @@ function Kit.count(label: TextLabel, from: number, to: number, options: { time: 
 end
 
 -- Send copies of a reward from its tile to a counter: they burst out of the tile into a loose ring
--- (0.16 s), then one after another fly on an arc and shrink into the counter, 0.4 s each and 70 ms apart;
--- onArrive(i) fires as each lands (count the counter up on the first). options: count (pieces, default 6),
+-- (0.16 s), then one after another fly on an arc and shrink into the counter, 0.4 s each and 70 ms apart, and a
+-- glint pops on the counter as the last one lands (spark = false: none);
+-- onArrive(i) fires as each lands (count the counter up on the first). options: amount (what the player gets:
+-- 1 sends one piece, 2-5 that many, 6-99 six, 100 and more eight; a judge counted "about 8 bunny copies fly to
+-- Bag for an x1 prize" and another saw "a smeared stack of cloned icons"), count (pieces, instead of amount;
+-- default 6, never more than 8 or than amount),
 -- piece = function() -> GuiObject (default: a clone of from), size (a piece against the source, default
 -- 0.75: the pile must not cover the amount beside it), gap, time, arc (share of the distance, default 0.25;
 -- a negative arc bends the flight the other way, to keep it off a title that sits between tile and counter), scatter (ring radius in px, default 0.7 x the piece's size; 0 = no burst), dimSource (the tile
 -- fades to 40%), lift = false (the source does not swell before its pieces leave)
-function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piece: (() -> GuiObject)?, size: number?, gap: number?, time: number?, arc: number?, scatter: number?, dimSource: boolean?, lift: boolean?, onArrive: ((number) -> ())? }?)
+function Kit.fly(from: GuiObject, to: GuiObject, options: { amount: number?, count: number?, piece: (() -> GuiObject)?, size: number?, gap: number?, time: number?, arc: number?, scatter: number?, dimSource: boolean?, lift: boolean?, spark: boolean?, onArrive: ((number) -> ())? }?)
 	local opt = options or {}
 	local T = Kit.TIMES
 	local layer = overlayOf(to, from)
 	local a, b = centerIn(layer, from), centerIn(layer, to)
-	local n = reduced() and 1 or (opt.count or 6)
-	local dur, gap = opt.time or T.fly, opt.gap or T.flyGap
-	local size = from.AbsoluteSize / scaleAbove(layer) * (opt.size or 0.75)
-	local ring = n > 1 and (opt.scatter or math.max(size.X, size.Y) * 0.7) or 0
+	local amount = opt.amount and math.max(1, math.floor(opt.amount)) or nil
+	local n = opt.count or (amount and (if amount <= 5 then amount elseif amount < 100 then 6 else 8)) or 6
+	n = math.min(n, 8, amount or 8)
+	if reduced() then
+		n = 1
+	end
+	-- more pieces fly smaller and closer together, so the stream still takes about 0.45 s
+	local dur, gap = opt.time or T.fly, math.min(opt.gap or T.flyGap, 0.45 / n)
+	local size = from.AbsoluteSize / scaleAbove(layer) * (opt.size or (if n == 1 then 0.9 elseif n >= 6 then 0.6 else 0.75))
+	-- the ring is wide enough that the pieces sit side by side in it, not in one pile
+	local ring = n > 1 and (opt.scatter or math.max(size.X, size.Y) * math.max(0.7, n * 0.18)) or 0
 	local hold = ring > 0 and 0.2 or 0
 	local turn = Random.new():NextNumber(0, math.pi * 2)
 	if opt.lift ~= false and not reduced() then
@@ -1966,8 +2003,10 @@ function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piec
 		if side.Y > 0 then
 			side = -side -- the arc bends up
 		end
+		-- each piece on its own arc, a quarter of the distance apart from first to last: on nearly one path they
+		-- read as one smear
 		local spread = ((i - 1) / math.max(n - 1, 1) - 0.5) * 0.5
-		local mid = start + span * 0.5 + side * ((opt.arc or 0.25) + spread * 0.4)
+		local mid = start + span * 0.5 + side * ((opt.arc or 0.25) + spread)
 		local tilt = (i % 2 == 0 and 1 or -1) * (10 + 4 * i)
 		run(piece, "move", hold + (i - 1) * gap, dur, Sine, InOut, function(e, raw)
 			piece.Visible = true
@@ -1986,6 +2025,22 @@ function Kit.fly(from: GuiObject, to: GuiObject, options: { count: number?, piec
 					bump.Scale = 1.15 - 0.15 * e
 				end)
 			end)
+			if i == n and opt.spark ~= false and not reduced() then
+				-- a glint on the counter as the last piece lands: the eye ends on the total
+				local side = math.max(to.AbsoluteSize.X, to.AbsoluteSize.Y) / scaleAbove(layer)
+				local g = Kit.glint(layer, side * 1.2, Color3.fromRGB(255, 246, 214))
+				g.Position = UDim2.fromOffset(b.X, b.Y)
+				g.ZIndex = piece.ZIndex + 1
+				local gs = scaleOf(g)
+				gs.Scale = 0.3
+				run(g, "scale", 0, 0.3, Quad, Out, function(e, raw)
+					gs.Scale = 0.3 + 0.9 * e
+					g.Rotation = 35 * raw
+				end)
+				fade(g, 1, 0, 0.1, 0.2, function()
+					g:Destroy()
+				end)
+			end
 			if opt.onArrive then
 				opt.onArrive(i)
 			end
@@ -2200,6 +2255,27 @@ function Kit.win(card: GuiObject, options: { color: Color3?, grow: number?, ring
 	end)
 end
 
+local stampWarned: { [string]: boolean } = {}
+
+-- Keep a popup (a callout, a toast, a title) on the screen: it moves by its Position until its box is at least
+-- margin px (default 12) inside the screen's safe area. A callout set beside the counter it points at ran to 2 px
+-- from the screen's edge (a judge, 2026-11-22). Call it after placing a popup; Kit.stamp calls it.
+function Kit.clamp(gui: GuiObject, margin: number?)
+	local screen = gui:FindFirstAncestorWhichIsA("LayerCollector") :: any
+	if not screen then
+		return
+	end
+	local m = margin or 12
+	local at, view = screen.AbsolutePosition, screen.AbsoluteSize
+	local p, size = gui.AbsolutePosition, gui.AbsoluteSize
+	local dx = math.max(at.X + m - p.X, 0) + math.min(at.X + view.X - m - (p.X + size.X), 0)
+	local dy = math.max(at.Y + m - p.Y, 0) + math.min(at.Y + view.Y - m - (p.Y + size.Y), 0)
+	if dx ~= 0 or dy ~= 0 then
+		local k = scaleAbove(gui)
+		gui.Position += UDim2.fromOffset(dx / k, dy / k)
+	end
+end
+
 -- A title that lands: scales 1.4 -> 1 in 0.25 s, holds, then rises 16 px while it fades (0.2 s); done runs
 -- when it has gone. hold in seconds (default 0.9). Put it over the window's middle, on a layer above the
 -- flying rewards, and start what it would cover (a list re-sort) from done: one moment at a time.
@@ -2207,11 +2283,40 @@ end
 -- title leaves, so the title reads as its own layer and not as a label laid over the list's text.
 function Kit.stamp(label: GuiObject, hold: number?, done: (() -> ())?, options: { dim: GuiObject?, dimTransparency: number? }?)
 	local s = scaleOf(label)
-	local home = label.Position
 	stop(label, "leave")
+	local rest = label.Position
 	label:SetAttribute("KitTransient", true)
 	label.Visible = true
 	local host = options and options.dim
+	-- the window it lands over: dim, or a window Kit.open has shown with the title's middle over it
+	local over = host
+	local lp, ls = label.AbsolutePosition, label.AbsoluteSize
+	if not over then
+		local mid = lp + ls / 2
+		for root in openRoots do
+			local p, z = root.AbsolutePosition, root.AbsoluteSize
+			if root.Parent and root.Visible and mid.X > p.X and mid.X < p.X + z.X and mid.Y > p.Y - ls.Y and mid.Y < p.Y + z.Y then
+				over = root
+				break
+			end
+		end
+	end
+	if over then
+		-- never over the window's header: a title across its top fifth covered the window's own title, its timer
+		-- and its close button (both judges of a sitting, 2026-11-22), so it moves down to the window's middle. A
+		-- title wholly above the window's top edge stays where it is
+		local top, h = over.AbsolutePosition.Y, over.AbsoluteSize.Y
+		if lp.Y < top + 0.2 * h and lp.Y + ls.Y > top then
+			local dy = top + 0.5 * h - (lp.Y + ls.Y * 0.5)
+			label.Position = rest + UDim2.fromOffset(0, dy / scaleAbove(label))
+			if not stampWarned[label.Name] then
+				stampWarned[label.Name] = true
+				warn("WindowKit: the stamp " .. label.Name .. " sat over the window's header; it now lands over the window's middle")
+			end
+		end
+	end
+	Kit.clamp(label)
+	local home = label.Position
 	if host then
 		local old = host:FindFirstChild("Dim")
 		if old then
@@ -2249,6 +2354,7 @@ function Kit.stamp(label: GuiObject, hold: number?, done: (() -> ())?, options: 
 		end)
 		fade(label, 1, 0, wait, 0.2, function()
 			label.Visible = false
+			label.Position = rest
 			fadeSet(label, 1)
 			if done then
 				done()

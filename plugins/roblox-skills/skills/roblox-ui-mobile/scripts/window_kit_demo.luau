@@ -944,7 +944,7 @@ function Demo.build(playerGui: Instance, options: { icons: { [string]: string }?
 			local amount = m[kind]
 			if amount > 0 then
 				Kit.fly(tiles[kind].icon, counters[kind].icon, {
-					count = m.special and 10 or 7,
+					amount = amount, -- the pieces follow what the player gets (six, or eight for a big amount)
 					arc = -0.3, -- out over the window's edge, not across the card's title
 					onArrive = function(i)
 						if i == 1 then
