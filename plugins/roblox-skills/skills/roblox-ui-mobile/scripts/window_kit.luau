@@ -971,6 +971,7 @@ export type Group = { any } -- { item or { items }, kind, gap = seconds, from = 
 -- after its `after` seconds), so everything has started by about 0.35 s.
 local openRoots: { [GuiObject]: boolean } = {} -- the windows Kit.open has shown and Kit.close has not yet taken away
 local paneWarned: { [string]: boolean } = {}
+local placeWarned: { [string]: boolean } = {}
 
 -- options: shell = false when something else pops the window (PanelStage) or for a pane inside an open
 -- window; budget = seconds; delay = seconds before the first group (content of a pane that waits for its window).
@@ -1041,6 +1042,22 @@ function Kit.open(root: GuiObject, groups: { Group }?, options: { shell: boolean
 		-- opaque from its first frame: even a 0.05 s fade left one see-through frame in a 15 fps capture, and
 		-- judges of three sittings named it ("a ghost window flickers in")
 		fadeSet(root, 1, listed)
+		-- where it sits, read once the grow has ended: a judge named a results window 165 px under the top of the
+		-- screen and 16 px over the bottom ("the window sits low", 2026-11-22)
+		if screen and screen:IsA("ScreenGui") and not placeWarned[root.Name] then
+			task.delay(T.shell + 0.05, function()
+				if placeWarned[root.Name] or not root.Parent or not root.Visible then
+					return
+				end
+				local top = root.AbsolutePosition.Y - screen.AbsolutePosition.Y
+				local bottom = screen.AbsoluteSize.Y - top - root.AbsoluteSize.Y
+				local near, far = math.min(top, bottom), math.max(top, bottom)
+				if near < 24 and far > 3 * near + 48 then
+					placeWarned[root.Name] = true
+					warn(("WindowKit: %s sits %s on the screen (%d px above it, %d px below); centre it in the space under the top bar (AnchorPoint 0.5, 0.5 at Position 0.5, 0.5), or 24 px or more from the edge"):format(root.Name, if top > bottom then "low" else "high", math.floor(top), math.floor(bottom)))
+				end
+			end)
+		end
 	end
 	for _, p in plan do
 		enter(p.item, p.kind, (opt.delay or 0) + p.delay * squeeze, p.from, p.whole)
@@ -2676,8 +2693,13 @@ function Kit.scrim(gui: ScreenGui, o: { color: Color3?, transparency: number?, t
 end
 
 -- An icon from your icon pack (an image id), never a drawn one. tile = a colour: the icon sits in a rounded
--- well with the kit's finish; without it, the bare image. size in px. Returns (outer, image).
-function Kit.icon(parent: Instance, image: string, o: { name: string?, size: number?, position: UDim2?, anchor: Vector2?, z: number?, order: number?, tile: Color3?, radius: number?, pad: number?, depth: number? }?)
+-- well with the kit's finish; without it, the bare image. color = a colour: a white glyph from a one-colour
+-- pack is painted in it as a game icon: the fill lit from the top, a dark outline of its own hue (ink = another
+-- colour, line = its width as a share of the size, default 0.05), a drop shadow and a gloss band over its top
+-- (gloss = false: none). Both judges of a sitting marked bare white glyphs down ("thin flat glyphs", "white
+-- single-colour glyph icons", 2026-11-22). Eleven images of one texture per icon. size in px. Returns (outer,
+-- image): image is the fill.
+function Kit.icon(parent: Instance, image: string, o: { name: string?, size: number?, position: UDim2?, anchor: Vector2?, z: number?, order: number?, tile: Color3?, radius: number?, pad: number?, depth: number?, color: Color3?, ink: Color3?, line: number?, gloss: boolean? }?)
 	local opt = o or {}
 	local size = opt.size or 40
 	local holder: GuiObject, inside: Instance
@@ -2708,16 +2730,64 @@ function Kit.icon(parent: Instance, image: string, o: { name: string?, size: num
 		inside = holder
 	end
 	local pad = opt.tile and (opt.pad or 0.14) or (opt.pad or 0)
-	local picture = make("ImageLabel", {
-		Name = "Image",
+	local color = opt.color
+	if not color then
+		local picture = make("ImageLabel", {
+			Name = "Image",
+			BackgroundTransparency = 1,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(1 - 2 * pad, 1 - 2 * pad),
+			Image = image,
+			ScaleType = Enum.ScaleType.Fit,
+		}, inside)
+		return holder, picture
+	end
+	-- the painted glyph: layers of one image, drawn in order inside a box the size of the glyph
+	local box = make("Frame", {
+		Name = "Glyph",
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromScale(1 - 2 * pad, 1 - 2 * pad),
-		Image = image,
-		ScaleType = Enum.ScaleType.Fit,
 	}, inside)
-	return holder, picture
+	local glyph = size * (1 - 2 * pad)
+	local t = math.max(1, math.floor(glyph * (opt.line or 0.05) + 0.5))
+	local d = math.floor(t * 0.7071 + 0.5)
+	local inkColor = opt.ink or shade(color, -0.78)
+	local z = (opt.z or 1) + 1
+	local function layer(name: string, x: number, y: number, tint: Color3, alpha: number, at: number): ImageLabel
+		return make("ImageLabel", {
+			Name = name,
+			BackgroundTransparency = 1,
+			Position = UDim2.fromOffset(x, y),
+			Size = UDim2.fromScale(1, 1),
+			Image = image,
+			ImageColor3 = tint,
+			ImageTransparency = alpha,
+			ScaleType = Enum.ScaleType.Fit,
+			ZIndex = at,
+		}, box)
+	end
+	layer("Shadow", 0, t + math.max(1, math.floor(glyph * 0.04 + 0.5)), inkColor, 0.45, z)
+	for i, v in { { t, 0 }, { -t, 0 }, { 0, t }, { 0, -t }, { d, d }, { -d, d }, { d, -d }, { -d, -d } } do
+		layer("Line" .. i, v[1], v[2], inkColor, 0, z)
+	end
+	local fill = layer("Image", 0, 0, color, 0, z + 1)
+	make("UIGradient", { Rotation = 90, Color = ColorSequence.new(Color3.new(1, 1, 1), Color3.fromRGB(165, 165, 175)) }, fill)
+	if opt.gloss ~= false then
+		local gloss = layer("Gloss", 0, 0, Color3.new(1, 1, 1), 0, z + 2)
+		make("UIGradient", {
+			Rotation = 90,
+			Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 0.35),
+				NumberSequenceKeypoint.new(0.38, 0.7),
+				NumberSequenceKeypoint.new(0.42, 1),
+				NumberSequenceKeypoint.new(1, 1),
+			}),
+		}, gloss)
+	end
+	return holder, fill
 end
 
 -- A tab strip: one pill slides under the labels to the chosen tab (0.2 s), the labels change colour, the

@@ -166,6 +166,7 @@ Gaps found: no voted free wall pack in most lanes (Synty has rock walls, Beyond 
 
 - Skip icons with the Roblox logo or the Robux mark (both packs have some), except next to a real Robux price: on in-game currency they read as free Robux.
 - Skip art from another game (for example a decal named "DOORS Coins Icon").
+- A one-colour pack: paint its filled glyphs with `Kit.icon(parent, image, { color = ... })` (the `roblox-ui-mobile` window kit): a fill lit from the top, a dark outline of its own hue, a drop shadow and a gloss band. Both judges of one sitting marked bare white glyphs down ("thin flat glyphs", 2026-11-22); the painted form was checked in Studio on four built-in glyphs and is not judged yet.
 
 Rules for any mix of icons:
 

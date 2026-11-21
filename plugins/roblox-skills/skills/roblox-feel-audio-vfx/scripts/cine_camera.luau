@@ -351,7 +351,8 @@ function CineCamera.audit(shots, height: number?): { string }
 		end
 	end
 	if #shots >= 4 and nearest < 0.22 then
-		table.insert(out, string.format("no close shot: the nearest one (shot %d) shows the head at %d%% of the frame height. Give the cutscene two close shots of 0.4-1.2 s, head at 25-40%% (%.1f to %.1f studs at fov 45): the face reacting near the start, and head and raised arms at the peak while the last digits run, then cut wider for the name", nearestAt, nearest * 100, CineCamera.fit(head, 45, 0.4), CineCamera.fit(head, 45, 0.25)))
+		-- a reaction needs time to land: a 0.4 s smiling close-up "did not land before the cut" to a judge (2026-11-22)
+		table.insert(out, string.format("no close shot: the nearest one (shot %d) shows the head at %d%% of the frame height. Give the cutscene two close shots, head at 25-40%% (%.1f to %.1f studs at fov 45): the face reacting near the start, held about 0.8 s so the expression lands, and head and raised arms at the peak while the last digits run (0.4-1.2 s), then cut wider for the name", nearestAt, nearest * 100, CineCamera.fit(head, 45, 0.4), CineCamera.fit(head, 45, 0.25)))
 	end
 	-- cuts that change neither the side nor the size: two or three shots in a row from within 30 degrees of each
 	-- other at a like distance are one long shot to the eye ("2 s of the same side-flight angle", three judges)
