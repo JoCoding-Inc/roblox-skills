@@ -15,6 +15,10 @@
 --   Root carries the translation (studs, in the root's own space: -Z forward, +Y up).
 -- PoseBeats.HERO and PoseBeats.TARGET: the named poses of the demo (idle, windup, charge, strike, finish;
 --   brace, recoil, knock, down). PoseBeats.demo() plays both rigs through one exchange.
+-- PoseBeats.POSES: general cutscene poses (stand, rise, fly, coil, burst, hover, reach, hero, cheer, fall).
+-- PoseBeats.prepare(character) -> restore(): makes a live avatar posable (AnimationConstraint joints get
+--   Motor6D twins, the Animate script and playing tracks stop) and undoes it afterwards.
+-- opts.sway = degrees (2-3): a held pose keeps breathing instead of freezing.
 --
 -- Beat table of the demo (clock s): hero 0-0.30 into wind-up (in-out), hold the charge to 0.80, strike in
 -- 4 frames (0.80-0.867, out-expo), hold the strike to 1.50, finishing pose 1.50-1.70 (out-cubic), held to 3.0;
@@ -178,6 +182,145 @@ PoseBeats.TARGET = {
 	},
 }
 
+-- General poses for a cutscene character (a reveal, a power-up, a flight): each one read on a capture from the
+-- front and the side. Use them as keys ({ t = 2.0, pose = "burst", ease = "outExpo" } with opts.lib =
+-- PoseBeats.POSES) so no held shot shows the default stance. Root rotations tilt the whole body: fly lies
+-- forward, fall lies back.
+PoseBeats.POSES = {
+	stand = {},
+	-- lifted off the ground: chest up, arms a little back and out, legs trailing
+	rise = {
+		Root = A(8, 0, 0),
+		Waist = A(12, 0, 0),
+		Neck = A(22, 0, 0),
+		RightShoulder = A(-28, 0, 26),
+		RightElbow = A(18, 0, 0),
+		LeftShoulder = A(-28, 0, -26),
+		LeftElbow = A(18, 0, 0),
+		RightHip = A(-6, 0, 5),
+		RightKnee = A(-14, 0, 0),
+		RightAnkle = A(-20, 0, 0),
+		LeftHip = A(14, 0, -5),
+		LeftKnee = A(-34, 0, 0),
+		LeftAnkle = A(-20, 0, 0),
+	},
+	-- flying forward: the body lies forward, one arm leads, the other trails, head up
+	fly = {
+		Root = A(-78, 0, 0),
+		Waist = A(8, 0, 0),
+		Neck = A(48, 0, 0),
+		RightShoulder = A(172, 0, 6),
+		RightElbow = A(6, 0, 0),
+		LeftShoulder = A(-14, 0, -14),
+		LeftElbow = A(22, 0, 0),
+		RightHip = A(-6, 0, 4),
+		RightKnee = A(-10, 0, 0),
+		RightAnkle = A(-28, 0, 0),
+		LeftHip = A(8, 0, -4),
+		LeftKnee = A(-30, 0, 0),
+		LeftAnkle = A(-28, 0, 0),
+	},
+	-- gathered in before a burst: knees up, arms crossed over the chest, head down
+	coil = {
+		Root = A(-14, 0, 0),
+		Waist = A(-18, 0, 0),
+		Neck = A(-24, 0, 0),
+		RightShoulder = A(58, 0, -38),
+		RightElbow = A(112, 0, 0),
+		LeftShoulder = A(58, 0, 38),
+		LeftElbow = A(112, 0, 0),
+		RightHip = A(72, 0, 4),
+		RightKnee = A(-96, 0, 0),
+		LeftHip = A(56, 0, -4),
+		LeftKnee = A(-104, 0, 0),
+	},
+	-- thrown open: back arched, arms up and out, legs apart, head back
+	burst = {
+		Root = A(10, 0, 0),
+		Waist = A(20, 0, 0),
+		Neck = A(26, 0, 0),
+		RightShoulder = A(128, 0, 44),
+		RightElbow = A(10, 0, 0),
+		LeftShoulder = A(128, 0, -44),
+		LeftElbow = A(10, 0, 0),
+		RightHip = A(-12, 0, 24),
+		RightKnee = A(-10, 0, 0),
+		RightAnkle = A(-18, 0, 0),
+		LeftHip = A(-4, 0, -24),
+		LeftKnee = A(-26, 0, 0),
+		LeftAnkle = A(-18, 0, 0),
+	},
+	-- a calm float: arms low and open, one knee bent, toes down
+	hover = {
+		Waist = A(4, 0, 0),
+		Neck = A(6, 0, 0),
+		RightShoulder = A(-6, 0, 22),
+		RightElbow = A(16, 0, 0),
+		LeftShoulder = A(-6, 0, -22),
+		LeftElbow = A(16, 0, 0),
+		RightHip = A(4, 0, 4),
+		RightKnee = A(-8, 0, 0),
+		RightAnkle = A(-24, 0, 0),
+		LeftHip = A(22, 0, -4),
+		LeftKnee = A(-44, 0, 0),
+		LeftAnkle = A(-24, 0, 0),
+	},
+	-- one hand reaching up at something, eyes on it
+	reach = {
+		Waist = A(10, -8, 0),
+		Neck = A(30, 10, 0),
+		RightShoulder = A(158, 0, 12),
+		RightElbow = A(8, 0, 0),
+		LeftShoulder = A(-18, 0, -30),
+		LeftElbow = A(24, 0, 0),
+		RightHip = A(-4, 0, 6),
+		RightKnee = A(-8, 0, 0),
+		LeftHip = A(12, 0, -6),
+		LeftKnee = A(-28, 0, 0),
+	},
+	-- the payoff: a fist in the air, the other at the hip, feet apart, chin up
+	hero = {
+		Root = A(0, -14, 0),
+		Waist = A(8, 12, 0),
+		Neck = A(12, 4, 0),
+		RightShoulder = A(168, 0, 18),
+		RightElbow = A(24, 0, 0),
+		LeftShoulder = A(-12, 0, -34),
+		LeftElbow = A(96, 0, 0),
+		RightHip = A(-4, 0, 16),
+		RightKnee = A(-4, 0, 0),
+		LeftHip = A(6, 0, -18),
+		LeftKnee = A(-12, 0, 0),
+	},
+	-- both arms up in a V, small jump bend
+	cheer = {
+		Waist = A(10, 0, 0),
+		Neck = A(18, 0, 0),
+		RightShoulder = A(150, 0, 30),
+		RightElbow = A(14, 0, 0),
+		LeftShoulder = A(150, 0, -30),
+		LeftElbow = A(14, 0, 0),
+		RightHip = A(10, 0, 8),
+		RightKnee = A(-30, 0, 0),
+		LeftHip = A(18, 0, -8),
+		LeftKnee = A(-48, 0, 0),
+	},
+	-- falling on the back: limbs trail upward
+	fall = {
+		Root = A(64, 0, 0),
+		Waist = A(-10, 0, 0),
+		Neck = A(-16, 0, 0),
+		RightShoulder = A(96, 0, 30),
+		RightElbow = A(26, 0, 0),
+		LeftShoulder = A(112, 0, -30),
+		LeftElbow = A(20, 0, 0),
+		RightHip = A(48, 0, 8),
+		RightKnee = A(-34, 0, 0),
+		LeftHip = A(30, 0, -8),
+		LeftKnee = A(-52, 0, 0),
+	},
+}
+
 local EASE = {
 	linear = function(u)
 		return u
@@ -220,6 +363,67 @@ function PoseBeats.motors(model)
 	return m
 end
 
+-- share of opts.sway (degrees) per joint: { about X, phase, about Z }
+local SWAY = {
+	Waist = { 0.6, 0, 0.2 },
+	Neck = { 0.5, 0.9, 0.3 },
+	RightShoulder = { 1, 0.4, 0.8 },
+	LeftShoulder = { 1, 1.7, 0.8 },
+	RightHip = { 0.5, 2.2, 0.2 },
+	LeftHip = { 0.5, 0.6, 0.2 },
+}
+
+-- Make a live character posable and give it back afterwards. An avatar whose joints are AnimationConstraints
+-- ignores Transform writes (measured, section 3e), and its Animate script keeps playing the idle or fall
+-- animation over any pose. prepare() stops the playing tracks and the Animate script, and gives every
+-- AnimationConstraint joint a Motor6D twin for as long as the cutscene runs; the function it returns undoes all
+-- of it (call it when the cutscene ends or is skipped). Client side, on the local player's own character.
+-- local restore = PoseBeats.prepare(character) ... PoseBeats.play(character, keys, { lib = PoseBeats.POSES }) ... restore()
+function PoseBeats.prepare(model)
+	local undo = {}
+	local animate = model:FindFirstChild("Animate")
+	if animate and (animate:IsA("LocalScript") or animate:IsA("Script")) and animate.Enabled then
+		animate.Enabled = false
+		table.insert(undo, function()
+			animate.Enabled = true
+		end)
+	end
+	local humanoid = model:FindFirstChildOfClass("Humanoid")
+	local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+	if animator then
+		for _, track in animator:GetPlayingAnimationTracks() do
+			track:Stop(0)
+		end
+	end
+	for _, d in model:GetDescendants() do
+		if d:IsA("AnimationConstraint") and d.Attachment0 and d.Attachment1 then
+			local name, enabled = d.Name, d.Enabled
+			local mo = Instance.new("Motor6D")
+			mo.Name = name
+			mo.Part0 = d.Attachment0.Parent
+			mo.Part1 = d.Attachment1.Parent
+			mo.C0 = d.Attachment0.CFrame
+			mo.C1 = d.Attachment1.CFrame
+			d.Enabled = false
+			d.Name = name .. "_Constraint" -- PoseBeats.motors finds joints by name: the Motor6D takes it
+			mo.Parent = d.Parent
+			table.insert(undo, function()
+				PoseBeats.held[mo] = nil
+				mo:Destroy()
+				d.Name = name
+				d.Enabled = enabled
+			end)
+		end
+	end
+	return function()
+		for i = #undo, 1, -1 do
+			undo[i]()
+		end
+		table.clear(undo)
+		PoseBeats.reset(model)
+	end
+end
+
 function PoseBeats.reset(model)
 	for _, mo in PoseBeats.motors(model) do
 		mo.Transform = CFrame.identity
@@ -232,6 +436,7 @@ function PoseBeats.play(model, keys, opts)
 	local last = keys[#keys].t
 	local c, root, own = FxClock.attach("Pose_" .. model.Name, last + (opts.tail or 0.05), opts)
 	local motors = PoseBeats.motors(model)
+	local sway = opts.sway or 0
 	local function poseOf(k)
 		local p = k.pose
 		if type(p) == "string" then
@@ -257,6 +462,10 @@ function PoseBeats.play(model, keys, opts)
 			local ca = pa[joint] or CFrame.identity
 			local cb = pb[joint] or CFrame.identity
 			local cf = ca:Lerp(cb, u)
+			local sw = sway > 0 and SWAY[joint]
+			if sw then -- a held pose keeps breathing: a few degrees on the chest, the head and the arms
+				cf *= CFrame.Angles(math.rad(sway * sw[1] * math.sin(t * 2.6 + sw[2])), 0, math.rad(sway * sw[3] * math.sin(t * 2.1 + sw[2])))
+			end
 			mo.Transform = cf
 			PoseBeats.held[mo] = cf
 		end

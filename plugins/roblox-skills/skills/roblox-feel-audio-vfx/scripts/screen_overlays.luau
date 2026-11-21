@@ -13,6 +13,9 @@
 --   slide in over opts.inDur (0.25 s), hold, slide out over opts.outDur (0.3 s) at opts.dur (default 3 s)
 -- ScreenOverlays.vignette(opts?) -> clock    4 edge gradients, opts.strength (0..1, default 0.55), opts.dur
 -- ScreenOverlays.gui() -> ScreenGui           the shared ScreenGui (created on demand)
+-- ScreenOverlays.counter(opts) -> clock    a number that climbs through the cutscene and lands on a beat
+-- ScreenOverlays.title(text, opts) -> clock a name card that lands, holds and fades before the world is back
+-- ScreenOverlays.fade(opts) -> clock        the way out: cover the screen, restore under it, fade the game in
 -- All take opts.clock / opts.at. With reduced motion the speed lines are drawn once and not re-shaped.
 --
 -- Build of a speed line: a thin Frame rotated about its centre to point at the focus, laid from the clear radius
@@ -246,6 +249,177 @@ function ScreenOverlays.demo(hero, opts)
 	ScreenOverlays.vignette({ clock = c, at = 0, dur = 2.2, strength = 0.6 })
 	ScreenOverlays.speedLines({ clock = c, at = 0.6, focus = hero:FindFirstChild("Head").Position, color = Color3.new(0, 0, 0) })
 	ScreenOverlays.speedLines({ clock = c, at = 1.3, dur = 0.27, focus = hero:FindFirstChild("Head").Position, color = Color3.new(1, 1, 1), seed = 9, count = 44, clear = 0.36 })
+	if own then
+		root:play()
+	end
+	return root
+end
+
+-- ---------- a number that climbs, a title that lands, a fade to leave through ----------
+
+local function comma(n: number): string
+	local digits = tostring(math.floor(n + 0.5))
+	local out = digits:reverse():gsub("(%d%d%d)", "%1,"):reverse()
+	return (out:gsub("^,", ""))
+end
+ScreenOverlays.comma = comma
+
+local function textLabel(parent: Instance, size: number, color: Color3, stroke: Color3): TextLabel
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.AnchorPoint = Vector2.new(0.5, 0.5)
+	label.Size = UDim2.fromOffset(10, 10)
+	label.AutomaticSize = Enum.AutomaticSize.XY
+	label.Font = Enum.Font.GothamBlack
+	label.TextSize = size
+	label.TextColor3 = color
+	label.Parent = parent
+	local line = Instance.new("UIStroke")
+	line.Thickness = math.clamp(size * 0.08, 1.5, 5)
+	line.Color = stroke
+	line.Parent = label
+	Instance.new("UIScale").Parent = label
+	return label
+end
+
+-- A number that climbs through the whole cutscene and lands on a beat: the odds of a roll, a score, damage.
+-- It climbs in log space (every second about as many new digits), slows so that only the last digits tick
+-- at the end, never passes its last value, and lands with a punch (1 -> 1.3 -> 1 in 0.25 s) and the last
+-- colour. Land it on the peak's flash frame or together with the title, never a second after it.
+-- opts: to (the last value), from (default 1), land (clock s at which it is reached), dur (s on screen,
+--   default land + 2), format (function(n) -> string, default "1 in 12,345"), pos (screen fraction,
+--   default 0.5, 0.92: inside the lower letterbox bar), size (fraction of the screen height, default 0.07,
+--   never under 20 px), colors ({ Color3 }: stepped along the climb, the last one from the landing),
+--   onLand (function), clock / at
+function ScreenOverlays.counter(opts)
+	opts = opts or {}
+	local to, from = opts.to or 1000000, math.max(opts.from or 1, 1)
+	local land = opts.land or 8
+	local dur = opts.dur or (land + 2)
+	local format = opts.format or function(n)
+		return "1 in " .. comma(n)
+	end
+	local colors = opts.colors or { Color3.fromRGB(235, 244, 255), Color3.fromRGB(170, 200, 255), Color3.fromRGB(214, 170, 255), Color3.fromRGB(255, 214, 110) }
+	local pos = opts.pos or Vector2.new(0.5, 0.92)
+	local c, root, own = FxClock.attach("Counter", dur + 0.02, opts)
+	local label, scale, landed
+	c:at(0, function()
+		local layer = ScreenOverlays.layer(c, "Counter", 8)
+		local px = math.max(20, workspace.CurrentCamera.ViewportSize.Y * (opts.size or 0.07))
+		label = textLabel(layer, px, colors[1], Color3.fromRGB(10, 12, 30))
+		label.Position = UDim2.fromScale(pos.X, pos.Y)
+		scale = label:FindFirstChildOfClass("UIScale")
+	end)
+	c:every(function(t)
+		if not label then
+			return
+		end
+		local u = math.clamp(t / land, 0, 1)
+		local g = 1 - (1 - u) ^ 3 -- log space, eased out: the last second ticks the last digits only
+		local value = u >= 1 and to or math.min(from * (to / from) ^ g, to - 1)
+		label.Text = format(value)
+		if u < 1 then
+			local span = math.max(#colors - 1, 1)
+			local k = math.clamp(g * span, 0, span - 1e-3)
+			label.TextColor3 = colors[math.floor(k) + 1]:Lerp(colors[math.min(math.floor(k) + 2, #colors)], (k % 1) ^ 3)
+			scale.Scale = 1
+		else
+			if not landed then
+				landed = t
+				label.TextColor3 = colors[#colors]
+				if opts.onLand then
+					opts.onLand()
+				end
+			end
+			local p = math.clamp((t - landed) / 0.25, 0, 1)
+			scale.Scale = 1 + 0.3 * math.sin(p * math.pi) * (1 - p * 0.5)
+		end
+		local out = math.clamp((t - (dur - 0.3)) / 0.3, 0, 1) -- gone before the world is back
+		label.TextTransparency = out
+		;(label:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = out
+	end)
+	if own then
+		root:play()
+	end
+	return root
+end
+
+-- The name of what was won, over the character's head: a small line (the tier) and a large one (the name).
+-- It lands at 1.3 -> 1 in 0.25 s, holds, and fades over the last 0.3 s, so it is never left over the game
+-- world. Keep it in the top quarter of the frame and frame the character under it.
+-- opts: sub (the small line), pos (default 0.5, 0.215: both lines clear of a 0.11 letterbox bar), size (fraction of the screen height, default 0.085,
+--   never under 22 px), color, subColor, dur (default 3), clock / at
+function ScreenOverlays.title(text: string, opts)
+	opts = opts or {}
+	local dur = opts.dur or 3
+	local pos = opts.pos or Vector2.new(0.5, 0.215)
+	local c, root, own = FxClock.attach("Title", dur + 0.02, opts)
+	local main, sub
+	c:at(0, function()
+		local layer = ScreenOverlays.layer(c, "Title", 8)
+		local h = workspace.CurrentCamera.ViewportSize.Y
+		local px = math.max(22, h * (opts.size or 0.085))
+		main = textLabel(layer, px, opts.color or Color3.fromRGB(255, 232, 150), Color3.fromRGB(40, 20, 6))
+		main.Text = text
+		main.Position = UDim2.new(pos.X, 0, pos.Y, 0)
+		if opts.sub then
+			sub = textLabel(layer, math.max(14, px * 0.48), opts.subColor or Color3.new(1, 1, 1), Color3.fromRGB(20, 16, 40))
+			sub.Text = opts.sub
+			sub.Position = UDim2.new(pos.X, 0, pos.Y, -px * 0.86)
+		end
+	end)
+	c:every(function(t)
+		if not main then
+			return
+		end
+		local arrive = math.clamp(t / 0.25, 0, 1)
+		local leave = math.clamp((t - (dur - 0.3)) / 0.3, 0, 1)
+		local alpha = math.max(1 - math.clamp(t / 0.1, 0, 1), leave)
+		for i, label in { main, sub } do
+			local late = math.clamp((t - (i - 1) * 0.08) / 0.25, 0, 1)
+			;(label:FindFirstChildOfClass("UIScale") :: UIScale).Scale = 1.3 - 0.3 * FxClock.outCubic(i == 1 and arrive or late)
+			label.TextTransparency = alpha
+			;(label:FindFirstChildOfClass("UIStroke") :: UIStroke).Transparency = alpha
+		end
+	end)
+	if own then
+		root:play()
+	end
+	return root
+end
+
+-- The way out of a cutscene: the screen goes to one colour, the world is put back under it, and the game
+-- fades in. A cut from the last shot to the bare game world, a title left over the map, or one black frame
+-- between two shots each read as unfinished to blind judges.
+-- opts: color (default black), inDur (0.25), hold (0.15), outDur (0.45), onCovered (function: give the
+--   camera back, restore the sky, the character and the HUD here), clock / at. Takes inDur + hold + outDur.
+function ScreenOverlays.fade(opts)
+	opts = opts or {}
+	local inDur, hold, outDur = opts.inDur or 0.25, opts.hold or 0.15, opts.outDur or 0.45
+	local c, root, own = FxClock.attach("Fade", inDur + hold + outDur + 0.02, opts)
+	local cover, done
+	c:at(0, function()
+		local layer = ScreenOverlays.layer(c, "Fade", 20)
+		cover = Instance.new("Frame")
+		cover.BorderSizePixel = 0
+		cover.BackgroundColor3 = opts.color or Color3.new(0, 0, 0)
+		cover.BackgroundTransparency = 1
+		cover.Size = UDim2.fromScale(1, 1)
+		cover.Parent = layer
+	end)
+	c:every(function(t)
+		if not cover then
+			return
+		end
+		if t >= inDur and not done then
+			done = true
+			if opts.onCovered then
+				opts.onCovered()
+			end
+		end
+		local a = t < inDur and t / inDur or (t < inDur + hold and 1 or 1 - (t - inDur - hold) / outDur)
+		cover.BackgroundTransparency = 1 - math.clamp(a, 0, 1)
+	end)
 	if own then
 		root:play()
 	end
