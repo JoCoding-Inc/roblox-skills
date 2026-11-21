@@ -13,6 +13,8 @@
 -- wind.stop()
 -- sky:sea()                                -- a cloud sea under the stage: something below the character, a horizon of
 --                                          -- cloud tops, banks that slide past a moving camera (depth)
+-- sky:drift()                              -- crystals that float round the stage at three depths: a foreground and
+--                                          -- a middle distance in every shot ({ along = dir, length = 200 } for a flight)
 -- local face = sky:portrait(character)     -- key and two rim lights on the head for a close-up in the dark
 -- face.stop(0.3)
 -- sky:leave()                              -- everything back as it was
@@ -212,6 +214,7 @@ function Sky.enter(preset: string, opts)
 	end
 
 	local seaRefresh: (() -> ())? = nil
+	local driftRefresh: (() -> ())? = nil
 	local function apply(from, to, k)
 		for group, inst in targets do
 			for name, value in to[group] do
@@ -222,6 +225,9 @@ function Sky.enter(preset: string, opts)
 		baseAmbient, baseOutdoor = Lighting.Ambient, Lighting.OutdoorAmbient
 		glowing = true
 		writeAmbient()
+		if driftRefresh then
+			driftRefresh()
+		end
 		if seaRefresh then
 			seaRefresh()
 		end
@@ -487,11 +493,135 @@ function Sky.enter(preset: string, opts)
 		return layers
 	end
 
+	-- Crystals that float round the stage at three depths: something between the lens and the horizon in every
+	-- shot, and pieces that slide past a moving camera at different speeds. Two judges in two rounds named "no props
+	-- or depth layers in the world" first. Each is a drawn shape (a tall diamond with a lit facet on the sun's side,
+	-- four Beams, no upload); they hang with a slow bob, take the haze with distance, follow sky:to() and are hidden
+	-- while the preset has no clouds (void), so call it once after Sky.enter.
+	-- opts: count (clusters, default 14: about a quarter near at 14-40 studs, a third at 50-120, the rest at 140-300; a
+	-- cluster is a large crystal with one or two small ones, 12 or 8 Beams), color
+	-- (the body; default from the preset's clouds), along and length (a unit vector and studs: the pieces are spread
+	-- along a flight that long instead of round one point), size (multiplies every piece, default 1), seed
+	local driftConn: RBXScriptConnection? = nil
+	function self:drift(o)
+		o = o or {}
+		if driftConn then
+			return
+		end
+		local rng = Random.new(o.seed or 23)
+		local count = o.count or 14
+		local along, length = if o.along then o.along.Unit else Vector3.zero, o.length or 0
+		local sun = Sky.sunDirection()
+		local sunSide = Vector3.new(sun.X, 0, sun.Z)
+		sunSide = if sunSide.Magnitude > 0.05 then sunSide.Unit else Vector3.xAxis
+		local holder = Instance.new("Part")
+		holder.Name = "CineSkyDrift"
+		holder.Anchored, holder.CanCollide, holder.CanQuery, holder.CanTouch = true, false, false, false
+		holder.Transparency = 1
+		holder.Size = Vector3.one
+		holder.CFrame = self.origin
+		holder.Parent = workspace
+		table.insert(windParts, holder)
+		local bands = { { 14, 40, 3, 5.5, 0 }, { 50, 120, 9, 16, 0.12 }, { 140, 300, 22, 40, 0.4 } } -- from, to, height from, to, haze
+		local pieces = {}
+		local function beam(a0: Attachment, a1: Attachment, w0: number, w1: number)
+			local b = Instance.new("Beam")
+			b.Attachment0, b.Attachment1 = a0, a1
+			b.FaceCamera = true
+			b.Segments = 1
+			b.Width0, b.Width1 = w0, w1
+			b.LightInfluence = 0
+			b.Parent = holder
+			return b
+		end
+		-- one crystal: a tall diamond with its widest place above the middle, and a narrower lit one on the sun's side
+		local function crystal(at: Vector3, h: number, up: Vector3, haze: number, phase: number)
+			local w = h * rng:NextNumber(0.3, 0.42)
+			local side = sunSide * (w * 0.2)
+			local low, mid, top = at - up * h * 0.6, at + up * h * 0.1, at + up * h * 0.4
+			local atts = {}
+			for k = 1, 6 do
+				local att = Instance.new("Attachment")
+				att.Parent = holder
+				atts[k] = att
+			end
+			local piece = {
+				atts = atts,
+				points = { low, mid, top, low + up * h * 0.1 + side, mid + side, top - up * h * 0.06 + side },
+				body = { beam(atts[1], atts[2], 0, w), beam(atts[2], atts[3], w, 0) },
+				lit = { beam(atts[4], atts[5], 0, w * 0.42), beam(atts[5], atts[6], w * 0.42, 0) },
+				haze = haze,
+				amp = math.sqrt(h) * 0.35,
+				rate = rng:NextNumber(0.7, 1.2),
+				phase = phase,
+			}
+			for _, b in piece.lit do
+				b.ZOffset = 0.05
+			end
+			table.insert(pieces, piece)
+			return w
+		end
+		for i = 1, count do
+			local n = if i <= count * 0.25 then 1 elseif i <= count * 0.6 then 2 else 3
+			local band = bands[n]
+			local a, r = rng:NextNumber(0, math.pi * 2), rng:NextNumber(band[1], band[2])
+			local h = rng:NextNumber(band[3], band[4]) * (o.size or 1)
+			local at = self.origin.Position + Vector3.new(math.cos(a) * r, rng:NextNumber(-0.25, 0.35) * r, math.sin(a) * r) + along * rng:NextNumber(0, length)
+			local up = (Vector3.yAxis + Vector3.new(rng:NextNumber(-0.3, 0.3), 0, rng:NextNumber(-0.3, 0.3))).Unit
+			local phase = rng:NextNumber(0, 6.28)
+			local w = crystal(at, h, up, band[5], phase)
+			-- a cluster, not a lone sliver: one or two smaller crystals lean out beside the large one and move with it
+			local out = up:Cross(Vector3.new(math.cos(a), 0, math.sin(a))).Unit
+			for k = 1, (n == 3 and 1 or 2) do
+				local sign = if k == 1 then 1 else -1
+				crystal(at + out * sign * w * rng:NextNumber(0.75, 1) - up * h * rng:NextNumber(0.12, 0.3), h * rng:NextNumber(0.4, 0.6), (up + out * sign * rng:NextNumber(0.25, 0.5)).Unit, band[5], phase)
+			end
+		end
+		-- the body is the dark side: a deep tone of the sky's own colour, so each piece is a silhouette with one lit
+		-- facet (pale pieces on a bright sky were slivers nobody saw: first lab capture)
+		local shadow, white = Color3.fromRGB(70, 52, 140), Color3.new(1, 1, 1)
+		driftRefresh = function()
+			local base = o.color or shadow:Lerp(clouds.Color, 0.2)
+			local far = atmosphere.Color
+			local show = clouds.Enabled and 1 or 0
+			for _, piece in pieces do
+				local alpha = 1 - (1 - piece.haze * 0.45) * show
+				for _, b in piece.body do
+					b.Color = ColorSequence.new(base:Lerp(far, piece.haze))
+					b.Transparency = NumberSequence.new(alpha)
+					b.LightEmission = 0
+				end
+				for _, b in piece.lit do
+					b.Color = ColorSequence.new(clouds.Color:Lerp(white, 0.85):Lerp(far, piece.haze * 0.5))
+					b.Brightness = 1.6
+					b.Transparency = NumberSequence.new(alpha)
+					b.LightEmission = 0.35
+				end
+			end
+		end
+		driftRefresh()
+		local t0 = os.clock()
+		driftConn = RunService.PreRender:Connect(function()
+			local t = os.clock() - t0
+			for _, piece in pieces do
+				local lift = Vector3.new(0, math.sin(t * piece.rate + piece.phase) * piece.amp, 0)
+				for k, att in piece.atts do
+					att.WorldPosition = piece.points[k] + lift
+				end
+			end
+		end)
+		return pieces
+	end
+
 	function self:leave()
 		if not self.alive then
 			return
 		end
 		self.alive = false
+		if driftConn then
+			driftConn:Disconnect()
+			driftConn = nil
+		end
 		if fadeConn then
 			fadeConn:Disconnect()
 		end

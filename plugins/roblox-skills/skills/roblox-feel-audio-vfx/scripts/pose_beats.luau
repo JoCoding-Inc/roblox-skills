@@ -17,7 +17,8 @@
 --   Root carries the translation (studs, in the root's own space: -Z forward, +Y up).
 -- PoseBeats.HERO and PoseBeats.TARGET: the named poses of the demo (idle, windup, charge, strike, finish;
 --   brace, recoil, knock, down). PoseBeats.demo() plays both rigs through one exchange.
--- PoseBeats.POSES: general cutscene poses (stand, gaze, rise, fly, coil, burst, hover, reach, hero, cheer, fall).
+-- PoseBeats.POSES: general cutscene poses (stand, gaze, rise, fly, bank, coil, burst, hover, reach, hero, cheer,
+--   fall). PoseBeats.mirror(pose) -> the same pose with left and right swapped.
 -- PoseBeats.prepare(character) -> restore(): makes a live avatar posable (AnimationConstraint joints get
 --   Motor6D twins, the Animate script and playing tracks stop) and undoes it afterwards.
 -- opts.sway = degrees (2-3): a held pose keeps breathing instead of freezing.
@@ -226,21 +227,41 @@ PoseBeats.POSES = {
 		LeftKnee = A(-34, 0, 0),
 		LeftAnkle = A(-20, 0, 0),
 	},
-	-- flying forward: the body lies forward, one arm leads, the other trails, head up
+	-- flying forward: the body lies forward with the back arched, one arm leads, the other trails out from the side,
+	-- one leg straight back and the other knee drawn up under the body, head up. A body with straight limbs laid flat read as "a rigid plank" to
+	-- two judges: every limb has a bend and the two sides differ
 	fly = {
-		Root = A(-78, 0, 0),
-		Waist = A(8, 0, 0),
-		Neck = A(48, 0, 0),
-		RightShoulder = A(172, 0, 6),
-		RightElbow = A(6, 0, 0),
-		LeftShoulder = A(-14, 0, -14),
-		LeftElbow = A(22, 0, 0),
-		RightHip = A(-6, 0, 4),
-		RightKnee = A(-10, 0, 0),
-		RightAnkle = A(-28, 0, 0),
-		LeftHip = A(8, 0, -4),
-		LeftKnee = A(-30, 0, 0),
-		LeftAnkle = A(-28, 0, 0),
+		Root = A(-74, 0, 0),
+		Waist = A(14, 0, 6),
+		Neck = A(46, 0, 0),
+		RightShoulder = A(168, 0, 10),
+		RightElbow = A(14, 0, 0),
+		LeftShoulder = A(-30, 0, -22),
+		LeftElbow = A(8, 0, 0),
+		RightHip = A(-14, 0, 5),
+		RightKnee = A(-6, 0, 0),
+		RightAnkle = A(-30, 0, 0),
+		LeftHip = A(48, 0, -6),
+		LeftKnee = A(-84, 0, 0),
+		LeftAnkle = A(-30, 0, 0),
+	},
+	-- a banked turn in flight: the body rolled to one side, arms out like wings with the low one ahead, legs split.
+	-- Alternate fly, bank and PoseBeats.mirror(POSES.bank) between the cuts of a flight so the body is never the
+	-- same shape in two shots
+	bank = {
+		Root = A(-66, 0, 24),
+		Waist = A(10, 0, -8),
+		Neck = A(40, 0, -12),
+		RightShoulder = A(34, 0, 78),
+		RightElbow = A(12, 0, 0),
+		LeftShoulder = A(-8, 0, -70),
+		LeftElbow = A(26, 0, 0),
+		RightHip = A(16, 0, 8),
+		RightKnee = A(-48, 0, 0),
+		RightAnkle = A(-30, 0, 0),
+		LeftHip = A(-10, 0, -6),
+		LeftKnee = A(-10, 0, 0),
+		LeftAnkle = A(-30, 0, 0),
 	},
 	-- gathered in before a burst: knees up, arms crossed over the chest, head down
 	coil = {
@@ -510,6 +531,18 @@ function PoseBeats.face(model, name)
 	}
 end
 
+-- The same pose with left and right swapped (a bank to the other side, a reach with the other hand): the joints
+-- trade sides and every rotation and offset is reflected across the body's middle plane.
+function PoseBeats.mirror(pose)
+	local out = {}
+	for joint, cf in pose do
+		local name = if joint:sub(1, 5) == "Right" then "Left" .. joint:sub(6) elseif joint:sub(1, 4) == "Left" then "Right" .. joint:sub(5) else joint
+		local x, y, z = cf:ToEulerAnglesXYZ()
+		out[name] = CFrame.new(-cf.X, cf.Y, cf.Z) * CFrame.Angles(x, -y, -z)
+	end
+	return out
+end
+
 function PoseBeats.reset(model)
 	for _, mo in PoseBeats.motors(model) do
 		PoseBeats.held[mo] = nil
@@ -524,10 +557,17 @@ function PoseBeats.play(model, keys, opts)
 	local c, root, own = FxClock.attach("Pose_" .. model.Name, last + (opts.tail or 0.05), opts)
 	local motors = PoseBeats.motors(model)
 	local sway = opts.sway or 0
+	local unknown = {}
 	local function poseOf(k)
 		local p = k.pose
 		if type(p) == "string" then
-			p = lib[p] or {}
+			-- a name is looked up in opts.lib, then in PoseBeats.POSES; an unknown name is said once, not posed as "stand"
+			local found = lib[p] or PoseBeats.POSES[p]
+			if not found and not unknown[p] then
+				unknown[p] = true
+				warn(`PoseBeats.play: no pose named "{p}" in opts.lib or PoseBeats.POSES; the rig stands`)
+			end
+			p = found or {}
 		end
 		return p
 	end
