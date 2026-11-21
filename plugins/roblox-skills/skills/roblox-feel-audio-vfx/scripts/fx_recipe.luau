@@ -93,7 +93,8 @@
 -- A burst or stream takes locked (true: its particles move with their anchor: a glow that rides on a moving body).
 -- A locked stream takes clear (true: while following, it shrinks once a surface below or ahead of the anchor is
 -- nearer than its radius, so the floor never cuts a big glow in a straight line; a particle has no soft edge where
--- it crosses a surface). The rays skip the effect's own parts and opts.ignore (travel passes its body).
+-- it crosses a surface). The rays skip the effect's own parts and opts.ignore (travel passes its body). A light
+-- takes clear too: riding ahead of a moving body it dims as it nears a surface and is out when it gets there.
 -- A kind for what an effect leaves behind:
 --   mark : at, dur, r0, r1 (radius at birth and after `grow` s), grow, alpha {{u, transparency}, ...} over dur,
 --          color (key | {{u, key}, ...} over dur), glow (true: lit by itself, so it reads on a dark floor; a colour
@@ -143,12 +144,21 @@ FxRecipe.palettes = {
 	earth = { white = C(255, 248, 230), hot = C(240, 205, 150), mid = C(190, 130, 70), deep = C(140, 70, 30), dark = C(48, 32, 20), smoke0 = C(92, 80, 68), smoke1 = C(165, 152, 138), light = C(255, 215, 160) },
 }
 
--- Layer templates: each returns a fresh layer table; pass a table of fields to override.
+-- Layer templates: each returns a fresh layer table; pass a table of fields to override. A layer keeps one start,
+-- from for a stream and at for every other kind: a stream made from a burst template drops the template's at (and a
+-- burst made from a stream template its from), so code that reads a layer's start (l.from or l.at) gets the real one
 local function layer(base)
 	return function(over)
 		local l = table.clone(base)
 		for k, v in over or {} do
 			l[k] = v
+		end
+		if l.kind == "stream" then
+			if not (over and over.at) then
+				l.at = nil
+			end
+		elseif not (over and over.from) then
+			l.from = nil
 		end
 		return l
 	end
@@ -540,12 +550,16 @@ FxRecipe.recipes = {
 			L.light({ name = "HotSpot", at = 0.4, up = 0.5, peak = 8, range = 7, dur = 3.2, shape = { { 0, 1 }, { 0.017, 0.3 }, { 0.039, 0.1 }, { 0.338, 0.14 }, { 0.569, 0.07 }, { 1, 0 } }, flicker = 0.35, color = { { 0, "hot" }, { 0.084, "hot" }, { 0.281, "mid" }, { 0.563, "mid" }, { 1, "deep" } } }),
 			-- no flat glow or scorch under the release: 15-40 studs wide at scale 2.6, their soft-circle texture showed its
 			-- square edge as a flat card on the contact frame; the lights draw the floor's answer
-			L.fireball({ at = 0.42, up = 1.5, count = 7, emission = 1, size = { { 0, 3, 0.5 }, { 1, 7, 0.8 } } }),
+			-- fire lumps over the upper half only (spread 80, lifted): thrown every way, half went into the floor and the fire's
+			-- base was cut flat, a box
+			L.fireball({ at = 0.42, up = 2, count = 7, spread = 80, emission = 1, size = { { 0, 3, 0.5 }, { 1, 7, 0.8 } } }),
 			-- no floor rings: drawn flat on the floor they read as a UI ring or a target, and broken arcs as a decal; the dust
 			-- thrown out along the floor carries the shock. Chips in a wide cone, hot not white (40 white streaks in a 28 degree
-			-- cone read as a bundle of needles)
-			L.debris({ at = 0.43, count = 26, speed = { 30, 75 }, spread = 45, accel = { 0, -95, 0 }, squash = { { 0, 1 }, { 1, 0.4 } }, size = { { 0, 0.4, 0.1 }, { 1, 0.15 } }, color = { { 0, "hot" }, { 0.4, "mid" }, { 1, "deep" } } }),
-			L.sparks({ at = 0.43, up = 1, count = 30, speed = { 30, 60 }, spread = 75, drag = 5, accel = { 0, -30, 0 } }),
+			-- cone read as a bundle of needles), as glowing dots (streaks that cooled to red read as thin red needles). Sparks
+			-- on the flash's own frame, so the contact reads as a burst of spikes and not as a soft white ball; fast, with no
+			-- drag or gravity, hot to the end and gone in 0.14 s (slowed and cooled, the template's streaks stood as tan sticks)
+			L.debris({ at = 0.43, count = 26, slot = "glow", along = false, squash = false, rotation = 0, speed = { 30, 75 }, spread = 45, accel = { 0, -95, 0 }, size = { { 0, 0.3, 0.08 }, { 1, 0.1 } }, color = { { 0, "hot" }, { 0.5, "mid" }, { 1, "deep" } } }),
+			L.sparks({ at = 0.4, up = 1, count = 30, speed = { 35, 75 }, spread = 75, drag = 0, accel = { 0, 0, 0 }, life = { 0.08, 0.14 }, size = { { 0, 1.2, 0.2 }, { 1, 0.5 } }, color = "hot" }),
 			-- dust lifted (big puffs centred low were cut by the floor in a straight line) and drawn under the fire: pulled
 			-- toward the camera, dark dust covered the burst as a black blob
 			L.dust({ at = 0.45, count = 28, speed = { 18, 30 }, up = 0.8, z = 0 }),
@@ -554,14 +568,17 @@ FxRecipe.recipes = {
 			-- fountain 0.42-1.4
 			L.flames({ from = 0.42, to = 1.35, emission = 1, settle = 0.4 }),
 			L.flames({ name = "FlamesWide", from = 0.45, to = 1.1, rate = 22, disc = { 4.5, 1 }, speed = { 10, 18 }, emission = 1, size = { { 0, 1.2, 0.3 }, { 1, 3, 0.5 } } }),
-			L.debris({ name = "Spit", kind = "stream", from = 0.5, to = 1.3, rate = 45, disc = { 2, 1 }, speed = { 30, 55 }, spread = 22, accel = { 0, -80, 0 } }),
+			-- the fountain spits chips as glowing dots too: streaks thrown up and slowed by gravity stood in the fire as
+			-- white sticks
+			L.debris({ name = "Spit", kind = "stream", from = 0.5, to = 1.3, rate = 45, slot = "glow", along = false, squash = false, rotation = 0, disc = { 2, 1 }, speed = { 30, 55 }, spread = 22, accel = { 0, -80, 0 }, size = { { 0, 0.3, 0.08 }, { 1, 0.1 } }, color = { { 0, "hot" }, { 0.5, "mid" }, { 1, "deep" } } }),
 			-- amber over the fountain: from hot to the fire's mid as it dies, flickering, out with the last flames
 			L.light({ name = "FountainLight", at = 0.6, up = 3, peak = 3.5, range = 12.1, dur = 1.6, hold = true, ramp = { 0.15, 0.45 }, flicker = 0.15, soft = true, color = { { 0, "hot" }, { 1, "mid" } } }),
 			-- tail: the fountain sinks to its base (settle) and a bed of low flames outlasts it; coals cool on the floor and the
 			-- hot spot dies after the fire, so it ends in steps (everything gone in one tenth of a second read as a cut)
 			L.flames({ name = "Dying", from = 0.9, to = 1.95, rate = 22, disc = { 2.4, 1 }, up = 0.3, speed = { 3, 8 }, life = { 0.3, 0.45 }, emission = 1, size = { { 0, 1.1, 0.2 }, { 1, 2, 0.3 } }, settle = 0.5, ramp = { 0.2, 0.45 } }),
 			L.smoke({ kind = "stream", name = "Plume", from = 0.6, to = 2.5, rate = 6, up = 2, disc = { 2.5, 1 }, speed = { 6, 11 }, spread = 14, life = { 0.7, 1.3 }, size = { { 0, 2, 0.4 }, { 1, 5, 0.8 } }, alpha = { { 0, 1 }, { 0.15, 0.5 }, { 1, 1 } }, settle = 0.45, ramp = { 0.15, 0.5 } }),
-			L.embers({ kind = "stream", name = "Coals", from = 0.5, to = 1.8, rate = 22, slot = "glow", along = false, squash = { { 0, 0.4 }, { 1, 0.25 } }, rotation = { 0, 360 }, up = 0.2, disc = { 3.2, 1 }, life = { 1.2, 2.0 }, speed = { 0.05, 0.1 }, spread = 0, drag = 0, accel = { 0, 0, 0 }, size = { { 0, 0.26, 0.08 }, { 0.7, 0.2 }, { 1, 0.1 } }, alpha = { { 0, 0.15 }, { 0.75, 0.35 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.45, "deep" }, { 1, "deep" } }, brightness = 2, z = 0.3 }),
+			-- coals lying level: wider than tall (negative squash), unturned; round they read as beads, turned at random as petals
+			L.embers({ kind = "stream", name = "Coals", from = 0.5, to = 1.8, rate = 22, slot = "glow", along = false, squash = { { 0, -0.6 }, { 1, -0.4 } }, rotation = 0, up = 0.2, disc = { 3.2, 1 }, life = { 1.2, 2.0 }, speed = { 0.05, 0.1 }, spread = 0, drag = 0, accel = { 0, 0, 0 }, size = { { 0, 0.26, 0.08 }, { 0.7, 0.2 }, { 1, 0.1 } }, alpha = { { 0, 0.15 }, { 0.75, 0.35 }, { 1, 1 } }, color = { { 0, "mid" }, { 0.45, "deep" }, { 1, "deep" } }, brightness = 2, z = 0.3 }),
 			-- embers as small round dots: streaks rising slowly read as sticks standing on the floor
 			L.embers({ from = 0.5, to = 1.85, rate = 70, slot = "glow", along = false, squash = false, rotation = 0, disc = { 5, 1 }, up = 0.5, speed = { 8, 18 }, spread = 25, size = { { 0, 0.2, 0.06 }, { 1, 0.05 } }, color = { { 0, "hot" }, { 1, "mid" } }, brightness = 3 }),
 		},
@@ -592,7 +609,7 @@ FxRecipe.recipes = {
 			L.sparks({ kind = "stream", name = "Sparks", from = 0, to = "end", rate = 10, density = 3, ramp = { 0.05, 0 }, path = 0.5, life = { 0.2, 0.35 }, speed = { 6, 14 }, spread = 30, drag = 1, accel = { 0, -6, 0 }, size = { { 0, 0.35, 0.1 }, { 1, 0 } }, alpha = { { 0, 1 }, { 0.1, 1 }, { 0.14, 0 }, { 1, 0 } }, color = { { 0, "white" }, { 0.3, "hot" }, { 1, "hot" } }, emission = 1, brightness = 3 }),
 			L.wisps({ name = "Embers", from = 0, to = "end", rate = 20, density = 2.5, ramp = { 0.05, 0 }, path = 0.8, up = 0, disc = false, life = { 0.5, 0.9 }, speed = { 5, 12 }, spread = 180, drag = 1.5, accel = { 0, -8, 0 }, size = { { 0, 0.2, 0.05 }, { 1, 0 } }, color = { { 0, "hot" }, { 1, "mid" } }, alpha = { { 0, 0 }, { 0.8, 0.1 }, { 1, 1 } }, emission = 1, brightness = 3 }),
 			L.smoke({ kind = "stream", name = "Smoke", from = 0, to = "end", rate = 0, density = 1.2, ramp = { 0.05, 0 }, path = 0.6, up = 1.2, len = 34, life = { 0.6, 2.0 }, speed = { 0.5, 1.5 }, spread = 30, drag = 2, accel = { 0, 0.5, 0 }, size = { { 0, 1, 0.2 }, { 1, 3, 0.4 } }, alpha = { { 0, 1 }, { 0.25, 1 }, { 0.4, 0.45 }, { 0.8, 0.6 }, { 1, 1 } }, color = "smoke1", z = 0 }),
-			L.light({ at = 0, up = -1.6, dur = "end", peak = 3, range = 9, hold = true, ramp = { 0.05, 0 }, color = "mid" }),
+			L.light({ at = 0, up = -1.6, dur = "end", peak = 3, range = 9, hold = true, ramp = { 0.05, 0 }, clear = true, color = "mid" }),
 		},
 	},
 	-- an energy trail (a bolt, a magic missile): a white-hot core, a saturated glow around it, sparks and glints;
@@ -878,7 +895,8 @@ function FxRecipe.play(recipe, target, opts)
 	local reach = 0
 	for _, l in recipe.layers do
 		if l.clear then
-			reach = math.max(reach, halfOf(l.size) * s)
+			-- a light needs room for its lead ahead of the anchor and for its fade
+			reach = math.max(reach, if l.kind == "light" then math.max(-(l.up or 0), 0) * s + l.range * math.sqrt(s) * 0.5 else halfOf(l.size) * s)
 		end
 	end
 	local rays = if reach > 0 and follow then RaycastParams.new() else nil
@@ -1285,6 +1303,25 @@ function FxRecipe.play(recipe, target, opts)
 					else l.peak * (1 - u) ^ 2
 				if l.flicker then
 					b *= math.max(0, 1 + 2 * l.flicker * math.noise(t * 11, l.at * 7.3 + 0.5))
+				end
+				if l.clear and rays then
+					-- clear: it dims as it nears a surface below or ahead of it and is out when it gets there (a light that
+					-- rode into the floor lit it as a red band with a hard edge on the contact frame)
+					local at, here, fade = holder.WorldPosition, p + shift, l.range * math.sqrt(s) * 0.5
+					local k = 0
+					if not workspace:Raycast(here, at - here, rays) then
+						local near = fade
+						local down = workspace:Raycast(at, Vector3.new(0, -fade, 0), rays)
+						if down then
+							near = at.Y - down.Position.Y
+						end
+						local ahead = workspace:Raycast(at, -spray * fade, rays)
+						if ahead then
+							near = math.min(near, (at - ahead.Position):Dot(ahead.Normal))
+						end
+						k = math.clamp(near / fade, 0, 1)
+					end
+					b *= k * k
 				end
 				for _, x in lights do
 					x[1].Brightness = b * x[2]
