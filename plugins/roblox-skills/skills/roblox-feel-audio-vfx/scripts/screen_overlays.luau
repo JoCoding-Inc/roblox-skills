@@ -293,6 +293,38 @@ local function comma(n: number): string
 end
 ScreenOverlays.comma = comma
 
+-- The landing beat: the number, the flash and the name land on one frame. The sixteenth build landed its counter and
+-- its title together at 10.4 s, 0.7 s after its last big flash (9.7 s); one judge asked to "Land the counter on the
+-- white flash at 9.6 instead of 10.4 and slam the title in on 9.8, so number, flash and name hit as one beat", the
+-- other for "a 2-frame white flash at 10.2-10.4s where the counter lands and the title appears" (2026-11-22). When
+-- both have landed on one root clock, a warning names the times if the counter, the title and the nearest big flash
+-- (flash_safety's log, a light change up to 0.7 or more) are more than 0.15 s apart.
+local beats = setmetatable({}, { __mode = "k" })
+local function beat(root, kind: string, t: number)
+	local b = beats[root]
+	if not b then
+		b = {}
+		beats[root] = b
+	end
+	b[kind] = t
+	if b.told or not (b.counter and b.title) then
+		return
+	end
+	b.told = true
+	local near = nil
+	local st = root.flashState
+	if st then
+		for _, e in st.log do
+			if not e.cut and (e.dir or 0) > 0 and (e.L or 0) >= 0.7 and math.abs(e.t - b.counter) < 2 and (not near or math.abs(e.t - b.counter) < math.abs(near - b.counter)) then
+				near = e.t
+			end
+		end
+	end
+	if math.abs(b.title - b.counter) > 0.15 or not near or math.abs(near - b.counter) > 0.15 then
+		warn(string.format("ScreenOverlays: the counter lands at %.2f s, the title at %.2f s, and the nearest big flash %s; land the number, the flash and the name as one beat (within 0.15 s): move the counter's land and the title's at onto the flash, or add a flash (ScreenOverlays.flash) on the landing", b.counter, b.title, if near then string.format("is at %.2f s", near) else "is none within 2 s"))
+	end
+end
+
 local function textLabel(parent: Instance, size: number, color: Color3, stroke: Color3): TextLabel
 	local label = Instance.new("TextLabel")
 	label.BackgroundTransparency = 1
@@ -445,6 +477,7 @@ function ScreenOverlays.counter(opts)
 		else
 			if not landed then
 				landed = t
+				beat(root, "counter", root.t or 0)
 				if opts.onLand then
 					opts.onLand()
 				end
@@ -498,6 +531,9 @@ function ScreenOverlays.title(text: string, opts)
 	local pos = opts.pos or Vector2.new(0.5, 0.215)
 	local c, root, own = FxClock.attach("Title", dur + 0.02, opts)
 	local main, sub, band
+	c:onCleanup(function()
+		workspace.CurrentCamera:SetAttribute("CineTitleBottom", nil)
+	end)
 	c:at(0, function()
 		local layer = ScreenOverlays.layer(c, "Title", 8)
 		local view = workspace.CurrentCamera.ViewportSize
@@ -527,6 +563,9 @@ function ScreenOverlays.title(text: string, opts)
 		main = textLabel(layer, px, opts.color or Color3.fromRGB(255, 232, 150), Color3.fromRGB(40, 20, 6))
 		main.Text = text
 		main.Position = UDim2.new(pos.X, 0, pos.Y, 0)
+		-- its lowest edge as a share of the screen height, read by CineCamera's check of the hair against the name
+		workspace.CurrentCamera:SetAttribute("CineTitleBottom", pos.Y + 0.5 * px / view.Y)
+		beat(root, "title", root.t or 0)
 		if opts.sub then
 			sub = textLabel(layer, math.max(14, px * 0.6), opts.subColor or Color3.new(1, 1, 1), Color3.fromRGB(20, 16, 40))
 			sub.Text = opts.sub

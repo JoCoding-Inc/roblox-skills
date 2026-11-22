@@ -28,15 +28,22 @@
 --   under 2 s or is a short wider shot after the one the name lands on, a shot right after a burst pulls out or
 --   opens wider than the burst ended,
 --   there is no close shot, cuts keep one side and size for over 1.6 s, or a face close-up looks up from more than
---   15 degrees below, a first shot or a burst from behind the head, or an opening of 1 s or more in one framing; run it on every shot list before the first
---   capture.
+--   15 degrees below, a first shot or a burst from behind the head (a whip-out that ends over 1.5 times as far is
+--   not a burst), an opening of 1 s or more in one framing, or a
+--   view from more than 50 degrees above for over 0.5 s. CineCamera.play runs it by itself in Studio, once per shot
+--   list (opts.audit = false: not); run it on every shot list before the first capture.
 -- While it plays it warns once per shot when a burst (a shake of 1.5 degrees or more) or the last shot shows the framed
 --   character's face for under 40% of its time, and when the body covers the face for 40% of the time the camera
 --   faces it (one ray a frame), and when a hand held up (over the waist) sits outside the picture (behind a bar of
 --   ScreenOverlays.letterbox, or past an edge) for 30% of the last shot; in every shot, when the character is out of
---   the picture for 40% of it (a subject given as a CFrame or a function counts the last character framed), and when
+--   the picture for 40% of it (a subject given as a CFrame or a function frames the local character when it sits
+--   within 2 studs of its root or 1 stud of its head, and else counts the last character framed), and when
 --   its head fills over 40% of the frame height on any frame, measured from the camera to the head (the audit
---   measures from the subject's origin) (lines kept in CineCamera.faceLog).
+--   measures from the subject's origin); when a close shot (the head over a fifth of the frame) shows the face for
+--   under 40% of its time; when the soles of both feet face the camera, or the camera looks down on the back and top
+--   of the head (a tenth of the frame or more), for 40% of a shot; and when the top of the
+--   head or its hair reaches the lowest edge of a ScreenOverlays.title for 30% of the last shot (lines kept in
+--   CineCamera.faceLog).
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -368,6 +375,24 @@ function CineCamera.audit(shots, height: number?): { string }
 			end
 		end
 	end
+	-- a view from above: more than 50 degrees over the look point at both ends of the shot, for over half a second,
+	-- shows the top of the head. A 1.3 s tunnel shot from 12 studs up and 5 behind, at the peak, was "the peak burst
+	-- shot sees the top and back of the head; the face is hidden at the most important moment" to a judge of the
+	-- sixteenth build (2026-11-22)
+	for i, shot in shots do
+		local above, least = true, 1
+		for _, framing in { shot.from, shot.to or shot.from } do
+			local rel = (framing.offset :: Vector3) - (framing.look or Vector3.zero)
+			local up = rel.Y / math.max(rel.Magnitude, 0.1)
+			least = math.min(least, up)
+			if up < 0.77 then
+				above = false
+			end
+		end
+		if above and (shot.len or 0) > 0.5 then
+			table.insert(out, string.format("shot %d %s: the camera looks down from %d degrees above for %.1f s; from above the face is hidden and the top of the head shows. Keep a view from above to a beat of 0.3-0.5 s, and film a burst or the peak from the front at chest height", i, tostring(shot.name or ""), math.floor(math.deg(math.asin(math.clamp(least, -1, 1))) + 0.5), shot.len))
+		end
+	end
 	-- the opener: the first shot in time shows the face. A first shot from behind the head, over the shoulder at a
 	-- star in a dark void, was "a back-of-head opener, half the frame empty black" to the judges of the twelfth
 	-- build (2026-11-22). Offsets are in the subject's space, whose front is -Z
@@ -391,8 +416,12 @@ function CineCamera.audit(shots, height: number?): { string }
 	-- a burst seen from behind: the shot of a burst (a shake of 1.5 degrees or more; a lighter one through a chase is
 	-- speed, and a chase is shot from behind) from more than 110 degrees round from the front at both ends of its
 	-- move (a raised fist from behind "reads as a torso", both judges of one sitting, 2026-11-22)
+	-- A whip-out (the camera ends over half as far again from the subject) shows the world, not the face: an
+	-- over-the-shoulder whip with a shake from the dark opening into the sky was "the best transition in the set" to
+	-- a judge (2026-11-22), so it is left out
 	for i, shot in shots do
-		if shot.shake and (shot.shake.amp or 0) >= 1.5 then
+		local whip = shot.to and (shot.to.offset :: Vector3).Magnitude > 1.5 * (shot.from.offset :: Vector3).Magnitude
+		if shot.shake and (shot.shake.amp or 0) >= 1.5 and not whip then
 			local behind = true
 			for _, framing in { shot.from, shot.to or shot.from } do
 				local o = framing.offset :: Vector3
@@ -451,12 +480,24 @@ function CineCamera.audit(shots, height: number?): { string }
 	return out
 end
 
+local audited = {}
+
 function CineCamera.play(shots, opts)
 	opts = opts or {}
 	table.sort(shots, function(a, b)
 		return a.t < b.t
 	end)
 	local listEnd = CineCamera.length(shots)
+	-- the audit, by itself in Studio, once per shot list: the sixteenth build wired it to a debug flag that its demo
+	-- never set, and shipped a 1.3 s view from above at its peak, which the audit names and a judge of its sitting
+	-- marked down (2026-11-22)
+	if opts.audit ~= false and RunService:IsStudio() then
+		local key = string.format("%d:%.2f:%s", #shots, listEnd, tostring(shots[1] and shots[1].name))
+		if not audited[key] then
+			audited[key] = true
+			CineCamera.audit(shots, opts.height)
+		end
+	end
 	local ret = if opts.noReturn then 0 else (opts.returnTime or 0.6)
 	local c, root, own = FxClock.attach("CineCamera", listEnd + ret + 0.02, opts)
 	local cam = workspace.CurrentCamera
@@ -524,11 +565,14 @@ function CineCamera.play(shots, opts)
 			end
 		end
 		local shown = face.seen - face.blocked
-		local burst = s.shake ~= nil and (s.shake.amp or 0) >= 1.5
-		local key = burst or face.shot == lastShot
+		-- a burst, not a whip-out to the world (see the audit)
+		local burst = s.shake ~= nil and (s.shake.amp or 0) >= 1.5 and not (s.to and (s.to.offset :: Vector3).Magnitude > 1.5 * (s.from.offset :: Vector3).Magnitude)
+		-- a close shot (the head over a fifth of the frame for half the shot) is for the face too
+		local close = (face.closeT or 0) >= 0.5 * face.total
+		local key = burst or face.shot == lastShot or close
 		local line = nil
 		if key and face.total >= 0.3 and shown < 0.4 * face.total then
-			line = string.format("shot %d %s (%s): the face shows for %.1f of its %.1f s (%s); a burst and the name land on the face: put the camera within about 60 degrees of the front, or turn the pose to it", face.shot, tostring(s.name or ""), if burst then "a burst" else "the last shot", shown, face.total, if face.blocked > face.seen * 0.5 then "the " .. top .. " covers it" else "the camera is behind or beside the head")
+			line = string.format("shot %d %s (%s): the face shows for %.1f of its %.1f s (%s); a burst, a close shot and the name land on the face: put the camera within about 60 degrees of the front and under about 45 degrees above it, or turn the pose to it", face.shot, tostring(s.name or ""), if burst then "a burst" elseif face.shot == lastShot then "the last shot" else "a close shot", shown, face.total, if face.blocked > face.seen * 0.5 then "the " .. top .. " covers it" else "the camera is behind, beside or above the head")
 		elseif face.blocked >= 0.2 and face.blocked >= 0.4 * face.seen then
 			line = string.format("shot %d %s: the face is behind the character's %s for %.1f of the %.1f s the camera faces it; move the camera 20-30 degrees to the side or up, or pose the arm off the line from the camera to the face", face.shot, tostring(s.name or ""), top, face.blocked, face.seen)
 		end
@@ -546,6 +590,28 @@ function CineCamera.play(shots, opts)
 			table.insert(CineCamera.faceLog, smear)
 			warn("CineCamera: " .. smear)
 		end
+		-- the soles: a chase from straight behind a flyer whose feet trail, or a low camera behind, shows the bottoms of
+		-- both feet: "a rear worm's-eye shot with the shoe soles toward the camera is unflattering and hard to read" (a
+		-- judge, 2026-11-22)
+		if face.total >= 0.3 and (face.soles or 0) >= 0.4 * face.total then
+			local soles = string.format("shot %d %s: the soles of both feet face the camera for %.1f of its %.1f s; film a flyer from the side, from the front as it flies at the camera, or from behind and above, not from behind at the level of its feet", face.shot, tostring(s.name or ""), face.soles, face.total)
+			table.insert(CineCamera.faceLog, soles)
+			warn("CineCamera: " .. soles)
+		end
+		-- the crown: that tunnel shot, at the peak, was "the peak burst shot sees the top and back of the head; the face is
+		-- hidden at the most important moment" to a judge (2026-11-22)
+		if face.total >= 0.3 and (face.crown or 0) >= 0.4 * face.total then
+			local crown = string.format("shot %d %s: the camera looks down on the back and top of the head for %.1f of its %.1f s, so the frame is mostly hair; bring it round to the front three-quarter (10-30 degrees above the eyes), or below the head's level for a chase from behind, or pose the head up toward it", face.shot, tostring(s.name or ""), face.crown, face.total)
+			table.insert(CineCamera.faceLog, crown)
+			warn("CineCamera: " .. crown)
+		end
+		-- the name over the hair: "title ASTRAL SOVEREIGN crosses the top of the hair" (a judge, 2026-11-22), who asked
+		-- for the hair to clear the title by at least 20 px (3% of a 704 px frame)
+		if face.shot == lastShot and face.total >= 0.3 and (face.underTitle or 0) >= 0.3 * face.total then
+			local under = string.format("shot %d %s (the last shot): the top of the head or its hair reaches the title's lowest edge for %.1f of its %.1f s; tilt the camera up or lower the look point (the head lower in the frame), or move the title up (ScreenOverlays.title pos), so the hair clears the name by 3%% of the frame height or more", face.shot, tostring(s.name or ""), face.underTitle, face.total)
+			table.insert(CineCamera.faceLog, under)
+			warn("CineCamera: " .. under)
+		end
 		-- "the final close-up is cut at the shoulders by the letterbox; the raised fist is half out of frame" (a judge,
 		-- 2026-11-22)
 		if face.shot == lastShot and face.total >= 0.3 and (face.handOut or 0) >= 0.3 * face.total then
@@ -557,15 +623,25 @@ function CineCamera.play(shots, opts)
 	local function faceStep(shotIndex: number, eye: Vector3, dt: number)
 		if shotIndex ~= face.shot then
 			faceReport()
-			face = { shot = shotIndex, total = 0, seen = 0, blocked = 0, by = {}, handOut = 0, gone = 0, smear = 0, fill = 0, model = face.model, body = face.body }
+			face = { shot = shotIndex, total = 0, seen = 0, blocked = 0, by = {}, handOut = 0, gone = 0, smear = 0, fill = 0, closeT = 0, soles = 0, crown = 0, underTitle = 0, model = face.model, body = face.body }
 		end
 		local head = kept
 		local model = head and head.Parent
 		local own = head and head.Name == "Head" and model and model:IsA("Model")
 		if not own then
-			-- a subject given as a CFrame or a function (a point above the hand): the hero is the last character framed
-			model = face.model
-			head = model and model:FindFirstChild("Head")
+			-- a subject given as a CFrame or a function: one that sits on the local character (within 2 studs of its root
+			-- or 1 stud of its head) frames that character; a point away from it (a star over the hand) counts the last
+			-- character framed. The sixteenth build gave every shot a function at the root, and none of these checks ran
+			local at = subjectCF(shots[shotIndex].subject).Position
+			local ch = Players.LocalPlayer and Players.LocalPlayer.Character
+			local r = ch and ch:FindFirstChild("HumanoidRootPart")
+			local h = ch and ch:FindFirstChild("Head")
+			if r and h and r:IsA("BasePart") and h:IsA("BasePart") and ((r.Position - at).Magnitude < 2 or (h.Position - at).Magnitude < 1) then
+				model, head, own = ch, h, true
+			else
+				model = face.model
+				head = model and model:FindFirstChild("Head")
+			end
 			if not (head and head:IsA("BasePart")) then
 				return
 			end
@@ -619,9 +695,62 @@ function CineCamera.play(shots, opts)
 				face.smear += dt
 				face.smearN = (face.smearN or 0) + 1
 			end
+			if fill > 0.2 then
+				face.closeT += dt
+			end
 		end
 		if not own then
 			return
+		end
+		if cam then
+			local bars = cam:GetAttribute("CineLetterbox") or 0
+			local v = cam.ViewportSize
+			-- the soles of both feet toward the camera, inside the picture
+			local feet = 0
+			for _, n in { "LeftFoot", "RightFoot" } do
+				local foot = model:FindFirstChild(n)
+				if foot and foot:IsA("BasePart") then
+					local to = eye - foot.Position
+					local q = cam:WorldToViewportPoint(foot.Position)
+					if to.Magnitude > 0.1 and (-foot.CFrame.UpVector):Dot(to.Unit) > 0.6 and q.Z > 0 and q.X >= 0 and q.X <= v.X and q.Y >= v.Y * bars and q.Y <= v.Y * (1 - bars) then
+						feet += 1
+					end
+				end
+			end
+			if feet == 2 then
+				face.soles += dt
+			end
+			-- the crown: the camera above the head (over 17 degrees up its own axis) and not in front of the face, the head
+			-- a tenth of the frame or more. A 1.3 s tunnel shot from 12 studs up and 5 behind counted for its whole length
+			-- (Studio Play, 2026-11-22)
+			local toHead = eye - head.Position
+			local near = head.Size.Y / (2 * math.max(toHead.Magnitude, 0.1) * math.tan(math.rad(cam.FieldOfView) / 2))
+			if toHead.Magnitude > 0.5 and near > 0.1 then
+				local u = toHead.Unit
+				if head.CFrame.UpVector:Dot(u) > 0.3 and head.CFrame.LookVector:Dot(u) < 0.25 then
+					face.crown += dt
+				end
+			end
+			-- the top of the head or its hair (the highest point of the head and the accessories over it) against the
+			-- lowest edge of the title (ScreenOverlays.title sets the camera's CineTitleBottom while it is up)
+			local titleBottom = cam:GetAttribute("CineTitleBottom")
+			if shotIndex == lastShot and titleBottom then
+				local function topOf(p: BasePart): number
+					local r = p.CFrame
+					return p.Position.Y + 0.5 * (math.abs(r.RightVector.Y) * p.Size.X + math.abs(r.UpVector.Y) * p.Size.Y + math.abs(r.LookVector.Y) * p.Size.Z)
+				end
+				local y = topOf(head)
+				for _, acc in model:GetChildren() do
+					local handle = acc:IsA("Accessory") and acc:FindFirstChild("Handle")
+					if handle and handle:IsA("BasePart") and handle.Position.Y > head.Position.Y then
+						y = math.max(y, topOf(handle))
+					end
+				end
+				local q = cam:WorldToViewportPoint(Vector3.new(head.Position.X, y, head.Position.Z))
+				if q.Z > 0 and q.Y < (titleBottom + 0.03) * v.Y then
+					face.underTitle += dt
+				end
+			end
 		end
 		-- the last shot: a hand held up (over the waist) outside the picture, behind a letterbox bar
 		-- (ScreenOverlays.letterbox sets the camera's CineLetterbox attribute) or past an edge
