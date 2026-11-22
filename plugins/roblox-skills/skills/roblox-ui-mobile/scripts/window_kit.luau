@@ -2373,6 +2373,27 @@ function Kit.stamp(label: GuiObject, hold: number?, done: (() -> ())?, options: 
 		end
 	end
 	Kit.clamp(label)
+	-- off the window's middle and over its buttons with nothing dimmed: a banner left-aligned over a row of talent
+	-- nodes was "a flat bar ... the weakest-looking element in the window at the biggest moment" and "covers the
+	-- branch nodes" (both judges of a sitting, 2026-11-22)
+	if over and not host and not stampWarned[label.Name .. "/place"] then
+		local p, z = over.AbsolutePosition, over.AbsoluteSize
+		local q, w = label.AbsolutePosition, label.AbsoluteSize
+		local off = (q.X + w.X / 2) - (p.X + z.X / 2)
+		local covered = 0
+		for _, d in over:GetDescendants() do
+			if d:IsA("GuiButton") and d.Visible and not d:IsDescendantOf(label) then
+				local a, sz = d.AbsolutePosition, d.AbsoluteSize
+				if a.X < q.X + w.X and a.X + sz.X > q.X and a.Y < q.Y + w.Y and a.Y + sz.Y > q.Y then
+					covered += 1
+				end
+			end
+		end
+		if math.abs(off) > 0.1 * z.X or covered > 0 then
+			stampWarned[label.Name .. "/place"] = true
+			warn(("WindowKit: the stamp %s lands %d px %s of the middle of %s over %d button(s); centre the banner of the moment on the window (or just under what it names), dress it in the window's own material, and pass options.dim = the window so what it covers darkens"):format(label.Name, math.floor(math.abs(off)), if off < 0 then "left" else "right", over.Name, covered))
+		end
+	end
 	local home = label.Position
 	if host then
 		local old = host:FindFirstChild("Dim")
