@@ -52,18 +52,19 @@ Measured in one game: a 48 s first-join intro was finished by everyone who watch
 
 A worked skill cutscene (shot table, impact frames, dark beat, flash cap counted in code, element scripts and capture strips): `roblox-feel-audio-vfx` section 3e; its 3-per-second flash cap is how a skill cutscene meets rule 10.
 
-### 3a. Script recipe (client; syntax checked with luau-analyze, not run in a live playtest, so adapt and test)
+### 3a. Script recipe (client; run once in Studio Play in the Device Simulator on 2026-11-22: a two-shot film skipped at 1 s, then played to the end, put back the camera, the touch controls and the speeds both times; the death and respawn paths were not run, so adapt and test)
 
 ```luau
 local Players = game:GetService("Players")
+local GuiService = game:GetService("GuiService")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
-local controls = require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule")):GetControls()
 local running = 0 -- newest cinematic wins
 local activeTween: Tween? = nil
 -- state from before the first cinematic; one that interrupts another keeps it
-local saved: {type: Enum.CameraType, subject: Instance?, fov: number}? = nil
+type Saved = {type: Enum.CameraType, subject: Instance?, fov: number, touch: boolean, hum: Humanoid?, walk: number, jumpPower: number, jumpHeight: number}
+local saved: Saved? = nil
 
 local function restore(withSubject: boolean)
 	if activeTween then -- or it keeps writing CFrame and FOV after the restore
@@ -74,7 +75,11 @@ local function restore(withSubject: boolean)
 	camera.CameraType = saved.type
 	if withSubject and saved.subject and saved.subject.Parent then camera.CameraSubject = saved.subject end
 	camera.FieldOfView = saved.fov
-	controls:Enable() -- only play() below disabled it
+	GuiService.TouchControlsEnabled = saved.touch -- only play() below changed these
+	local hum = saved.hum
+	if hum and hum.Parent then
+		hum.WalkSpeed, hum.JumpPower, hum.JumpHeight = saved.walk, saved.jumpPower, saved.jumpHeight
+	end
 	saved = nil
 end
 
@@ -99,8 +104,13 @@ local function play(shots, skipSignal: RBXScriptSignal)
 	running += 1
 	local me = running
 	if not saved then
-		saved = {type = camera.CameraType, subject = camera.CameraSubject, fov = camera.FieldOfView}
-		controls:Disable() -- the movement lock lives here, never in the caller
+		local char = player.Character
+		local hum = if char then char:FindFirstChildOfClass("Humanoid") else nil
+		saved = {type = camera.CameraType, subject = camera.CameraSubject, fov = camera.FieldOfView, touch = GuiService.TouchControlsEnabled,
+			hum = hum, walk = if hum then hum.WalkSpeed else 0, jumpPower = if hum then hum.JumpPower else 0, jumpHeight = if hum then hum.JumpHeight else 0}
+		-- the movement lock lives here, never in the caller: no thumbstick or jump button, no walking or jumping
+		GuiService.TouchControlsEnabled = false
+		if hum then hum.WalkSpeed, hum.JumpPower, hum.JumpHeight = 0, 0, 0 end
 	end
 	local skipped = false
 	local skipConn = skipSignal:Connect(function() skipped = true end)
@@ -128,7 +138,7 @@ local function play(shots, skipSignal: RBXScriptSignal)
 end
 ```
 
-Movement is locked inside `play` with the camera: the first cinematic saves and disables the controls, `restore` enables them once on every exit, death included. Never lock or save movement in the caller: a second cinematic would save the locked state and restore it. Do not restore hard-coded defaults.
+Movement is locked inside `play` with the camera: the first cinematic saves the touch controls and the humanoid's `WalkSpeed`, `JumpPower` and `JumpHeight`, hides the controls and sets the three to 0; `restore` puts the saved values back once on every exit, death included. Never lock or save movement in the caller: a second cinematic would save the locked state and restore it. Do not restore hard-coded defaults. A game whose server rewrites `WalkSpeed` while the film plays (a sprint or stats system) pauses that too. Not `PlayerModule:GetControls():Disable()`: in Studio's Device Simulator (Samsung Galaxy A06, 2026-11-22; seen by a builder, then again with the test place's only script switched off) it left the thumbstick and the jump button on screen through the lock and added a second `TouchGui` that stayed after `Enable()`; `GuiService.TouchControlsEnabled = false` hid both and kept one.
 
 Lens fights: a camera or zoom module that writes `Camera.FieldOfView` every frame overrides the cinematic's lens. One game measured 70 on every frame of a shot that asked for 42, and its start screen had the same fault. Route the film's lens through that module (a setter it applies each frame, cleared with nil on every exit) or bind the film's step after it, and log `FieldOfView` per frame in the first Studio check before judging any framing (field note, 2026-11-17).
 
