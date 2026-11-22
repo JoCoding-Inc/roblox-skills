@@ -25,14 +25,18 @@
 --   height), the camera is inside it, the head is larger than 45% of the frame height (an avatar's face is a flat
 --   shape at that size), the subject stays under 25% of the frame for more than 1.2 s in a row, the frame does not
 --   move for more than 0.5 s, the last shot starts with the subject under 45% of the frame, runs over 2.9 s or
---   under 2 s or is a short wider shot after the one the name lands on, a shot right after a burst pulls out,
+--   under 2 s or is a short wider shot after the one the name lands on, a shot right after a burst pulls out or
+--   opens wider than the burst ended,
 --   there is no close shot, cuts keep one side and size for over 1.6 s, or a face close-up looks up from more than
 --   15 degrees below, a first shot or a burst from behind the head, or an opening of 1 s or more in one framing; run it on every shot list before the first
 --   capture.
 -- While it plays it warns once per shot when a burst (a shake of 1.5 degrees or more) or the last shot shows the framed
 --   character's face for under 40% of its time, and when the body covers the face for 40% of the time the camera
 --   faces it (one ray a frame), and when a hand held up (over the waist) sits outside the picture (behind a bar of
---   ScreenOverlays.letterbox, or past an edge) for 30% of the last shot (lines kept in CineCamera.faceLog).
+--   ScreenOverlays.letterbox, or past an edge) for 30% of the last shot; in every shot, when the character is out of
+--   the picture for 40% of it (a subject given as a CFrame or a function counts the last character framed), and when
+--   its head fills over 40% of the frame height on any frame, measured from the camera to the head (the audit
+--   measures from the subject's origin) (lines kept in CineCamera.faceLog).
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -263,10 +267,22 @@ function CineCamera.audit(shots, height: number?): { string }
 		-- the beat after a burst goes in: a calm shot that pulled out 17% right after the first burst, the character
 		-- small and idle in it, was "a dead shot right after the burst" to two judges (2026-11-22)
 		local prev = shots[i - 1]
-		if prev and prev.shake and not shot.shake and math.abs(prev.t + (prev.len or 0) - shot.t) < 0.05 then
+		if prev and prev.shake and (prev.shake.amp or 0) >= 1.5 and not shot.shake and math.abs(prev.t + (prev.len or 0) - shot.t) < 0.05 then
 			local d0, d1 = (a.offset :: Vector3).Magnitude, (b.offset :: Vector3).Magnitude
+			-- the cut too: a calm shot that opened 40% smaller than the burst ended and pushed in from there was "wide
+			-- pull-out, hero about 20% of frame height, no new event; the build sags right before the burst" to one judge
+			-- of the fifteenth build and "a wide of the same pose - 1.6s with little energy" to the other (2026-11-22)
+			local function size(s, k)
+				local fov = s.fov
+				local f = if type(fov) == "table" then fov[k] or fov[1] else fov or 70
+				local framing = if k == 2 then s.to or s.from else s.from
+				return 1 / (math.max((framing.offset :: Vector3).Magnitude, 0.1) * math.tan(math.rad(f) / 2))
+			end
+			local cut = size(shot, 1) / size(prev, 2)
 			if d1 > d0 * 1.08 then
 				table.insert(out, string.format("shot %d %s: it pulls out %d%% right after the burst of shot %d %s; the beat after a burst pushes in (5-15%% closer, or an orbit of 20-30 degrees) with the pose still rising, not idle, or the energy drops", i, tostring(shot.name or ""), math.floor((d1 / d0 - 1) * 100 + 0.5), i - 1, tostring(prev.name or "")))
+			elseif cut < 0.8 then
+				table.insert(out, string.format("shot %d %s: it opens with the subject %d%% smaller than the burst of shot %d %s ended; the beat after a burst stays as close or closer (a low three-quarter medium, an orbit of 20-30 degrees) with the pose still rising, or the energy drops", i, tostring(shot.name or ""), math.floor((1 - cut) * 100 + 0.5), i - 1, tostring(prev.name or "")))
 			end
 		end
 		if shot.t + shot.len > lastEnd then
@@ -284,7 +300,7 @@ function CineCamera.audit(shots, height: number?): { string }
 	end
 	if first and (shots[first].len or 0) >= 1 then
 		local shot = shots[first]
-		table.insert(out, string.format("shot %d %s (the opening): %.2f s in one framing reads as a still even with a push; cut it in two at about 0.6 s (the face, then a closer face, a hand or the star)", first, tostring(shot.name or ""), shot.len))
+		table.insert(out, string.format("shot %d %s (the opening): %.2f s in one framing reads as a still even with a push; cut it in two at about 0.6 s (the face, then a closer face or the raised hand under the star, the hero still in the picture: a star alone on black read as empty frames)", first, tostring(shot.name or ""), shot.len))
 	end
 	-- the shot the name lands on: the payoff is a person, so it starts as a medium close and pulls out after
 	if last then
@@ -307,8 +323,12 @@ function CineCamera.audit(shots, height: number?): { string }
 			-- a wider shot after the name: two judges of the tenth build called a 0.4 s pull-back after a 1.55 s title
 			-- shot "an anticlimactic ending, it just runs out"; the artist's cut fades from the shot the name is on
 			table.insert(out, string.format("shot %d %s (the last shot): a %.1f s wider shot after shot %d %s reads as the cutscene running out; end on the shot the name lands on, keep it moving about 2 s and fade from it", last, tostring(shot.name or ""), shot.len or 0, before, tostring(shots[before].name or "")))
-		elseif share < 0.45 then
-			table.insert(out, string.format("shot %d %s (the last shot): it starts with the subject at %d%% of the frame height; land the name on a medium close (55%% or more: %.1f studs at fov %d) and pull out after about 0.8 s", last, tostring(shots[last].name or ""), share * 100, CineCamera.fit(h, f, 0.55), f))
+		elseif share < 0.75 then
+			-- a full-body shot under the name (the subject at 43-50% of the frame) was "full-body wide, hero small" to a
+			-- judge, who called a chest-up shot with the head at about a quarter of the frame the "strongest final
+			-- image" of the same sitting; both judges of that sitting and one of the sitting before named that shot
+			-- cutting the body at the chest or the shoulders, so the medium goes down to the waist (2026-11-22)
+			table.insert(out, string.format("shot %d %s (the last shot): it starts with the subject at %d%% of the frame height, the whole body small under the name; land the name on a waist-up medium, the head at 20-25%% of the frame (%.1f studs from the head at fov %d) with the raised hands inside the bars, and keep it moving (a push of 5-10%% or an orbit of 10-15 degrees)", last, tostring(shots[last].name or ""), share * 100, CineCamera.fit(head, f, 0.22), f))
 		end
 		-- the hold on the name: about 2 s in motion, then 0.5 s of fade. Two judges of the ninth build called a 2.6 s
 		-- shot of one slow move "a near-static title hold"; four judges of the twelfth called a name readable for
@@ -410,7 +430,8 @@ function CineCamera.audit(shots, height: number?): { string }
 	end
 	for i, shot in shots do
 		local from, to = (shot.from.offset :: Vector3), ((shot.to or shot.from).offset :: Vector3)
-		local steady = sameView(from, to) and math.abs(shot.orbit or 0) < 30 and not shot.hold
+		-- the shot the name lands on is a hold by design (about 2 s on the name, then the fade), not a travel
+		local steady = sameView(from, to) and math.abs(shot.orbit or 0) < 30 and not shot.hold and i ~= last
 		local prev = shots[i - 1]
 		if not (run > 0 and prev and sameView(((prev.to or prev.from).offset :: Vector3), from)) then
 			close(i - 1)
@@ -515,6 +536,16 @@ function CineCamera.play(shots, opts)
 			table.insert(CineCamera.faceLog, line)
 			warn("CineCamera: " .. line)
 		end
+		if face.total >= 0.2 and (face.gone or 0) >= 0.4 * face.total then
+			local gone = string.format("shot %d %s: the character is out of the picture (head, torso and hands outside the bars or the edges) for %.1f of its %.1f s; a reveal keeps its hero in every shot: frame the star with the face or the raised hand in the picture, or cut the shot", face.shot, tostring(s.name or ""), face.gone, face.total)
+			table.insert(CineCamera.faceLog, gone)
+			warn("CineCamera: " .. gone)
+		end
+		if (face.smearN or 0) >= 1 then
+			local smear = string.format("shot %d %s: the head fills up to %d%% of the frame height on %d frame(s) (%.2f s); past 40%% (the close shot is 25-40%%) an avatar's head is a flat shape or a blur of hair, and a whip shows it on its first frames: keep the camera %.1f studs or more from the head at this lens", face.shot, tostring(s.name or ""), math.floor(math.min(face.fill or 1, 9.99) * 100 + 0.5), face.smearN, face.smear, CineCamera.fit(face.headY or 1.2, face.lens or 45, 0.4))
+			table.insert(CineCamera.faceLog, smear)
+			warn("CineCamera: " .. smear)
+		end
 		-- "the final close-up is cut at the shoulders by the letterbox; the raised fist is half out of frame" (a judge,
 		-- 2026-11-22)
 		if face.shot == lastShot and face.total >= 0.3 and (face.handOut or 0) >= 0.3 * face.total then
@@ -526,12 +557,18 @@ function CineCamera.play(shots, opts)
 	local function faceStep(shotIndex: number, eye: Vector3, dt: number)
 		if shotIndex ~= face.shot then
 			faceReport()
-			face = { shot = shotIndex, total = 0, seen = 0, blocked = 0, by = {}, handOut = 0, model = face.model, body = face.body }
+			face = { shot = shotIndex, total = 0, seen = 0, blocked = 0, by = {}, handOut = 0, gone = 0, smear = 0, fill = 0, model = face.model, body = face.body }
 		end
 		local head = kept
 		local model = head and head.Parent
-		if not (head and head.Name == "Head" and model and model:IsA("Model")) then
-			return
+		local own = head and head.Name == "Head" and model and model:IsA("Model")
+		if not own then
+			-- a subject given as a CFrame or a function (a point above the hand): the hero is the last character framed
+			model = face.model
+			head = model and model:FindFirstChild("Head")
+			if not (head and head:IsA("BasePart")) then
+				return
+			end
 		end
 		if face.model ~= model then
 			-- the body parts only (arms, hands, torso, legs), not the head, the root or accessories
@@ -544,9 +581,50 @@ function CineCamera.play(shots, opts)
 			face.model, face.body = model, body
 		end
 		face.total += dt
+		local cam = workspace.CurrentCamera
+		if cam then
+			local bars = cam:GetAttribute("CineLetterbox") or 0
+			local v = cam.ViewportSize
+			local top, bottom = v.Y * bars, v.Y * (1 - bars)
+			-- the hero out of the picture: none of the head, the torso and the hands inside the bars and the edges. A
+			-- close-up of the point over the hand where a star opens showed the star alone on black for 0.4 s: "black
+			-- frames with only a yellow crystal; the hero is gone" to one judge of the fifteenth build, "only a gold
+			-- crystal on black, the character has left the frame" to the other (2026-11-22)
+			local inside = false
+			for _, n in { "Head", "UpperTorso", "Torso", "LeftHand", "RightHand", "Left Arm", "Right Arm" } do
+				local part = model:FindFirstChild(n)
+				if part and part:IsA("BasePart") then
+					local q = cam:WorldToViewportPoint(part.Position)
+					if q.Z > 0 and q.X >= 0 and q.X <= v.X and q.Y >= top and q.Y <= bottom then
+						inside = true
+						break
+					end
+				end
+			end
+			if not inside then
+				face.gone += dt
+			end
+			-- the head too close, measured from the camera to the head itself every frame (the audit reads offsets from
+			-- the subject's origin). A whip-out framed on the root that started with the head at 43% of the frame opened
+			-- on a "muddy frame, camera inside the hair with white glare; unreadable" to one judge, "an extreme close-up
+			-- smear of hair and white glow" to the other (2026-11-22); the fourteenth build, top of that sitting, never
+			-- went past 28% (its whip started at 21%). One frame is enough: a fast whip shows it for 1-2 frames, and a
+			-- judge's strip at 5 fps showed exactly that frame
+			local dist = (head.Position - cam.CFrame.Position).Magnitude
+			local fill = head.Size.Y / (2 * math.max(dist, 0.1) * math.tan(math.rad(cam.FieldOfView) / 2))
+			if fill > (face.fill or 0) then
+				face.fill, face.headY, face.lens = fill, head.Size.Y, cam.FieldOfView
+			end
+			if fill > 0.4 then
+				face.smear += dt
+				face.smearN = (face.smearN or 0) + 1
+			end
+		end
+		if not own then
+			return
+		end
 		-- the last shot: a hand held up (over the waist) outside the picture, behind a letterbox bar
 		-- (ScreenOverlays.letterbox sets the camera's CineLetterbox attribute) or past an edge
-		local cam = workspace.CurrentCamera
 		local waist = model:FindFirstChild("HumanoidRootPart")
 		if shotIndex == lastShot and cam and waist and waist:IsA("BasePart") then
 			local bars = cam:GetAttribute("CineLetterbox") or 0
