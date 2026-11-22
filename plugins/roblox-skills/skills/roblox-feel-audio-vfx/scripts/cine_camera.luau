@@ -27,7 +27,11 @@
 --   move for more than 0.5 s, the last shot starts with the subject under 45% of the frame, runs over 2.9 s or
 --   under 2 s or is a short wider shot after the one the name lands on, a shot right after a burst pulls out,
 --   there is no close shot, cuts keep one side and size for over 1.6 s, or a face close-up looks up from more than
---   15 degrees below, or a first shot from behind the head; run it on every shot list before the first capture.
+--   15 degrees below, or a first shot or a burst from behind the head; run it on every shot list before the first
+--   capture.
+-- While it plays it warns once per shot when a burst (a shake of 1.5 degrees or more) or the last shot shows the framed
+--   character's face for under 40% of its time, and when the body covers the face for 40% of the time the camera
+--   faces it (one ray a frame; lines kept in CineCamera.faceLog).
 -- CineCamera.anchor(part, rotRef?) -> function: subject at the part's position with rotRef's rotation (a head
 --   that turns with a pose does not swing the camera).
 -- Reduced motion (flash_safety reduced()): shake is skipped; cuts, moves and roll stay.
@@ -350,6 +354,26 @@ function CineCamera.audit(shots, height: number?): { string }
 			end
 		end
 	end
+	-- a burst seen from behind: the shot of a burst (a shake of 1.5 degrees or more; a lighter one through a chase is
+	-- speed, and a chase is shot from behind) from more than 110 degrees round from the front at both ends of its
+	-- move (a raised fist from behind "reads as a torso", both judges of one sitting, 2026-11-22)
+	for i, shot in shots do
+		if shot.shake and (shot.shake.amp or 0) >= 1.5 then
+			local behind = true
+			for _, framing in { shot.from, shot.to or shot.from } do
+				local o = framing.offset :: Vector3
+				local flat = Vector3.new(o.X, 0, o.Z)
+				if flat.Magnitude <= 0.1 or -o.Z / flat.Magnitude >= -0.34 then
+					behind = false
+				end
+			end
+			if behind then
+				local o = shot.from.offset :: Vector3
+				local flat = Vector3.new(o.X, 0, o.Z)
+				table.insert(out, string.format("shot %d %s (a burst): the camera is %d degrees round from the subject's front, so the burst lands on the back of the head; a burst shows the face: put the camera within about 60 degrees of the front, low and close for power", i, tostring(shot.name or ""), math.floor(math.deg(math.acos(math.clamp(-o.Z / flat.Magnitude, -1, 1))) + 0.5)))
+			end
+		end
+	end
 	if #shots >= 4 and nearest < 0.22 then
 		-- a reaction needs time to land: a 0.4 s smiling close-up "did not land before the cut" to a judge (2026-11-22)
 		table.insert(out, string.format("no close shot: the nearest one (shot %d) shows the head at %d%% of the frame height. Give the cutscene two close shots, head at 25-40%% (%.1f to %.1f studs at fov 45): the face reacting near the start, held about 0.8 s so the expression lands, and head and raised arms at the peak while the last digits run (0.4-1.2 s), then cut wider for the name", nearestAt, nearest * 100, CineCamera.fit(head, 45, 0.4), CineCamera.fit(head, 45, 0.25)))
@@ -434,11 +458,94 @@ function CineCamera.play(shots, opts)
 		end
 	end
 
+	-- The face, checked while the list plays: one ray a frame from the camera to the middle of the face of the framed
+	-- character, against its own body. Two cases warn once per shot (lines kept in CineCamera.faceLog):
+	-- * a burst (a shake of 1.5 degrees or more) or the last shot shows the face for under 40% of its time, as the camera
+	--   is behind or beside the head or the body covers the face. A burst shot from behind a raised fist "reads as a
+	--   torso" and "the face hidden behind the raised arm" to both judges of one sitting (2026-11-22): its camera
+	--   stood 135-157 degrees round from the front, which the shot list shows but the pose can turn;
+	-- * in any shot, the body covers the face for 40% of the time the camera faces it (0.2 s or more), naming the part.
+	-- Only the body parts are tested: a ray meets an accessory's box, not its mesh, and a hair accessory's box
+	-- covered the face from every angle (Studio Play, 2026-11-22), so hair over the eyes is not caught here.
+	CineCamera.faceLog = {}
+	local lastShot, lastEnd = 0, -1
+	for i, s in shots do
+		if s.t + s.len > lastEnd then
+			lastShot, lastEnd = i, s.t + s.len
+		end
+	end
+	local face = { shot = 0, total = 0, seen = 0, blocked = 0, by = {} }
+	local faceRay = RaycastParams.new()
+	faceRay.FilterType = Enum.RaycastFilterType.Include
+	local function faceReport()
+		local s = shots[face.shot]
+		if not s or face.total <= 0 or not face.model then
+			return
+		end
+		local top, most = "arm", 0
+		for name, n in face.by do
+			if n > most then
+				top, most = name, n
+			end
+		end
+		local shown = face.seen - face.blocked
+		local burst = s.shake ~= nil and (s.shake.amp or 0) >= 1.5
+		local key = burst or face.shot == lastShot
+		local line = nil
+		if key and face.total >= 0.3 and shown < 0.4 * face.total then
+			line = string.format("shot %d %s (%s): the face shows for %.1f of its %.1f s (%s); a burst and the name land on the face: put the camera within about 60 degrees of the front, or turn the pose to it", face.shot, tostring(s.name or ""), if burst then "a burst" else "the last shot", shown, face.total, if face.blocked > face.seen * 0.5 then "the " .. top .. " covers it" else "the camera is behind or beside the head")
+		elseif face.blocked >= 0.2 and face.blocked >= 0.4 * face.seen then
+			line = string.format("shot %d %s: the face is behind the character's %s for %.1f of the %.1f s the camera faces it; move the camera 20-30 degrees to the side or up, or pose the arm off the line from the camera to the face", face.shot, tostring(s.name or ""), top, face.blocked, face.seen)
+		end
+		if line then
+			table.insert(CineCamera.faceLog, line)
+			warn("CineCamera: " .. line)
+		end
+	end
+	local function faceStep(shotIndex: number, eye: Vector3, dt: number)
+		if shotIndex ~= face.shot then
+			faceReport()
+			face = { shot = shotIndex, total = 0, seen = 0, blocked = 0, by = {}, model = face.model, body = face.body }
+		end
+		local head = kept
+		local model = head and head.Parent
+		if not (head and head.Name == "Head" and model and model:IsA("Model")) then
+			return
+		end
+		if face.model ~= model then
+			-- the body parts only (arms, hands, torso, legs), not the head, the root or accessories
+			local body = {}
+			for _, p in model:GetChildren() do
+				if p:IsA("BasePart") and p ~= head and p.Name ~= "HumanoidRootPart" then
+					table.insert(body, p)
+				end
+			end
+			face.model, face.body = model, body
+		end
+		face.total += dt
+		local look = head.CFrame.LookVector
+		local toEye = eye - head.Position
+		if toEye.Magnitude < 0.5 or look:Dot(toEye.Unit) < 0.25 then
+			return -- the camera is behind or beside the head
+		end
+		face.seen += dt
+		local target = head.Position + look * (head.Size.Z * 0.5)
+		local d = target - eye
+		faceRay.FilterDescendantsInstances = face.body
+		local hit = workspace:Raycast(eye, d.Unit * math.max(d.Magnitude - 0.05, 0), faceRay)
+		if hit then
+			face.blocked += dt
+			face.by[hit.Instance.Name] = (face.by[hit.Instance.Name] or 0) + 1
+		end
+	end
+
 	local function release()
 		if released then
 			return
 		end
 		released = true
+		faceReport()
+		face.shot = 0
 		keep(nil)
 		FxClock.focus = nil
 		if not opts.noReturn then
@@ -450,7 +557,7 @@ function CineCamera.play(shots, opts)
 		CineCamera.save()
 		cam.CameraType = Enum.CameraType.Scriptable
 	end)
-	c:every(function(t)
+	c:every(function(t, dt)
 		if released then
 			return
 		end
@@ -483,6 +590,7 @@ function CineCamera.play(shots, opts)
 			FxClock.focus = focus
 			cam.FieldOfView = fov
 			lastCF, lastFov = cf, fov
+			faceStep(idx, cf.Position, dt or 0)
 		elseif ret > 0 and t < listEnd + ret then
 			keep(nil)
 			FxClock.focus = nil

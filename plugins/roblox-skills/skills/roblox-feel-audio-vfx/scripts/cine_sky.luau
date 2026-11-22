@@ -458,8 +458,9 @@ function Sky.enter(preset: string, opts)
 	-- Rendering quality, measured 2026-11-22; phones run low), the engine's cloud deck draws its far part as thin
 	-- stepped slabs within about 8 degrees over the horizon, the "pixelated sky" judges named in every build; at 11
 	-- and over it is smooth. A lower Cover (0.5) or Density (0.45) and more Atmosphere haze (2.4) left the slabs in
-	-- place. A ring of soft banks rises from the sea to about 10 degrees over the stage in front of that band, warm
-	-- toward the sun and a cool white away from it. It stands 440-500 studs out because the engine draws nothing
+	-- place. A ring of soft banks rises from the sea to about 10 degrees over the stage in front of that band, each
+	-- from the floor's violet at its foot through rose to a cream top, warmer toward the sun (see seaRefresh for why
+	-- not white). It stands 440-500 studs out because the engine draws nothing
 	-- past a view distance that falls with the quality level (parts and particles alike, measured in Studio Play:
 	-- about 525 studs at level 1, 1,700 at levels 4-12, 3,000-4,000 at 14, over 8,000 at 21); a first bank
 	-- 1,800-2,300 studs out left the slabs showing at level 10.
@@ -559,7 +560,8 @@ function Sky.enter(preset: string, opts)
 		end
 		-- the far bank (see above): 40 banks of three tiers that overlap round the ring, so no gap shows the slabs
 		if o.horizon ~= false then
-			local glow = if full then 1 else 0.3
+			-- a little glow only: banks overlap along a low line of sight, and additive glow (LightEmission) adds up there
+			local glow = if full then 0.35 else 0.3
 			for i = 1, 40 do
 				local a = (i + rng:NextNumber(-0.25, 0.25)) / 40 * math.pi * 2
 				local r, w, tall = rng:NextNumber(440, 500), rng:NextNumber(150, 195), rng:NextNumber(1, 1.6)
@@ -603,8 +605,18 @@ function Sky.enter(preset: string, opts)
 				end
 			end
 		end)
-		local white, cool = Color3.new(1, 1, 1), Color3.fromRGB(176, 192, 236)
+		local white = Color3.new(1, 1, 1)
 		local dusk, lilac = Color3.fromRGB(206, 132, 160), Color3.fromRGB(214, 200, 230)
+		-- The far bank ("full") runs from the floor's violet at its foot through rose to a cream top. Through pack 1.81 it
+		-- was lifted toward white with glow 0.3-0.55: in a low shot along the horizon its puffs added up to a flat white
+		-- band (one builder's sunset cutscene, Studio Play, 2026-11-22: 2.0% of a low front shot clipped and 5.3% of a
+		-- side track, the band's saturation median 0.08; "blown white cloud tops in low shots", the judges of one
+		-- sitting). Less glow alone left it grey (saturation 0.13). This one, same frames: 0.1% clipped in both, the
+		-- band's saturation 0.35 (the reference's sea measured 0.25-0.37) and values from 0.58 to 0.95 instead of 0.72-1
+		local function farTone(base: Color3, decay: Color3, lift: number): Color3
+			local foot, middle, top = decay:Lerp(base, 0.35), base:Lerp(dusk, 0.5), base:Lerp(white, 0.25)
+			return if lift <= 0.5 then foot:Lerp(middle, lift * 2) else middle:Lerp(top, lift * 2 - 1)
+		end
 		seaRefresh = function()
 			local base = o.color or clouds.Color
 			local far = atmosphere.Color
@@ -631,7 +643,7 @@ function Sky.enter(preset: string, opts)
 					elseif l.kind == "far" and night then base:Lerp(far, 0.55 + 0.2 * (1 - l.lift))
 					elseif l.kind == "far" and not full then base:Lerp(lilac, 0.6):Lerp(base:Lerp(far, 0.6), l.toSun):Lerp(white, 0.5 * l.lift)
 					elseif l.kind == "deck" then base:Lerp(lilac, 0.7)
-					elseif l.kind == "far" then base:Lerp(white, 0.35 + 0.25 * l.lift):Lerp(far, 0.3 * l.toSun):Lerp(cool, 0.45 * (1 - l.toSun))
+					elseif l.kind == "far" then farTone(base, decay, l.lift):Lerp(far, 0.35 * l.toSun)
 					else base:Lerp(white, 0.3)
 				local color = ColorSequence.new(c:Lerp(far, l.haze))
 				l.shown = 1 - (1 - l.alpha) * show
@@ -924,23 +936,33 @@ function Sky.enter(preset: string, opts)
 		-- the core: a wide soft glow and a hot centre on the plate
 		local halo = quad("glow", { LightEmission = 1, Brightness = 1.4, Color = ColorSequence.new(hues[2]:Lerp(coreColor, 0.3)), Transparency = NumberSequence.new(0.35) })
 		local core = quad("glow", { LightEmission = 1, Brightness = 3, Color = ColorSequence.new(coreColor), Transparency = NumberSequence.new(0.05) })
-		-- the dark round the core is not one flat colour: six soft clouds in lighter and warmer tones of the backdrop turn
-		-- slowly round it, and small far stars twinkle in it. The plate alone was "a flat navy card cut off from the
-		-- world" to two judges (2026-11-22)
+		-- the dark round the core is not one flat colour: soft clouds in lighter and warmer tones of the backdrop turn
+		-- round it in two rings, the inner one faster and the other way, and the whole backdrop grows by a sixth over
+		-- the tunnel (a push-in). Stars fly out of the core in two layers: far ones small and slow, near ones larger,
+		-- faster and a little drawn out along their way (drawn out to about 4 times their width they looked like white
+		-- petals in a Studio still). The plate alone was "a flat navy card cut off from the world"
+		-- to two judges (2026-11-22); with six slow clouds and still twinkling star sprites it was "a flat navy
+		-- background with 2D sprite stars" to both judges of a later sitting, who asked for parallax star layers and
+		-- a push-in
 		local nebula = {}
-		for i = 1, 6 do
-			local tone = (if i % 3 == 0 then hues[2] elseif i % 3 == 1 then C(176, 70, 214) else C(72, 92, 232)):Lerp(backColor, 0.3)
+		for i = 1, 10 do
+			local inside = i > 6
+			local tone = (if i % 3 == 0 then hues[2] elseif i % 3 == 1 then C(176, 70, 214) else C(72, 92, 232)):Lerp(backColor, if inside then 0.15 else 0.3)
 			local q = quad("glow", { LightEmission = 0.8, Brightness = 1.4, Color = ColorSequence.new(tone), Transparency = NumberSequence.new(0.5) })
-			q.angle = (i - 1) / 6 * math.pi * 2 + rng:NextNumber(-0.4, 0.4)
-			q.dist, q.size = rng:NextNumber(0.55, 1.2), rng:NextNumber(0.5, 0.85)
+			q.angle = (i - 1) / (if inside then 4 else 6) * math.pi * 2 + rng:NextNumber(-0.4, 0.4)
+			q.dist = if inside then rng:NextNumber(0.3, 0.5) else rng:NextNumber(0.55, 1.2)
+			q.size = if inside then rng:NextNumber(0.3, 0.45) else rng:NextNumber(0.5, 0.85)
+			q.spin, q.alpha = if inside then -0.32 else 0.12, if inside then 0.5 else 0.6
 			table.insert(nebula, q)
 		end
-		local specks = {}
-		for i = 1, 24 do
-			local q = quad("star", { LightEmission = 1, Brightness = 2, Color = ColorSequence.new(hues[(i % 2) + 1]:Lerp(Color3.new(1, 1, 1), 0.5)) })
-			q.at = Vector2.new(rng:NextNumber(-1.7, 1.7), rng:NextNumber(-1, 1))
-			q.size, q.phase = rng:NextNumber(0.012, 0.03), rng:NextNumber(0, 6.28)
-			table.insert(specks, q)
+		local stars = {}
+		for i = 1, 56 do
+			local near = i > 40
+			local q = quad("glow", { LightEmission = 1, Brightness = if near then 2.4 else 1.8, Color = ColorSequence.new(hues[(i % 2) + 1]:Lerp(Color3.new(1, 1, 1), if near then 0.4 else 0.7)) })
+			q.near, q.phase, q.lap = near, rng:NextNumber(0, 1), -1
+			q.speed = if near then rng:NextNumber(0.75, 1) else rng:NextNumber(0.22, 0.34)
+			q.size = if near then rng:NextNumber(0.008, 0.013) else rng:NextNumber(0.005, 0.01)
+			table.insert(stars, q)
 		end
 		-- still rays: thin lines from the core to past the edges that turn slowly (the tunnel's walls)
 		local rays = {}
@@ -1027,24 +1049,34 @@ function Sky.enter(preset: string, opts)
 			-- once a third of a second; the burst swells it over the middle of the frame
 			local open = (0.4 + 0.6 * FxClock.outCubic(math.clamp(t / 0.12, 0, 1))) * fade
 			local pulse = 1 + 0.12 * math.sin(t * math.pi * 6)
-			local h = half * (0.9 * open + 1.4 * burst)
+			local zoom = 1 + (if still then 0 else 0.17 * FxClock.inOutSine(math.clamp(t / dur, 0, 1)))
+			local h = half * (0.9 * open * zoom + 1.4 * burst)
 			set(halo, centre - up * h, centre + up * h, h * 2, h * 2)
 			local k = half * (0.22 * open * pulse + 0.9 * burst)
 			set(core, centre - up * k, centre + up * k, k * 2, k * 2)
 			for _, q in nebula do
-				local a = q.angle + (if still then 0 else t * 0.12)
-				local at = centre + (right * math.cos(a) + up * math.sin(a)) * half * q.dist
-				local sz = half * q.size * open
+				local a = q.angle + (if still then 0 else t * q.spin)
+				local at = centre + (right * math.cos(a) + up * math.sin(a)) * half * q.dist * zoom
+				local sz = half * q.size * open * zoom
 				set(q, at - up * sz, at + up * sz, sz * 2, sz * 2)
-				q.b.Transparency = NumberSequence.new(1 - 0.5 * fade * (1 - burst))
-			end
-			for _, q in specks do
-				local at = centre + right * (q.at.X * half) + up * (q.at.Y * half)
-				local sz = half * q.size * (0.7 + 0.3 * math.sin(t * 7 + q.phase))
-				set(q, at - up * sz, at + up * sz, sz * 2, sz * 2)
-				q.b.Transparency = NumberSequence.new(1 - fade * (1 - burst))
+				q.b.Transparency = NumberSequence.new(1 - q.alpha * fade * (1 - burst))
 			end
 			local inner = half * 0.08
+			for _, q in stars do
+				local u = (if still then 0 else t * rush * q.speed) + q.phase
+				local lap = math.floor(u)
+				if lap ~= q.lap then
+					q.lap = lap
+					q.angle = rng:NextNumber(0, math.pi * 2)
+				end
+				local f = u - lap
+				local d = right * math.cos(q.angle) + up * math.sin(q.angle)
+				local at = centre + d * (inner * 2 * (reach / (inner * 2)) ^ f)
+				local w = half * q.size * (0.5 + f)
+				local len = if q.near then w * (1 + 1.5 * f * f) else w
+				set(q, at - d * len, at + d * len, w * 2, w * 2)
+				q.b.Transparency = NumberSequence.new(1 - fade * (1 - burst) * math.clamp(f * 5, 0, 1))
+			end
 			for _, r in rays do
 				local a = r.angle + (if still then 0 else t * 0.35)
 				local d = right * math.cos(a) + up * math.sin(a)
@@ -1070,11 +1102,13 @@ function Sky.enter(preset: string, opts)
 		-- for that frame, a lit grey slab with a hard diagonal edge across the next shot (seen on a 15 fps recording,
 		-- 2026-11-22; "a hard diagonal wipe edge" to two judges)
 		if o.owner then
-			local t0 = root.t or 0
+			-- the start is the owner's event time (root.firing), not the frame's, and the end frame is the first one at
+			-- or past start + dur: a shot cut at that time then opens on the sky, not on the last burst frame
+			local t0 = root.firing or root.t or 0
 			root:every(function(rt: number)
 				if c.stopped then
 					return
-				elseif rt - t0 > dur then
+				elseif rt - t0 >= dur - 1e-6 then
 					c:stop()
 				else
 					place(rt - t0)
