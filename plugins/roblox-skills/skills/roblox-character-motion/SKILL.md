@@ -16,7 +16,7 @@ sources:
   - https://devforum.roblox.com/t/creator-roadmap-2026-fall-update/4880208
   - original Studio tests 2026-11-03 (push-up loop, default R15 rig, scaled rigs)
   - original field notes (2026-10 to 2026-11)
-  - RoDesigner motion sheet format experiment 2026-11-11 (2 motions, 7 reference formats, one builder per format, blind owner pick plus an Opus judge score)
+  - RoDesigner motion sheet format experiment 2026-11-11 (2 motions, 7 reference formats, one builder per format, blind owner pick plus a judge model's score)
   - RoDesigner skill effect demo, 2026-11-15 (a sword flurry on a code-posed block dummy, judged by the owner on video; relayed by RoDesigner)
 ---
 
@@ -87,7 +87,7 @@ beat  t(s)   name            pose
 
 Under the table, say how the beats move: which ones ease, which land fast and hold (the test held each hit 2-3 frames), which hit is the heavy one.
 
-**What the test showed** (RoDesigner motion-sheet experiment, 2026-11-11). Two motions: a blob creature's jump slam (1.6 s) and the sword combo above on an R15 avatar. Seven kinds of reference, one Sonnet builder per kind (14 builds), each scored blind by one Opus judge; the owner also picked best and worst blind. One screening round with one builder per cell: read every ranking as a lead, not a law. Two blob builds did not finish a clean run (the arcs build was stopped at its time cap, the 16-frame grid build died after its first check), so their blob scores (21 and 29) are the weakest evidence in the table.
+**What the test showed** (RoDesigner motion-sheet experiment, 2026-11-11). Two motions: a blob creature's jump slam (1.6 s) and the sword combo above on an R15 avatar. Seven kinds of reference, one smaller-model builder per kind (14 builds), each scored blind by one judge model; the owner also picked best and worst blind. One screening round with one builder per cell: read every ranking as a lead, not a law. Two blob builds did not finish a clean run (the arcs build was stopped at its time cap, the 16-frame grid build died after its first check), so their blob scores (21 and 29) are the weakest evidence in the table.
 
 | Reference the builder got | Sword combo (max 36) | Blob slam (max 34) |
 |---|---|---|
