@@ -371,13 +371,21 @@ function FxClock:_advance(newT: number, dt: number)
 	self.t = newT
 	self.stepCount += 1
 	-- Events may schedule new events, spans or steps (lazy builds): rescan until nothing due is left.
+	-- While an event runs, self.firing is its scheduled time: self.t is the frame's time, up to a frame past it, and
+	-- an element that started there ended up to a frame past its own schedule. A tunnel made in an event at 8.55 s
+	-- for 1.3 s drew its last burst frame over the first frame of the shot cut at 9.85 s (a 15 fps recording;
+	-- "a pink milky crossfade", both judges of one sitting, 2026-11-22). FxClock.attach and the sky's tunnel start
+	-- from it.
+	self.firing = nil
 	local fired = true
 	while fired do
 		fired = false
 		for _, ev in self.events do
 			if not ev.done and ev.t <= newT then
 				ev.done = true
+				self.firing = ev.t
 				ev.fn()
+				self.firing = nil
 				fired = true
 				break
 			end
@@ -655,14 +663,14 @@ end
 
 -- For an element's play(target, opts): embed in opts.clock at opts.at (seconds on that clock), or own a new
 -- clock (caller plays it). Without opts.at the element starts at the clock's current time: 0 while a
--- timeline is being laid out, "now" when it is made inside a running event. An opts.at that is already
--- wholly in the past would build and end in one step with nothing on screen, so that case warns.
+-- timeline is being laid out, the running event's own time when it is made inside one (root.firing). An opts.at
+-- that is already wholly in the past would build and end in one step with nothing on screen, so that case warns.
 local late = {}
 function FxClock.attach(name: string, duration: number, opts)
 	opts = opts or {}
 	if opts.clock then
 		local root = opts.clock.root or opts.clock
-		local now = math.max(0, (root.t or 0) - (opts.clock.t0 or 0))
+		local now = math.max(0, (root.firing or root.t or 0) - (opts.clock.t0 or 0))
 		local at = opts.at
 		if at == nil then
 			at = now

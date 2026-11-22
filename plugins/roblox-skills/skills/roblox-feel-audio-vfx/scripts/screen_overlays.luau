@@ -472,7 +472,7 @@ function ScreenOverlays.counter(opts)
 end
 
 -- The name of what was won, over the character's head: a small line (the tier) and a large one (the name).
--- It lands at 1.3 -> 1 in 0.25 s, holds, and fades over the last 0.3 s, so it is never left over the game
+-- It lands opaque at 1.3 -> 1 in 0.25 s, holds, and fades over the last 0.3 s, so it is never left over the game
 -- world. Keep it in the top quarter of the frame and frame the character under it. At the end of a cutscene,
 -- give it a dur that ends when the fade's black is full (fade start + inDur): ScreenOverlays.fade keeps it on
 -- until then. A name that faded out 0.3 s before the black, over a hold of 1.2 s, was "rushed" and "a hard cut to
@@ -528,7 +528,9 @@ function ScreenOverlays.title(text: string, opts)
 		end
 		local arrive = math.clamp(t / 0.25, 0, 1)
 		local leave = math.clamp((t - (dur - 0.3)) / 0.3, 0, 1)
-		local alpha = math.max(1 - math.clamp(t / 0.1, 0, 1), leave)
+		-- opaque from its first frame, landing by scale alone: a name that faded in over 0.1 s stood half
+		-- transparent on the frame of the cut ("a ghosted title", both judges of one sitting, 2026-11-22)
+		local alpha = leave
 		if band then
 			band.BackgroundTransparency = 1 - (opts.bandStrength or 0.42) * (1 - alpha)
 		end
