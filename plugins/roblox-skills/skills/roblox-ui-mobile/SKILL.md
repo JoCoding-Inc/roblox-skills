@@ -255,6 +255,19 @@ When the RoDesigner loop gives you a reference anchor for the screen, its measur
 | The result shown as the button's label ("IRON GAUNTLETS!"), held about 1.0 s with nothing moving before the flight (both) | A result inside a window holds 0.35-0.5 s and keeps moving while it holds (burst, glow, a small turn), then the item flies; the longer tier holds of the effects topic are for full-screen reveals. The button turns to its done state; it never carries the result | - |
 | "-150" and "-10" under the HUD counters read as flat grey and unstroked (both). The build passed a salmon colour, which sat in the kit's fixed dark green outline | A spend is red with an outline in a dark shade of its own colour, as large as a gain | `Kit.count` (changed after this sitting: a spend is red by default, the outline follows the text's colour) |
 
+**A talent tree built from this text** (2026-11-22, blind, two judges, sums out of 100; the brief: a talent tree for a bright Viking-island survival game with three branches, ranks, a capstone and a detail pane). It scored 78 (39 + 39) against 85 for the reference in that sitting. Named by both judges unless marked:
+
+| Named defect | Rule | In the kit |
+|---|---|---|
+| "'Talents' reads as 'Calents' at small size" (one): a blackletter face at 32 px for the title and 22 px for the talent names | A decorative face (blackletter, script, brush) is for one large word at most; names and labels a player reads at a glance go in a rounded or plain display face | - |
+| The banner of the biggest moment: "a flat blue bar with plain yellow text, left-aligned over the GATHERING row", "covers the branch nodes" | The moment's banner is centred on the whole window, or sits just under the node it names; it wears the window's own material with a stroked name (the judges asked for 28-32 px), and what it covers darkens | `Kit.stamp` warns when it lands more than a tenth of the window's width off its middle, or over a button, with nothing dimmed (`options.dim`) |
+| The selection: "a thin white circle with four handle dots, like an editor gizmo, not a game selection" (one) | A selection is a soft glow in the accent colour (`Kit.glow`), the node a little larger (the judge asked for 1.08) and a short ease when it moves (`Kit.slideTo`); no handle dots or thin white outlines | - |
+| A "Learn this first" tip covers a branch label | A tip sits beside or above what it points at, with a pointer, and never over another label | - |
+| A "-2 points" floater "tiny, on the window's top frame line" | A spend rises from the counter it changes, inside the window, as large as a gain and stroked (`Kit.count`) | - |
+| About 90 px of empty parchment between the text and the requirement line of the detail pane | A pane has no empty block: its lines follow one another with the button under them, or the space holds an image or a line of lore | - |
+| Pale dots on the four outer corners of the window "read as stray marks" | Decoration sits inside the frame in its material (rivets in the wood), never on the corners outside it | - |
+| "The tree is unreadable until about 0.8 s: every node waits for its stagger" (one) | A set of fifteen or more small items arrives row by row or with 15-20 ms between items (the judge's ask), so the whole set reads by about 0.6 s | - |
+
 A phone window that passes the lint is at most 532 px wide on the smallest preset (the centred-panel rule warns above 67% of the screen width) and 236 px high from y 38.
 
 What top phone games do (84 frames with an open panel, 28 games, 2026-11-12; sizes from 58 framed panels in 22 games; frames / games). The sample is mostly simulator, tower defense, horror, survival and tycoon; frames from one video are near duplicates, so weigh by games.
