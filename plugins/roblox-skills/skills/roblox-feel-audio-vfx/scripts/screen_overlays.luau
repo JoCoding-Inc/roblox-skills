@@ -197,6 +197,17 @@ function ScreenOverlays.letterbox(opts)
 		bot = top:Clone()
 		bot.AnchorPoint = Vector2.new(0, 1)
 		bot.Parent = layer
+		-- the bars' share of the height, for CineCamera's check of raised hands in the last shot
+		local cam = workspace.CurrentCamera
+		if cam then
+			cam:SetAttribute("CineLetterbox", size)
+		end
+	end)
+	c:onCleanup(function()
+		local cam = workspace.CurrentCamera
+		if cam then
+			cam:SetAttribute("CineLetterbox", nil)
+		end
 	end)
 	c:every(function(t)
 		if not top then
