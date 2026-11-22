@@ -617,8 +617,8 @@ A fourteenth build (the same builder and brief, every module above served) score
 | "The starburst insert has a flat navy background with 2D sprite stars" (all three builds of that sitting), "stock 4-point sparkles" | - | `sky:tunnel`: stars fly out of the core in two layers at two speeds, its clouds turn in two rings the opposite ways, and the backdrop grows by a sixth over the tunnel |
 | "Bursts at 4.6, 5.4, 6.2 and 7.2 s are about the same size, so there is no single clear peak" | One burst is the biggest, the peak; the judge asked for the earlier ones at 50-60% of its size | - |
 | "The close-up with arms up is the same framing and pose as the final: the payoff is shown 1.6 s early" | The name shot differs from the reaction close-up in size, angle and pose | - |
-| "The final close-up is cut at the shoulders by the letterbox; the raised fist is half out of frame" | Raised hands stay inside the picture in the name shot, inside the letterbox bars | - |
-| "The opening is one static medium shot over six frames" | Two angles in the cold open (the face, then a hand or the star), or a push-in of about 15% across it (the judge's ask) | - |
+| "The final close-up is cut at the shoulders by the letterbox; the raised fist is half out of frame" | Raised hands stay inside the picture in the name shot, inside the letterbox bars | While it plays, `CineCamera` warns when a hand held up (over the waist) sits outside the picture (behind a bar of `ScreenOverlays.letterbox` or past an edge) for 30% of the last shot |
+| "The opening is one static medium shot over six frames": a 1.25 s opener that already pushed in 15%; a two-shot opener in 1.2 s was named a strength in the same sitting | Two angles in the cold open: the face, then a closer face, a hand or the star, cut at about 0.6 s | `CineCamera.audit` names an opening of 1 s or more in one framing |
 
 ## 3f. An effect built from a reference clip (formation seal, sky pillar)
 
