@@ -35,19 +35,27 @@ For each frequent action write what the player sees, hears and feels: action, re
 
 ## 1a. Feel audit of an existing game
 
-For a game that already runs and "feels flat": find every place the player does or gets something, score what answers it, and fix the rows that cost the most first. A procedure (judgment: the order and the scores are ours; it has not been run by a test builder yet). The layers, numbers and limits it points at are measured or sourced in their own sections. Change nothing during the audit, and stop for the owner's yes before building.
+For a game that already runs and "feels flat": find every place the player does or gets something, score what answers it, and fix the rows that cost the most first. A procedure (judgment: the order and the scores are ours). It was run once, read-only, on a live simulator of ours (2026-11-24: 106 rows; that run's notes changed the row kinds, the score scale and the checks below); nothing built from it has been judged yet. The layers, numbers and limits it points at are measured or sourced in their own sections. Change nothing during the audit, and stop for the owner's yes before building.
+
+**Step 0: channels and cues, before any row.** Two passes that no single row shows:
+
+- Channels: for each of sight on the UI, sight in the world, camera, sound, vibration, note whether the game uses it anywhere, and whether the player can reach the off switches (volume, reduce effects). A channel absent everywhere, or a switch with no UI, is its own line in the output.
+- The sound map: each cue id against the number of different events that play it. A few cues carrying most of the rewards is a finding (`roblox-audio` section 1: one cue per event).
 
 **Step 1: list every interaction.** Search the scripts and the UI; one row per place the player acts or receives:
 
 | Kind | Where to look |
 |---|---|
 | Presses | every `TextButton` and `ImageButton` (`Activated`, `MouseButton1Click`), tabs, sliders, panels that open and close |
-| World actions | `ProximityPrompt.Triggered`, `ClickDetector.MouseClick`, `Touched` on pickups and pads, `Tool.Activated` |
+| World actions | `ProximityPrompt.Triggered`, `ClickDetector.MouseClick`, `Touched` on pickups and pads, `Tool.Activated`; gates and zones the server checks by position (no prompt and no `Touched`: search the server for distance and region checks) |
 | Requests | every `RemoteEvent:FireServer` and `RemoteFunction:InvokeServer` on the client, and what the server answers with |
+| Server events nobody pressed for | every event kind the server sends (`FireClient`, `FireAllClients`, replicated attributes and values) matched against the client's handlers: auto attacks, kills, drops, world events. An event kind with no listener is a score 0 row that no search for buttons finds |
+| State edges with no input | a cooldown ending, a quest becoming ready, a timer running out, low health, a buff ending |
 | Results | currency and XP changes, level-ups, unlocks, purchases, rolls and hatches, wins, damage taken, deaths, respawns |
 | Refusals | not enough currency, a cooldown, a locked item, a full inventory: every `if not ... then return end` behind a press |
+| Dropped presses | a press the client throws away inside a rate guard or debounce: it needs a queued press or a visible "busy" state, not a refusal cue |
 
-Refusals are the row audits miss: a press that silently does nothing is the worst score in the table.
+Refusals are the row audits miss: a press that silently does nothing is the worst score in the table. Group identical controls (ten list buttons that share one handler) into one row with their count. UI still in the client whose opener is gone is listed once at the end as dead, not scored.
 
 **Step 2: score each row** from what the code does now (file and line, the trigger, each channel that answers):
 
@@ -55,12 +63,16 @@ Refusals are the row audits miss: a press that silently does nothing is the wors
 |---|---|
 | 0 | nothing answers within 0.5 s, or the state just changes |
 | 1 | one channel (a sound, or a number that changes) |
-| 2 | sight and sound, but the same answer for every size of result, or the answer waits for the server |
-| 3 | sight and sound within a frame of the press, sized to the result, with a different cue for a refusal |
+| 2a | sight and sound at once, but the same answer for every size of result |
+| 2b | sight and sound sized to the result, but late: it waits for the server, or sits in a queue |
+| 3 | sight and sound within a frame of the trigger and sized to the result |
 
-Per row also note: how often it happens in a 10-minute session (every second, every minute, a few times, once) and which tier it is (a tick, a reward, a rare moment: `roblox-fun-effects` section 3).
+- "Late" counts every source of delay, not only the server: a HUD message queue that shows toasts one after another, a typewriter gate, a tween that must finish first. For a row nobody pressed (a server event, a state edge) the trigger is the frame the client learns of it.
+- A separate yes / no / n.a. column says whether the row has its own refusal cue (n.a. when it cannot be refused).
+- A 3 read from code is provisional: "the layers are called" is not "it reads at the camera distance on a phone". Mark each row seen in Play or not; a 3 is final only after step 5.
+- Per row also note how often it happens in 10 minutes of a named session (the first 10 minutes, a mid-game grind, one run of a mode), since a row can be constant in one mode and absent in another, and which tier it is (a tick, a reward, a rare moment: `roblox-fun-effects` section 3).
 
-**Step 3: propose from what the guides already hold**, not from a blank page:
+**Step 3: propose from what the guides already hold**, not from a blank page. A game that already has its own feedback module maps each row to that module's calls first; the kit calls below are in `scripts/window_kit.luau` of `roblox-ui-mobile` (served with its section 4), for a game that has none:
 
 | Row | Use | Where |
 |---|---|---|
@@ -69,7 +81,9 @@ Per row also note: how often it happens in a 10-minute session (every second, ev
 | A refusal | a shake on the button and the `warn` colour on the counter, its own sound | `Kit.shake`; `error` and `not_enough` in `roblox-audio` section 1 |
 | A hit, a pickup, a level-up, a heal, a spawn | a recipe, at the scale for the camera distance | 3i, 3k |
 | A pickup or a chest waiting in the world | bob, spin and sparkle while idle; a burst and a ring on collect | the Pickup row of 3b |
+| Loot that collects itself (an auto-collect grinder) | the flight is the pickup: orbs fly to the player and the counter takes one merged "+N" per 0.25 s | the Kill row of 3b |
 | A hit taken or given, a kill, a dash | the layer table per moment: world, camera, screen, UI, sound | 3b |
+| A server event or a state edge | a cue at the place the player is looking (the HUD element it changes, or the world spot), sized by tier; a ready state breathes until used | 3b; `roblox-ui-mobile` section 4a |
 | A roll, a hatch, a crate, an unlock | a reveal sized by tier | `roblox-fun-effects` sections 3, 4 and 9; a cutscene for the top tier: 3e |
 | A character action (collect, interact, swing) | an animation through the `Animator` at `Action` priority; flag every one that needs a new animation asset, because one the game's owner does not own does not load | 3a, `roblox-character-motion` |
 | Any row that makes a sound | an event id in the sound map, a cue the game may play | `roblox-audio` sections 1 and 7 |
@@ -85,10 +99,10 @@ Size the answer to the row: something that happens every second gets a tick unde
 - Full-screen flashes at most twice a second in play (3b). Shakes combine by max, never by sum (section 3).
 - Sounds come from the licensed catalog or the owner's own uploads: an id the game may not play is silent in the live game (`roblox-audio` section 7).
 
-**Output: one table, sorted by impact** (how often x how much it matters, highest first):
+**Output: the step 0 findings, then one table sorted by impact** (how often x how much it matters, highest first):
 
 ```
-interaction | file:line | now (score, channels) | per 10 min | tier | proposed (guide section or call) | files to change | effort S/M/L | new asset needed
+interaction | file:line | now (score, channels) | refusal cue y/n/n.a. | seen in Play y/n | per 10 min (which session) | tier | proposed (guide section or call) | files to change | effort S/M/L | new asset needed
 ```
 
 Then stop. With the owner's yes, build the top five rows first.
@@ -98,7 +112,7 @@ Then stop. With the owner's yes, build the top five rows first.
 - In Play on the smallest phone preset (`roblox-ui-mobile` section 1): each built row fired by hand, read on a recording or on per-frame state, since a screenshot arrives after a 0.3 s effect is over (3b, "Checking effects from an agent").
 - The same 30 s with the module's "all effects off" switch off and on: a channel nobody misses comes out again.
 - With Reduce Motion on: every row still answers in sound, colour and numbers.
-- Count the busiest moment against the budgets (section 5), then score the rows again and put the new scores beside the old ones in the table.
+- Count the busiest moment against the budgets (section 5), then score the rows again and put the new scores beside the old ones in the table. This is where a 3 becomes final.
 
 ## 2. Audio
 
