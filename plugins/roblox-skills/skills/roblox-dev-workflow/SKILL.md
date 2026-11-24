@@ -1,7 +1,7 @@
 ---
 name: roblox-dev-workflow
 description: "Use to run a Roblox game from idea to live ops with an AI agent: planning, prototype, building, art/asset creation, UI, testing, publishing and iteration. Routes each job to the right tool (Studio MCP, Assistant, Roblox Cube, Blender MCP, Creator Store, Rojo, Open Cloud). Also when deciding which tool makes an asset, how to structure a project, what to do next after a prototype, how to test a change, how to organise a multi-session build, or how to brief and run parallel agents (worktree lanes, an agent that stalls). Run roblox-project-intake first if docs/brief.md does not exist."
-last_reviewed: 2026-11-12
+last_reviewed: 2026-11-24
 sources:
   - https://create.roblox.com/docs/studio/mcp
   - https://create.roblox.com/docs/assistant/guide
@@ -31,6 +31,7 @@ Doc map (official, no login; "never guess a URL", a wrong path returns an HTML 4
 | Need | URL |
 |---|---|
 | Start page for agents, every doc path | `https://create.roblox.com/docs/llms.txt` (section "For Code Agents") |
+| What changed since training (Roblox's own feed for agents) | `https://create.roblox.com/docs/latest-features.json`: a short list of key features (status, APIs, what each replaces, agent `guidance`); llms.txt says to read it before writing Luau, follow the guidance of each feature that applies, and never use a feature marked deprecated (11 entries on 2026-11-24) |
 | Find the page for a question | `https://create.roblox.com/docs/api/search?q=<percent-encoded question>` (JSON; each `url` is fetchable Markdown) |
 | Engine API index / Open Cloud index | `/docs/reference/engine/llms.txt`, `/docs/cloud/llms.txt` |
 | Was this API removed or replaced? | `/docs/reference/engine/deprecated.md` (600 entries; never suggest a listed member) |
@@ -174,7 +175,7 @@ Parallel work lanes (several agents building at once; whether to delegate at all
 
 - Read analytics weekly: retention (D1/D7), session length, funnel events, crashes, performance. Add custom events and funnels in the prototype so the first launch has data.
 - Events go from the server with `AnalyticsService` (economy, funnel, journey, custom); the `Fire*` methods are deprecated. Log after the action succeeded. Events from Studio or the client never arrive, so test in a published test place. Calls, rules, limits and the minimum event set: `roblox-design-and-launch` section 3a. Studio skill `rbx-instrument-analytics` helps plan events.
-- Use experiments and configs (Open Cloud / Creator Hub) for feature flags and A/B tests rather than shipping blind balance changes. Read values on the server with `ConfigService:GetConfigForPlayerAsync(player)` (applies the player's experiments) or `GetConfigAsync()` (no player, experiments not applied); both return a `ConfigSnapshot`. Studio skill `rbx-configs-experimentation`.
+- Use experiments and configs (Open Cloud / Creator Hub) for feature flags and A/B tests rather than shipping blind balance changes. Read values on the server with `ConfigService:GetConfigForPlayerAsync(player)` (applies the player's experiments) or `GetConfigAsync()` (no player, experiments not applied); both return a `ConfigSnapshot`. A snapshot keeps its values: connect `UpdateAvailable` to `Refresh()` for live changes; `GetValue` returns nil for a missing key, so keep a code default; `ConfigService:SetTestingValue` sets a local test value (docs `production/configs`). Studio skill `rbx-configs-experimentation`.
 - Content updates and events on a fixed cadence; announce through thumbnails and experience events.
 - Review `roblox-design-and-launch` section 5 before changing prices or adding offers.
 

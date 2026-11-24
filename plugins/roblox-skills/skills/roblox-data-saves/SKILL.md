@@ -1,7 +1,7 @@
 ---
 name: roblox-data-saves
 description: "Use when planning, writing or reviewing Roblox player saves: what to store, DataStore layout, session locking, ProfileStore, retries, periodic and shutdown saves, schema versions, migrations, trading, leaderboards, badges, test cases, storage limits and deletion rules. Also when a design adds currency, inventory, progression, trading, a leaderboard, badges or settings; when data is lost, rolled back or duplicated; before a release that changes the save shape, reorders items, zones or tiers that saves refer to, or recomputes a stored value; when choosing between DataStore, MemoryStore and a module such as ProfileStore."
-last_reviewed: 2026-11-20
+last_reviewed: 2026-11-24
 sources:
   - https://create.roblox.com/docs/cloud-services/data-stores/best-practices
   - https://create.roblox.com/docs/cloud-services/data-stores/player-data-purchasing (session locking)
@@ -118,3 +118,4 @@ Keep the save as the source of truth: a leaderboard or badge is a view of saved 
 - Watch the Data Stores observability dashboard and set alerts for sustained failures and storage growth. Delete test data when testing ends; a deleted store has a 30-day restore window.
 - Player data must be deletable: use static key patterns and configure automated right-to-be-forgotten processing, or the right-to-erasure webhook for custom schemas.
 - RTBF templates (Creator Hub > Data stores manager > RTBF Deletion; docs `data-stores/right-to-be-forgotten`): one store and one key pattern each, `{UserId}` is case-sensitive. Keys like `p_{UserId}` in a shared store take type **Standard Key**; an ordered leaderboard store gets its own **Ordered Key** template. **Standard Data Store** matches a whole store per player, so it is wrong for a shared store (a game picked it first and had to recreate it, 2026-11).
+- User ids on keys (reference `GlobalDataStore`, read 2026-11-24): pass `{player.UserId}` as the `userIds` argument of `SetAsync` (the reference calls it highly recommended for GDPR tracking and removal), and in an `UpdateAsync` callback return `keyInfo:GetUserIds()` (and `keyInfo:GetMetadata()`) as the second (and third) value unless you mean to change them: what the callback leaves out is cleared.
