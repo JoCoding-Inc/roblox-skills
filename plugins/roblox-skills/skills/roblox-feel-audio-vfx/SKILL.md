@@ -1,7 +1,7 @@
 ---
 name: roblox-feel-audio-vfx
 description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, when a fast sword cut's trail looks like a polygon, waves or a white blob, when something that flies (an arrow, a fireball, a magic bolt, a thrown item, something falling from the sky) needs a trail, a warning on the floor and an impact, when a trail breaks into dots at speed or an effect stays behind while its object moves, when an existing game needs a feel audit (every button, prompt, pickup, reward and refusal listed, scored and sorted by impact before anything is built), or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
-last_reviewed: 2026-11-22
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
   - https://create.roblox.com/docs/effects/particle-emitters (Rate limits, fill rate, `LightEmission` 1 hides the dark regions of a texture)
@@ -21,6 +21,7 @@ sources:
   - RoDesigner moving-things lab, 2026-11-20 (follow, path emission, density and travel added to the recipe module; a fall from the sky, a lob and an energy bolt in Studio 0.748 Play, slow-motion and frozen-frame captures, instance counts; not judged by the owner) and a smaller model's skill-effect build from this guide alone the same day (its report's guesses and defects feed section 3k)
   - RoDesigner comet trail lab, 2026-11-21 (a smaller model's meteor rebuilt in its own place with only the recipe module changed, sixty versions in Studio 0.748 Play at 0.25 speed, twenty-one blind rounds by a separate judge model on still frames aligned on the impact, and Neon colour swatches sampled from a screenshot; not judged by the owner)
   - RoDesigner reveal cutscene builds, 2026-11-21 to 2026-11-22 (one reveal brief built sixteen times by a smaller model from this guide, each judged blind against a VFX artist's posted cut by two judges a sitting; module changes checked on Studio 0.748 Play stills and recordings; the record is references/cutscene-builds.md)
+  - RoDesigner strike flurry lab, 2026-11-25 (a punch flurry in Studio Play built by hand three times against a public showcase clip of a similar skill read frame by frame, numbers and method only; shapes painted in code into EditableImages, beams and particles; the third build's heavy contact called much better by the owner; engine probes of billboards, Highlight fills, emit placement and background frame rate; section 3m)
   - original (feel checklist and budgets are judgment, not measured)
   - original field notes (2026-10 to 2026-11)
 ---
@@ -1138,6 +1139,7 @@ The rules that the owner's verdicts and our test builds keep coming back to, in 
 | An effect on something that moves (an aura on a running player, fire on a cart) | `FxRecipe.play` with `follow` (3i) |
 | An always-on aura on a held item (a sword, a staff, a tool) | 3l |
 | Picking pieces for smoke, vapor, grainy points, glints or a little electricity, on an item or elsewhere | 3l, the "Ingredients" table |
+| The contacts of a strike skill (a punch or cut flurry, a heavy hit): splashes, shards, needles, flares | 3m |
 | A sword cut | 3j for fast cuts, 3d for a fire slash |
 | A game that already runs and feels flat: which interactions to fix first | 1a, the feel audit |
 | A skill with camera work, a cutscene | 3c for the beats, then 3e |
@@ -1342,6 +1344,68 @@ Working in Studio: a script's `Source` cannot be fetched from a Play client, so 
 **Check it** against the target at the target's own scale first: rotate and scale a capture so the item has the same length and angle as in the target frame, crop both alike and set them side by side, with a copy of yours shrunk to the clip's pixel size and blown up again (what a compressed clip keeps). Close captures were 4-6 times larger than the target and hid a density of about a quarter of it. Then **check it** on the stage above: at rest, in a close view of the upper blade and one of the guard, against the daylight sky, and through the sway and the swings; read sheets of consecutive frames next to the target's, and then watch it at real speed. A still can look wrong where the motion looks right, and the other way round.
 
 **Cost** (one item, computed as rate x mean life, not profiled): the fire is 15 emitters and about 75 pieces alive; the glitter build 16 emitters and about 270; the vapor theme 27 emitters and about 264, of which about 170 are points. Other players' items run at a share of the rates (0.4 intended, not checked on a second client) and without the light.
+
+## 3m. Contacts of a strike skill: painted pieces, beams and grain (flurry, heavy hit)
+
+What a fist, a blade or a bolt throws up where it lands, when the skill is a run of contacts a few frames apart and each one must read as a drawn shape, not as a cloud. Read 3k first, and 3c for the clock and the beat table; this section is the pieces of one contact and how they were checked.
+
+Evidence (2026-11-25, Studio Play on a desktop, a lab stage: two block figures, a camera about 19 studs from the contact at a field of view of 60, bloom on; a punch flurry of 3.6 s with a start, light taps every 0.075 s, heavy contacts every 0.066 s, a wind-up, an impact frame of 0.1 s and a last hit). It was built by hand three times against a public showcase clip of a similar skill, read frame by frame (numbers and method only; our own moves and pieces). The owner called the first build, particles and stretched sprites only, far below the target; of the second, whose heavy contact was one painted splat with a single outline, he said that scene was very poor and asked for a finer read of the frames; the third, this section, he called much better. That verdict is for the heavy contact; the other phases are our own reading. Nothing ran on a phone or in a published game.
+
+**Ready parts.** The RoDesigner kit pack `fx` (`list_kit_packs`, `get_kit_pack`) has the painter (`FxPaint`), the piece engine (`SkillFx`: a sprite pool, needles and arcs from beams, emitters as data, a timeline), the flurry as a worked example to start from (`SkillFxExamples`), and the rules with every number (`docs/SKILL-FX.md`). Without the pack, build to what follows.
+
+**Read the target first.** In a flurry every frame differs, so four frames of a phase tell little: read every frame of each phase, two at a time, at 4 times the clip's size or more, and write per frame which pieces are there (shape, edge soft or hard, colour steps inside, how far each reaches against a body). Then compare your build at the target's full frame, beat for beat, and at one crop of the contact cut the same way from both. Two mistakes cost us a build each: comparing against zoomed crops of the target made every size half or less, and a list of "what still differs" was taken for a pass.
+
+**Three kinds of piece**, each new on every contact:
+
+| The target shows | Piece | What failed in its place |
+|---|---|---|
+| A shape with points, lobes, a dark inside: a splash, a burst, thrown shards | a picture painted in code into an `EditableImage` and shown on a `BillboardGui` for 0.05-0.13 s | particle sprites from a texture pack: confetti and cloud at any rate; several flat pieces of one colour at 5 studs: one mass |
+| Anything long and thin with a point at each end: needles, speed lines, crescents | Beams: a needle is two Beams back to back sharing a middle attachment (width 0 to w, w to 0); an arc is one curved Beam | a particle stretched along its velocity keeps square ends; a painted picture of spikes stretched over 13-19 studs showed stair steps (256 px) |
+| Grain: specks, dots, mist, short dashes | particle emitters, emitted by count | |
+
+A published game needs "Allow Mesh / Image APIs" on in its settings for `EditableImage`. Painted pieces are one-shot contact flashes, the case 3k's "No picture pieces" row allows: they live 3 to 8 frames, a new picture and a new turn on every contact, never in a loop or an always-on effect.
+
+**Painting a shape.** Build it as a union of primitives, not as one outline round a centre: a shard (a base point, a direction, a length, a half-width that narrows to a point by a power, a sideways bend) and a blob (a circle whose radius wobbles by noise). One outline gave a symmetric leaf with lobes of one length (the second build); a union gives groups of shards with a long and a short side, a fan thrown one way, drips with round ends and loose chips, in one picture. Colour comes from three things:
+
+- The distance to the edge (two chamfer passes over the mask): a dark line 1-3 px wide all round. A shard thinner than the line comes out dark all through, so thin tips and long thin spikes go dark by themselves, as drawn splashes do.
+- A second, smaller shape inside: the burn (near black, a darker band of the body colour round it) and thin veins along some shards. Off-centre.
+- Noise: the body colour turns toward a deeper tone in patches and toward the burn.
+
+Paint 4-5 pictures per kind once at start (256 px each, one a frame; about 0.13 s each in a plain Luau runner, not timed in Studio) and pick one at random with a random turn per contact. Kinds that made the heavy contact: a crown (shards all round a small body), a fan (everything thrown to one side from a root a quarter of the picture off the middle, so the root sits on the contact and the fan points where you turn it), a spear (a pointed lens with a barb, flown point first), a handful of torn chips (mostly dark), a white flare (a lumpy body with thick rays). Write colours for the brightness the billboard is shown at: at `Brightness` 1.7 a stored 255 red clips flat, and we stored the dark tones at 1 / 1.7 of what the screen should show (set by eye, the brightness curve was not measured). A palette table (body, deep tone, band, burn, line, mark) makes the same shapes another element.
+
+**One heavy contact** (sizes in studs on avatar-sized block figures, lives in seconds):
+
+| Piece | Count | Size | Life | Notes |
+|---|---|---|---|---|
+| Crown | 1 | 8.5-12 | 0.085 | on the contact, `Brightness` 1.7 |
+| Fan | 1-2 | 6.5-11.5 | 0.075-0.08 | root on the contact, each pointing its own way |
+| A darker crown | every other contact | 4.5-7 | 0.07 | `Brightness` 1: a crimson piece on the red |
+| Spears | 3 | 3-5.5 | 0.09-0.13 | start 4-7.5 from the contact, move out at 18-40 a second |
+| Chips | 2 handfuls | 3-5 | 0.1 | start 3.5-7 out, 8-18 a second |
+| White flares | 2 | 4-6.5 and 2.4-4 | 0.06-0.065 | `Brightness` 3.4 |
+| Thin dark lines | 5 | 12-30 long, 0.07-0.15 wide | 0.06-0.1 | Beams through the contact, any direction in the picture plane |
+| Thin white arcs | 4 | radius 1.8-5.5, width 0.12-0.5 | 0.08 | parts of rings on random planes |
+| Needles | 4 white, 3 body colour, 2 stray, 5 dark dashes | 10-22 long, 0.45-1.15 wide | 0.1-0.19 | a flat fan to one side of the frame; they stay near their start and stretch |
+| Grain | 10 sparkles, 6 dots | under 0.35 | 0.1-0.55 | plus 1-2 clusters of chip specks of 2-3.5 studs |
+
+Pieces grow from 0.78 to 1.12 of their size over their life and are cut off, not faded. Most point sideways and up (four in five between 25 degrees below level on one side and the other), so the floor stays clear. A light tap is a white dot of 1.1 studs for 0.05 s, a soft colour dot and 5 specks, on a steady cloud of chips and specks (about 300 pieces a second) that thins to almost nothing under the heavy flurry.
+
+**Depth.** The painted pieces sit 0.9-1.3 studs toward the camera from the contact: in front of the struck body, behind the striker, each kind at its own offset so that they sort the same way every time. Left on the contact they stood behind both bodies and read as a backdrop.
+
+**White.** A billboard does not bloom however high its `Brightness`, so the flare is a hard white picture and the glow is a separate soft additive dot behind it. Three traps, all seen: a soft edge 14 px wide (of 256) left the flare half see-through over most of its body and it read pink on the red (5 px keeps it white); a glow dot at `Brightness` 4.5-7 read as a solid ball 3 studs across (now one dot of 1.3-1.6 studs at transparency 0.68); a wide pale glow disc behind a white star read as a sticker on a plate.
+
+**Engine facts** (measured in Studio Play while building):
+
+- `Emit` after moving one attachment twice in a frame puts both bursts at the second place: keep 3 attachment copies per emitter and use them in turn.
+- A `BillboardGui` under an `Attachment` drew nothing until its `Adornee` was set to that attachment.
+- A `Rate` written from a script every frame emitted nothing: emit by count from an accumulator (`Emit(n)`).
+- A `Highlight` fill (`DepthMode` Occluded) is also drawn over billboards that stand in front of its model: a hit pulse on the struck body painted that body's outline on the splash and tinted the white flares. Keep such a pulse to moments with no billboard in front, or use the outline only.
+- Painted pictures did not show in Edit-mode screenshots, only in Play.
+- At a low frame rate one step is longer than a short life: at 15 frames a second a piece that lives 0.065 s was never drawn. Draw every piece once at age 0 before it starts to age.
+
+**Recording and checking.** A Studio window in the background ran at 15 frames a second, and at 7.5 while a capture ran, so a "real time" clip of a flurry misses most contacts. Run the skill clock at 0.25 (3c) and play the recording back 4 times as fast: 30 distinct frames per second of skill time. A capture stopped at 30 s with no warning, so one loop at 0.25 fits and one at 0.125 does not. Find the loop start by a value only the start sets (ours: the start beat's blue tint); the contrast alone also rose on the wind-up. Cut frames of the heavy flurry at the crop used for the target, set them side by side, and read: is the splash lopsided, does it have a line and a dark inside, are loose pieces thrown clear, is the white white, does it cover the struck body. Judge new shapes before Studio is touched: the painter is plain Luau and renders offline in a few seconds with any Luau runner when the engine calls are stubbed.
+
+**Still different from the target** (third build): ours is hard-edged where the target is soft and blooms; our crowns have more and thinner spikes than the target's broad lobes; the bundle of white needles is thicker. Not measured: cost on a phone, the piece counts under several players' skills at once.
 
 ## 4. Lighting and atmosphere (docs)
 
