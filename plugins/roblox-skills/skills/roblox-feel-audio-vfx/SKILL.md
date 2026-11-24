@@ -1,6 +1,6 @@
 ---
 name: roblox-feel-audio-vfx
-description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, when a fast sword cut's trail looks like a polygon, waves or a white blob, when something that flies (an arrow, a fireball, a magic bolt, a thrown item, something falling from the sky) needs a trail, a warning on the floor and an impact, when a trail breaks into dots at speed or an effect stays behind while its object moves, or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
+description: "Use when adding or tuning game feel in Roblox: particles, beams, trails, hit feedback, screen shake, FOV kicks, hit stop, screen flash and edge tint, vibration (haptics), coin fly-to-counter and other reward feedback layered per moment, in-game animation (Animator, priorities, animation events, emotes), lighting and atmosphere for mood, with mobile budgets and a checklist. Sound effects and music: roblox-audio. Also when a game feels flat or its effects feel simple, effects are invisible or too heavy on phones or look thin and cheap next to concept art, an animation does not play, replicate or gets overridden, lighting looks washed out or too dark (also a night area that reads as a dark blob), bloom bleeds light everywhere, a night scene needs glow under a light budget or must match a concept's mood, the camera swings or shakes until players feel dizzy, when an effect needs a worked layer recipe (fire slash, hit impact, level-up aura), textures that work without uploads or a freeze-frame capture, when building a flashy skill cutscene (impact frames, dutch-angle shot list, lightning, energy sphere, debris, sound-effect lettering, flash cap), when rebuilding an effect from a reference clip (polygon seal with an orb, sky pillar), when fire or an explosion looks like pasted sprites or cotton balls, when a swirl should be a glowing mesh, when a fast sword cut's trail looks like a polygon, waves or a white blob, when something that flies (an arrow, a fireball, a magic bolt, a thrown item, something falling from the sky) needs a trail, a warning on the floor and an impact, when a trail breaks into dots at speed or an effect stays behind while its object moves, when an existing game needs a feel audit (every button, prompt, pickup, reward and refusal listed, scored and sorted by impact before anything is built), or when planning the 'feel' decision cards in roblox-game-pipeline stage 4."
 last_reviewed: 2026-11-22
 sources:
   - https://create.roblox.com/docs/audio (objects, effects, assets)
@@ -31,7 +31,74 @@ Feel is what makes the same loop satisfying. Plan it as part of the loop (stage 
 
 ## 1. Feedback map (planning)
 
-For each frequent action write what the player sees, hears and feels: action, result, reward, error. Example: tap to collect -> pop sound + number rising + currency counter bump. Every repeated action needs feedback in at least two channels (sight + sound). Errors need a different, clear cue (never the same as success). For any effect longer than a short tick (reveals, auras, celebrations, finishers), first fill the fun card in `roblox-fun-effects` section 1: what it rewards, who sees it, how it escalates.
+For each frequent action write what the player sees, hears and feels: action, result, reward, error. Example: tap to collect -> pop sound + number rising + currency counter bump. Every repeated action needs feedback in at least two channels (sight + sound). Errors need a different, clear cue (never the same as success). For any effect longer than a short tick (reveals, auras, celebrations, finishers), first fill the fun card in `roblox-fun-effects` section 1: what it rewards, who sees it, how it escalates. For a game that already exists, start from the audit in 1a.
+
+## 1a. Feel audit of an existing game
+
+For a game that already runs and "feels flat": find every place the player does or gets something, score what answers it, and fix the rows that cost the most first. A procedure (judgment: the order and the scores are ours; it has not been run by a test builder yet). The layers, numbers and limits it points at are measured or sourced in their own sections. Change nothing during the audit, and stop for the owner's yes before building.
+
+**Step 1: list every interaction.** Search the scripts and the UI; one row per place the player acts or receives:
+
+| Kind | Where to look |
+|---|---|
+| Presses | every `TextButton` and `ImageButton` (`Activated`, `MouseButton1Click`), tabs, sliders, panels that open and close |
+| World actions | `ProximityPrompt.Triggered`, `ClickDetector.MouseClick`, `Touched` on pickups and pads, `Tool.Activated` |
+| Requests | every `RemoteEvent:FireServer` and `RemoteFunction:InvokeServer` on the client, and what the server answers with |
+| Results | currency and XP changes, level-ups, unlocks, purchases, rolls and hatches, wins, damage taken, deaths, respawns |
+| Refusals | not enough currency, a cooldown, a locked item, a full inventory: every `if not ... then return end` behind a press |
+
+Refusals are the row audits miss: a press that silently does nothing is the worst score in the table.
+
+**Step 2: score each row** from what the code does now (file and line, the trigger, each channel that answers):
+
+| Score | Means |
+|---|---|
+| 0 | nothing answers within 0.5 s, or the state just changes |
+| 1 | one channel (a sound, or a number that changes) |
+| 2 | sight and sound, but the same answer for every size of result, or the answer waits for the server |
+| 3 | sight and sound within a frame of the press, sized to the result, with a different cue for a refusal |
+
+Per row also note: how often it happens in a 10-minute session (every second, every minute, a few times, once) and which tier it is (a tick, a reward, a rare moment: `roblox-fun-effects` section 3).
+
+**Step 3: propose from what the guides already hold**, not from a blank page:
+
+| Row | Use | Where |
+|---|---|---|
+| A button, a tab, a panel | press squash and rebound, the open and close order, the HUD that gives way | `roblox-ui-mobile` section 4 (`Kit.press`, `Kit.open`, `Kit.dock`) and 4a for measured timings |
+| Currency or XP gained or spent | pieces that fly to the counter, a count-up, a "+N" at the counter, red for a spend | `Kit.fly`, `Kit.count`; a counter rises on every pickup (3b) |
+| A refusal | a shake on the button and the `warn` colour on the counter, its own sound | `Kit.shake`; `error` and `not_enough` in `roblox-audio` section 1 |
+| A hit, a pickup, a level-up, a heal, a spawn | a recipe, at the scale for the camera distance | 3i, 3k |
+| A pickup or a chest waiting in the world | bob, spin and sparkle while idle; a burst and a ring on collect | the Pickup row of 3b |
+| A hit taken or given, a kill, a dash | the layer table per moment: world, camera, screen, UI, sound | 3b |
+| A roll, a hatch, a crate, an unlock | a reveal sized by tier | `roblox-fun-effects` sections 3, 4 and 9; a cutscene for the top tier: 3e |
+| A character action (collect, interact, swing) | an animation through the `Animator` at `Action` priority; flag every one that needs a new animation asset, because one the game's owner does not own does not load | 3a, `roblox-character-motion` |
+| Any row that makes a sound | an event id in the sound map, a cue the game may play | `roblox-audio` sections 1 and 7 |
+
+Size the answer to the row: something that happens every second gets a tick under 0.3 s and the smallest budget; camera kicks, hit stop and screen flashes are for the rows that happen a few times a session. For each proposal longer than a tick fill the fun card (`roblox-fun-effects` section 1); a row with no "Rewards" line stays a tick.
+
+**Step 4: rules for the build.**
+
+- Presentation only, on the client: no change to gameplay logic, remotes or saved data. The answer to a press starts on the press, before the server replies; when the server refuses, play the refusal and put the counter back.
+- One feedback module that the other scripts call, which owns the camera's FOV and shake, tags what it creates and restores what it borrowed (the ownership, FOV and shake rules of 3b).
+- Hover effects are for a mouse; a touch screen gets the press only.
+- `GuiService.ReducedMotionEnabled` and the game's own "reduce effects" switch are honoured from the first build: no shake, kicks, flights or confetti with them on; sound, colour and numbers stay (3b).
+- Full-screen flashes at most twice a second in play (3b). Shakes combine by max, never by sum (section 3).
+- Sounds come from the licensed catalog or the owner's own uploads: an id the game may not play is silent in the live game (`roblox-audio` section 7).
+
+**Output: one table, sorted by impact** (how often x how much it matters, highest first):
+
+```
+interaction | file:line | now (score, channels) | per 10 min | tier | proposed (guide section or call) | files to change | effort S/M/L | new asset needed
+```
+
+Then stop. With the owner's yes, build the top five rows first.
+
+**Step 5: verify what was built**, row by row:
+
+- In Play on the smallest phone preset (`roblox-ui-mobile` section 1): each built row fired by hand, read on a recording or on per-frame state, since a screenshot arrives after a 0.3 s effect is over (3b, "Checking effects from an agent").
+- The same 30 s with the module's "all effects off" switch off and on: a channel nobody misses comes out again.
+- With Reduce Motion on: every row still answers in sound, colour and numbers.
+- Count the busiest moment against the budgets (section 5), then score the rows again and put the new scores beside the old ones in the table.
 
 ## 2. Audio
 
@@ -1053,6 +1120,7 @@ The rules that the owner's verdicts and our test builds keep coming back to, in 
 | Anything that flies: an arrow, a fireball, a magic bolt, a thrown item, something falling from the sky | 3i "Moving things": `FxRecipe.travel` with a trail, a tell and impact recipes |
 | An effect on something that moves (an aura on a running player, fire on a cart) | `FxRecipe.play` with `follow` (3i) |
 | A sword cut | 3j for fast cuts, 3d for a fire slash |
+| A game that already runs and feels flat: which interactions to fix first | 1a, the feel audit |
 | A skill with camera work, a cutscene | 3c for the beats, then 3e |
 | A reveal cutscene (a rare roll, an unlock, a title card) | 3e: its build order and rules come first |
 | Fire, an explosion or smoke at large size | 3g |
