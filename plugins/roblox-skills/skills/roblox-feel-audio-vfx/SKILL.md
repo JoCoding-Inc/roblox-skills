@@ -1120,7 +1120,7 @@ The rules that the owner's verdicts and our test builds keep coming back to, in 
 | Small units | one sprite shows a whole flame, explosion or trail; a piece lives over 0.35 s (smoke over about 1 s; a trail's tail glows up to about 1 s, as they shrink and cool to deep red) |
 | Brief white | white lasts past a contact flash of 3 frames or the first 15% of a piece's life (a trail's core line, a quarter of its width, may stay white over its first half); a white ball or disc holds on screen |
 | No big one-colour mass | a large shape is one flat colour: a disc, a dome, a slab, one black smoke mass |
-| No picture pieces | a visible piece is one image of a whole thing: a star or lens-flare burst, a fan of spikes, a ring, a crescent, a snowflake, a gem; or a solid mesh (a copy of a prop, a flat diamond) floats beside the object as part of the effect. In an always-on or looping effect none of these is used at any size. In a one-shot burst one may flash at the contact (a star for 3 frames, the ground blast's fan for under 0.3 s, 3g) and is gone |
+| No picture pieces | a visible piece is one image of a whole thing: a star or lens-flare burst, a fan of spikes, a ring, a crescent, a snowflake, a gem; or a solid mesh (a copy of a prop, a flat diamond) floats beside the object as part of the effect. In an always-on or looping effect none of these is used as a piece the eye reads as itself. A glint (a point with short thin rays) may twinkle there only as a speck: about a tenth of the object's width, alive under 0.2 s, many at once and never one alone (judgment, from a weapon aura the owner set as a target; no build of it has been judged yet). In a one-shot burst one may flash at the contact (a star for 3 frames, the ground blast's fan for under 0.3 s, 3g) and is gone |
 | No light bigger than its source | a soft glow is seen as a ball or a halo: wider than the thing it lights and not covered by denser pieces. On a blade 0.76 studs wide, glow dots of 1.1-1.6 studs at 30% opacity and of 0.5-0.65 studs at 45% read as a large light and were rejected |
 | Specks stay specks | round dots that drift or fall are big enough to be seen as balls. Watched from 16.5 studs, white dots of 0.13-0.24 studs falling like snow were rejected; embers of 0.07 studs that shrink to 0.02 passed. Specks are a twinkle, not a piece that must read: for more presence use more of them, not larger ones |
 | Something moves | a layer holds over 0.3 s with nothing moving in it (a still picture) |
@@ -1136,6 +1136,7 @@ The rules that the owner's verdicts and our test builds keep coming back to, in 
 | A 2-4 s skill on the floor: a nova, a strike from the sky, a zone, an eruption | 3i, the skill recipes |
 | Anything that flies: an arrow, a fireball, a magic bolt, a thrown item, something falling from the sky | 3i "Moving things": `FxRecipe.travel` with a trail, a tell and impact recipes |
 | An effect on something that moves (an aura on a running player, fire on a cart) | `FxRecipe.play` with `follow` (3i) |
+| An always-on aura on a held item (a sword, a staff, a tool) | 3l |
 | A sword cut | 3j for fast cuts, 3d for a fire slash |
 | A game that already runs and feels flat: which interactions to fix first | 1a, the feel audit |
 | A skill with camera work, a cutscene | 3c for the beats, then 3e |
@@ -1161,6 +1162,8 @@ The rules that the owner's verdicts and our test builds keep coming back to, in 
 | 30 studs | 8.6 | 26 | 0.5 studs | 1 |
 | 60 studs | 4.3 | 13 | 0.9 studs | 2 |
 | 100 studs | 2.6 | 7.7 | 1.6 studs | 3 |
+
+At another field of view F, 1 stud at distance D covers H / (2 x D x tan(F / 2)) px: a stage at 16.5 studs with a field of view of 40 gives about 90 px per stud on a 1080 px screen and 30 on the phone.
 
 The recipes are sized for about 15-35 studs. Something watched from 60-100 studs takes `scale` 2-3, which grows sizes, speeds and radii together and keeps the times. Never enlarge one layer instead: it turns into a mass.
 
@@ -1255,6 +1258,53 @@ Frame cost on a phone is not measured for any of these: play the busiest moment 
 - Frame the demo so the effect reads: a fall seen from 80 studs (a 6-stud rock) was marked down for readability against one seen from about 70 studs and lower (blind judge, 2026-11-20). Judgment: the peak fills about a third of the frame height, and the whole path stays in frame. A still camera side-on to the path keeps it there: the lab's fall (73 studs of path, from 62 up and 38 back) seen from 80 studs at `FieldOfView` 62, aimed 12 studs short of the landing and 20 up. A camera that moved during the fall cut the start of the path and the top of the impact at the frame's edges in one build (two blind judges, 2026-11-21).
 
 **Getting the scripts into Studio.** The guide reader serves each script with `raw_url`, `sha256` and `bytes`: download the file and check both. Studio refused a script `Source` over 200,000 characters in our runs; the effect scripts are under 75,000. Two ways in without retyping: a Rojo project that syncs the folder, or a file server on 127.0.0.1 and one Edit-mode `execute_luau` that sets each ModuleScript's `Source` from `HttpService:GetAsync` (worked in Edit mode with `HttpEnabled` off, not from Play). Retyping the three scripts took a smaller model most of a 5.5-minute run (3i).
+
+## 3l. An aura on a held item (sword, staff, tool)
+
+An effect that is always on while an item is held: at rest, through a slow sway and through fast swings, at dusk and against a bright sky. Read 3k first; this section is what 3k does not say about an effect that lives on a moving item.
+
+Evidence (2026-11-24, Studio Play on a desktop, a lab stage: camera 16.5 studs away at a field of view of 40, the sword leaning, a dusk wall and a daylight sky, a loop of rest, sway and two swings of 70 degrees in 0.22 s; recordings cut into sheets of consecutive frames). A fire aura on a greatsword was built by hand over six builds. Two frost auras for a second sword were then built by a smaller model, one from stills of the fire, one from a design document written from the fire plus the fire's engine; the owner picked the document build as clearly the better one, while two blind judges reading frame sheets scored the stills build higher on quality (61 against 56 of 100) and the document build higher on "same game as the fire" (14 against 9 of 20). A glitter aura was built by a smaller model from this guide alone; the owner has not judged it yet, and its rows below are marked. Nothing was measured on a phone.
+
+**Ready parts.** The RoDesigner kit pack `fx` (`list_kit_packs`, `get_kit_pack`) has the engine that draws an aura from a theme table (`ItemAura`), the fire as a worked theme, the textures with their image ids, and the full rules with numbers (`docs/ITEM-AURA.md`). With the pack, a new aura is a new theme table. Without it, build to the rules below.
+
+**Read the target first.** From a reference clip or the brief, write a table before any emitter: each piece (what it is, where on the item it sits, how big against the item's width), and what changes between two frames 1/30 s apart (which pieces are new, which drift, which hold). Parts that belong to the item's model (fins, rings, a glowing gem) are not the effect. The aura is that table, not "glow plus sparkles".
+
+**Structure** (seen on the fire):
+
+- Two places, not one: the main mass on the upper half of the blade and a second, small, different effect at the guard's gem. Between them the blade is clean. An aura spread evenly from guard to tip hid the sword and had no focus (first build, rejected).
+- Back to front: a soft underlay near the blade's width, the element's dark side as paint (low `LightEmission`), the body, a brightest middle that gets its white from clipping (3g), then the few pieces that leave (sparks, specks).
+- The body is a pair: each piece once as paint (`LightEmission` 0.3-0.45) and once lit (0.8-1). The lit one glows at dusk; the paint one keeps colour and mass against a bright sky, where the lit one alone turned pale and thin. How little light the paint may carry depends on the sky: red held at 0.2; a cold colour has only value contrast with a blue sky and needed 0.08 and darker colours.
+- Gaps are part of the look: rates were lowered until the background showed between pieces. At about twice those rates the fire was one solid shape.
+- The item stays readable: the fire at rest is 1.3-1.6 blade widths thick. Wider, and the sword disappears inside it.
+
+**Where pieces are born.** Unseen, non-colliding parts inside the item's model, sized from the blade (length, width, thickness measured once in the grip frame), one per zone: the upper blade (about 0.7 of the width, the upper half), a narrow core inside it, thin strips on the edges, the tip, a small box on the gem. One emitter per layer per zone. Read the gem's position from the model: on one sword it sat 0.31 studs below the blade's base, and an effect placed at the base floated on the blade.
+
+**What rides the item and what stays in the world.**
+
+| Piece | Setting | Seen |
+|---|---|---|
+| Mass that flows fast (flames, strands: 3.5-9 studs a second, alive 0.1-0.4 s) | in the world (`LockedToPart` off) | in a swing it stays behind and draws the arc; at rest it re-forms in under 0.3 s |
+| Anything slow, or that belongs to the steel (a sheen, frost lines, glints, a slow vapour) | `LockedToPart` on, short lives | an unlocked mist stood in empty sky for about 0.7 s after a swing (the glitter build) |
+| The few pieces that leave (sparks, specks) | in the world, with `Drag` | a short wake that is gone within about 0.35 s |
+
+**Pieces that worked.**
+
+| Need | Build | Source |
+|---|---|---|
+| A body that changes shape through its life | an eroding wisp flipbook played once over the life, laid along its velocity and stretched (`VelocityParallel`, `Squash` -0.5 to -0.9, no free rotation). Slow and turning freely the same wisp reads as a round puff | the fire; the first frost build |
+| Flow lines | single thin tongues, one random cell each, along their velocity, `Squash` -0.7 to -1.1. A positive `Squash` made needles lying across the flow | the fire |
+| The element's own pull | a world-space `Acceleration` (fire: up 12-20), so on a leaning blade the fire leans up off the steel. Without it the aura was a straight torch along the blade | the fire |
+| A slow cold vapour | eroding wisps with little light of their own, born on the blade and sinking; the owner called it well expressed | first frost build, owner's verdict |
+| A thin lit edge line | soft dots on an edge strip, `VelocityParallel` at almost no speed, `Squash` about -1.6, `Rotation` 0, size 0.14-0.3, life 0.2-0.3 s, many alive so they overlap into one line. With a random `Rotation` they read as stars | the glitter build, not yet judged |
+| A twinkle | size 0 at birth, full at about 20% of life, 0 at death, life 0.06-0.2 s, locked. On a soft dot at 0.1 studs they read up close as small round dots, not sharp points: use a crisp piece (a sheet of fine chips, one random cell) for glitter and keep the soft dot for light | the glitter build, not yet judged |
+
+**What was rejected** (the owner's verdicts on the frost builds; blade 0.76 studs wide, seen from 16.5 studs): a star-burst sprite and flat gem meshes beside the blade; soft glow dots of 0.5-1.6 studs on the blade (a large light); white dots of 0.13-0.24 studs falling beside it (snowballs); thin needles standing out of the blade's top. They are rows of the bar in 3k. From the glitter build, not yet judged: an edge sheen dense enough to be a steady line (170 pieces a second per edge at `Brightness` 2) whitened the whole blade, so the item's own colour and shape were lost; keep a sheen to the edge's width and let the faces show.
+
+**Time.** No fixed period anywhere: every stream's rate breathes (x 0.7 to 1.0 by smooth noise, each layer on its own phase), a gust comes every 1.3-2.8 s for 0.3 s (body rates x 1.4-1.6), bursts of 3-7 sparks every 0.3-0.9 s, and the one PointLight flickers by noise. Anything that pulses on a beat reads as a heartbeat.
+
+**Check it** on the stage above: at rest, in a close view of the upper blade and one of the guard, against the daylight sky, and through the sway and the swings; read sheets of consecutive frames next to the target's, and then watch it at real speed. A still can look wrong where the motion looks right, and the other way round.
+
+**Cost** (one item, computed as rate x mean life, not profiled): the fire is 15 emitters and about 75 pieces alive; the glitter build 16 emitters and about 270. Other players' items run at a share of the rates (0.4 intended, not checked on a second client) and without the light.
 
 ## 4. Lighting and atmosphere (docs)
 
