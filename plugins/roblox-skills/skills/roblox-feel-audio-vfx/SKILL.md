@@ -1382,17 +1382,17 @@ Paint 4-5 pictures per kind once at start (256 px each, one a frame; about 0.13 
 | A darker crown | every other contact | 4.5-7 | 0.07 | `Brightness` 1: a crimson piece on the red |
 | Spears | 3 | 3-5.5 | 0.09-0.13 | start 4-7.5 from the contact, move out at 18-40 a second |
 | Chips | 2 handfuls | 3-5 | 0.1 | start 3.5-7 out, 8-18 a second |
-| White flares | 2 | 4-6.5 and 2.4-4 | 0.06-0.065 | `Brightness` 3.4 |
+| White flares | 2 | 5-8 and 2.4-4 | 0.06-0.065 | `Brightness` 3.4 |
 | Thin dark lines | 5 | 12-30 long, 0.07-0.15 wide | 0.06-0.1 | Beams through the contact, any direction in the picture plane |
 | Thin white arcs | 4 | radius 1.8-5.5, width 0.12-0.5 | 0.08 | parts of rings on random planes |
-| Needles | 4 white, 3 body colour, 2 stray, 5 dark dashes | 10-22 long, 0.45-1.15 wide | 0.1-0.19 | a flat fan to one side of the frame; they stay near their start and stretch |
+| Needles | 2 white, 3 body colour, 2 stray, 5 dark dashes | 10-22 long; white 0.3-0.62 wide, body colour 0.55-1.15 | 0.1-0.19 | a flat fan to one side of the frame; they stay near their start and stretch |
 | Grain | 10 sparkles, 6 dots | under 0.35 | 0.1-0.55 | plus 1-2 clusters of chip specks of 2-3.5 studs |
 
-Pieces grow from 0.78 to 1.12 of their size over their life and are cut off, not faded. Most point sideways and up (four in five between 25 degrees below level on one side and the other), so the floor stays clear. A light tap is a white dot of 1.1 studs for 0.05 s, a soft colour dot and 5 specks, on a steady cloud of chips and specks (about 300 pieces a second) that thins to almost nothing under the heavy flurry.
+Pieces grow from 0.78 to 1.12 of their size over their life and are cut off, not faded. Most point up and to the struck body's side (two in three between 55 and 200 degrees on screen with the striker on the right of the frame, one in seven downward), so the floor stays clear. A light tap is a white dot of 1.1 studs for 0.05 s, a soft colour dot and 5 specks, on a steady cloud of chips and specks (about 300 pieces a second) that thins to almost nothing under the heavy flurry. The bodies must read through that cloud: its pieces run 30-66% transparent; at 0-10% the same stream was one opaque ball over the struck body.
 
-**Depth.** The painted pieces sit 0.9-1.3 studs toward the camera from the contact: in front of the struck body, behind the striker, each kind at its own offset so that they sort the same way every time. Left on the contact they stood behind both bodies and read as a backdrop.
+**Depth.** The painted pieces sit 0.45-0.75 studs toward the camera from the contact (the white flares 1.3): in front of the struck body, behind the striker, each kind at its own offset so that they sort the same way every time. Left on the contact they stood behind both bodies and read as a backdrop. The offset belongs to one camera and one pair of bodies: at 0.9-1.3 the splash covered the striker's arms and chest on the same stage. Set it on a recording, looking at the striker's arms.
 
-**White.** A billboard does not bloom however high its `Brightness`, so the flare is a hard white picture and the glow is a separate soft additive dot behind it. Three traps, all seen: a soft edge 14 px wide (of 256) left the flare half see-through over most of its body and it read pink on the red (5 px keeps it white); a glow dot at `Brightness` 4.5-7 read as a solid ball 3 studs across (now one dot of 1.3-1.6 studs at transparency 0.68); a wide pale glow disc behind a white star read as a sticker on a plate.
+**White.** A billboard does not bloom however high its `Brightness`, so the flare is a hard white picture and the glow is a separate soft additive dot behind it. Three traps, all seen: a soft edge 14 px wide (of 256) left the flare half see-through over most of its body and it read pink on the red (5 px keeps it white); a glow dot at `Brightness` 4.5-7 read as a solid ball 3 studs across (now one dot of 1.8-2.3 studs at transparency 0.66; widened to 2.4-3.2 it was a pink disc on the red again); a wide pale glow disc behind a white star read as a sticker on a plate.
 
 **Engine facts** (measured in Studio Play while building):
 
@@ -1402,10 +1402,13 @@ Pieces grow from 0.78 to 1.12 of their size over their life and are cut off, not
 - A `Highlight` fill (`DepthMode` Occluded) is also drawn over billboards that stand in front of its model: a hit pulse on the struck body painted that body's outline on the splash and tinted the white flares. Keep such a pulse to moments with no billboard in front, or use the outline only.
 - Painted pictures did not show in Edit-mode screenshots, only in Play.
 - At a low frame rate one step is longer than a short life: at 15 frames a second a piece that lives 0.065 s was never drawn. Draw every piece once at age 0 before it starts to age.
+- A frozen skill clock shows no painted piece: a piece is drawn when the clock crosses its event with a step above 0, so a paused frame or a jump to a time is empty. Check on slow recordings.
 
 **Recording and checking.** A Studio window in the background ran at 15 frames a second, and at 7.5 while a capture ran, so a "real time" clip of a flurry misses most contacts. Run the skill clock at 0.25 (3c) and play the recording back 4 times as fast: 30 distinct frames per second of skill time. A capture stopped at 30 s with no warning, so one loop at 0.25 fits and one at 0.125 does not. Find the loop start by a value only the start sets (ours: the start beat's blue tint); the contrast alone also rose on the wind-up. Cut frames of the heavy flurry at the crop used for the target, set them side by side, and read: is the splash lopsided, does it have a line and a dark inside, are loose pieces thrown clear, is the white white, does it cover the struck body. Judge new shapes before Studio is touched: the painter is plain Luau and renders offline in a few seconds with any Luau runner when the engine calls are stubbed.
 
-**Still different from the target** (third build): ours is hard-edged where the target is soft and blooms; our crowns have more and thinner spikes than the target's broad lobes; the bundle of white needles is thicker. Not measured: cost on a phone, the piece counts under several players' skills at once.
+**Another element is its own shapes, not a palette.** The same flurry painted and tinted blue was the same explosion in blue (seen). A second builder, working only from this section and the kit, made a frost skill of the same structure by keeping the piece engine and writing a shape table first: what the body is cut like (faceted crystals in three tones with a pale cut core, where the red had lobed splashes), what replaces the burn (zigzag cracks), how the loose pieces move (splinters that fall and turn), what the impact frame does to the struck body (frozen pale, not lit). It kept the dark line, the sizes, lives and counts above, the white flares and the needle fan. Where the element's colours are the stage's (blue on a navy floor), the thin pieces go first: move them to the pale end and keep the line (seen, not judged by an owner).
+
+**Still different from the target** (fourth build): ours is hard-edged where the target is soft and blooms; our crowns have more and thinner spikes than the target's broad lobes; the light flurry's cloud is thinner than the target's haze. Not measured: cost on a phone, the piece counts under several players' skills at once.
 
 ## 4. Lighting and atmosphere (docs)
 
