@@ -6,3 +6,6 @@ AssetService.GetLatestVersionUriAsync  # announced for 2026-11-11 (asset version
 AssetService.GetLatestAssetVersionUriAsync  # release notes 745 (Pending) spelling of the asset versioning method; not in the reference on 2026-11-20; re-check
 MarketplaceService.GetPassOwnershipAsync  # announced 2026-11-18 (pass free trials post, "will" be introduced); not in the reference on 2026-11-20; re-check
 LayerCollector.GetGuiObjectsAtPosition  # made public per release notes 743 (Live); not on the LayerCollector reference page on 2026-11-20; re-check
+Motor6D.C0  # inherited from JointInstance.C0 (in the reference); the checker does not follow inheritance
+ReplicatedStorage.Fx  # an instance path for the kit's own folder, not an engine member
+ReplicatedStorage.Ui  # an instance path for the kit's own folder, not an engine member
