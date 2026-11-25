@@ -1,7 +1,7 @@
 ---
 name: roblox-match-flow
 description: "Use when planning or writing a Roblox game with rounds, matches, lobbies or teams: session shape, the round state machine, teams and spawns, lobby and match places, teleports, matchmaking, server shutdown, match results and tests. Also when a design says rounds, lobby, queue, 1v1, party, private match or teams; when a match needs more players than are present; when players wait in an empty lobby; when a teleport fails, loses data or cannot be tested; before a release that adds a match place. Pair with roblox-bots-npcs, roblox-data-saves, roblox-combat-tools and roblox-pitfalls."
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/projects/teleport (and teleport-private-servers)
   - https://create.roblox.com/docs/reference/engine/classes/TeleportService (and TeleportOptions)
@@ -42,7 +42,7 @@ The docs cover the parts (teams, teleports, matchmaking, memory stores). The loo
 | Round | intermission over | win condition, timer, or roster empty | play at spawns |
 | Results | round over | timer ends | see winner; server awards and saves |
 
-Results goes back to Intermission, or to Waiting if players dropped below the minimum.
+Results goes back to Intermission, or to Waiting if players dropped below the minimum. Results is where players decide to stay (judgment): show each player what they gained, also after a loss, praise the winner, and keep the next round one tap away (`roblox-design-and-launch` section 1b).
 
 1. One server module owns state, timers and win checks. The client never starts or ends a round.
 2. Replicate with attributes (`SetAttribute` on `workspace`) or a RemoteEvent for one-shot events. Send a deadline (`Workspace:GetServerTimeNow()` + seconds), not a counter; the client draws the countdown from it and only displays. Remotes follow `roblox-engine-2026` section 4.
@@ -107,7 +107,7 @@ Left out: bot fill, awards, teams, spectators. With `CharacterAutoLoads` off nob
 | `SpawnLocation.AllowTeamChangeOnTouch` | Turn off in team games, or touching a spawn changes the team |
 | `SpawnLocation.Enabled`, `SpawnLocation.Duration` | Disable lobby spawns during a round. Duration = spawn ForceField seconds, default 10, 0 = none; set per mode |
 | `Player.RespawnLocation` | Per-player spawn; must be in Workspace and match the team or be neutral |
-| `Players.RespawnTime` | Default 5 s; applies only while `Players.CharacterAutoLoads` is true |
+| `Players.RespawnTime` | Default 5 s; applies only while `Players.CharacterAutoLoads` is true. The time from death to control decides whether players retry: set it per mode (`roblox-design-and-launch` section 1b) |
 | `Players.CharacterAutoLoads` | False = no spawn until `Player:LoadCharacterAsync` (the older `LoadCharacter` is deprecated). Do not call it again for a player before `Player.CharacterAppearanceLoaded` |
 
 Team split (judgment): put party members on one team first, then add each remaining player to the smaller team.
@@ -173,6 +173,7 @@ Queue pattern (judgment): a lobby server adds each local player as a ticket (use
 |---|---|
 | This server's ranking | A `leaderstats` folder (lowercase) on each `Player` with value objects; the server writes them. Shows in the "Here" view |
 | Friends and Global over time | An `OrderedDataStore` registered in Creator Hub. Documented as beta (devforum 4832224): one active persistent leaderboard per experience, one numeric score per player, user id in the key. Your game writes scores; the platform only reads them |
+| What most players see of their standing | A rating, tier or band rather than a raw rank: "#10432" motivates only the top few (judgment). `OrderedDataStore` has no rank lookup for one player, only sorted pages (`OrderedDataStore:GetSortedAsync`, docs class page) |
 | Results and rating | The server computes at Results and writes once, with the match GUID as an idempotent record id, so a retry cannot award twice. Ratings go to a DataStore, never only to MemoryStore (`roblox-data-saves`). Write scores at match end, not on every point; limits in `roblox-data-saves` section 7 |
 
 ## 9. Testing

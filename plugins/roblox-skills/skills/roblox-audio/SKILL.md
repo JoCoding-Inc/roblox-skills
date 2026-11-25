@@ -1,7 +1,7 @@
 ---
 name: roblox-audio
 description: "Use when adding sound effects, music or ambience to a Roblox game: an event sound map with stable ids and each cue described in words, mix and starting volumes, buses and ducking with the Audio API (AudioPlayer, AudioFader, AudioCompressor sidechain), loops and music changes, Sound vs the Audio API, phone budgets and loading, sourcing from the Creator Store (licensed catalog, privacy and grants, acquire rules, imports, AI audio) and measuring in Studio. Also when a game is silent or every action sounds the same, audio is too loud, clips, stacks or tires the ear, music restarts on respawn or loops with a gap, a Store sound plays in Studio but not in the live game or in a group-owned game, a Toolbox click inserted a Sound object, when picking ids for UI, reward, egg, boss or music cues, before importing or generating audio, and before calling the audio of a release done. Particles, lighting and the feel checklist stay in roblox-feel-audio-vfx; what a reward escalates to stays in roblox-fun-effects."
-last_reviewed: 2026-11-09
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/audio/assets (updated 2026-11-06; Creator Store audio, import rules, classification)
   - https://create.roblox.com/docs/cloud/guides/usage-assets (Open Cloud upload limits per asset type, read 2026-11-20)
@@ -12,6 +12,7 @@ sources:
   - DevForum staff posts t/1701697 (2022 audio privacy change), t/2980704 (2024-05 public SFX distribution), t/3164792 (2024-09 DistroKid music)
   - Studio MCP search_asset tool schema (read 2026-11-09)
   - https://devforum.roblox.com/t/4950480 (text-to-speech asset creation, Studio beta, staff post 2026-10-22) and https://create.roblox.com/docs/ai/accelerated-workflows (audio items), read 2026-11-20
+  - https://github.com/kociden/sakurai-skill (unofficial AI summary of the Japanese captions of Masahiro Sakurai's YouTube series Masahiro Sakurai on Creating Games, 2022-2025; no licence, rules re-authored, not checked against the videos; read 2026-11-25)
   - field notes from generated sound-effect and music runs and vendor licence terms read (2026-11-20; vendors not named)
   - field notes from live Creator Store searches and loudness measurements (2026-11-09)
   - original (event map, volumes, ducking values and budgets are judgment)
@@ -53,7 +54,7 @@ One row per game moment. Keep the event id stable (snake_case) so code, settings
 | `egg_reveal` | 300-800 ms, bright, rising, pop plus chime | SFX | Grows with the tier |
 | `rare_reveal` | 1.5-4 s, bright, rising build then a hit, layered (riser, impact, sparkle or choir) | SFX | The loudest cue in the game; duck the music |
 | `boss_warning` | 1-3 s, dark, low horn or alarm, falling or pulsing, layered | SFX | Duck the music, then switch to `music_combat` |
-| `hit` | 50-200 ms, punchy, impact plus body, single or layered | SFX | Positional; random pitch of +-3-5 % |
+| `hit` | 50-200 ms, punchy: loudest at the very start, short tail; impact plus body, single or layered | SFX | Positional; random pitch of +-3-5 % |
 | `round_start` | 0.5-1.5 s, bright, rising; short beeps, then a higher "go" | SFX | |
 | `victory` | 2-5 s, bright, rising, major jingle, layered | Music | Stops or ducks the round music |
 | `defeat` | 1.5-4 s, dark, falling, minor, shorter than `victory` | Music | |
@@ -72,6 +73,7 @@ Rules (judgment):
 
 - Starting fader volumes: Master 1, SFX 0.7, UI 0.5, Music 0.35. Tune by ear from there.
 - Loudness order: rare reveal > rewards and level-up > hits and pickups > UI > music > ambience.
+- In fights, rank cues by how much they change the outcome, not by the file's loudness. One fighting game's order, loudest first: kill, hit, special move or voice, explosion, dodge, whiff, jump and landing, footsteps (relayed from its director's video series, sources). A long reverb tail buries the next hit: keep tails short where hits come fast, and let a heavy hit's main sound end inside its hit stop (`roblox-fun-effects` section 8).
 - `AudioPlayer.Volume` and `AudioFader.Volume` both range from 0 to 10 (docs); values over 1 amplify. Keep them at 1 or below, and fix a quiet asset with its own player volume, not with the bus.
 - Store assets differ in level: a Roblox UI click peaked at -5.9 dBFS and a ProSoundEffects cue at -14.3 dBFS (field note, 2026-11-09). Set a volume per cue after listening; never expect two assets to match.
 - Random pitch of +-3 % (`PlaybackSpeed` 0.97-1.03) on repeated cues hides the repeat. `PlaybackSpeed` changes length and pitch together (docs: range 0 to 20).
