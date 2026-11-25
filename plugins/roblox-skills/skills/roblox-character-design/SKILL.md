@@ -1,7 +1,7 @@
 ---
 name: roblox-character-design
 description: "Use when designing how characters, creatures, enemies, bosses, robots, turrets, towers, units, pets or mounts look in a Roblox game: shape language, silhouette at play distance, size against the avatar, menace or cute, role and tier shown by shape, one style across a roster, parts for animation, triangle budgets for crowds and bosses, and which tool makes them. Also when a roster of units, towers or enemies looks alike, reads small or toy-like, or cannot be read at play distance; before generating or modeling a batch of characters; when choosing Roblox Cube, Blender or a paid image-to-3D service for creatures and robots; when enemies feel cute instead of threatening; when an upgrade tier only changes color. Motion is in roblox-character-motion, Blender export in roblox-blender-export, rarity effects in roblox-fun-effects."
-last_reviewed: 2026-11-08
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/studio/avatar-settings (avatar heights)
   - https://create.roblox.com/docs/reference/engine/classes/Camera (FieldOfView is vertical, default 70)
@@ -68,6 +68,7 @@ pellet1 | tower, player  | 1    | 7            | squat box, 3 barrels | barrel c
 - One shape signature per role, the same at every tier, so the player learns the role from the outline: for example rapid fire as a multi-barrel cluster, pierce as one long rail, splash as pods or a mortar tube, slow as a dish or coil, support as an antenna or ring; for enemies, tank as wide and low, fast as thin and leaning, flyer as off the ground with wings.
 - Each tier adds or grows a part (more barrels, a larger core, armor plates, shoulder pods, a crest) and steps up in size; only then does it add the tier color and effects from `roblox-fun-effects` section 3. Tiers that differ only by color fail the silhouette test and fail for color-blind players.
 - Keep one detail that never changes inside a line of upgrades (base shape, eye style), so the upgraded unit still reads as the same unit.
+- The outline states the unit's one-line trait, and its numbers push the same trait with a matching weakness (`roblox-design-and-launch` section 1b).
 
 ## 5. One style across a roster (30-40 units)
 

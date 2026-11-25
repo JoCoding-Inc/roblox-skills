@@ -1,7 +1,7 @@
 ---
 name: roblox-ui-typography
 description: "Use when choosing or fixing fonts and text style in any Roblox game: which fonts exist (built-in and Creator Store, no uploads), a display and body pair per genre, Font API, readability on phones, stroke and shadow, text performance, numbers and damage numbers, and fonts for Korean, Japanese, Chinese, Arabic and Thai. Also when UI text looks generic, blurry, jagged, too small or unreadable over the 3D world; when text flickers on phones; when numbers jitter while counting; when Korean or other non-Latin text renders broken or in the wrong font; when a font name from an old tutorial (Gotham, Arial) no longer works; in roblox-game-pipeline stage 3 (style board) to pick the font pair. Simulator/tycoon stud-style text specifics stay in roblox-ui-genre-studs section 3."
-last_reviewed: 2026-11-20
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/en-us/reference/engine/datatypes/Font.md and enums/Font.md (families, removed fonts)
   - https://create.roblox.com/docs/en-us/projects/assets.md (fonts cannot be imported; updated 2026-11-02)
@@ -111,3 +111,4 @@ Fonts are part of the look: pick them in the style board (stage 3 of `roblox-gam
 | No tweened `TextSize` or stroke `Thickness` | yes |
 | Counters do not jitter; one number formatter | yes |
 | One sentence per shipped language tested on screen, sign and billboard | yes |
+| Labels in plain words; every menu and shop item has a one-line help that does not repeat its label (`roblox-design-and-launch` section 1) | yes |

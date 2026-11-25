@@ -1,8 +1,9 @@
 ---
 name: roblox-store-art-pack
 description: "Use for any genre when picking and quarantining Creator Store models, picking UI icons (button, currency, shop, rebirth) from a Creator Store icon pack, offering popular world-prop packs (trees, rocks, fences) for the user to pick, checking map composition, or making the game icon, thumbnails, logo and loading screen. Its world palette (section 1) is for bright daylight simulator/tycoon games only. Also when inserting Toolbox/Creator Store models, before publishing or running ads (icon/thumbnail CTR), when building an icon family for UI or an agent-made icon looks odd, designing a logo or a custom loading or teleport screen,  or when a bright simulator/tycoon scene looks flat, pastel or greybox. Skip section 1 for horror, realistic or night games; set the mood with Lighting, Atmosphere and post effects instead."
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-25
 sources:
+  - https://github.com/kociden/sakurai-skill (unofficial AI summary of the Japanese captions of Masahiro Sakurai's YouTube series Masahiro Sakurai on Creating Games, 2022-2025; no licence, rules re-authored, not checked against the videos; read 2026-11-25)
   - https://github.com/blauwtje/roblox-kit (map-building/reference/daylight-look.md, ui-images; MIT)
   - https://github.com/brain-xiang/grok-studio (skills/thumbnail-and-icon; MIT)
   - https://github.com/S4US/Roqer (references/composition.md, core/assets.md; AGPL, rules re-authored)
@@ -66,6 +67,7 @@ Skip this section for horror, realistic or night games.
   - The player is about 5 studs; a door is 4 wide x 7 high; ceilings are 10-14; a counter is 3.5-4.
   - Sizing from a reference frame: fix one object of known size in studs first (the avatar, a door), then derive every other size from its ratio to that object in the same frame. Do not guess sizes one by one (`roblox-character-design` section 3 does this for units).
   - Paths are 6 studs wide or more. Snap structures to a 4/2 stud grid.
+  - Big things read big (judgment, after the video series in sources): a high camera, blur at the top and bottom of the frame and strong saturation make a boss or a tower read as a toy. To show size, lower the view, keep `DepthOfFieldEffect` blur off the play area, and let colours fade toward blue with distance (`Atmosphere`). The section 1 palette stays for the play area.
 - **Simulator layout:**
   - One connected ground. The hub holds the sell/collect pad, shop, egg/lucky altar and rebirth.
   - Hub to the last zone takes under 1 minute at WalkSpeed 16.

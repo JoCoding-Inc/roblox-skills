@@ -1,7 +1,7 @@
 ---
 name: roblox-combat-tools
 description: "Use when planning, writing or reviewing combat in a Roblox game: melee, guns, projectiles, abilities, Tools and combat input, hit detection, lag tolerance, damage and kill credit, knockback, anti-exploit checks, Server Authority and combat testing. Also when a design adds weapons, enemies that fight back, PvP or PvE damage; when hits feel laggy or miss on phones; when exploiters one-shot players or spam a fire remote; when choosing between Tools, custom input, the Weapons Kit and Server Authority. Pair with roblox-engine-2026, roblox-bots-npcs, roblox-feel-audio-vfx, roblox-match-flow."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/projects/server-authority
   - https://devforum.roblox.com/t/4727993 (Server Authority full release, 2026-07-09, incl. known issues and FAQ)
@@ -21,6 +21,7 @@ Combat is where lag and exploiters show up first. One rule: the client shows, th
 | Question | Default (D) |
 |---|---|
 | Weapon type, per weapon: melee, hitscan, projectile, ability | Guns hitscan, rockets and arrows projectile, swords melee arc, spells ability. Two types in the prototype |
+| Weapon roster | One trait per weapon, with an upside and a downside (strong up close and weak far, fast but light); no single best weapon; a capped number of loadout slots (judgment, `roblox-design-and-launch` section 1b) |
 | PvE, PvP or both | PvE or co-op first. PvP needs all of section 8 and bot fill (`roblox-bots-npcs`). Rounds, teams, respawn: `roblox-match-flow` |
 | Casual or ranked | Casual: client claims + server checks (sections 2, 4). Ranked or physics-heavy: Server Authority (section 6) |
 | Team damage | Off. On only when the design wants friendly fire, and then only inside the damage module (section 7) |
