@@ -62,7 +62,7 @@
       "additive_layer": {"v": {"LightEmission": 1, "LightInfluence": 0}, "p": "field", "date": "2026-11-04"},
       "flipbook_layouts": {"v": ["2x2", "4x4", "8x8", "Custom"], "p": "documented"},
       "flipbooks_drop_on_low_memory": {"v": true, "p": "documented", "src": "an effect must still read without its flipbook"},
-      "time_scale_range": {"v": [0, 1], "p": "documented", "src": "hit stop"}
+      "time_scale_range": {"v": [0, 1], "p": "documented", "src": "freeze-frame and slow-motion captures; a hit stop leaves the hit effect playing (tested 2026-11-25)"}
     },
     "camera": {
       "shake_combine": {"v": "max, never sum; clamp", "p": "field"},

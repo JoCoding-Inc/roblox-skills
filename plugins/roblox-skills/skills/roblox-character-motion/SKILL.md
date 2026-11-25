@@ -1,7 +1,7 @@
 ---
 name: roblox-character-motion
-description: "Use when a Roblox character must perform a custom motion: exercise loops (push-ups, squats, lifting), sitting, climbing, carrying, interacting with a machine or prop, emotes, attack and skill motions for characters and creatures, or any animation the agent would build by script. Covers which authoring path to use, the motion sheet to make first (a row of key poses plus a beat table), keeping hands and feet on their contact points, baking, uploading so it works in live servers, and how to verify it. Also when a motion looks wrong (body floats, sinks into the floor, hands miss the bar, arms flail, feet slide), when code uses KeyframeSequenceProvider or builds Keyframes and Poses by script, when an animation plays in Studio but not in the published game, when choosing between Animation Editor, Blender, Animation Capture, IKControl and procedural joints, when a script errors with 'Unable to assign property C0', when a display rig's limbs fall off an anchored root, when a carried item is held only some of the time, when an attack or skill animation looks stiff or its hit lands on the wrong frame, or before a feel checkpoint for character motion (roblox-game-pipeline section 7a)."
-last_reviewed: 2026-11-15
+description: "Use when a Roblox character must perform a custom motion: exercise loops (push-ups, squats, lifting), sitting, climbing, carrying, interacting with a machine or prop, emotes, attack and skill motions for characters and creatures, or any animation the agent would build by script. Covers which authoring path to use, the motion sheet to make first (a row of key poses plus a beat table), keeping hands and feet on their contact points, baking, uploading so it works in live servers, and how to verify it. Also when a motion looks wrong (body floats, sinks into the floor, hands miss the bar, arms flail, feet slide), when code uses KeyframeSequenceProvider or builds Keyframes and Poses by script, when an animation plays in Studio but not in the published game, when choosing between Animation Editor, Blender, Animation Capture, IKControl and procedural joints, when a script errors with 'Unable to assign property C0', when a display rig's limbs fall off an anchored root, when a carried item is held only some of the time, when an attack or skill animation looks stiff, starts late after the press or its hit lands on the wrong frame, when a hit reaction does not read during hit stop, or before a feel checkpoint for character motion (roblox-game-pipeline section 7a)."
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/reference/engine/classes/KeyframeSequenceProvider.md (temporary ids are Studio only)
   - https://create.roblox.com/docs/reference/engine/classes/AnimationClipProvider.md
@@ -18,6 +18,8 @@ sources:
   - original field notes (2026-10 to 2026-11)
   - RoDesigner motion sheet format experiment 2026-11-11 (2 motions, 7 reference formats, one builder per format, blind owner pick plus a judge model's score)
   - RoDesigner skill effect demo, 2026-11-15 (a sword flurry on a code-posed block dummy, judged by the owner on video; relayed by RoDesigner)
+  - https://github.com/kociden/sakurai-skill (unofficial AI summary of the Japanese captions of Masahiro Sakurai's YouTube series Masahiro Sakurai on Creating Games, 2022-2025; no licence, rules re-authored, not checked against the videos; read 2026-11-25)
+  - original Studio tests 2026-11-25 (AnimationTrack fades, a hit reaction under hit stop; R15 with AnimationConstraint joints)
 ---
 
 # Character motion
@@ -135,6 +137,25 @@ One demo (2026-11-15, relayed by RoDesigner): a sword flurry on a jointed block 
 - A code-posed rig is a workable way to author and check such a motion before baking: arms and legs solved by two-bone IK to hand and foot targets, so elbows and knees bend by themselves and the feet stay planted. The motion is `pose(rig, t)` on the beat table (section 2a), stepped in slow motion from a fixed front camera and a pure side camera.
 - On a real avatar with baked clips, write each clip from the same beat table and take the effect times from the table, not from the clip length. A second demo time-warped baked clips so that their contact frames landed on the beats.
 - The effects on those beats: `roblox-feel-audio-vfx` section 3c.
+
+## 2c. Attack timing and hit reactions
+
+Measured in Studio Play (2026-11-25; R15 with `AnimationConstraint` joints; client at about 15 fps; test clips registered with `KeyframeSequenceProvider`, so Studio only):
+
+- **`Play()` fades in.** `AnimationTrack:Play(fadeTime, weight, speed)` fades over 0.1 s by default (docs), and `WeightCurrent` rises in a straight line: a wind-up started with the default showed half of its pose 50 ms after `Play` and all of it by about 0.12 s. With `fadeTime` 0 the full pose showed on the first animated frame. Start attacks and skills with `fadeTime` 0 to 0.03 s so the press shows at once; keep the default for idle, walk and other blends.
+- **A hit reaction starts just before the hit stop.** Its first key is an extreme pain pose, far from idle, readable from far away (relayed). `Play` it with a fade of about 0.05-0.07 s, then call `HitStop.play` (`roblox-feel-audio-vfx` section 3b). A track is in `Animator:GetPlayingAnimationTracks()` right after `Play`, so the stop holds it at `TimePosition` 0, and the fade keeps running while `AdjustSpeed(0)` holds the track (fade 0.067 s: weight 0.25 after 17 ms, 1 by about 0.08 s). In a 0.15 s stop the victim blended into the extreme pose, then the clip played on after the release. Sakurai's series blends into the damage pose over about 4 frames (relayed), 0.067 s at 60 fps.
+- Give reactions variants by where the hit lands (high, middle, low) and how hard (light, medium, heavy), twisted rather than symmetric so arms and legs read (relayed).
+
+Timing of an attack (relayed from Sakurai's series; his values, not measured here):
+
+| Part | Rule |
+|---|---|
+| Wind-up | jumps to a big pose on the first frame, so the player sees the press was taken; it may then hold (a charge). The strike itself takes a frame or two with few in-betweens, or the move reads mushy |
+| Hit | lands in the first quarter to third of the move (a fifth for a fast jab); the rest is recovery, and most moves last under 1 s |
+| Hit pose | the most-seen frame, held through the hit stop: across the body's middle line, not symmetric, chest a little twisted, a clean silhouette from the game's camera, stopped a little past the contact |
+| Follow-through | the longest part on screen: keep the echo of the move to the end of its time and do not return along the outgoing path |
+| Cancel window | a frame in the return where control comes back, in a pose that looks ready; without one the controls feel heavy. Mark it with an animation event (`GetMarkerReachedSignal`, `roblox-feel-audio-vfx` section 3a); the server keeps its own timing (`roblox-combat-tools` section 9) |
+| Size | push the motion past what looks right in the editor: small and distant characters need bigger moves |
 
 ## 3. Contact-first method (tested)
 

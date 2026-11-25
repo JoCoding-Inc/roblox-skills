@@ -1,13 +1,14 @@
 ---
 name: roblox-game-pipeline
 description: "Use FIRST for any new Roblox game, game idea or big feature to run the staged production workflow: tool check, vision, live-market and platform-pattern advice, look and style board, cinematics and small decisions, working-mode choice (auto or staged, solo or subagents), plan, first proof (core-fun prototype, concept images or a concept trailer), build loop with evidence, verify, release. For Roblox games this replaces generic brainstorming. Also when the user says 'make a game', 'what do you think of this idea', 'what should I make', 'what is trending' or 'let's start a project'; asks how autonomous the agent should be or whether to use subagents; wants a prototype, concept art or a trailer before building; when a step is judged by feel and the user should play it; when small decisions (cinematic, style, intro, music, loading screen) come up late; when the user asks 'is it all done?'; when work stalls without a working mode. Run roblox-project-intake inside stage 0-1 and roblox-market-research in stages 1-2."
-last_reviewed: 2026-11-14
+last_reviewed: 2026-11-25
 sources:
   - superpowers plugin 7.0.0 skills: brainstorming, writing-plans, executing-plans, subagent-driven-development, verification-before-completion, finishing-a-development-branch (read 2026-11-03; rules adapted, not copied)
   - roblox-project-intake, roblox-market-research, roblox-design-and-launch (section 1a), roblox-dev-workflow, roblox-cinematics, roblox-store-art-pack
   - Studio MCP `subagent` tool: this build (0.745) listed explore, screen_capture, unit_test
   - original (Roblox-specific constraints from shipping test games with an AI agent)
   - original field notes (2026-10 to 2026-11)
+  - original Studio test 2026-11-25 (attribute changes during Play: server to client, client only, after Stop)
   - RoDesigner `generate_game_asset` kind `gameplay_screen` (prod dry runs on 2026-11-13: three device sizes, `concept_only`, 10 credits; inputs and the first field-test changes read in the service source the same day); kind `image` render sizes (prod dry runs on 2026-11-14) and field patterns from one game's 9 generations (relayed by RoDesigner, 2026-11-14)
 ---
 
@@ -254,7 +255,7 @@ The agent checks what a machine can measure: errors, console, layout, screenshot
 Do not ask the user to find what a test can find (errors, overlaps, saves, purchase failure paths, a blocked entrance, a feature the player cannot reach).
 
 1. **Plan it.** Feel tasks carry a `Playtest: user - <what to try>` line (section 6). Batch them: one 5-10 minute session after a group of feel tasks, not one per number. In Stage gates mode the session joins the gate.
-2. **Make changes cheap.** Keep feel values (speeds, cooldowns, costs, shake) in one `Tuning` ModuleScript or as attributes. For a close call, build 2-3 variants the user can switch during play with a key (dev builds only, removed before release) and ask which is best.
+2. **Make changes cheap.** Keep feel values (speeds, cooldowns, costs, shake) in one `Tuning` ModuleScript or as attributes. Values the user tunes while playing go in attributes on one `Tuning` folder in ReplicatedStorage that the code reads through `GetAttributeChangedSignal` or at each use, so a change made during Play applies at once and many values fit in one session. Tested in Studio Play (2026-11-25): two server-side `SetAttribute` changes 0.5 s apart both reached a client handler; a change made on the client stayed there (the server still read the old value), so change values the server reads on the server side of Studio's client/server toggle; everything changed during Play was gone after Stop, so write the chosen values back in Edit. For a close call, build 2-3 variants the user can switch during play with a key and ask which is best. Dev keys and commands (variants, set health, skip a stage, slow motion, effects off) are for dev builds only and run behind a server-side `RunService:IsStudio()` check (`roblox-release-automation` section 4a).
 3. **Hand over.** Stop any MCP play session and save, then give: where to play (Studio Play, F5; Server & Clients with 2 clients for multiplayer; a phone through the private test place or the Playtest audience, `roblox-design-and-launch` section 4), 2-4 things to try and how long. The agent does not edit the place or start play while the user plays.
 4. **Measure while they play.** Print key moments to the Output (first reward time, deaths, upgrades bought, where the player stopped) and read them afterwards with `get_console_output`, so the answers come with numbers.
 5. **Ask and record.** At most 4 questions, 1-5 plus one free line. Write the session to `docs/playtests.md`, then turn each answer into keep, change or drop with a task:

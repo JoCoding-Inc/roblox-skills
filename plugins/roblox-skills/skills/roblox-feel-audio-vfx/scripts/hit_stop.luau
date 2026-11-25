@@ -9,6 +9,9 @@
 -- solver. Written in PreAnimation, PostSimulation or PreRender it was overwritten or never drawn while a
 -- track played. The damage-to-time curve and the amplitude are our starting values, not judged in the
 -- hands yet: tune them in Play. Guide: roblox-feel-audio-vfx section 3b.
+-- Leave the hit effect playing through the stop: its burst then fills it (side-by-side test 2026-11-25,
+-- guide section 3b). Start the victim's reaction track just before calling play (roblox-character-motion
+-- section 2c).
 --
 --   HitStop.play(attackerModel, victimModel, damage) -- returns the seconds it froze for
 

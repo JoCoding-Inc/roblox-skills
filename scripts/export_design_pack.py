@@ -74,7 +74,7 @@ GUIDES = [
     ("roblox-character-design", None, "art-direction"),
     ("roblox-store-art-pack", None, "store-art"),
     ("roblox-feel-audio-vfx", ["1", "1a", "3k", "3", "3b", "3c", "3d", "3e", "3f", "3g", "3h", "3i", "3j", "3l", "3m", "4", "5"], "effects"),
-    ("roblox-character-motion", ["2b"], "effects"),
+    ("roblox-character-motion", ["2b", "2c"], "effects"),
     ("roblox-cinematics", None, "effects"),
     ("roblox-audio", None, "audio"),
     ("roblox-engine-2026", ["2"], "ui-engine"),
