@@ -207,6 +207,7 @@ Caveats (each confirmed on the docs page or the release post):
 - Load once per equip with `Animator:LoadAnimation()` and keep the track; it creates a new track every call. Retrieve an existing one with `Animator:GetTrackByAnimationId()`. Loading from the owning client also loads it for the server (docs).
 - Set `AnimationTrack.Priority` to `Enum.AnimationPriority.Action` so a swing overrides idle and walk; use Action2 to Action4 only for layering.
 - Hit frame: add a marker in the animation and listen with `AnimationTrack:GetMarkerReachedSignal("Hit")` for VFX, sound and opening the client's hit window.
+- Start attack tracks with `fadeTime` 0 to 0.03 s (the default 0.1 s fade showed half the wind-up 50 ms after `Play`), and start the victim's reaction just before the hit stop: `roblox-character-motion` section 2c (measured).
 - The server never trusts the marker. It starts its own timer at the swing request: accept hits only after the windup and before windup + active time, once per swing.
   Under Server Authority drive combat animations inside bound functions and do not cache tracks across frames.
 

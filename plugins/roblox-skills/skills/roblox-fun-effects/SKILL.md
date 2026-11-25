@@ -1,7 +1,7 @@
 ---
 name: roblox-fun-effects
 description: "Use when adding or reviewing any animation, particle effect, aura, trail, title, roll or egg-hatch reveal, rarity look, mutation or variant, level-up or rebirth celebration, emote, finisher or kill effect, or rare-drop announcement in a Roblox game. Decides what the effect rewards, who sees it, how it escalates and how it pays off in a clip, so it adds fun instead of only working. Also when an effect 'works but feels like nothing', a roll or reveal is boring or too long, when planning rarity tiers, cosmetics or auras, when players should be able to show off, when asked for 'more juice' or 'make it satisfying', or in roblox-game-pipeline stage 4 (Feel cards). Pair with roblox-feel-audio-vfx (how to build it and phone budgets), roblox-cinematics (long scenes), roblox-design-and-launch section 2 (paid random odds)."
-last_reviewed: 2026-11-15
+last_reviewed: 2026-11-25
 sources:
   - https://create.roblox.com/docs/en-us/production/game-design/design-for-roblox.md (fun first; players want their avatars seen)
   - https://create.roblox.com/docs/en-us/production/game-design/ui-ux-design.md (feedback)
@@ -12,6 +12,7 @@ sources:
   - community patterns read 2026-11-03 (RNG aura games, mutation games, DevForum feedback threads t/2880624 and t/3424276)
   - talks Juice it or lose it (Jonasson and Purho) and The art of screenshake (Nijman); Sakurai hitstop column (fan translation)
   - https://www.w3.org/WAI/WCAG22/Understanding/three-flashes-or-below-threshold.html
+  - original Studio test 2026-11-25 (a hit effect frozen, held, slowed or left playing through a 0.14 s hit stop, side by side)
   - original (tiers, timings and budgets are judgment, not measured)
 ---
 
@@ -119,7 +120,7 @@ No "Rewards" or no "Payoff" line: cut it or shrink it to a tick. Effects on ever
 
 ## 8. Combat flair
 
-- **Hit stop** is presentation on the client: freeze the attacker's and victim's animations (`AnimationTrack:AdjustSpeed(0)`, then restore) and the hit effect (`TimeScale` 0), not the world. Stronger hit, longer stop, with a cap: light 0.04-0.07 s, heavy 0.08-0.14 s, kill 0.15-0.25 s, never over 0.3 s. Use little in fast group fights. A freeze that grows with the damage and a victim that shakes during it: `roblox-feel-audio-vfx` section 3b (`scripts/hit_stop.luau`).
+- **Hit stop** is presentation on the client: freeze the attacker's and victim's animations (`AnimationTrack:AdjustSpeed(0)`, then restore), not the world and not the hit effect: left playing, its burst fills the stop, while a frozen effect showed only its first flash frame during the stop and burst after the release (side-by-side test, 2026-11-25, `roblox-feel-audio-vfx` section 3b). Stronger hit, longer stop, with a cap: light 0.04-0.07 s, heavy 0.08-0.14 s, kill 0.15-0.25 s, never over 0.3 s. Use little in fast group fights. A freeze that grows with the damage and a victim that shakes during it: `roblox-feel-audio-vfx` section 3b (`scripts/hit_stop.luau`).
 - Pair it with a 0.1 s flash, a 1-2 degree camera kick, a number pop and slight pitch variation; raise pitch and size on combos.
 - Layer by importance: a hit, a crit, a kill and a boss kill each add channels, not just size. The per-moment table is in `roblox-feel-audio-vfx` section 3b. Frequent kills use the heavy range above (0.08 s in the test place) and keep the kill range for bosses.
 - Budget hit feedback per target per second, not per hit. A white `Highlight` flash tuned for towers with short range (0.09 s, at most every 0.12 s, fill 0.15) left enemies white most of the time once every tower could hit them along the whole path; a soft blink at most 3 times per second per enemy fixed it (field note, 2026-11-11).
