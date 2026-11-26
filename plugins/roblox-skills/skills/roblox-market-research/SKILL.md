@@ -1,13 +1,17 @@
 ---
 name: roblox-market-research
-description: "Use when ideating or judging a Roblox game idea against the live market: what is trending or rising, which genres and themes are crowded, search keyword competition, competitor teardown (players, age, passes, badges), how fast hits decay, and which sites and public APIs hold Roblox charts, stats and keyword data. Also when the user asks 'what do you think of this game idea', 'how about a gym tycoon (or any genre) idea', 'is X a good idea', 'what should I make', 'what is popular on Roblox now', 'is this genre saturated', 'who are the competitors', picks a game name or title keywords, times an update to a season or event, or wants sources for Roblox trends. Run in roblox-game-pipeline stages 1-2, before the brief is fixed."
-last_reviewed: 2026-11-04
+description: "Use when ideating or judging a Roblox game idea against the live market: what is trending or rising, which genres and themes are crowded, what player count a typical game in a genre reaches, search keyword competition, competitor teardown (players, age, passes, badges), how fast hits decay, and which sites and public APIs hold Roblox charts, stats and keyword data. Also when the user asks 'what do you think of this game idea', 'how about a gym tycoon (or any genre) idea', 'is X a good idea', 'what should I make', 'what is popular on Roblox now', 'is this genre saturated', 'who are the competitors', picks a game name or title keywords, times an update to a season or event, or wants sources for Roblox trends. Run in roblox-game-pipeline stages 1-2, before the brief is fixed."
+last_reviewed: 2026-11-26
 sources:
   - https://create.roblox.com/docs/discovery
   - https://create.roblox.com/docs/production/analytics/analytics-dashboard
   - https://s27.q4cdn.com/984876518/files/content_files/Q3-2026-Earnings-Shareholder-Letter.pdf
   - https://corp.roblox.com/newsroom/2025/12/roblox-replay-decoded-search-style
   - https://gameanalytics.com/reports/2026-roblox-report
+  - https://intelligence.rolearn.dev/reports/roblox-genre-ccu-benchmarks-2026 (vendor, with a CSV of percentiles; read 2026-11-26)
+  - https://bloxfa.st/guides/roblox-game-ideas-2026 and https://bloxfa.st/research/games.csv (vendor chart snapshot 2026-11-09; genre table recomputed by us 2026-11-26)
+  - https://intelligence.rolearn.dev/analysis/roblox-competitor-retention-data (2026-10-24, read 2026-11-26)
+  - https://romonitorstats.com/terms/ (terms, read 2026-11-26)
   - https://www.rolimons.com (third party, game history)
   - original (public endpoints tested 2026-11-03; scripts/market.py)
 ---
@@ -65,12 +69,15 @@ Raw JSON lands in `./market-YYYYMMDD/` so every number can be cited. Sponsored r
 | RoTrends `rotrends.com/genres` | Genre table: game count, visits, CCU, session, rating | Open HTML, but its terms bar bots: let the user open it, or read one page by hand | M/V | Genre crowding |
 | RobloxGameStats, RoWatcher | CCU, records, emerging games; revenue estimates | Open pages; revenue paywalled; error 30-50% by their own method page | V | Revenue sanity only |
 | GameAnalytics 2026 Roblox report | D1/D7/D30, session length, device mix, payer share | Open | V | Retention targets (`roblox-design-and-launch` 1a) |
+| ROLearn genre CCU benchmarks (`intelligence.rolearn.dev/reports/roblox-genre-ccu-benchmarks-2026`) | CCU percentiles by genre and game age for about 15,800 active games (daily mean CCU, averaged over the period) | Open, with a CSV of percentiles | V | Genre baselines (section 6) |
+| BloxFast research (`bloxfa.st/research`, `games.csv`) | One chart snapshot (2,905 games on 2026-11-09): genre, players online, created date, chart ranks, passes, products | Open; the publisher sells a Roblox game | V | Chart crowding (section 6); not its revenue model |
+| RoMonitor Stats (`romonitorstats.com`) | Platform CCU, average session length, top games and developers | Free to view; its terms bar scraping, copying data and AI use | V | Let the user open it; never script it or copy its numbers into files |
 | Naavik, Deconstructor of Fun, GameDev Reports (Substack) | Analysis, market sizing, weekly recaps | Open | C | Strategy context |
 | Google Trends (`roblox <term>`) | Relative interest 0-100, seasonality | Unofficial; needs a cookie jar; breaks often | M | Seasons, rising themes |
 | Reddit `reddit.com/r/roblox/top/.rss?t=week` | Hype and complaints | RSS open (JSON blocked) | C | Social signal |
 | YouTube, TikTok, X, Twitch | Gameplay views, hashtags | API key or a browser | C | Only with the user's OK (browser tools) |
 
-Do not use: retention tables from bloxg.com or genre D1 targets from blogs without a method (they claim 25-35 % D1 against a GameAnalytics median of 10.3 %); keyword tools that show placeholder rows (ROLearn's keyword page on 2026-11-03).
+Do not use: retention tables from bloxg.com or genre D1 targets from blogs without a method (they claim 25-35 % D1 against a GameAnalytics median of 10.3 %); keyword tools that show placeholder rows (ROLearn's keyword page on 2026-11-03); ROLearn's roleplay-vs-simulator page (2026-03), whose retention, session-length, conversion and revenue rows come from CCU readings every five minutes, which cannot measure them (the same publisher wrote on 2026-10-24 that a competitor's retention cannot be measured on Roblox); BloxFast's genre revenue multipliers (an assumed 2.63x for RPG, Strategy, Shooter, Action and Sports, fitted partly on the Top Earning chart).
 
 ## 4. Keyword research (no official search volume exists)
 
@@ -86,7 +93,7 @@ Example (M, 2026-11-03): "steal" had 39 of 40 results with the word in the title
 
 ## 5. Research recipe (ideation, about 15 minutes)
 
-1. **Frame.** Read the latest shareholder letter and GameAnalytics medians. Note DAU, discovery direction and season.
+1. **Frame.** Read the latest shareholder letter, the GameAnalytics medians and the genre baselines (section 6). Note DAU, discovery direction and season.
 2. **Charts.** `charts --top 25`, then the trending-in-genre sorts that fit the idea, for computer and high_end_phone. Note rank, CCU, age and flags.
 3. **Shortlist.** Pick 3-5 games closest to the idea. Run `game` on each for passes, max players, update recency and the badge funnel.
 4. **Decay.** Run `history` on the shortlist. Note peak (7-day average of daily peaks), now/peak and half-life.
@@ -104,6 +111,28 @@ Example (M, 2026-11-03): "steal" had 39 of 40 results with the word in the title
 - **Seasons and events.** Event tags (for example a pumpkin emoji in October titles) skew chart titles for weeks: The Hollow ended 2026-11-02 and many titles still carried Halloween tags the next day. Do not count tags or event frames in or right after an event window. Event weekends inflate peaks too: the Halloween weekend (2026-10-31 and 11-01) lifted every current peak, so re-pull a week later before reading decay (V/M). Replay shows horror and Halloween searches peak in September and October (O).
 - **Trackers disagree.** Steal An Egg's all-time peak is reported as 9.9M and as 14.2M by different trackers (V). Quote a range and a source, or your own measured number.
 - **Device and country.** Charts differ by device and country; check `high_end_phone` before a phone-first plan.
+
+**Genre baselines (V, two vendors, dated; re-check before quoting after about a month).** ROLearn tracked 15,799 active experiences from 2026-10-01 to 10-22: each day's CCU is that day's mean reading, averaged over the days, and experiences with readings on fewer than 15 days are left out. The long tail that almost nobody plays is mostly outside the sample, so these numbers sit above all of Roblox. Overall: median 45 CCU, p25 15, p75 194, p90 783; 8.5 % averaged 1,000 or more. BloxFast took one snapshot of 26 chart sorts x 3 devices x 10 locations (2026-11-09 04:47 UTC, 2,905 games); charts hold only games that are already big or rising, at one moment of the day. The chart columns are recomputed by us from its `games.csv`; they match its published table, whose players-per-game column divides rounded shares (differences up to 0.03). Games under 3 months old show a median of 154 CCU (11 % of the sample, 31 % of its CCU): a new game counts only once it draws players on 15 or more days, so that is not what a new release should expect (J).
+
+| Genre | Active games, Oct | Median CCU, Oct | p90 CCU, Oct | Chart: players per game (x average) | Chart: share of all new games (under 6 months) | Chart: on global Top Earning |
+|---|---|---|---|---|---|---|
+| Simulation | 5,865 | 40 | 850 | 1.22 | 44.8 % | 18.6 % |
+| Obby & Platformer | 2,204 | 39 | 419 | 0.62 | 5.0 % | 1.7 % |
+| Survival | 1,490 | 61 | 1,042 | 2.05 | 7.2 % | 21.0 % |
+| Action | 1,197 | 52 | 1,162 | 0.86 | 7.4 % | 26.0 % |
+| Roleplay & Avatar Sim | 1,103 | 52 | 659 | 1.43 | 3.4 % | 14.3 % |
+| Adventure | 807 | 29 | 408 | 0.45 | 2.9 % | 10.0 % |
+| Party & Casual | 724 | 69 | 1,088 | 0.49 | 5.6 % | 4.9 % |
+| Shooter | 426 | 83 | 1,374 | 0.83 | 3.1 % | 19.0 % |
+| Sports & Racing | 358 | 71 | 967 | 0.85 | 5.1 % | 14.2 % |
+| RPG | 341 | 72 | 1,690 | 1.47 | 2.0 % | 50.9 % |
+| Strategy | 256 | 66 | 1,879 | 1.02 | 3.1 % | 29.5 % |
+| Entertainment | 230 | 25 | 255 | 0.11 | 1.4 % | 0 % |
+| Puzzle | 197 | 48 | 973 | 0.20 | 3.4 % | 1.0 % |
+| Social | 196 | 84 | 1,015 | 0.28 (only 25 chart games) | 0.8 % | 20.0 % |
+| Shopping | 145 | 16 | 282 | 0.24 | 3.4 % | 0 % |
+
+Reading (J): Simulation is the crowded genre: 37 % of the active games and 42 % of their players, 45 % of all new chart games, and a median of 40 against a mean of 797 (ROLearn), so its typical game is small and a few giants hold the players. Survival, RPG and Roleplay chart games draw more players per game than average; RPG and Strategy chart games reach Top Earning most often, Obby, Puzzle, Entertainment and Shopping almost never. Measure the idea's own competitors with `charts` and `history` before trusting a genre row.
 
 ## 7. Snapshot 2026-11-03 (expires about 2026-12-15; re-run section 5 after that)
 
@@ -126,5 +155,5 @@ Genre share of plays 2026-08-24 to 2026-09-20 (V, dubit.io): Simulation 36.7 %, 
 
 - Read-only, low volume, cached: one run per question, results saved, never a loop or a crawler.
 - Roblox's public gateway endpoints above are undocumented; the Terms of Use allow API use only "as described in the documentation". Keep use light and manual, and never bulk-harvest descriptions or images into a model.
-- Respect third-party rules: Rolimon's asks for a 2 s crawl delay; RoTrends bars bots; RobloxGameStats disallows `/api/`; RoTerminal allows its `/api/agent/*` within the daily limit, bans bulk resale, copies of the site and limit dodging, asks for a link to roterminal.co when its numbers are shown publicly, and puts its HTML pages behind a bot check (use only the API).
+- Respect third-party rules: Rolimon's asks for a 2 s crawl delay; RoTrends bars bots; RobloxGameStats disallows `/api/`; RoTerminal allows its `/api/agent/*` within the daily limit, bans bulk resale, copies of the site and limit dodging, asks for a link to roterminal.co when its numbers are shown publicly, and puts its HTML pages behind a bot check (use only the API); RoMonitor Stats' terms bar scraping, copying its data and using it for AI products: link it for the user, never fetch it from a script.
 - Data about other creators' games is for your planning; do not copy their names, thumbnails or text (`roblox-design-and-launch` section 6).
