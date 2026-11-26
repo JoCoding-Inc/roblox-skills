@@ -1143,6 +1143,7 @@ The rules that the owner's verdicts and our test builds keep coming back to, in 
 | An always-on aura on a held item (a sword, a staff, a tool) | 3l |
 | Picking pieces for smoke, vapor, grainy points, glints or a little electricity, on an item or elsewhere | 3l, the "Ingredients" table |
 | The contacts of a strike skill (a punch or cut flurry, a heavy hit): splashes, shards, needles, flares | 3m |
+| A skill made of glowing matter: fire or plasma that churns, white-hot bursts, flares with lens lines, light and dark thrown on the floor (a ground slash, an energy ring, a burning trail) | 3n |
 | A sword cut | 3j for fast cuts, 3d for a fire slash |
 | A game that already runs and feels flat: which interactions to fix first | 1a, the feel audit |
 | A skill with camera work, a cutscene | 3c for the beats, then 3e |
@@ -1397,7 +1398,7 @@ Pieces grow from 0.78 to 1.12 of their size over their life and are cut off, not
 
 **Depth.** The painted pieces sit 0.45-0.75 studs toward the camera from the contact (the white flares 1.3): in front of the struck body, behind the striker, each kind at its own offset so that they sort the same way every time. Left on the contact they stood behind both bodies and read as a backdrop. The offset belongs to one camera and one pair of bodies: at 0.9-1.3 the splash covered the striker's arms and chest on the same stage. Set it on a recording, looking at the striker's arms.
 
-**White.** A billboard does not bloom however high its `Brightness`, so the flare is a hard white picture and the glow is a separate soft additive dot behind it. Three traps, all seen: a soft edge 14 px wide (of 256) left the flare half see-through over most of its body and it read pink on the red (5 px keeps it white); a glow dot at `Brightness` 4.5-7 read as a solid ball 3 studs across (now one dot of 1.8-2.3 studs at transparency 0.66; widened to 2.4-3.2 it was a pink disc on the red again); a wide pale glow disc behind a white star read as a sticker on a plate.
+**White.** The flare is a hard white picture with a separate soft additive dot behind it. (An earlier version of this section said a billboard never blooms; measured later, a billboard blooms once its `Brightness` is high enough: 3n, engine facts.) Three traps, all seen: a soft edge 14 px wide (of 256) left the flare half see-through over most of its body and it read pink on the red (5 px keeps it white); a glow dot at `Brightness` 4.5-7 read as a solid ball 3 studs across (now one dot of 1.8-2.3 studs at transparency 0.66; widened to 2.4-3.2 it was a pink disc on the red again); a wide pale glow disc behind a white star read as a sticker on a plate.
 
 **Engine facts** (measured in Studio Play while building):
 
@@ -1414,6 +1415,60 @@ Pieces grow from 0.78 to 1.12 of their size over their life and are cut off, not
 **Another element is its own shapes, not a palette.** The same flurry painted and tinted blue was the same explosion in blue (seen). A second builder, working only from this section and the kit, made a frost skill of the same structure by keeping the piece engine and writing a shape table first: what the body is cut like (faceted crystals in three tones with a pale cut core, where the red had lobed splashes), what replaces the burn (zigzag cracks), how the loose pieces move (splinters that fall and turn), what the impact frame does to the struck body (frozen pale, not lit). It kept the dark line, the sizes, lives and counts above, the white flares and the needle fan. Where the element's colours are the stage's (blue on a navy floor), the thin pieces go first: move them to the pale end and keep the line (seen, not judged by an owner).
 
 **Still different from the target** (fourth build): ours is hard-edged where the target is soft and blooms; our crowns have more and thinner spikes than the target's broad lobes; the light flurry's cloud is thinner than the target's haze. Not measured: cost on a phone, the piece counts under several players' skills at once.
+
+## 3n. Glowing matter: fire knots, flares and light on the floor (ground slash)
+
+A skill whose pieces are light itself: fire or plasma that churns, bursts that go white, flares with lens lines, light and dark thrown on the floor. Read 3k first, and 3c for the clock and the beat table; 3m is the sister section for drawn splashes.
+
+Evidence (2026-11-26, Studio Play on a desktop, a lab stage: a 1-stud cube on a stone floor, a camera 48 degrees above the floor at a field of view of 40, about 63 studs across the frame at the cube; Bloom intensity 1, size 24, threshold 2). A ground slash of 1.8 s (a streak, a white burst, a slash line that leaves an arc of nine fire knots, a flare, a second burst that lights the arc again, a second flare, cooling to blue) was built by hand over fifteen recorded rounds against a public showcase clip of a similar skill, read frame by frame (numbers and method only; our own pieces and textures), each round recorded at quarter speed and laid under the clip frame by frame. Seen on those recordings: layout and beat times agree, and the mean brightness of the frames follows the clip's through both bursts (first burst, five frames: ours 100, 126, 128, 116, 92 against 102, 115, 123, 119, 98; second, six frames: 100, 136, 141, 140, 129, 111 against 101, 121, 133, 125, 112, 102). Not judged by an owner yet. A smaller model that built the same skill from this guide before this section existed got the layout and the timing and fell short on every row of the table below. Only a purple palette with a blue cooling palette was built. Nothing ran on a phone or in a published game.
+
+**Ready parts.** The RoDesigner kit pack `fx` (`list_kit_packs`, `get_kit_pack`) has the engine (`SkillGlow`: every piece below as one call per frame), the painter of its pictures (`FxEnergy`), the ground slash as a worked effect to start from (`SkillGlowExamples`) and the rules with every number (`docs/SKILL-FX.md` section 9). Start by running the worked effect, then change it. Without the pack, build to what follows.
+
+**Four techniques, one job each.** Decide for every piece of the target which it is; each row is something that failed in another technique first.
+
+| The target shows | Made with | What failed in its place |
+|---|---|---|
+| Glowing matter that churns: the body of a fire knot and its white-hot inside | additive particle emitters playing a fire flipbook once, lives of 0.04-0.48 s, emitted by count | painted pictures on billboards: they cannot add light where they overlap, so a knot of them read as flat stickers, and a new random picture every two frames strobed |
+| Hard shapes and drawn edges: a glass shell round a knot, lobes with a neon outline, a white-hot mass with a hard edge, a soft heart | pictures painted in code into `EditableImage`s on `BillboardGui`s, each held 2-6 frames and crossfaded | particles alone give no drawn edge; a particle emitter drew nothing from an `EditableImage` |
+| Soft light and dark on the ground: the light under a knot, the light of a burst over the whole frame, haze, a dark void inside a ring, a scorch | flat pictures lying on the floor (a `SurfaceGui` on a thin part): a soft round glow tinted per use, a soft uneven patch, a band painted along the path | a billboard glow big enough to read as light is cut along the floor, or, moved toward the camera to clear it, lies over the pieces as haze; a `ColorCorrectionEffect` tint darkens the frame and turns every white piece to its colour |
+| Lines: a slash line, lens lines through a flare, a spike, short streaks, a faint ring | additive `Beam`s; a line that must glow is a thin white Beam on a wider, fainter coloured one | stretched particles keep square ends; a picture of a line stair-steps |
+
+**Every piece is a function of the skill clock.** Keep nothing from frame to frame except live particles: each frame, for each piece, compute from the clock t whether it exists, where, how big and how strong (eased ramps between two times), draw it from a pool, and hide what was not drawn. A piece that flickers takes its picture, turn and size from a hash of its own number and of `floor(t / hold)`, never from a random generator, so the same skill time always shows the same picture. Then a held clock shows exactly its frame (without particles: emit only while the step is above 0), and a slow recording can be laid under the target frame by frame. Fifteen rounds of that comparison were what moved the build; without it sizes and times drift by eye.
+
+**A fire knot** (one knot about 4.5 studs across, pieces per second, all from white-on-alpha textures tinted by `Color`):
+
+| Layer | Texture | Per second | Life (s) | Size (studs) | `Brightness`, `LightEmission` | Job |
+|---|---|---|---|---|---|---|
+| Body | a 4x4 fire flipbook, played once | 14 | 0.32-0.48 | 2.6 -> 3.9 | 1.8, 0.45 | the cloud in the saturated colour; half additive, so it keeps its colour over the floor |
+| Core | the same flipbook, smaller | 9 | 0.2-0.3 | 1.65 -> 2.75 | 4.2, 1 | the white-hot inside: over the Bloom threshold the bright parts burn out to white, the dark parts stay as cracks |
+| Crack nets | two crack textures | 2-2.5 each | 0.07-0.13 | 1.8 -> 3.8 | 3-3.5, 1 | lines inside for a few frames |
+| Lightning | a 2x2 crackle sheet | 3 | 0.04-0.08 | 3.4 -> 4.8 | 3.5, 1 | one flash of 2-5 frames |
+| Flecks | a 2x2 sheet of small bits | 7 | 0.16-0.34 | 2.2 -> 3.8 | 3.5, 1 | bright bits thrown out |
+| Dashes | a spark drawn along its velocity | 5 | 0.07-0.15 | 0.9 -> 0.5 | 4, 1 | thin dashes along the path |
+
+Round it: a glass shell (a see-through painted lump with a bright broken rim, 1.1 times the knot's picture, a new one every 0.1 s crossfaded), on the big knots painted lobes with a neon outline over the fire (a new one every 3 frames at half strength), and a floor light under it (2.1 times the picture, 10-40% strength). Seen failing first: a core from a second flipbook at `Brightness` 5 gave white beans; a glow emitter for the ground gave pink fog; cooling pieces at `LightEmission` 0.45 read as dark smoke (cooling matter goes lighter and fully additive).
+
+**White-hot needs three things at once.** A hard-edged mass picture at `Brightness` 6, a soft heart over it at 4-6, and a wide floor light under it. One alone read as a sticker, a fog or a pale disc. A flare is that plus a lens line (46 studs long, 0.5 wide, tilted 7 degrees, fading to both ends), a thin spike straight down the screen and two or three small ghosts along the lens line.
+
+**The light of a burst is a curve to match.** Measure the mean luma of each frame of the target's burst and of yours and compare the numbers; a burst right in shape and wrong in this curve reads wrong. The light is a floor glow wider than the frame (115-130 studs here) that rises over two frames, with only a mild tint (244, 232, 255) on top.
+
+**A dark floor under the glow.** A dark violet patch inside the arc (34 x 28 studs at 83%) and a ragged scorch band along it are what make the purple read as light. They stay 0.4-0.7 s after the fire is gone.
+
+**Uneven beats even.** The nine knots are two big and seven small with unequal gaps and unequal amounts (1, 1, 0.8, 0.55, 0.45, 0.4, 0.35, 0.3 and one that is only a shell); knots of one size at equal gaps read as beads. When the arc burns a second time each slot gets two knots closer together, hotter in colour, with less white inside, moved 1.3 studs to the inside.
+
+**Engine facts** (measured in Studio while building; the place's Bloom as above unless said):
+
+- Bloom on a `BillboardGui` depends on its `Brightness`: a white disc had no halo at 1 and a halo at 3 and 10, a red disc (255, 0, 10) a red halo at 3 and 10 (white at threshold 2 and at 1.15; red at threshold 1.15, intensity 1.15, size 40). A `ParticleEmitter`'s halo grew with `Brightness` 1, 3, 10 at `LightEmission` 1 and at 0. A `Beam` at `Brightness` 3 and 10 turned white and had no halo. A Neon ball bloomed.
+- A `ColorCorrectionEffect.TintColor` did not remove bloom and turned white pieces to the tint's colour.
+- A `ParticleEmitter` whose `TextureContent` was an `EditableImage` drew nothing, with no error; with an asset id it drew.
+- With three attachment copies per emitter (3m), a stream fed at nine places in one frame drew nearly all its pieces at the last places; with 20 copies it was even. Give an emitter as many copies as the places it serves in a frame, or hold a burst back for the next frame.
+- On an unrotated part's Top face a `SurfaceGui`'s x ran toward -Z and its y toward +X. `SurfaceGui.ZOffset` set the order of pictures lying in one plane.
+- Floor glow parts handed out in call order: a burst's light went dark for one frame when other pieces came back and its part changed (mean luma 134, 105, 139). Give every floor picture its own part for the whole effect.
+- On the floor, a line that looks vertical on screen passes through the point where the camera's up axis, drawn through the camera, meets the floor. A spike aimed along the camera's down axis sank into the floor; one aimed at the point under the camera ran diagonally.
+- A picture standing on the floor was cut by it until moved toward the camera along the line of sight by about 0.45 of its size.
+- Painted pictures show in Play and in a Play screenshot of a held clock; particles need a running clock.
+
+**Still different from the target**: its first burst has a sharper white splash; its knots read as glassy domes with more inner drawing; it has more small sparkles and lens ghosts; its flare is crisper. Cost of the worked effect, counted in Studio: about 1,040 instances (120 billboards, 70 beams, 26 floor parts, 196 emitters), at most 49 billboards, 46 beams and 15 floor pictures in use at six held times; particles alive not counted; not profiled, one cast at a time.
 
 ## 4. Lighting and atmosphere (docs)
 
