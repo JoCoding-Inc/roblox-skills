@@ -1460,6 +1460,20 @@ Round it: a glass shell (a see-through painted lump with a bright broken rim, 1.
 
 **Uneven beats even.** The nine knots are two big and seven small with unequal gaps and unequal amounts (1, 1, 0.8, 0.55, 0.45, 0.4, 0.35, 0.3 and one that is only a shell); knots of one size at equal gaps read as beads. When the arc burns a second time each slot gets two knots closer together, hotter in colour, with less white inside, moved 1.3 studs to the inside.
 
+**Matter that is not fire** (blind builds, 2026-11-26). The knot table above is fire. Three builds by a smaller model, from a description in words only, made a frost skill on the same stage (a line of cold along the floor, a row of ice knots behind its head, the row shattering white, shards and mist, frost cooling to deep blue; 1.8 s): two on the pack's engine, one on a smaller engine of its own in the same pattern. The owner called the first two fine; the third is seen on a recording only. All three kept the clock, the burst as mass, heart and floor light, the second burst as one painted picture in stages, the flares, the floor pictures and the beams, and replaced the matter:
+
+| The fire has | Their ice has |
+|---|---|
+| a knot of flipbook fire in a glass shell | a painted cluster of crystals with no fire emitters at all: prisms with straight sides and a pointed tip, each split by a ridge into a lit face and a deep face, a bright rim outside and a thin dark-blue rim just inside it (without the inner rim it read as a sticker) |
+| pictures that change every 0.1 s | growth: the cluster snaps in with a 10% overshoot in 0.045-0.08 s (one build then crossfades three growth stages over about 0.26 s); white at birth for 0.04-0.05 s through `Brightness` 6 falling to 2, or a small white mass that is cut. A white copy faded over the crystal read as grey glass |
+| the churning body and core | a small soft heart low inside, glints (a four-point spark, 0 -> 0.4-0.85 -> 0 studs, 0.08-0.16 s), crack flashes at birth (0.04-0.09 s), vapour that sinks |
+| a second burst of torn round lobes | tall splinters standing out of the whole row; round lumps read as a sausage, thin even spikes as rods |
+| loose hot bits | painted chips on thrown paths computed from the clock (up 6-13 studs/s, gravity 55-70), landing within 0.2-0.55 s, then lying flat and cooling |
+| scorch and a cold line | frost painted into floor pictures: branching lines about 0.07 studs thin with 3-5 spokes of very unequal length (6-8 even spokes read as snowflake decals), and a navy stain under the row |
+| smoke that rises | mist that sinks, emitted a few studs toward the camera so the floor does not cut its cards into a slab |
+
+Crystal pictures sat at `Brightness` 1.3-2.4 and the white masses at 6-7 (their eye, on the Bloom above); 666 and 746 instances for the two on the pack's engine. Also thrown away: fan-shaped clusters (sprouts), radial side pieces (snowflakes), a spike that reaches its picture's border (the billboard's square corner shows). Still weak: both bursts lift the whole frame (mean luma 86 -> 131 and 86 -> 151 on a daylight stage, floor lights 110-130 studs wide at 45-60%), and the cooling phase holds almost still for about 0.4 s. For another element write this table first: what the body is cut like, what replaces the churn, what the burst is made of, how the loose pieces move, what stays on the floor.
+
 **Engine facts** (measured in Studio while building; the place's Bloom as above unless said):
 
 - Bloom on a `BillboardGui` depends on its `Brightness`: a white disc had no halo at 1 and a halo at 3 and 10, a red disc (255, 0, 10) a red halo at 3 and 10 (white at threshold 2 and at 1.15; red at threshold 1.15, intensity 1.15, size 40). A `ParticleEmitter`'s halo grew with `Brightness` 1, 3, 10 at `LightEmission` 1 and at 0. A `Beam` at `Brightness` 3 and 10 turned white and had no halo. A Neon ball bloomed.
