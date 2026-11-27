@@ -1,7 +1,7 @@
 ---
 name: roblox-character-design
 description: "Use when designing how characters, creatures, enemies, bosses, robots, turrets, towers, units, pets or mounts look in a Roblox game: shape language, silhouette at play distance, size against the avatar, menace or cute, role and tier shown by shape, one style across a roster, parts for animation, triangle budgets for crowds and bosses, and which tool makes them. Also when a roster of units, towers or enemies looks alike, reads small or toy-like, or cannot be read at play distance; before generating or modeling a batch of characters; when choosing Roblox Cube, Blender or a paid image-to-3D service for creatures and robots; when enemies feel cute instead of threatening; when an upgrade tier only changes color. Motion is in roblox-character-motion, Blender export in roblox-blender-export, rarity effects in roblox-fun-effects."
-last_reviewed: 2026-11-25
+last_reviewed: 2026-11-27
 sources:
   - https://create.roblox.com/docs/studio/avatar-settings (avatar heights)
   - https://create.roblox.com/docs/reference/engine/classes/Camera (FieldOfView is vertical, default 70)
@@ -10,6 +10,7 @@ sources:
   - roblox-engine-2026 section 3 (triangle and draw-call target), roblox-blender-export sections 1 and 11 (mesh and avatar budgets)
   - J. Mitchell, M. Francke, D. Eng, "Illustrative Rendering in Team Fortress 2", NPAR 2007 (classes told apart by silhouette)
   - original field notes (a robot-turret tower defense game, 2026-11-08)
+  - https://github.com/nexu-io/opengame/tree/skills/skills/openmotion-game (Apache-2.0, commit e2239d0, read 2026-11-27): references/game-3d-animation.md, its port of the Higgsfield Websites handbook (MIT): image-to-3D input preflight; reworded, not tested by us
 ---
 
 # Character, creature and unit design
@@ -107,7 +108,7 @@ Run a bake-off before a roster: the same unit from each available tool, one same
 | Tool | Cost | Look and limits |
 |---|---|---|
 | Roblox Cube (`generate_mesh`) | No credits; at most 2 jobs at a time (`roblox-pitfalls` section 5) | Clean, a little friendly; static, up to 8 rigid parts; mild words only |
-| Paid image-to-3D service (for example Tripo; Blender MCP `generate_3d` reaches several) | Credits per model (11 per model in one run, 2026-11-08) | More detailed; dense mesh and baked texture need cleanup (`roblox-blender-export` section 9); ask first |
+| Paid image-to-3D service (for example Tripo; Blender MCP `generate_3d` reaches several) | Credits per model (11 per model in one run, 2026-11-08) | More detailed; dense mesh and baked texture need cleanup (`roblox-blender-export` section 9); ask first. Feed it one clean concept per model: a plain even background, the whole body uncropped, no shadows, text or props; for a model that will be rigged, a straight front view in A- or T-pose with the limbs apart from the body, empty hands and no cape fused to it. Never send a sheet of several panels to a single-image endpoint; split a three-view turnaround for one that takes several views (opengame `game-3d-animation`, not tested by us) |
 | Blender, skinned rig from a CC0 base mesh | Free, slow | Bending limbs, creatures that walk (`roblox-blender-export`) |
 | Blender, built from primitives by script | Free | Rejected for robots as "too weird" in one bake-off (field note, 2026-11-08); fine for exact kit pieces. Later, with a written brief and forced review passes, a scripted build hit the concept, footprint, budget and pivots of a top-tier robot where Cube had failed (field note, 2026-11-11; judged on renders, not yet in Studio or by the owner). Its flat look differs from Cube's rounded one: `roblox-blender-export` |
 | Studio `generate_avatar` or Avatar Setup | Studio tools | Humanoid R15 NPCs only; `generate_avatar` gave a realistic human look in our run (`roblox-pitfalls` section 5) |

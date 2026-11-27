@@ -1,7 +1,7 @@
 ---
 name: roblox-ui-mobile
 description: "Use when designing, building or reviewing Roblox UI for phones first, then tablet and desktop: which Device Simulator presets to test, a phone-first build order, HUD placement around the thumbstick and jump button, how a panel opens and closes (size, dim or blur, which HUD slides off, close button, grid, tabs, timing) with a tested PanelStage module, measured HUD motion (counters, coin fly-to-counter, damage numbers, HP and XP bars, button press and cooldown, toasts, badges), the on-screen keyboard, tablet, desktop, a device sweep script. Also when agents test on an old small preset such as iPhone 7 or only on desktop, a panel fills the phone screen, hides the currency or opens over the HUD, a TextBox ends under the keyboard, action buttons hit the jump button on tablets, MCP clicks miss in the Device Simulator, or a counter, cooldown, HP bar, toast or badge animation is slow, jittery or overdone. Zone px and floors stay in roblox-ui-layout; the genre look in roblox-ui-genre-studs and roblox-ui-genre-scifi."
-last_reviewed: 2026-11-22
+last_reviewed: 2026-11-27
 sources:
   - Studio 0.747 Device Simulator, measured 2026-11-12 through Studio MCP execute_luau and user_mouse_input (Play, Client datamodel) on 16 presets (safe frames, touch controls, keyboard, ViewportDisplaySize); runs of scripts/panel_stage.luau and roblox-ui-layout/scripts/ui_device_check.luau; tap pass-through measured by the RoDesigner kit build (Studio 0.747, Play, Galaxy A06 preset touch and desktop mouse, 2026-11-16; result file read by us, not re-run)
   - Roblox client scripts, PlayerModule ControlModule DynamicThumbstick (read from PlayerScripts in Studio 0.747); EmulatedDevices.xml (mirror MaximumADHD/Roblox-Client-Tracker branch roblox at b0b3ae8, Studio 0.746)
@@ -13,6 +13,7 @@ sources:
   - original (test set, recipes and thresholds marked judgment)
   - original motion reads, 2026-11-05 and 2026-11-19 (60 fps captures of five live games and 33 more UI clips, measured frame by frame; clips private, numbers and method only)
   - ParticleEmitter2D: DevForum staff post t/4996850 (Studio beta UI Particles, 2026-11-19), creator docs reference ParticleEmitter2D and ui/2D-particle-emitters (read 2026-11-20); property reads in Studio 0.748 with the beta off, and a five-effect HUD build run in Play with the beta on (2026-11-20)
+  - https://github.com/nexu-io/opengame/tree/skills/skills/openmotion-game (Apache-2.0, commit e2239d0, read 2026-11-27): references game-feel-craft and review-rubric (check the phone layout at the densest HUD state); adapted, not copied
 ---
 
 # Mobile-first UI (phone, tablet, desktop)
@@ -72,7 +73,7 @@ When to use which (judgment, from section 0):
 4. Switch to iPhone 17 Pro: the frame is 45 px wider and 43 px taller, with 62 px of notch margin on each side. Nothing should depend on reaching the screen edge.
 5. Switch to a tablet: the touch controls grow by 1.7x, and the HUD and panels follow with the tablet scale (section 6). Anything placed at a fixed px distance from the corner now sits under the jump button (section 3).
 6. Switch to desktop: touch-only buttons hide, the chat window and the player list take the top corners, panels keep their px size.
-7. Run the device sweep (section 7), then look at a capture of every state on every device.
+7. Run the device sweep (section 7), then look at a capture of every state on every device, the densest one included: every HUD element and touch button showing, the largest currency values the game can show, the longest translated strings (`roblox-ui-typography` section 7), a full inventory and stacked notifications. An empty opening frame proves little (opengame's max-density check, adapted).
 
 ## 3. HUD around the touch controls
 
@@ -620,7 +621,7 @@ apply()
 
 1. Play, then run `roblox-ui-layout/scripts/ui_device_check.luau` through `execute_luau` with datamodel Client. It switches the simulator through the six devices of section 1 and reads the live `PlayerGui`: frame sizes, HUD coverage, the centre box, buttons in the jump keep box (error), on the resting stick ring (warning) or in the start area (share), buttons under 44 px, small text, elements off the frame, backdrops that stop short of the screen edge, buttons under a notch and overlaps between ScreenGuis (the `KitTransient` attribute and the ModuleScript shortcut: `roblox-ui-layout` section 6). Run it at idle, then once with each panel open. Fix every error.
 2. Tap for real. In the simulator `user_mouse_input` is emulated touch, and it takes x in screen px and y in screen px minus the 58 px top bar: a click by `instance_path` lands the left inset to the left of the target (47 px on the Galaxy A06, 62 px on iPhone 17 Pro) and the top inset above it (0 on the A06, 20 px on iPhone 17 Pro). With `n` = the `AbsolutePosition` of a `ScreenInsets.None` ScreenGui (-47, -58 on the A06; -62, -78 on iPhone 17 Pro), pass `x = AbsolutePosition.X - n.X` and `y = AbsolutePosition.Y - n.Y - 58`. Tested 2026-11-12 on the A06 and 2026-11-13 on iPhone 17 Pro: taps sent at y 102 and 202 landed at 82 and 182, and a tap sent with the formula hit a 5 px row. A game session saw Studio MCP mouse and key input in Play flip `UserInputService.PreferredInput` to KeyboardAndMouse, after which a touch HUD on a simulated phone re-laid out as desktop: capture and sweep before any MCP input, read `PreferredInput` after one, and restart Play if it changed (field note, 2026-11-12; not reproduced here; the RoDesigner kit lint warns INPUT_NOT_TOUCH for this case from 0.1.16).
-3. `screen_capture` each device at idle and with each panel open, and look: nothing under the controls, the balance visible, the close button inside the frame.
+3. `screen_capture` each device at idle, with each panel open and in the densest state (section 2, step 7), and look: nothing under the controls, the balance visible, the close button inside the frame.
 4. Simulator traps:
    - The simulated device can carry over between Studio windows on one machine. Seen: a new window opened on the device another session had set, and listed that session's custom devices (2026-11-12); another time a new window read Default right after another window set a phone preset (one report, 2026-11-13). Whether a change reaches a window that is already open was not measured. So read `GetDeviceAsync()` before a capture, and put the device back when done.
    - Edit draws no top bar, so the frame is 58 px taller than in Play. Final numbers come from Play.

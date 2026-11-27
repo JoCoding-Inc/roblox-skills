@@ -1,7 +1,7 @@
 ---
 name: roblox-project-intake
 description: "Use FIRST when a user starts a new Roblox game, prototype, or big feature, or opens a Roblox project the agent has not worked in before. The agent checks the tools (Studio, Studio MCP, git required; Script Sync or Rojo, Blender MCP, Open Cloud key optional), guides setup, interviews the user, and writes a project brief before any design, code or asset work. Also when the request is vague ('make me a Roblox game', 'add a shop'), when Studio MCP or Blender MCP is not connected or the user asks how to set them up, when no CLAUDE.md, AGENTS.md or docs/brief.md exists in the project, when the user switches genre or target audience, or before choosing between Blender, Roblox Cube, Creator Store and Assistant for art."
-last_reviewed: 2026-11-03
+last_reviewed: 2026-11-27
 sources:
   - https://create.roblox.com/docs/production/game-design/prototyping
   - https://create.roblox.com/docs/production/game-design/core-loops
@@ -14,6 +14,7 @@ sources:
   - https://github.com/rojo-rbx/rokit (README, read 2026-11-03)
   - https://gwanggo.ai/dashboard/mcp (setup steps, read 2026-11-03)
   - original (workflow notes from shipping test games with an AI agent)
+  - https://github.com/nexu-io/opengame/tree/skills/skills/openmotion-game (Apache-2.0, commit e2239d0, read 2026-11-27): references/game-brief.md (genre read, twist and peak, hard fails, experience line, brief tags, keeping the brief honest); reworded and adapted, not copied
 ---
 
 # Project intake (do this before building)
@@ -168,7 +169,11 @@ The brief contains:
 ```
 # <Game name> brief
 Pitch: one sentence
+Experience: "The player feels ___ because the game keeps ___" (one line; playtests and captures are checked against it)
 Core loop: minute-to-minute / most-repeated action / progression engine
+Genre read: how a player knows the genre within 2 s (camera, space, UI) / the genre's own core fun / how play ends (win or lose, score, story, open play)
+Twist and peak: one rule the genre does not usually have / the one moment the game builds up to
+Hard fails: 3-5 pass/fail checks the game must never break (for example: the core action works on touch; a new player gets the first reward; no spot traps the player)
 Genre + camera + platforms + audience (content maturity target)
 Style lane + references (assets/refs/), cinematics decision, working mode (control level + agent mode)
 Play mode: solo-viable? min players to start, max players and why, target session length, friend hooks, advice accepted/rejected (design-and-launch 1a)
@@ -176,7 +181,10 @@ Art direction: style, palette, references, source per asset class (Cube / Blende
 Environment: OS, toolchain versions, MCP servers connected, dev place id, test place id, skipped tools with fallback (step 1b)
 Scope of this session: milestone + done-definition + out of scope
 Open questions and defaults assumed (D)
+Brief changes: dated lines, what changed and why
 ```
+
+Mark each line `[locked]` when the user fixed it and `[assumed]` when it is a default the agent picked (the (D) answers). Put the new idea in the twist and keep the look the genre is known by (judgment). When the build disagrees with the brief (opengame `game-brief`, adapted): a value is off -> tune the value; an `[assumed]` line proves wrong -> change it and add a `Brief changes` line; a `[locked]` line cannot be met -> stop and give the user two concrete alternatives, each with its evidence (captures, numbers).
 
 Show the brief to the user and ask for one confirmation. Then hand over to `roblox-dev-workflow`.
 
